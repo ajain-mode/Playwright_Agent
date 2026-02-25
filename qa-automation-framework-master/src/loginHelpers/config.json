@@ -1,0 +1,16 @@
+{
+  "env": {
+    "Execution_Env": "stage"
+  },
+  "urls": {
+    "btmsUrl": "https://brokerage.${env}.modetrans.com/",
+    "tmsApiBaseUrl": "https://tms.${env}.modetrans.com/sterling/",
+    "dmeUrl": "https://dme.${env}.modetrans.com/",
+    "tnxUrl": "https://marketplace.modeglobal.com/",
+    "tnxRepUrl": "https://rep.tnx.co.nz/",
+    "tritanUrl": "https://qa-tritan.mercurygate.net/",
+    "customerPortalUrl": "https://customerportal.stage.suntecktts.com/",
+    "apiUrl": "https://api.stage.modeglobal.com/",
+    "legacyCustomerPortalUrl": "https://my.${env}.suntecktts.com/login"
+  }
+}

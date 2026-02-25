@@ -1,0 +1,7 @@
+#RLT990 FROM SNKS TO 086170107 *
+1,"{BOLNumber}","A","{LoadID}","","SNKS","","",""
+7,"WENDY ROGERS","BY",""
+7,"1421011","SO",""
+7,"SUNTE-LTL","SR",""
+7,"086170107","DUN",""
+#EOT

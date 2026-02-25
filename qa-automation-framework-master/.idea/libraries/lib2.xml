@@ -1,0 +1,21 @@
+<component name="libraryTable">
+  <library name="lib2">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/plugins/xray-plugin/lib/okhttp-4.12.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/plugins/xray-plugin/lib/okio-jvm-3.6.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/plugins/xray-plugin/lib/annotations-13.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/plugins/xray-plugin/lib/kotlin-stdlib-jdk7-1.9.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/plugins/xray-plugin/lib/retrofit-2.11.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/plugins/xray-plugin/lib/converter-jackson-2.11.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/plugins/xray-plugin/lib/kotlin-stdlib-1.9.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/plugins/xray-plugin/lib/jackson-annotations-2.18.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/plugins/xray-plugin/lib/jackson-core-2.18.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/plugins/xray-plugin/lib/kotlin-stdlib-jdk8-1.9.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/plugins/xray-plugin/lib/allure-jira-commons-2.34.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/plugins/xray-plugin/lib/kotlin-stdlib-common-1.9.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/plugins/xray-plugin/lib/jackson-databind-2.18.3.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

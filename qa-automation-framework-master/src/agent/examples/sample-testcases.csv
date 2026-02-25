@@ -1,0 +1,426 @@
+Case ID,Automation Script ID,JiraId,Case,Precondition,Test Steps,Expected,Description,Tags
+25103,,,Verify that a message is displayed when a value is not entered for the Email for Notifications field on the CREATE NEW ENTRY form,"Step 1: Login to BTMS url based on environment configured in the Execution Environment key present in file config.json under src/loginHelpers.
+Step 2:  An existing BTMS agent with credentials ""<username >"" and ""<password>"" should be entered respectively in username and password fields.
+Step 3: User needs to click on Login Button.
+Step 4:  Once logged in and user is on Home Page hover the mouse over the ADMIN tab and once OFFICE SEARCH sub field is available click on it.
+Step 5: Now once user is on office search page Navigate to the Office Code Search field and enter value as TX-RED and then click on the Search button.
+Step 6: Once the data is returned click on the row.
+Step 7:  After clicking user is navigate to the office form page.
+Step 8:  On this page validate the following settings:
+Match vendors field should already be set as TNX
+Enable Digital Matching Engine field is set to YES
+if values are not matching then click on Edit button and update the Enable Digital Matching Engine field values to YES.
+After that update Match vendors field should already be set as TNX and save changes.
+Step 9: Now hover the mouse over the ADMIN tab and click on it.
+Step 10:  Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM(TX-RED)
+Step 11: Once suggestion is shown click on BRENT DURHAM (TX-RED)
+Step 12:  Once user gets switched, select Hover the mouse on HOME tab and select sub tab OFFICE CONFIG.
+Step 13: Click on POST AUTOMATION button.
+Step 14: Once user is on post automation page click on search field and enter value as BONDED CHEMICAL
+Step 15: If data is visible delete it and if not click on NEW button .
+","1. Click the New button to open the CREATE NEW ENTRY form
+2. On CREATE NEW ENTRY pop up , enter all mandatory field except Email for Notfications field.
+
+Customer Name: BONDED CHEMICAL
+
+Type: Pickup
+ShipperName/City: ALCHEM - MEDINA, OH
+State/Prov : United States
+Zip/Postal code: 44215
+
+Type:Drop
+consigneeName/City: BLEACHTECH - PETERSBURG, VA
+State/Prov : United States
+Zip/Postal code/ConsigneeZip: 23805
+
+LoadMethod/TYPE: TL
+Equipment/Equipment Type: FLATBED
+Offer Rate $: enter any numeric value
+
+3. Click the Create button","A message is displayed relating ""Enter at least one email for notifications""",,"aiteam,dfb,nontabular,postautomationrules,rulefieldvalidation"
+25104,,,Verify that a message is displayed when a value is not entered for the Email for Notifications field on the CREATE NEW ENTRY form,"Step 1: Login to BTMS url based on environment configured in the Execution Environment key present in file config.json under src/loginHelpers.
+Step 2:  An existing BTMS agent with credentials ""<username >"" and ""<password>"" should be entered respectively in username and password fields.
+Step 3: User needs to click on Login Button.
+Step 4:  Once logged in and user is on Home Page hover the mouse over the ADMIN tab and once OFFICE SEARCH sub field is available click on it.
+Step 5: Now once user is on office search page Navigate to the Office Code Search field and enter value as TX-RED and then click on the Search button.
+Step 6: Once the data is returned click on the row.
+Step 7:  After clicking user is navigate to the office form page.
+Step 8:  On this page validate the following settings:
+Match vendors field should already be set as TNX
+Enable Digital Matching Engine field is set to YES
+if values are not matching then click on Edit button and update the Enable Digital Matching Engine field values to YES.
+After that update Match vendors field should already be set as TNX and save changes.
+Step 9: Now hover the mouse over the ADMIN tab and click on it.
+Step 10:  Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM(TX-RED)
+Step 11: Once suggestion is shown click on BRENT DURHAM (TX-RED)
+Step 12:  Once user gets switched, select Hover the mouse on HOME tab and select sub tab OFFICE CONFIG.
+Step 13: Click on POST AUTOMATION button.
+Step 14: Once user is on post automation page click on search field and enter value as BONDED CHEMICAL
+Step 15: If data is visible delete it and if not click on NEW button .
+","1. Click the New button to open the CREATE NEW ENTRY form
+2. On CREATE NEW ENTRY pop up , enter all mandatory field except Email for Notfications field.
+
+Customer Name: BONDED CHEMICAL
+
+Type: Pickup
+ShipperName/City: ALCHEM - MEDINA, OH
+State/Prov : United States
+Zip/Postal code: 44215
+
+Type:Drop
+consigneeName/City: BLEACHTECH - PETERSBURG, VA
+State/Prov : United States
+Zip/Postal code/ConsigneeZip: 23805
+
+LoadMethod/TYPE: TL
+Equipment/Equipment Type: FLATBED
+Offer Rate $: enter any numeric value
+
+3. Click the Create button","A message is displayed relating ""Invalid customer supplied""",,"aiteam,dfb,nontabular,postautomationrules,rulefieldvalidation"
+25105,,,Verify that a message is displayed when a value is not entered for the Email for Notifications field on the CREATE NEW ENTRY form,"Step 1: Login to BTMS url based on environment configured in the Execution Environment key present in file config.json under src/loginHelpers.
+Step 2:  An existing BTMS agent with credentials ""<username >"" and ""<password>"" should be entered respectively in username and password fields.
+Step 3: User needs to click on Login Button.
+Step 4:  Once logged in and user is on Home Page hover the mouse over the ADMIN tab and once OFFICE SEARCH sub field is available click on it.
+Step 5: Now once user is on office search page Navigate to the Office Code Search field and enter value as TX-RED and then click on the Search button.
+Step 6: Once the data is returned click on the row.
+Step 7:  After clicking user is navigate to the office form page.
+Step 8:  On this page validate the following settings:
+Match vendors field should already be set as TNX
+Enable Digital Matching Engine field is set to YES
+if values are not matching then click on Edit button and update the Enable Digital Matching Engine field values to YES.
+After that update Match vendors field should already be set as TNX and save changes.
+Step 9: Now hover the mouse over the ADMIN tab and click on it.
+Step 10:  Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM(TX-RED)
+Step 11: Once suggestion is shown click on BRENT DURHAM (TX-RED)
+Step 12:  Once user gets switched, select Hover the mouse on HOME tab and select sub tab OFFICE CONFIG.
+Step 13: Click on POST AUTOMATION button.
+Step 14: Once user is on post automation page click on search field and enter value as BONDED CHEMICAL
+Step 15: If data is visible delete it and if not click on NEW button .
+","1. Click the New button to open the CREATE NEW ENTRY form
+2. On CREATE NEW ENTRY pop up , enter all mandatory field except Email for Notfications field.
+
+Customer Name: BONDED CHEMICAL
+
+Type: Pickup
+ShipperName/City: ALCHEM - MEDINA, OH
+State/Prov : United States
+Zip/Postal code: 44215
+
+Type:Drop
+consigneeName/City: BLEACHTECH - PETERSBURG, VA
+State/Prov : United States
+Zip/Postal code/ConsigneeZip: 23805
+
+LoadMethod/TYPE: TL
+Equipment/Equipment Type: FLATBED
+Offer Rate $: enter any numeric value
+
+3. Click the Create button","A message is displayed relating ""Invalid target rate supplied""",,"aiteam,dfb,nontabular,postautomationrules,rulefieldvalidation"
+97740,,,Automatically book a load when it is manually postedDisplay a message when an active loadboard user is not selected for the Carrier Contact for Rate Confirmation field on the load," 1.Agent is logged into BTMS in any valid environment.(http://brokerage.stage.suntecktts.com/) 
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-STK)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save
+15.Hover over the admin and click on the AGENT SEARCH
+16.Enter the value into Agent field as  FRISCO TL
+17. Click on Search Button
+18.Click on the agent profile
+19.Agent Info page is visible 
+20 .Take the from the email id field and saved it 
+21. Now hover the mouse over the ADMIN tab and click on it.
+22. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  FRISCO TL
+23.Once suggestion is shown click on FRISCO TL
+24.Once user gets switched, select Hover the mouse on HOME tab and select sub tab OFFICE CONFIG.
+25. Click on POST AUTOMATION button.
+26. Search for the customer(MillerCoors Accessorial) that going to create a load and if the rule created with that customer then delete the rule by clicking checkbox and click on delete button.
+27.Hover over the Carriers 
+28.Click on Search
+29.Enter the value into name field as ""18 king trucking llc""
+30.Click on LoadBoard tab
+31 Loadboard Status must show as Active.
+32 .Under Carrier Visibility below field  toogle should be enabled Avenger Logistics ,Mode Transportation,Sunteck Transport Co, TTS(If all of them is already enabled then skip step 33  to 35)
+33.Click on Edit 
+34.Enable the field which are not enabled  as  mention on step 26
+35 Click on save.
+36. Log into DME(https://dme.stage.modetrans.com/login)
+38. Click on Carriers.
+39. Search for the Carrier (18 king trucking llc)
+40. Ensure the carrier is Enabled with toggled ON.
+","1.Switch to BTMS application and Hover to Customers and click Search.
+2. Enter the Customer name in the ""Customer"" field (MillerCoors Accessorial)
+3. Click on ""Search"" button.
+4. Click on Customer profile.
+5. Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*
+6. In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer.
+7. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.(FRISCO TL)
+8. Select the location from the ""Shipper"" field(|COHO DIST|SANTA ROSA|CA).
+9. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+10. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
+11. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
+12. Enter the ""Earliest Time"" (Eg. 09:00)
+14. Enter the ""Latest Time"" (Eg. 09:00)
+15. Select the location from the ""Consignee"" field.(|EUCLID BEVERAGE OF NORTH AURORA|NORTH AURORA|IL)
+16. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+17. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
+18. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
+19. Enter the ""Earliest Time"" (Eg. 10:00)
+20. Enter the ""Latest Time"" (Eg. 10:00)
+21. Enter the Quantity in the ""Qty"" field (Eg. 95)
+22. Select the ""UoM"" field (Eg. Case or Cases)
+23. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+24. Enter the weight in the ""Weight"" field (Eg. 8500)
+25. Select the ""Equipment"" field as ""FLATBED""
+26. Enter the ""lenght"" field (Eg. 54)
+27. Select the ""Mileage Engine"" field as ""Current""
+28. Select the ""Method"" as ""Practical""
+29. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
+30. Click on ""Create Load"" button. 
+31.Under the load tab select Rate type as ""SPOT"" if no rate type is selected
+32. Click the ""Carrier tab"" in the ""Edit load"" page.
+33. Enter a valid value for the Offer Rate field on the load as ""2000"".
+34. Select a carrier for the Include Carriers field on the load.(Eg. 18 KING TRUCKING LLC)
+35. Check the Carrier Auto Accept checkbox.
+36. Do NOT select an active loadboard user for the Carrier Contact for Rate Confirmation field.
+37. Click the Save button on the load.
+38. A message is displayed relating ""A carrier contact for auto accept must be selected""
+39. Click OK.
+40. Select an active loadboard user for the Carrier Contact for Rate Confirmation field (Eg. Deepak.bohra@modeglobal.com)
+41. Click the Save button on the load
+42. Load is in View mode( The Email for Notifications field is auto populated with the agent's email address- validate this email id with the email stored as step 20 of preconditions
+43. Click on Carrier tab. ( Post status should be not posted)
+44. Click the Post button. (Navigate to next step once Post field status is changed from not posted to posted)
+45. Log into DME(https://dme.stage.modetrans.com/login)
+46. Click on Loads.
+47. Enter the Load number and search it.
+48. Log into TNX (https://marketplace.modeglobal.com/)
+49. Enter the Email address and Password.
+50. Click Continue.
+51. Select the Carrier from the Dropdown(18 KING TRUCKING LLC). 
+52. Click on Active Jobs.
+53 Click on the plus icon and search the load
+54. Click the load and Ensure the load is Matched and check the offer rate match with the offer rate entered at step 33 . 
+55. Click on Progress and Check the fields for providing execution notes are displayed","Ensure the Step:38
+A message is displayed relating ""A carrier contact for auto accept must be selected""
+
+Ensure after Step: 41
+The load is saved and is displayed in view mode
+- The Offer Rate field is populated with the rate entered
+- The Expiration Date field is auto populated with the value of the origin pick deadline date
+- The Expiration Time field is auto populated with the origin pick deadline time
+- The Email for Notifications field is auto populated with the agent's email address
+- The Include Carriers field has the carrier selected
+- The Carrier Auto Accept checkbox is checked
+- The Carrier Contact for Rate Confirmation field has the active loadboard user selected
+
+All fields are not editable except the Include Carriers field
+
+Ensure after Step:42
+The following DFB UI elements are displayed:
+- Post Status of the load is NOT POSTED
+- Activated Post button
+- Activated Create Rule button
+- Activated Clear Form button
+
+Ensure after step:44
+BTMS
+- The Status of the load is BOOKED
+- The Carrier selected for the Include Carriers field is assigned to the load
+- The Carrier Dispatcher Name field is auto populated with the name of the active loadboard user selected for the Carrier Contact for Rate Confirmation field
+- The Carrier Dispatcher Email field is auto populated with the email address of the active loadboard user selected for the Carrier Contact for Rate Confirmation field
+- BIDS Source
+- Avg Rate accurately updated
+- Reports accurately updated
+- Bid Results accurately updated
+- Bid History accurately updated
+- Email containing the Rate Confirmation is sent to the carrier user
+- Email notification sent to the agent(s) selected for the Email for Notifications field on the load
+
+Ensure after Step:47
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED
+
+Ensure after Step:54
+TNX
+- A load is matched for the included carrier and offer rate is also same 
+Ensure after Step:55
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip",,"aiteam,carrierautoaccept,dfb"
+97746,,,Automatically book a load when it is manually postedDisplay a message when an active loadboard user is not selected for the Carrier Contact for Rate Confirmation field on the load," 1.Agent is logged into BTMS in any valid environment.(http://brokerage.stage.suntecktts.com/) 
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-STK)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save
+15.Hover over the admin and click on the AGENT SEARCH
+16.Enter the value into Agent field as  FRISCO TL
+17. Click on Search Button
+18.Click on the agent profile
+19.Agent Info page is visible 
+20 .Take the from the email id field and saved it 
+21. Now hover the mouse over the ADMIN tab and click on it.
+22. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  FRISCO TL
+23.Once suggestion is shown click on FRISCO TL
+24.Once user gets switched, select Hover the mouse on HOME tab and select sub tab OFFICE CONFIG.
+25. Click on POST AUTOMATION button.
+26. Search for the customer(MillerCoors Accessorial) that going to create a load and if the rule created with that customer then delete the rule by clicking checkbox and click on delete button.
+27.Hover over the Carriers 
+28.Click on Search
+29.Enter the value into name field as ""18 king trucking llc""
+30.Click on LoadBoard tab
+31 Loadboard Status must show as Active.
+32 .Under Carrier Visibility below field  toogle should be enabled Avenger Logistics ,Mode Transportation,Sunteck Transport Co, TTS(If all of them is already enabled then skip step 33 to 35)
+33.Click on Edit 
+34.Enable the field which are not enabled  as  mention on step 26
+35 Click on save.
+36. Log into DME(https://dme.stage.modetrans.com/login)
+38. Click on Carriers.
+39. Search for the Carrier (18 king trucking llc)
+40. Ensure the carrier is Enabled with toggled ON.
+","1.Switch to BTMS application and Hover to Customers and click Search.
+2. Enter the Customer name in the ""Customer"" field (MillerCoors Accessorial)
+3. Click on ""Search"" button.
+4. Click on Customer profile.
+5. Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*
+6. In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer.
+7. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.(FRISCO TL)
+8. Select the location from the ""Shipper"" field(|COHO DIST|SANTA ROSA|CA).
+9. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+10. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
+11. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
+12. Enter the ""Earliest Time"" (Eg. 09:00)
+14. Enter the ""Latest Time"" (Eg. 09:00)
+15. Select the location from the ""Consignee"" field.(|EUCLID BEVERAGE OF NORTH AURORA|NORTH AURORA|IL)
+16. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+17. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
+18. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
+19. Enter the ""Earliest Time"" (Eg. 10:00)
+20. Enter the ""Latest Time"" (Eg. 10:00)
+21. Enter the Quantity in the ""Qty"" field (Eg. 95)
+22. Select the ""UoM"" field (Eg. Case or Cases)
+23. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+24. Enter the weight in the ""Weight"" field (Eg. 8500)
+25. Select the ""Equipment"" field as ""FLATBED""
+26. Enter the ""lenght"" field (Eg. 54)
+27. Select the ""Mileage Engine"" field as ""Current""
+28. Select the ""Method"" as ""Practical""
+29. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
+30. Click on ""Create Load"" button. 
+31.Under the load tab select Rate type as ""SPOT"" if no rate type is selected
+32. Click the ""Carrier tab"" in the ""Edit load"" page.
+33. Enter a valid value for the Offer Rate field on the load as ""2000"".
+34. Select a carrier for the Include Carriers field on the load.(Eg. 18 KING TRUCKING LLC)
+35. Check the Carrier Auto Accept checkbox.
+36. Do NOT select an active loadboard user for the Carrier Contact for Rate Confirmation field.
+37. Click the Save button on the load.
+38. A message is displayed relating ""A carrier contact for auto accept must be selected""
+39. Click OK.
+40. Select an active loadboard user for the Carrier Contact for Rate Confirmation field (Eg. Deepak.bohra@modeglobal.com)
+41. Click the Save button on the load
+42. Load is in View mode( The Email for Notifications field is auto populated with the agent's email address- validate this email id with the email stored as step 20 of preconditions
+43. Click on Carrier tab. ( Post status should be not posted)
+44. Click the Post button. (Navigate to next step once Post field status is changed from not posted to posted)
+45. Log into DME(https://dme.stage.modetrans.com/login)
+46. Click on Loads.
+47. Enter the Load number and search it.
+48. Log into TNX (https://marketplace.modeglobal.com/)
+49. Enter the Email address and Password.
+50. Click Continue.
+51. Select the Carrier from the Dropdown(18 KING TRUCKING LLC). 
+52. Click on Active Jobs.
+53 Click on the plus icon and search the load
+54. Click the load and Ensure the load is Matched and check the offer rate match with the offer rate entered at step 33 . 
+55. Click on Progress and Check the fields for providing execution notes are displayed","Ensure the Step:38
+A message is displayed relating ""A carrier contact for auto accept must be selected""
+
+Ensure after Step: 41
+The load is saved and is displayed in view mode
+- The Offer Rate field is populated with the rate entered
+- The Expiration Date field is auto populated with the value of the origin pick deadline date
+- The Expiration Time field is auto populated with the origin pick deadline time
+- The Email for Notifications field is auto populated with the agent's email address(Agent Info)
+- The Include Carriers field has the carrier selected
+- The Carrier Auto Accept checkbox is checked
+- The Carrier Contact for Rate Confirmation field has the active loadboard user selected
+
+All fields are not editable except the Include Carriers field
+
+Ensure after Step:42
+The following DFB UI elements are displayed:
+- Post Status of the load is NOT POSTED
+- Activated Post button
+- Activated Create Rule button
+- Activated Clear Form button
+
+Ensure after step:44
+BTMS
+- The Status of the load is BOOKED
+- The Carrier selected for the Include Carriers field is assigned to the load
+- The Carrier Dispatcher Name field is auto populated with the name of the active loadboard user selected for the Carrier Contact for Rate Confirmation field
+- The Carrier Dispatcher Email field is auto populated with the email address of the active loadboard user selected for the Carrier Contact for Rate Confirmation field
+- BIDS Source
+- Avg Rate accurately updated
+- Reports accurately updated
+- Bid Results accurately updated
+- Bid History accurately updated
+- Email containing the Rate Confirmation is sent to the carrier user
+- Email notification sent to the agent(s) selected for the Email for Notifications field on the load
+
+Ensure after Step:47
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED
+
+Ensure after Step:54
+TNX
+- A load is matched for the included carrier and offer rate is also same 
+Ensure after Step:55
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip",,"aiteam,carrierautoaccept,dfb"

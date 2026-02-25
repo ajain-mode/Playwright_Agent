@@ -1,0 +1,81 @@
+{
+  "id": "DFB-TEST-001",
+  "title": "Create a DFB load with cargo value between $100,001 and $250,000",
+  "description": "Test Case to create a non-tabular load, set cargo value, enter offer rate, and post to TNX. Verify the load is visible in DME and TNX applications.",
+  "category": "dfb",
+  "priority": "high",
+  "tags": ["@dfb", "@tporegression", "@smoke", "@cargovalue"],
+  "preconditions": [
+    "User has valid BTMS credentials",
+    "Customer exists with proper cargo value settings",
+    "Office is configured with DME enabled"
+  ],
+  "steps": [
+    {
+      "stepNumber": 1,
+      "action": "Login to BTMS system",
+      "expectedResult": "User is logged in successfully"
+    },
+    {
+      "stepNumber": 2,
+      "action": "Navigate to Admin and configure office preconditions",
+      "expectedResult": "Office settings are configured correctly"
+    },
+    {
+      "stepNumber": 3,
+      "action": "Search for customer and navigate to new load",
+      "expectedResult": "Customer is found and new load page is displayed"
+    },
+    {
+      "stepNumber": 4,
+      "action": "Create a Non-Tabular load with shipper and consignee details",
+      "expectedResult": "Load creation form is filled"
+    },
+    {
+      "stepNumber": 5,
+      "action": "Click Create Load button and verify navigation to edit load page",
+      "expectedResult": "Load is created and edit load page is displayed"
+    },
+    {
+      "stepNumber": 6,
+      "action": "Navigate to Carrier tab and enter offer rate",
+      "expectedResult": "Offer rate is entered"
+    },
+    {
+      "stepNumber": 7,
+      "action": "Select cargo value between $100,001 and $250,000",
+      "expectedResult": "Cargo value is selected"
+    },
+    {
+      "stepNumber": 8,
+      "action": "Click Post button and validate post status",
+      "expectedResult": "Load is posted successfully"
+    },
+    {
+      "stepNumber": 9,
+      "action": "Open DME application and verify load is visible",
+      "expectedResult": "Load is visible in DME"
+    },
+    {
+      "stepNumber": 10,
+      "action": "Open TNX application and verify load is visible",
+      "expectedResult": "Load is visible in TNX"
+    }
+  ],
+  "expectedResults": [
+    "Load is created successfully",
+    "Cargo value is set correctly",
+    "Load is posted to TNX",
+    "Load is visible in DME application",
+    "Load is visible in TNX application for included carriers"
+  ],
+  "testData": {
+    "customerName": "OXYCHEM ERS - EDI",
+    "officeName": "TX-RED",
+    "salesAgent": "BRENT DURHAM (TX-RED)",
+    "shipperName": "AAF International",
+    "consigneeName": "AGROPLANTAE INC",
+    "equipmentType": "FLATBED",
+    "offerRate": "2000.00"
+  }
+}

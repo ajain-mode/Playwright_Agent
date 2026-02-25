@@ -1,0 +1,76 @@
+{
+ "references": [ 
+	 {
+    "type": "unique",
+    "value": "{Reference}"
+  },
+  {
+    "type": "po",
+    "value": "PO072125"
+  },
+  {
+    "type": "pro",
+    "value": "PRO072125"
+  },
+	{
+    "type": "ship",
+    "value": "Ship072125"
+  },
+  {
+    "type": "bl",
+    "value": "BL072125"
+  }
+],
+  "shipments": [
+    {
+      "sequence": 1,
+			"items": [
+				{
+					"quantity": 1,
+					"quantityunit": "pallet",
+					"weight": 800,
+					"weightUnit": "lb",
+					"class": "60",
+					"hazmat": true
+					
+				}
+			]
+    }
+  ],
+  "stops": [
+    {
+      "sequence": 1,
+      "type": "Pickup",
+      "earliestDateTime": "{EarliestDate1}T12:00:00.000Z",
+      "latestDateTime": "{EarliestDate1}T12:00:00.000Z",
+      "address": {
+        "name": "Dale TX",
+        "addressLine1": "175 Wood Hollow Dr",
+        "city": "Dallas",
+        "state": "TX",
+        "zip": "75254",
+        "country": "USA"
+   },
+      "shipmentSequences": [
+        1
+      ]
+    },
+    {
+      "sequence": 2,
+      "type": "Drop",
+      "earliestDateTime": "{EarliestDate2}T12:00:00.000Z",
+      "latestDateTime": "{EarliestDate2}T12:00:00.000Z",
+      "address": {
+        "name": "Weatherford TX",
+        "addressLine1": "201 Kelley Dr",
+        "city": "Atlanta",
+        "state": "GA",
+        "zip": "30301",
+        "country": "USA"
+      },
+      "shipmentSequences": [
+        1
+      ]
+    }
+  ]
+}

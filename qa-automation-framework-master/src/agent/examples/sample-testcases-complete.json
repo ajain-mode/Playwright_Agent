@@ -1,0 +1,173 @@
+[
+  {
+    "id": "DFB-001",
+    "title": "Create DFB Load with High Cargo Value",
+    "description": "Create a non-tabular load with cargo value between $100,001 and $250,000",
+    "category": "dfb",
+    "priority": "high",
+    "tags": ["@dfb", "@smoke", "@regression"],
+    "preconditions": [
+      "User must be logged in",
+      "Test data configured in CSV"
+    ],
+    "steps": [
+      "Login to BTMS",
+      "Navigate to Loads",
+      "Create new non-tabular load",
+      "Enter cargo value as 150000",
+      "Save and verify load"
+    ],
+    "expectedResults": [
+      "Load should be created successfully",
+      "Cargo value should display as $150,000",
+      "Load status should be Active"
+    ],
+    "testData": {
+      "officeName": "Mode Office 1",
+      "customerName": "Test Customer",
+      "shipperName": "ABC Shipper",
+      "consigneeName": "XYZ Consignee",
+      "salesAgent": "John Doe",
+      "equipmentType": "Van",
+      "shipperZip": "10001",
+      "consigneeZip": "90210",
+      "offerRate": "1500",
+      "cargoValue": "150000"
+    }
+  },
+  {
+    "id": "DFB-002",
+    "title": "Verify TNX Post Automation",
+    "description": "Test post automation rule with carrier waterfall setup",
+    "category": "dfb",
+    "priority": "medium",
+    "tags": ["@dfb", "@automation"],
+    "steps": [
+      "Login to BTMS",
+      "Setup post automation rule",
+      "Configure carrier waterfall",
+      "Create load matching rule",
+      "Post to TNX",
+      "Verify auto-post to TNX"
+    ],
+    "expectedResults": [
+      "Post automation should trigger",
+      "Load should appear in TNX",
+      "Carrier waterfall should execute"
+    ],
+    "testData": {
+      "officeName": "Mode Office 1",
+      "customerName": "Test Customer",
+      "shipperName": "Shipper 2",
+      "consigneeName": "Consignee 2",
+      "salesAgent": "Jane Smith",
+      "equipmentType": "Flatbed",
+      "offerRate": "2000"
+    }
+  },
+  {
+    "id": "DFB-003",
+    "title": "Create Load and Verify in DME",
+    "description": "Create load and verify it appears in DME dashboard",
+    "category": "dfb",
+    "priority": "high",
+    "tags": ["@dfb", "@dme", "@regression"],
+    "steps": [
+      "Login to BTMS",
+      "Navigate to Loads",
+      "Create new non-tabular load",
+      "Save and verify load",
+      "Get load number",
+      "Verify load in DME"
+    ],
+    "expectedResults": [
+      "Load created successfully",
+      "Load appears in DME dashboard",
+      "DME status is correct"
+    ],
+    "testData": {
+      "officeName": "Mode Office 2",
+      "customerName": "Customer DME",
+      "shipperName": "DME Shipper",
+      "consigneeName": "DME Consignee",
+      "equipmentType": "Reefer",
+      "cargoValue": "200000"
+    }
+  },
+  {
+    "id": "EDI-001",
+    "title": "Process 204 Load Tender",
+    "description": "Verify EDI 204 load tender processing and 990 response",
+    "category": "edi",
+    "priority": "critical",
+    "tags": ["@edi", "@critical"],
+    "steps": [
+      "Login to BTMS",
+      "Navigate to EDI queue",
+      "Receive 204 tender via EDI",
+      "Verify tender appears in queue",
+      "Accept the tender",
+      "Verify 990 acknowledgment sent",
+      "Check load creation"
+    ],
+    "expectedResults": [
+      "204 tender should be processed",
+      "990 should be sent automatically",
+      "Load should be created from tender"
+    ],
+    "testData": {
+      "officeName": "EDI Office",
+      "customerName": "EDI Customer",
+      "tenderID": "204-12345"
+    }
+  },
+  {
+    "id": "COM-001",
+    "title": "Verify Commission Calculation",
+    "description": "Verify commission is calculated correctly for a load",
+    "category": "commission",
+    "priority": "high",
+    "tags": ["@commission", "@finance"],
+    "steps": [
+      "Login to BTMS",
+      "Navigate to Finance",
+      "Search for commission report",
+      "Verify commission amount",
+      "Check internal share calculation"
+    ],
+    "expectedResults": [
+      "Commission calculated correctly",
+      "Internal share is accurate"
+    ],
+    "testData": {
+      "officeName": "Commission Office",
+      "loadNumber": "L123456"
+    }
+  },
+  {
+    "id": "SL-001",
+    "title": "Create New Sales Lead",
+    "description": "Create a new sales lead and verify status",
+    "category": "salesLead",
+    "priority": "medium",
+    "tags": ["@salesLead", "@customer"],
+    "steps": [
+      "Login to BTMS",
+      "Navigate to Customer",
+      "Click New Sales Lead",
+      "Enter lead information",
+      "Save lead",
+      "Verify lead created"
+    ],
+    "expectedResults": [
+      "Sales lead created",
+      "Lead status is New",
+      "Lead appears in queue"
+    ],
+    "testData": {
+      "officeName": "Sales Office",
+      "leadName": "New Lead Company",
+      "contactName": "John Contact"
+    }
+  }
+]

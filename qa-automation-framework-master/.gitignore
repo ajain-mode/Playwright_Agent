@@ -1,0 +1,28 @@
+
+# Playwright
+/node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+allure-report/
+allure-results/
+results/
+logging/
+reporting/
+UIPATHREPORT/
+.vscode/
+playwright.config.ts
+tsconfig.json
+src/testmo/htmloxml.ts
+src/testmo/submitTestmoReports.ts
+src/testmo/testmo-reporter.ts
+CommissionRegression.yaml
+DFBNonTabularRegression.yaml
+DFBTabularRegression.yaml
+EDIRegression.yaml
+.env
+
+# Sensitive data
+src/data/api/customerApi/nonProdUsers.json
+src/loginHelpers/userConfig.json

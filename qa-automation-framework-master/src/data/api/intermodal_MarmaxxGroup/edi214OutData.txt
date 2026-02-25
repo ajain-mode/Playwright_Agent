@@ -1,0 +1,17 @@
+#SHIPMENTS FROM TODL TO 5084758255  *
+1,"{LoadID}","{BOLNumber}","CC","52122","4","722.8","{BOLNumber}","{BOLNumber}","","","TODL"
+1A,"1","NS"
+1A,"","MTNS"
+2,"SH","HOME ESSENTIALS AND BEYOND INC","NJ","JERSEY CITY","07305","200 THEODORE CONRAD DRIVE","92","06V0006110","","US"
+2,"CN","BROWNSBURG DC","IN","BROWNSBURG","46112","850 EAST NORTHFIELD DRIVE","92","28W0887A","","US"
+3,"01","CO","{containerCode}{trailerNumber}","52122","4","","JERSEY CITY","NJ","US"
+4,"AA","{Today}","{Time}","LT","","JERSEY CITY","NJ","US","40.69600000","-74.08530000"
+5,"0404145","N","0740507","W","40","41","45","N","74","5","7","W"
+6,"","4"
+7,"{BOLNumber}","BM","BOL from B2-04"
+7,"28V1257","DUN",""
+3,"02","CO","{containerCode}{trailerNumber}","52122","4","","BROWNSBURG","IN","US"
+6,"","4"
+7,"{BOLNumber}","BM","BOL from B2-04"
+7,"28V1257","DUN",""
+#EOT

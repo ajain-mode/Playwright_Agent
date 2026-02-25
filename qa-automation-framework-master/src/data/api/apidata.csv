@@ -1,0 +1,4 @@
+Test Script ID,customerName,podDocLink,bolDocLink,pickCity,pickState,pickZip,pickCountry,dropCity,dropState,dropZip,dropCountry,carrierName
+API-72236,Logo Chair,"""https://intelys.stage.modeglobal.com/fats/docs.php?dtoken=a1782c77258a4431b6fc6a0aa5cf9c25""","""https://intelys.stage.modeglobal.com/fats/docs.php?dtoken=a1782c77258a4431b6fc6a0aa5cf9c25""",,,,,,,,,
+API-72235,Logo Chair,"""https://intelys.stage.modeglobal.com/fats/docs.php?dtoken=a1782c77258a4431b6fc6a0aa5cf9c25""","""https://intelys.stage.modeglobal.com/fats/docs.php?dtoken=a1782c77258a4431b6fc6a0aa5cf9c25""",Dallas,TX,"""75254""",USA,Matthews,NC,"""28105""",USA,
+API-72232,,,,,,,,,,,,Fedex Economy

@@ -1,0 +1,18 @@
+#RAILBILL FROM STKT TO CSXT *
+1,"ORIG","{LoadID}","{Today}","{Time}","{Today}","{Time}","1","17374","NH-WTG","{containerCode}{trailerNumber}","53"
+1A,"0","TC"
+1A,"","SN"
+2,"BN","MARMAXX GROUP","770 COCHITUATE RD","FRAMINGHAM","MA","01701","US","","","CAROL BEAUMONT","508-390-5575","508-390-5360",""
+2,"CN","BROWNSBURG DC","850 EAST NORTHFIELD DRIVE","BROWNSBURG","IN","46112","US","28W0887A","92","Michal Thurman","317-858-6863","","ML-BBurg_Trans@tjx.com"
+2,"SH","HOME ESSENTIALS AND BEYOND INC","200 THEODORE CONRAD DRIVE","JERSEY CITY","NJ","07305","US","06V0006110","92","OPERATIONS","732-590-3600","","SHIPPING@HOMEESS.COM"
+2,"NP","JB HUNT TRANSPORT, INC DBA JB HUNT","1200 NEW JERSEY AVE SE","WASHINGTON","DC","20590","US","","","","4793617651","4798201973","osdcargo@jbhunt.com"
+3,"NORTH BERGEN","NJ","INDIANAPOLIS","IN","CSXT","","","","","","","","","RR","25","COFC","SPQ","NO"
+4,"FAK","4611110","","1","17374","CONTAINER","","","","","","","","0","","","ALL OTHER CARLOADS","",""
+5,"{BOLNumber}","PO","PO Number"
+5,"{BOLNumber}","BOL","BOL Number"
+5,"IM_V","SHIP","Ship Number"
+5,"{BOLNumber}","CR","Cust Ref Number"
+5,"","RSV","Gate Reservation Number"
+5,"","BN","Booking Number"
+5,"","EQP","Equipment Reservation Number"
+#EOT

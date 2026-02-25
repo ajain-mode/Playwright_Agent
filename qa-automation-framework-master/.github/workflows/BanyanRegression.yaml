@@ -1,0 +1,127 @@
+name: Banyan Regression Tests
+
+on: 
+  workflow_dispatch:
+    inputs:
+       environment:
+          description: 'Select Environment to run'
+          required: true
+          default: 'pit'
+          type: choice
+          options:
+              - pit
+              - stage
+              - both
+       report-integration:
+            description: 'Select Testmo Project'
+            required: true
+            default: 'Test Project'
+            type: choice
+            options:
+              - Test Project
+              - Mode QA    
+
+  schedule:
+    - cron: '00 6 * * *'  # 6:00 AM UTC - PIT & STAGE env
+
+jobs:
+  determine-env:
+    runs-on: ubuntu-latest
+    outputs:
+      run_pit: ${{ steps.check.outputs.run_pit }}
+      run_stage: ${{ steps.check.outputs.run_stage }}
+    steps:
+      - id: check
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            ENV="${{ github.event.inputs.environment }}"
+            [[ "$ENV" == "pit" || "$ENV" == "both" ]] && echo "run_pit=true" >> $GITHUB_OUTPUT || echo "run_pit=false" >> $GITHUB_OUTPUT
+            [[ "$ENV" == "stage" || "$ENV" == "both" ]] && echo "run_stage=true" >> $GITHUB_OUTPUT || echo "run_stage=false" >> $GITHUB_OUTPUT
+          else
+            echo "run_pit=true" >> $GITHUB_OUTPUT
+            echo "run_stage=true" >> $GITHUB_OUTPUT
+          fi
+
+  tests-pit:
+    needs: determine-env
+    if: needs.determine-env.outputs.run_pit == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+     - name: Checkout repository
+       uses: actions/checkout@v2
+       with:
+         ref: master
+
+     -  name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: lts/*
+
+     -  name: Install dependencies
+        run: npm install
+        
+     -  name: Install Playwright browsers
+        run: npx playwright install chrome --with-deps
+        
+     -  name: Run Playwright tests
+        run: npx playwright test --grep "@tporegression.*@p44"
+        env:
+          TEST_MODULE: Banyan
+          RUN_NAME: Banyan
+          POSTMARK_API_KEY: ${{ secrets.POSTMARK_API_KEY }}
+          SVC_USER: ${{ secrets.SVC_USER }}
+          TESTMO_TOKEN: ${{ secrets.TESTMO_TOKEN }}
+          source: ${{ github.event_name == 'schedule' && 'Scheduled' || 'Manual' }}
+          EXECUTION_ENV: pit
+          REPORT_INTEGRATION: ${{ github.event_name == 'schedule' && 'Mode QA' || github.event.inputs.report-integration }}
+          
+     -  name: Upload Playwright Test Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-pit
+          path: src/reporting/playwright-report/
+          retention-days: 30
+
+  tests-stage:
+    needs: determine-env
+    if: needs.determine-env.outputs.run_stage == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: master
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Install Playwright browsers
+        run: npx playwright install chrome --with-deps
+        
+      - name: Run Playwright tests
+        run: npx playwright test --grep "@tporegression.*@p44"
+        env:
+          TEST_MODULE: Banyan
+          RUN_NAME: Banyan
+          POSTMARK_API_KEY: ${{ secrets.POSTMARK_API_KEY }}
+          SVC_USER: ${{ secrets.SVC_USER }}
+          TESTMO_TOKEN: ${{ secrets.TESTMO_TOKEN }}
+          source: ${{ github.event_name == 'schedule' && 'Scheduled' || 'Manual' }}
+          EXECUTION_ENV: stage
+          REPORT_INTEGRATION: ${{ github.event_name == 'schedule' && 'Mode QA' || github.event.inputs.report-integration }}
+          
+      - name: Upload Playwright Test Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-stage
+          path: src/reporting/playwright-report/
+          retention-days: 30

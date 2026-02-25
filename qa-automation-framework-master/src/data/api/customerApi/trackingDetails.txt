@@ -1,0 +1,23 @@
+{
+  status: 'Pending',
+  lastEventDate: null,
+  lastEventDetail: 'N/A',
+  lastEventLocation: 'N/A',
+  events: [],
+  stops: [
+    {
+      sequence: 1,
+      type: 'Pickup',
+      earliestDateTime: '{EarliestDate1}T12:00:00Z',
+      latestDateTime: '{EarliestDate1}T22:00:00Z',
+      address: [Object]
+    },
+    {
+      sequence: 2,
+      type: 'Drop',
+      earliestDateTime: '{EarliestDate2}T12:00:00Z',
+      latestDateTime: '{EarliestDate2}T22:00:00Z',
+      address: [Object]
+    }
+  ]
+}

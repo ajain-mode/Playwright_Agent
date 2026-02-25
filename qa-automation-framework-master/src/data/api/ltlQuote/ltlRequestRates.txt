@@ -1,0 +1,46 @@
+{
+  "shipments": [
+    {
+      "sequence": 1,
+      "items": [
+        {
+          "quantity": 5,
+          "quantityUnit": "carton",
+          "weight": 800,
+          "weightUnit": "lb",
+          "class": "60"
+        }
+      ]
+    }
+  ],
+  "stops": [
+    {
+      "sequence": 1,
+      "type": "Pickup",
+      "earliestDateTime": "{EarliestDateTime1}",
+      "latestDateTime": "{EarliestDateTime1}",
+      "actualDateTime": "{EarliestDateTime1}",
+      "address": {
+        "city": "Dallas",
+				"state": "TX",
+        "zip": "75254",
+        "country": "USA"
+      },
+      "shipmentSequences": [1]
+    },
+    {
+      "sequence": 2,
+      "type": "Drop",
+      "earliestDateTime": "{EarliestDateTime2}",
+      "latestDateTime": "{EarliestDateTime2}",
+      "actualDateTime": "{EarliestDateTime2}",
+      "address": {
+        "city": "Matthews",
+        "state": "NC",
+        "zip": "28105",
+        "country": "USA"
+      },
+      "shipmentSequences": [1]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+Test Case ID: DFB-TEST-002
+Title: Manually post a TNX load with cargo value verification
+
+Description:
+Create a new TL load from the customer portal, configure the cargo value settings, 
+enter the offer rate, select include carriers, and post the load to TNX. 
+Verify the load appears correctly in both DME and TNX applications.
+
+Category: DFB
+Tags: @dfb, @tnx, @smoke
+
+Preconditions:
+- Valid user credentials for BTMS
+- Customer with cargo value configuration enabled
+- Office configured with DME toggle enabled
+
+Steps:
+1. Login to BTMS using valid credentials
+2. Navigate to Admin > Office Search and configure office preconditions
+3. Switch user to the sales agent
+4. Navigate to Customers > Search and find the customer
+5. Verify customer cargo value settings
+6. Navigate to New Load - TL
+7. Create a non-tabular load with shipper and consignee information
+8. Click Create Load button
+9. Verify Edit Load page is displayed
+10. Navigate to Carrier tab
+11. Enter offer rate of $2000.00
+12. Select include carriers
+13. Click Save button
+14. Verify view load page is displayed
+15. Click Post button
+16. Validate post status shows POSTED
+17. Switch to DME application
+18. Search for the load by load number
+19. Verify load is visible in DME
+20. Switch to TNX application
+21. Search for the load
+22. Verify load is available for the included carriers
+
+Expected Results:
+- Load should be created successfully with correct load number
+- Cargo value should be displayed correctly
+- Post status should change to POSTED
+- Load should be visible in DME with correct status
+- Load should be visible in TNX for included carriers
+- Load should NOT be visible for excluded carriers

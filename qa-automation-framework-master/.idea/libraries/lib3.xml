@@ -1,0 +1,59 @@
+<component name="libraryTable">
+  <library name="lib3">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/commons-logging-1.3.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/jackson-module-jaxb-annotations-2.18.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/logback-classic-1.3.15.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/jaxb-api-2.3.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/allure1-model-1.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/commons-collections-3.2.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/flexmark-util-visitor-0.62.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/flexmark-0.62.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/jackson-dataformat-yaml-2.18.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/allure-plugin-api-2.34.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/flexmark-util-html-0.62.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/jakarta.activation-api-1.2.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/flexmark-util-dependency-0.62.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/commons-codec-1.11.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/opencsv-5.9.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/snakeyaml-2.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/allure-generator-2.34.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/logback-core-1.3.15.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/allure-model-2.29.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/jackson-core-2.18.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/flexmark-util-ast-0.62.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/jackson-annotations-2.18.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/jackson-databind-2.18.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/flexmark-util-format-0.62.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/jcommander-1.82.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/httpclient-4.5.14.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/flexmark-util-options-0.62.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/tika-core-2.9.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/flexmark-util-collection-0.62.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/jaxb-utils-1.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/properties-2.0.RC5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/flexmark-ext-tables-0.62.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/woodstox-core-7.0.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/stax2-api-4.2.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/commons-lang3-3.17.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/slf4j-api-2.0.17.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/javax.activation-api-1.2.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/flexmark-util-data-0.62.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/annotations-15.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/httpcore-4.4.16.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/commons-beanutils-1.10.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/commons-io-2.18.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/flexmark-util-builder-0.62.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/flexmark-util-misc-0.62.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/jackson-dataformat-xml-2.18.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/freemarker-2.3.34.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/allure-commandline-2.34.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/commons-collections4-4.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/flexmark-util-0.62.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/commons-text-1.11.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/node_modules/allure-commandline/dist/lib/flexmark-util-sequence-0.62.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -1,0 +1,97 @@
+{
+  "references": [
+    {
+      "type": "unique",
+      "value": "{Reference}"
+    }
+  ],
+  "specialInstructions": "N/A",
+  "shipments": [
+    {
+      "sequence": 1,
+      "items": [
+        {
+          "sequence": 1,
+          "quantity": 1,
+          "quantityUnit": "pallet",
+					"description": "Door Crate NMFC 19940-01",
+          "weight": 200,
+          "weightUnit": "lb",
+          "class": "60",
+          "dimensions": {
+            "width": 8,
+            "length": 10,
+            "height": 6,
+            "unit": "ft"
+          }
+				}	
+      ]
+    }
+  ],
+  "stops": [
+    {
+      "sequence": 1,
+      "type": "Pickup",
+      "earliestDateTime": "{EarliestDate1}T12:00:00.000Z",
+      "latestDateTime": "{EarliestDate1}T22:00:00.000Z",
+      "address": {
+        "name": "Dale TX",
+        "addressLine1": "175 Wood Hollow Dr",
+        "city": "Dale",
+        "state": "TX",
+        "zip": "78616",
+        "country": "USA",
+        "contacts": [
+          {
+            "name": "John Smith",
+            "methods": [
+              {
+                "type": "Phone",
+                "value": "(512) 601-2054"
+              },
+              {
+                "type": "Email",
+                "value": "john@example.com"
+              }
+            ]
+          }
+        ]
+      },
+      "shipmentSequences": [
+        1
+      ]
+    },
+    {
+      "sequence": 2,
+      "type": "Drop",
+      "earliestDateTime": "{EarliestDate2}T12:00:00.000Z",
+      "latestDateTime": "{EarliestDate2}T22:00:00.000Z",
+      "address": {
+        "name": "Weatherford TX",
+        "addressLine1": "201 Kelley Dr",
+        "city": "Weatherford",
+        "state": "TX",
+        "zip": "76085",
+        "country": "USA",
+        "contacts": [
+          {
+            "name": "Jane Smith",
+            "methods": [
+              {
+                "type": "Phone",
+                "value": "(817) 677-3655"
+              },
+              {
+                "type": "Email",
+                "value": "jane@example.com"
+              }
+            ]
+          }
+        ]
+      },
+      "shipmentSequences": [
+        1
+      ]
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+name: DFB Regression Tests
+on:
+  workflow_dispatch:
+    inputs:
+      test_suites:
+        description: 'Select test suites to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - DFB_Includecarrier
+          - DFB_Waterfall-manualposting
+          - DFB_Waterfall-autoposting
+          - DFB_FieldValidation
+          - DFB_Greenscreen
+          - DFB_Matchbid
+          - DFB_Waterfall-manualposting-OfferRateOn
+          - DFB_Waterfall-autoposting-OfferRateOn
+          - DFB_Bidding
+          - DFB_CargoValue
+          - DFB_CarrierAutoAccept
+          - DFB_PostAutomationRule
+         
+      environment:
+        description: 'Select Environment to run'
+        required: true
+        default: 'stage'
+        type: choice
+        options:
+          - pit
+          - stage
+      report-integration:
+          description: 'Select Testmo Project'
+          required: true
+          default: 'Test Project'
+          type: choice
+          options:
+            - Test Project
+            - Mode QA      
+  schedule:          
+    - cron: '00 5 * * *'  # 11:00 AM IST (UTC+5:30) = 5:00 AM UTC -> 12:30 AM EST
+  # push:
+  #   branches:
+  #     - master
+jobs:
+  determine-suites:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Determine test suites to run
+        id: set-matrix
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${{ github.event.inputs.test_suites }}" != "all" ]; then
+            echo "matrix={\"test-suite\":[{\"name\":\"${{ github.event.inputs.test_suites }}\",\"grep\":\"${{ env[format('{0}_{1}', 'GREP', github.event.inputs.test_suites)] }}\"}]}" >> $GITHUB_OUTPUT
+          else
+            echo "matrix={\"test-suite\":[{\"name\":\"DFB_Includecarrier\",\"grep\":\"^(?=.*@includecarrier)\"},{\"name\":\"DFB_Waterfall-manualposting\",\"grep\":\"^(?=.*@waterfall)(?=.*@manualposting)\"},{\"name\":\"DFB_Waterfall-autoposting\",\"grep\":\"^(?=.*@waterfall)(?=.*@autoposting)\"},{\"name\":\"DFB_FieldValidation\",\"grep\":\"^(?=.*@fieldvalidation)\"},{\"name\":\"DFB_Greenscreen\",\"grep\":\"^(?=.*@greenscreen)\"},{\"name\":\"DFB_Matchbid\",\"grep\":\"^(?=.*@matchbid)\"},{\"name\":\"DFB_Waterfall-manualposting-OfferRateOn\",\"grep\":\"^(?=.*@offerrateonwaterfall)(?=.*@manualposting)\"},{\"name\":\"DFB_Waterfall-autoposting-OfferRateOn\",\"grep\":\"^(?=.*@offerrateonwaterfall)(?=.*@autoposting)\"},{\"name\":\"DFB_Bidding\",\"grep\":\"^(?=.*@bidding)\"},{\"name\":\"DFB_CargoValue\",\"grep\":\"^(?=.*@cargovalue)\"},{\"name\":\"DFB_CarrierAutoAccept\",\"grep\":\"^(?=.*@carrierautoaccept)\"},{\"name\":\"DFB_PostAutomationRule\",\"grep\":\"^(?=.*@postautomationrule)\"}]}" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GREP_DFB_Includecarrier: "^(?=.*@includecarrier)"
+          GREP_DFB_Waterfall-manualposting: "^(?=.*@waterfall)(?=.*@manualposting)"
+          GREP_DFB_Waterfall-autoposting: "^(?=.*@waterfall)(?=.*@autoposting)"
+          GREP_DFB_FieldValidation: "^(?=.*@fieldvalidation)"
+          GREP_DFB_Greenscreen: "^(?=.*@greenscreen)"
+          GREP_DFB_Matchbid: "^(?=.*@matchbid)"
+          GREP_DFB_Waterfall-manualposting-OfferRateOn: "^(?=.*@offerrateonwaterfall)(?=.*@manualposting)"
+          GREP_DFB_Waterfall-autoposting-OfferRateOn: "^(?=.*@offerrateonwaterfall)(?=.*@autoposting)"
+          GREP_DFB_Bidding: "^(?=.*@bidding)"
+          GREP_DFB_CargoValue: "^(?=.*@cargovalue)"
+          GREP_DFB_CarrierAutoAccept: "^(?=.*@carrierautoaccept)"
+          GREP_DFB_PostAutomationRule: "^(?=.*@postautomationrule)"
+ 
+  tests:
+    needs: determine-suites
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # <- keep other matrix legs running if one fails
+      matrix: ${{ fromJson(needs.determine-suites.outputs.matrix) }}
+    # Provide Repo Access            
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: master                   # create and use a dedicated branch for DFB tests
+ 
+      # Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: lts/*
+      # Install dependencies
+      - name: Install dependencies
+        run: npm install
+      - name: Install Playwright browsers
+        run: npx playwright install chrome --with-deps
+      # Test Execution Step
+      - name: Run Playwright Tests - ${{ matrix.test-suite.name }}
+        run: npx playwright test --grep "${{ matrix.test-suite.grep }}"
+        # Define Environment Variables
+        env:
+          TEST_MODULE: DFB
+          POSTMARK_API_KEY: ${{ secrets.POSTMARK_API_KEY }}
+          SVC_USER: ${{ secrets.SVC_USER }}
+          TESTMO_TOKEN: ${{ secrets.TESTMO_TOKEN }}
+          RUN_NAME: ${{ matrix.test-suite.name }}
+          TEST_TAGS: ${{ matrix.test-suite.grep }}
+          source: ${{ (github.event_name == 'schedule' && 'Scheduled') || (github.event_name == 'workflow_dispatch' && 'Manual') || 'Local' }}
+          EXECUTION_ENV: ${{ github.event_name == 'schedule' && 'stage' || github.event.inputs.environment }}
+          REPORT_INTEGRATION: ${{ github.event_name == 'schedule' && 'Mode QA' || github.event.inputs.report-integration }}
+      # Report Upload Steps
+      - name: Upload Playwright Test Report - ${{ matrix.test-suite.name }}
+        uses: actions/upload-artifact@v4
+        if: always()  # Upload report even if tests fail
+        with:
+          name: playwright-report-${{ matrix.test-suite.name }}
+          path: src/reporting/playwright-report/
+          retention-days: 30

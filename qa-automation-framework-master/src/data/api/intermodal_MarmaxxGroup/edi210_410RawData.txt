@@ -1,0 +1,96 @@
+{
+    "CarrierInvoices": {
+        "Invoice": {
+            "SourceSystem": "",
+            "CarrierName": "{CarrierName}",
+            "CarrierId": "{CarrierId}",
+            "InvoiceDate": "{Today}",
+            "InvoiceNumber": "{InvoiceNumber}",
+            "InvoiceTotal": "700.50",
+            "LoadId": "{LoadId}",
+            "EquipmentNumber": "100",
+			"BillToName": "GABRIELLA WHITE/ MODE TRANSPORTATION (877024)",
+			"BillToAddress": "GABRIELLA WHITE",
+			"BillToCity": "COLUMBUS",
+			"BillToState": "GA",
+			"BillToZip": "31904",
+            "PlannedFreight": "true",
+            "ReferenceNumbers": {
+                "ReferenceNumber": [
+                    {
+                        "Qualifier": "TH",
+                        "Value": "TRITAN"
+                    },
+                    {
+                        "Qualifier": "11",
+                        "Value": "ETSPL1"
+                    },
+                    {
+                        "Qualifier": "DO",
+                        "Value": "9133102"
+                    },
+                    {
+                        "Qualifier": "YY",
+                        "Value": "Y"
+                    },
+                    {
+                        "Qualifier": "111",
+                        "Value": "ETSPL1"
+                    },
+                    {
+                        "Qualifier": "OCD",
+                        "Value": "99"
+                    },
+                    {
+                        "Qualifier": "SQ",
+                        "Value": "80886152"
+                    }
+                ]
+            },
+            "Charges": {
+                "Charge": [
+                    {
+                        "Description": "MINIMUM CHARGE",
+                        "FeeCode": "MIN",
+                        "Quantity": "1",
+                        "Rate": "140.10",
+                        "RateCode": "FR",
+                        "Total": "140.10"
+                    },
+                    {
+                        "Description": "HIGH COST SERVICE AREA (FLAT C",
+                        "FeeCode": "MSG",
+                        "Quantity": "1",
+                        "Rate": "140.10",
+                        "RateCode": "FR",
+                        "Total": "140.10"
+                    },
+                    {
+                        "Description": "PEAK DEMAND SURCHARGE (PERCENT",
+                        "FeeCode": "PDS",
+                        "Quantity": "1",
+                        "Rate": "140.10",
+                        "RateCode": "FR",
+                        "Total": "140.10"
+                    },
+                    {
+                        "Description": "FUEL ADJUSTMENT",
+                        "FeeCode": "FUE",
+                        "Quantity": "1",
+                        "Rate": "140.10",
+                        "RateCode": "FR",
+                        "Total": "140.10"
+                    },
+                    {
+                        "Description": "LUMPER FEES (KGL1)",
+                        "FeeCode": "UNL",
+                        "Quantity": "1",
+                        "Rate": "140.10",
+                        "RateCode": "FR",
+                        "Total": "140.10"
+                    }
+                ]
+            }
+        }
+    }
+}

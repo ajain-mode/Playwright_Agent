@@ -1,0 +1,47 @@
+{
+  "reference": "{Reference}",
+  "quoteId": "{QuoteId}",
+  "priceSheetId": "{PriceSheetId}",
+  "shipments": [
+    {
+      "sequence": 1,
+			"items": [
+				{
+					"quantity": 5,
+                    "quantityUnit": "carton",
+                    "weight": 800,
+                    "weightUnit": "lb",
+                    "class": "60"
+				}
+			]
+    }
+  ],
+  "stops": [
+    {
+      "sequence": 1,
+      "type": "Pickup",
+      "earliestDateTime": "{EarliestDate1}T13:00:00.000Z",
+      "latestDateTime": "{EarliestDate1}T13:00:00.000Z",
+     "address": {
+        "city": "Dallas",
+        "state": "TX",
+        "zip": "75254",
+        "country": "USA"
+      },
+      "shipmentSequences": [1]
+    },
+    {
+      "sequence": 2,
+      "type": "Drop",
+      "earliestDateTime": "{EarliestDate2}T15:00:00.000Z",
+      "latestDateTime": "{EarliestDate2}T15:00:00.000Z",
+     "address": {
+        "city": "Matthews",
+        "state": "NC",
+        "zip": "28105",
+        "country": "USA"
+      },
+      "shipmentSequences": [1]
+    }
+  ]
+}

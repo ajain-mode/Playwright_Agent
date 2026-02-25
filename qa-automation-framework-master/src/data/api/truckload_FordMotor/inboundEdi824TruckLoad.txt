@@ -1,0 +1,12 @@
+ISA*00*          *00*          *ZZ*PSKL             *02*AVGD           *230220*1110*U*00200*039432081*0*P*>~
+GS*AG*PSKL*AVGD*20230220*1108*94474*X*005010~
+ST*824*{BOLNumber}~
+BGN*00*00000000001*20240320*04390000*ET~
+OTI*TR*CN*{LoadID}***20240320*04390000*4849690*0001*214~
+REF*SI*{BOLNumber}~
+REF*01*Customer824~
+TED*848*Load ID {BOLNumber} stop 1         combi~
+TED*848*nation was not found in the system.~
+SE*7*{BOLNumber}~
+GE*1*94474~
+IEA*1*039432081~

@@ -1,0 +1,6 @@
+#RLT990 FROM TODL TO 5084758255  *
+1,"{BOLNumber}","A","{LoadID}","","TODL","","",""
+7,"IM_V","MCI",""
+7,"{BOLNumber}","BM","BOL from B2-04"
+7,"28V1257","DUN",""
+#EOT

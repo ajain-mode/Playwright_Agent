@@ -1,0 +1,5 @@
+#RLT990 FROM AVGD TO 990_TRASHCAN *
+1,"{BOLNumber}","A","{LoadID}","","AVGD","","{Tomorrow}","0845"
+7,"{BOLNumber}","RN",""
+7,"{BOLNumber}","CR",""
+#EOT

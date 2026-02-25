@@ -1,0 +1,47 @@
+{
+  "name": "suntecktmsplaywrightframework",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "clean:allure": "rimraf ./src/reporting/allure-results/ ./src/reporting/allure-report/",
+    "test:allure": "npm run clean:allure && playwright test && allure generate --single-file ./src/reporting/allure-results --clean -o ./src/reporting/allure-report && allure open ./src/reporting/allure-report",
+    "submit:testmo": "npx ts-node src/testmo/submitTestmoReports.ts",
+    "agent": "npx ts-node -r tsconfig-paths/register src/agent/run-agent.ts",
+    "agent:cli": "npx ts-node -r tsconfig-paths/register src/agent/run-agent.ts --cli",
+    "agent:file": "npx ts-node -r tsconfig-paths/register src/agent/run-agent.ts --file",
+    "agent:generate": "npx ts-node -r tsconfig-paths/register src/agent/run-agent.ts --generate",
+    "agent:preview": "npx ts-node -r tsconfig-paths/register src/agent/run-agent.ts --preview",
+    "agent:analyze": "npx ts-node -r tsconfig-paths/register src/agent/run-agent.ts --analyze",
+    "agent:batch": "npx ts-node -r tsconfig-paths/register src/agent/run-agent.ts --batch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@testmo/testmo-cli": "^1.4.4",
+    "@types/node": "^25.0.10",
+    "@types/pdfjs-dist": "^2.10.377",
+    "@types/postmark": "^2.0.3",
+    "allure-commandline": "^2.34.0",
+    "allure-playwright": "^3.2.2",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "github:dotenvx/dotenvx",
+    "@types/nodemailer": "^7.0.1",
+    "axios": "^1.10.0",
+    "csv-parser": "^3.2.0",
+    "fast-xml-parser": "^5.3.2",
+    "moment-timezone": "^0.6.0",
+    "nodemailer": "^7.0.5",
+    "pdf-parse": "^1.1.1",
+    "pdfjs-dist": "^5.4.449",
+    "postmark": "^4.0.5",
+    "winston": "^3.17.0",
+    "xlsx": "^0.18.5"
+  }
+}
