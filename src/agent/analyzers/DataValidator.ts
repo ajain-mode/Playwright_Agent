@@ -94,13 +94,14 @@ export class DataValidator {
       },
 
       loadMethod: {
-        allowedValues: ['TruckLoad', 'TL', 'LTL', 'Intermodal', 'Partial'],
+        allowedValues: ['TL', 'LTL', 'Intermodal', 'Partial'],
         aliases: {
-          'truckload': 'TruckLoad',
-          'truck load': 'TruckLoad',
-          'ftl': 'TruckLoad',
-          'full truckload': 'TruckLoad',
-          'full truck load': 'TruckLoad',
+          'truckload': 'TL',
+          'truck load': 'TL',
+          'ftl': 'TL',
+          'full truckload': 'TL',
+          'full truck load': 'TL',
+          'tl': 'TL',
           'less than truckload': 'LTL',
           'less than truck load': 'LTL',
         },

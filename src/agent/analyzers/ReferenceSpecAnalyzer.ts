@@ -59,6 +59,10 @@ const REFERENCE_SPECS: Record<string, string[]> = {
     'src/tests/generated/dfb/DFB-97739.spec.ts',
     'src/tests/generated/dfb/DFB-97741.spec.ts',
   ],
+  billingtoggle: [
+    'src/tests/generated/dfb/DFB-97739.spec.ts',
+    'src/tests/generated/billingtoggle/BT-67846.spec.ts',
+  ],
   commission: [
     'src/tests/generated/dfb/DFB-25103.spec.ts',
   ],
@@ -94,6 +98,25 @@ export class ReferenceSpecAnalyzer {
         console.log(`   📐 ReferenceSpecAnalyzer: Loaded structure from ${relPath}`);
         return structure;
       }
+    }
+    return null;
+  }
+
+  /**
+   * Parse a specific spec file by absolute path as a reference template.
+   * Used by the similarity matcher to dynamically select reference specs
+   * based on functional similarity rather than hardcoded category mapping.
+   */
+  parseSpecByPath(absPath: string): SpecStructure | null {
+    if (!fs.existsSync(absPath)) return null;
+    if (this.cache.has(absPath)) return this.cache.get(absPath)!;
+
+    const structure = this.parseSpec(absPath);
+    if (structure) {
+      this.cache.set(absPath, structure);
+      const relPath = path.relative(this.projectRoot, absPath);
+      console.log(`   📐 ReferenceSpecAnalyzer: Dynamically loaded structure from ${relPath}`);
+      return structure;
     }
     return null;
   }
@@ -217,7 +240,8 @@ export class ReferenceSpecAnalyzer {
       return 'office-config';
     if (n.includes('carrier search') || (n.includes('carrier') && n.includes('search') && !n.includes('dme')))
       return 'carrier-search';
-    if (n.includes('carrier') && (n.includes('visibility') || n.includes('loadboard') || n.includes('toggle')))
+    if (n.includes('carrier') && (n.includes('visibility') || n.includes('loadboard') || n.includes('toggle')) &&
+        !n.includes('loadboard user') && !n.includes('carrier contact'))
       return c.includes('switchto dme') || c.includes('switchtodme') ? 'dme-carrier-toggle' : 'carrier-visibility';
     if (n.includes('dme') && (n.includes('carrier') || n.includes('toggle')))
       return 'dme-carrier-toggle';
@@ -275,10 +299,10 @@ export class ReferenceSpecAnalyzer {
    * Get precondition code blocks from the reference, ready to inject.
    * Returns an array of { stepName, code } pairs.
    */
-  getTemplatePreconditions(structure: SpecStructure): Array<{ stepName: string; code: string }> {
+  getTemplatePreconditions(structure: SpecStructure): Array<{ stepName: string; code: string; category: string }> {
     return structure.preconditionBlocks
       .filter(b => b.category !== 'login')
-      .map(b => ({ stepName: b.name, code: b.code }));
+      .map(b => ({ stepName: b.name, code: b.code, category: b.category }));
   }
 
   /**

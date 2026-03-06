@@ -44,13 +44,18 @@ async function main(): Promise<void> {
     return;
   }
 
+  // Parse LLM flag: --no-llm disables LLM integration
+  const llmDisabled = args.includes('--no-llm');
+  const filteredArgs = args.filter(a => a !== '--no-llm');
+  const agentOptions: any = llmDisabled ? { llmEnabled: false } : {};
+
   // Default behavior (no arguments): read from sample-testcases.csv
-  if (args.length === 0) {
-    await runDefaultCSV();
+  if (filteredArgs.length === 0) {
+    await runDefaultCSV(agentOptions);
     return;
   }
 
-  const agent = new PlaywrightAgent();
+  const agent = new PlaywrightAgent(agentOptions);
 
   // Generate from description
   if (args.includes('--generate') || args.includes('-g')) {
@@ -282,7 +287,7 @@ async function main(): Promise<void> {
  * Playwright specs with module-prefixed IDs (DFB-25103, CARRIER-72101, etc.),
  * validate the generated code, and write to the spec output directory.
  */
-async function runDefaultCSV(): Promise<void> {
+async function runDefaultCSV(options?: any): Promise<void> {
   const csvPath = DEFAULT_CSV_PATH;
 
   if (!fs.existsSync(csvPath)) {
@@ -298,7 +303,7 @@ async function runDefaultCSV(): Promise<void> {
   console.log(`\n📄 Reading test cases from: ${csvPath}\n`);
 
   const parser = new TestCaseParser();
-  const agent = new PlaywrightAgent();
+  const agent = new PlaywrightAgent(options);
   const validator = new DataValidator();
 
   // Pre-validate all data CSV files and auto-correct ambiguous values
@@ -392,6 +397,7 @@ Options:
   --preview, -p <desc>     Preview generated script without saving
   --analyze, -a <desc>     Analyze test case and show suggestions
   --schema                 Show project schema information
+  --no-llm                 Disable LLM integration (rule-based only)
   --help, -h               Show this help message
 
 Default Behavior:

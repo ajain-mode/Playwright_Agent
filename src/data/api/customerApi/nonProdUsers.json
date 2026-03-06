@@ -1,0 +1,50 @@
+{
+  "allstates": {
+    "id": "avms0b9ahobvbh235o5njv34h",
+    "secret": "1ecn3r2m7pgefi1bu8pre78c9a51ughgqsitd1sndm3g2kkvod69"
+  },
+  "aquacal": {
+    "id": "324lq80bt7gngutdfpjobs0ull",
+    "secret": "1eced4fft9fm6vjnfjsehskigrbcp6qpvd396ue2063hdqrr1m8d"
+  },
+  "fiji": {
+    "id": "7ovng5otqocpt5v7infiejsde3",
+    "secret": "1cvsi1p1d8ligoks5qhc83ajq08qffq4dsf1hpvun7niijl9djnn"
+  },
+  "frank": {
+    "id": "58ctcltr6lr2i0s81469h3anus",
+    "secret": "1c33ltt58b4s0cnus9qrf8t8nlf4g44dkiak8a7op5f0893u1ec5"
+  },
+  "global": {
+    "id": "2d1djlrqskc2afs1qf88gnqg1n",
+    "secret": "1a6tqu66hf1518r2i7g89ghsp7gcntotg2dlut7icidfngfnnamh"
+  },
+  "goodsrc": {
+    "id": "2c5b5urqs731pvnqpq5mn2kc11",
+    "secret": "u6cadq5slovmdian5sfhq28o6736ncp78thn3knh05bnv1csr1d"
+  },
+  "horner": {
+    "id": "2j5vcg4d81b3qe3fctc8raa6nb",
+    "secret": "ofvrstqhta6l7262t8fa0vc2dvu58kpg7vt491kfj7eibnsbej7"
+  },
+  "kps": {
+    "id": "dpmj28v87j0upe68fc5ua2dl",
+    "secret": "5s0dapmhi1jh5gefc36ojaefgtftqn457ug4vnd4ctqrko923li"
+  },
+  "mode": {
+    "id": "1dtbi890ckjed6n2c0q042afb8",
+    "secret": "1t400hul27749rt1vq23k601rkebt0ggt66sq0qpjtjsiit3igml"
+  },
+  "modetest": {
+    "id": "380vpq2mpe97qi6g40k62mjfga",
+    "secret": "i99ksusf2f0k6u6i7t55rdrk9ok9k07q12b8s287e5igr4tieo7"
+  },
+  "refrigeration": {
+    "id": "2gqaouiaefk34flpo5aph3iln8",
+    "secret": "15m7h83tmkrjhocp2s7v0sjr6pd3ohbucovjfuf9nklte0fisuor"
+  },
+  "vernon": {
+    "id": "2kgf1qhsvhd8ml9u6la7pbp6",
+    "secret": "11tm7c77qeg3druqger4gid48k45p0ehl4csusonoq3he5j36uvr"
+  }
+}

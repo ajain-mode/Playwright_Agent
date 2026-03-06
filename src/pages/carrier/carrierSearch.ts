@@ -42,8 +42,9 @@ export default class CarrierSearch {
     private readonly checkToggleGroup_LOC: (toggleName: string) => Locator;
     private readonly checkToggleInput_LOC: (toggleName: string) => Locator;
     private readonly checkToggleClickTarget_LOC: (toggleName: string) => Locator;
-
+    private readonly statusText_LOC: (status: string) => Locator;
     constructor(private page: Page) {
+        this.statusText_LOC = (status: string) => page.locator(`//span[text()='${status}']`);
         this.mcCarrierSearchInput = page.locator('#search_mc_num');
         this.clickOnSearchButton_LOC = page.locator('//input[@class=\'submit-report-search\']');
         this.activeText = page.locator("//span[text()='Active']");
@@ -121,7 +122,20 @@ export default class CarrierSearch {
         await this.statusDropdownIconButton_LOC.click();
         await this.activeText.click();
     }
+    /**
+    * @author Rohit Singh
+    * @created 27-Feb-2026
+    * @description Selects the specified status from the status dropdown on the carrier search page.
+    * @param status - The status to select, e.g., "Active", "Inactive".
+    * 
+    * 
+    */
 
+
+   async selectStatusOnCarrier(status: string) {
+       await this.statusDropdownIconButton_LOC.click();
+       await this.statusText_LOC(status).click();
+   }
     /**
 * @author Aniket Nale
 * @created 25-Nov-25

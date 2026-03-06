@@ -49,12 +49,14 @@ export type StepCategory =
   | 'btms-switch'        // Switch back to BTMS
   | 'customer-search'    // Customer search sequence
   | 'navigate-create'    // Navigate to CREATE TL *NEW*
+  | 'carrier-rate-setup' // Carrier tab: customer rate, carrier rate, trailer length, expiration, email, miles
+  | 'choose-carrier'     // CHOOSE CARRIER and select carrier
   | 'single';            // No grouping — generate individually
 
 export interface CompositeGroup {
   /** Composite group type */
   type: 'load-form-fill' | 'create-load-and-rate' | 'carrier-tab-setup'
-    | 'save-alert-fix' | 'dme-verification' | 'tnx-verification'
+    | 'carrier-rate-and-details' | 'save-alert-fix' | 'dme-verification' | 'tnx-verification'
     | 'customer-to-create' | 'post-load' | 'btms-switch' | 'single';
   /** Original steps in this group */
   steps: TestStep[];
@@ -108,17 +110,22 @@ function classifyStep(action: string): StepCategory {
     return 'carrier-contact';
   }
 
+  // ── CAUTION alert (part of carrier-tab flow, not save-alert flow) ──
+  if (a.includes('caution') && (a.includes('safety rating') || a.includes('carrier has a'))) return 'auto-accept';
+  if (a.includes('click ok') && a.includes('popup')) return 'auto-accept';
+
   // ── Save / Alert / OK ──
   if (a.includes('save') && a.includes('button') && a.includes('click')) return 'save-button';
   if (a.includes('message') && a.includes('displayed') && a.includes('carrier contact')) return 'alert-message';
   if (/click\s+ok/i.test(action)) return 'click-ok';
 
-  // ── View mode ──
+  // ── View mode + post-save carrier tab + post ──
   if (a.includes('view mode') || (a.includes('load is') && a.includes('view'))) return 'view-mode';
 
   // ── Post ──
-  if (a.includes('post') && a.includes('button') && a.includes('click')) return 'post-button';
-  if (a.includes('carrier tab') && a.includes('post status')) return 'carrier-tab-click';
+  if (a.includes('post') && (a.includes('button') || a.includes('the load'))) return 'post-button';
+  // Carrier tab click that mentions "post status" is a post-save navigation, not carrier-tab-setup
+  if (a.includes('carrier tab') && a.includes('post status')) return 'post-button';
 
   // ── DME ──
   if (a.includes('log into dme') || a.includes('login') && a.includes('dme')) return 'dme-login';
@@ -138,6 +145,17 @@ function classifyStep(action: string): StepCategory {
   // ── Switch to BTMS ──
   if (a.includes('switch') && a.includes('btms')) return 'btms-switch';
 
+  // ── Carrier rate/details setup (customer rate, carrier rate, trailer length, expiration, email, miles) ──
+  if ((a.includes('flat rate') || a.includes('customer rate') || a.includes('carrier rate'))
+    && (a.includes('enter') || a.includes('eg') || a.includes('e.g'))) return 'carrier-rate-setup';
+  if (a.includes('trailer length') && (a.includes('enter') || a.includes('value'))) return 'carrier-rate-setup';
+  if (a.includes('expiration date') || a.includes('expiration time')) return 'carrier-rate-setup';
+  if (a.includes('email') && a.includes('notification') && (a.includes('enter') || a.includes('value'))) return 'carrier-rate-setup';
+  if (a.includes('total miles') || (a.includes('miles') && (a.includes('enter') || a.includes('eg')))) return 'carrier-rate-setup';
+
+  // ── CHOOSE CARRIER ──
+  if (a.includes('choose carrier') || (a.includes('choose') && a.includes('carrier') && a.includes('active'))) return 'choose-carrier';
+
   return 'single';
 }
 
@@ -147,6 +165,7 @@ const GROUP_COMPATIBLE: Record<string, StepCategory[]> = {
   'load-form-fill': ['form-field', 'form-auto', 'form-preselected'],
   'create-load-and-rate': ['create-load', 'rate-type'],
   'carrier-tab-setup': ['carrier-tab-click', 'offer-rate', 'include-carriers', 'auto-accept', 'carrier-contact'],
+  'carrier-rate-and-details': ['carrier-rate-setup'],
   'save-alert-fix': ['save-button', 'alert-message', 'click-ok', 'carrier-contact'],
   'dme-verification': ['dme-login', 'dme-action'],
   'tnx-verification': ['tnx-login', 'tnx-action'],
@@ -208,14 +227,39 @@ function generateCarrierTabSetupCode(steps: TestStep[]): string {
     s.action.toLowerCase().includes('do not') || s.action.toLowerCase().includes('not select')
   );
 
+  // Detect if a CAUTION alert step follows the auto-accept checkbox
+  const hasCautionAlert = steps.some(s => {
+    const a = s.action.toLowerCase();
+    return a.includes('caution') || (a.includes('message') && a.includes('safety rating'));
+  });
+
+  // Detect if auto-accept checkbox is in this group
+  const hasAutoAccept = steps.some(s => s.action.toLowerCase().includes('auto accept'));
+
   let code = `await pages.editLoadPage.clickOnTab(TABS.CARRIER);
           console.log("Clicked Carrier tab");
           await pages.dfbLoadFormPage.enterOfferRate(testData.offerRate);
           console.log(\`Entered Offer Rate: \${testData.offerRate}\`);
           await pages.dfbLoadFormPage.selectCarriersInIncludeCarriers([testData.Carrier]);
-          console.log(\`Selected carrier: \${testData.Carrier}\`);
+          console.log(\`Selected carrier: \${testData.Carrier}\`);`;
+
+  if (hasAutoAccept && hasCautionAlert) {
+    // Set up alert handler BEFORE clicking the checkbox that triggers the dialog
+    code += `
+          // Set up CAUTION alert handler before clicking auto accept
+          const cautionAlert = pages.commonReusables.validateAlert(
+            sharedPage,
+            ALERT_PATTERNS.CARRIER_CAUTIONARY_SAFETY_RATING
+          );
+          await pages.dfbLoadFormPage.clickCarrierAutoAcceptCheckbox();
+          console.log("Checked Carrier Auto Accept checkbox");
+          await cautionAlert;
+          console.log("Validated: CAUTION carrier safety rating alert displayed and accepted");`;
+  } else if (hasAutoAccept) {
+    code += `
           await pages.dfbLoadFormPage.clickCarrierAutoAcceptCheckbox();
           console.log("Checked Carrier Auto Accept checkbox");`;
+  }
 
   if (hasNoSelectContact) {
     code += `\n          console.log("Carrier Contact for Rate Confirmation intentionally left empty");`;
@@ -249,10 +293,19 @@ function generateSaveAlertFixCode(steps: TestStep[]): string {
 
   if (hasSelectContact) {
     code += `
-          await pages.dfbLoadFormPage.selectCarreirContactForRateConfirmation(
-            CARRIER_CONTACT.CONTACT_1
+          const contactDropdown = sharedPage.locator("//select[@id='form_accept_as_user']");
+          await contactDropdown.waitFor({ state: "attached", timeout: WAIT.LARGE });
+          await sharedPage.waitForTimeout(2000);
+          const contactOptions = await contactDropdown.locator("option").allTextContents();
+          const matchedContact = contactOptions.find(
+            (opt: string) => opt.toLowerCase().includes(testData.saleAgentEmail.toLowerCase())
           );
-          console.log("Selected active loadboard user for Carrier Contact");
+          console.log(\`Looking for carrier contact with email: \${testData.saleAgentEmail}\`);
+          console.log(\`Available options: [\${contactOptions.filter((o: string) => o.trim()).join(" | ")}]\`);
+          expect(matchedContact, \`No contact found with email: \${testData.saleAgentEmail}\`).toBeTruthy();
+          const normalizedLabel = matchedContact!.trim().replace(/\\s+/g, " ");
+          await pages.dfbLoadFormPage.selectCarreirContactForRateConfirmation(normalizedLabel);
+          console.log(\`Selected carrier contact for rate confirmation: \${normalizedLabel}\`);
           await pages.editLoadFormPage.clickOnSaveBtn();
           console.log("Clicked Save button");
           await pages.viewLoadPage.validateViewLoadHeading();
@@ -373,6 +426,79 @@ function generateCustomerToCreateCode(): string {
   return lines.join('\n          ');
 }
 
+function generateCarrierRateAndDetailsCode(steps: TestStep[]): string {
+  const lines: string[] = [];
+
+  // Extract values from step text where "eg X" or "e.g. X" patterns exist
+  const extractValue = (text: string): string | null => {
+    const match = text.match(/(?:eg|e\.g\.?|as|=|:)\s*(\d+(?:\.\d+)?)/i);
+    return match ? match[1] : null;
+  };
+
+  for (const step of steps) {
+    const a = step.action.toLowerCase();
+
+    if ((a.includes('flat rate') && a.includes('customer')) || a.includes('customer rate')) {
+      const val = extractValue(step.action) || '500';
+      lines.push(`await pages.editLoadCarrierTabPage.enterCustomerRate("${val}");`);
+      lines.push(`console.log("Entered Customer Rate: ${val}");`);
+    } else if ((a.includes('flat rate') && a.includes('carrier')) || (a.includes('carrier rate') && !a.includes('customer'))) {
+      const val = extractValue(step.action) || '600';
+      lines.push(`await pages.editLoadCarrierTabPage.enterCarrierRate("${val}");`);
+      lines.push(`console.log("Entered Carrier Rate: ${val}");`);
+    } else if (a.includes('trailer length')) {
+      lines.push('await pages.editLoadCarrierTabPage.enterValueInTrailerLength(testData.trailerLength);');
+      lines.push('console.log(`Entered trailer length: ${testData.trailerLength}`);');
+    } else if (a.includes('expiration date')) {
+      lines.push('const futureDate = new Date();');
+      lines.push('futureDate.setDate(futureDate.getDate() + 7);');
+      lines.push("const formattedDate = `${(futureDate.getMonth() + 1).toString().padStart(2, '0')}/${futureDate.getDate().toString().padStart(2, '0')}/${futureDate.getFullYear()}`;");
+      lines.push('await sharedPage.locator("#form_expiration_date").fill(formattedDate);');
+      lines.push('console.log(`Entered Expiration Date: ${formattedDate}`);');
+    } else if (a.includes('expiration time')) {
+      const timeMatch = step.action.match(/(?:as|=|:)\s*(\d{1,2}:\d{2})/i);
+      const timeValue = timeMatch ? timeMatch[1] : '18:00';
+      lines.push(`await sharedPage.locator("#form_expiration_time").fill("${timeValue}");`);
+      lines.push(`console.log("Entered Expiration Time: ${timeValue}");`);
+    } else if (a.includes('email') && a.includes('notification')) {
+      lines.push(`// Dynamic email notification field lookup — #form_notification_email is a label, not an input`);
+      lines.push(`const emailValue = testData.saleAgentEmail;`);
+      lines.push(`const notifSelect = sharedPage.locator("select#form_notification_address").first();`);
+      lines.push(`const notifSelectAlt = sharedPage.locator("//*[@id='form_notification_email']//following::select[1]").first();`);
+      lines.push(`const notifSelect2 = sharedPage.locator("//*[@id='form_notification_email']//following::span[contains(@class,'select2')][1]").first();`);
+      lines.push(`if (await notifSelect.isVisible({ timeout: 5000 }).catch(() => false)) {`);
+      lines.push(`  const options = await notifSelect.locator("option").allTextContents();`);
+      lines.push(`  const match = options.find((o: string) => o.toLowerCase().includes(emailValue.toLowerCase()));`);
+      lines.push(`  await notifSelect.selectOption({ label: match ? match.trim() : emailValue });`);
+      lines.push(`  console.log("Selected email notification via dropdown: " + (match || emailValue));`);
+      lines.push(`} else if (await notifSelectAlt.isVisible({ timeout: 3000 }).catch(() => false)) {`);
+      lines.push(`  const options = await notifSelectAlt.locator("option").allTextContents();`);
+      lines.push(`  const match = options.find((o: string) => o.toLowerCase().includes(emailValue.toLowerCase()));`);
+      lines.push(`  await notifSelectAlt.selectOption({ label: match ? match.trim() : emailValue });`);
+      lines.push(`  console.log("Selected email notification via sibling select: " + (match || emailValue));`);
+      lines.push(`} else if (await notifSelect2.isVisible({ timeout: 3000 }).catch(() => false)) {`);
+      lines.push(`  await notifSelect2.click();`);
+      lines.push(`  const searchInput = sharedPage.locator("input.select2-search__field").first();`);
+      lines.push(`  await searchInput.waitFor({ state: "visible", timeout: 5000 });`);
+      lines.push(`  await searchInput.fill(emailValue);`);
+      lines.push(`  await sharedPage.waitForTimeout(2000);`);
+      lines.push(`  const resultItem = sharedPage.locator("//li[contains(@class,'select2-results__option') and contains(text(),'" + emailValue + "')]").first();`);
+      lines.push(`  await resultItem.waitFor({ state: "visible", timeout: 10000 });`);
+      lines.push(`  await resultItem.click();`);
+      lines.push(`  console.log("Selected email notification via Select2: " + emailValue);`);
+      lines.push(`} else {`);
+      lines.push(`  console.log("Email notification field not found via known selectors");`);
+      lines.push(`}`);
+    } else if (a.includes('miles')) {
+      const val = extractValue(step.action) || '100';
+      lines.push(`await pages.editLoadCarrierTabPage.enterMiles("${val}");`);
+      lines.push(`console.log("Entered total miles: ${val}");`);
+    }
+  }
+
+  return lines.join('\n          ');
+}
+
 function generateBTMSSwitchCode(): string {
   const lines = [
     'await appManager.switchToBTMS();',
@@ -385,12 +511,36 @@ function generateBTMSSwitchCode(): string {
   return lines.join('\n          ');
 }
 
-function generatePostLoadCode(): string {
-  const lines = [
+function generatePostLoadCode(steps: TestStep[]): string {
+  const hasViewMode = steps.some(s => {
+    const a = s.action.toLowerCase();
+    return a.includes('view mode') || (a.includes('load is') && a.includes('view'));
+  });
+  const hasCarrierTab = steps.some(s => {
+    const a = s.action.toLowerCase();
+    return a.includes('carrier tab') && !a.includes('offer rate');
+  });
+
+  const lines: string[] = [];
+
+  if (hasViewMode) {
+    lines.push(
+      'await pages.viewLoadPage.viewLoadPageVisible();',
+      'console.log("Load is in View mode");',
+    );
+  }
+  if (hasCarrierTab) {
+    lines.push(
+      'await pages.viewLoadPage.clickCarrierTab();',
+      'await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);',
+      'console.log("Clicked Carrier tab");',
+    );
+  }
+  lines.push(
     'await pages.dfbLoadFormPage.clickOnPostButton();',
     'console.log("Clicked Post button");',
     'pages.logger.info("Load posted, moving to verification");',
-  ];
+  );
   return lines.join('\n          ');
 }
 
@@ -404,6 +554,7 @@ const GROUP_NAMES: Record<string, (steps: TestStep[]) => string> = {
   },
   'create-load-and-rate': () => 'Click Create Load and select Rate Type',
   'carrier-tab-setup': () => 'Carrier tab — enter offer rate, select carrier, check auto accept',
+  'carrier-rate-and-details': () => 'Carrier tab — enter rates, trailer length, expiration, email, miles',
   'save-alert-fix': (steps) => {
     const hasAlert = steps.some(s => s.action.toLowerCase().includes('message'));
     return hasAlert
@@ -413,7 +564,14 @@ const GROUP_NAMES: Record<string, (steps: TestStep[]) => string> = {
   'dme-verification': () => 'Switch to DME — verify load statuses',
   'tnx-verification': () => 'Switch to TNX — verify load is Matched and execution notes',
   'customer-to-create': () => 'Search customer and navigate to CREATE TL *NEW*',
-  'post-load': () => 'Post the load',
+  'post-load': (steps: TestStep[]) => {
+    const hasViewMode = steps.some(s => s.action.toLowerCase().includes('view mode'));
+    const hasCarrierTab = steps.some(s => s.action.toLowerCase().includes('carrier tab'));
+    if (hasViewMode && hasCarrierTab) return 'Verify View mode, click Carrier tab, and Post the load';
+    if (hasViewMode) return 'Verify View mode and Post the load';
+    if (hasCarrierTab) return 'Click Carrier tab and Post the load';
+    return 'Post the load';
+  },
   'btms-switch': () => 'Switch back to BTMS',
   'single': (steps) => steps[0].action.substring(0, 60),
 };
@@ -436,6 +594,22 @@ export class FormStepGrouper {
       groupType: findGroupType(classifyStep(step.action)),
     }));
 
+    // Context-aware reclassification: a carrier-tab-click that appears between
+    // view-mode/save-button and post-button is a post-save navigation step,
+    // NOT a new carrier-tab-setup. Reclassify it into the post-load group.
+    for (let k = 1; k < classified.length; k++) {
+      if (classified[k].category === 'carrier-tab-click') {
+        const prevCat = classified[k - 1].category;
+        const nextCat = k + 1 < classified.length ? classified[k + 1].category : null;
+        const isAfterSaveOrView = prevCat === 'view-mode' || prevCat === 'save-button';
+        const isBeforePost = nextCat === 'post-button';
+        if (isAfterSaveOrView || isBeforePost) {
+          classified[k].category = 'post-button';
+          classified[k].groupType = 'post-load';
+        }
+      }
+    }
+
     const groups: CompositeGroup[] = [];
     let i = 0;
 
@@ -455,10 +629,17 @@ export class FormStepGrouper {
         continue;
       }
 
-      // Collect consecutive steps with the same group type
+      // Collect consecutive steps compatible with the current group type.
+      // A step joins the group if its CATEGORY is listed in the group's compatible categories,
+      // even if its default groupType differs. This handles cases like carrier-contact being
+      // compatible with both carrier-tab-setup and save-alert-fix.
+      const currentGroupType = current.groupType!;
+      const compatibleCategories = GROUP_COMPATIBLE[currentGroupType] || [];
       const groupSteps: TestStep[] = [current.step];
       let j = i + 1;
-      while (j < classified.length && classified[j].groupType === current.groupType) {
+      while (j < classified.length &&
+        (classified[j].groupType === currentGroupType ||
+         compatibleCategories.includes(classified[j].category))) {
         groupSteps.push(classified[j].step);
         j++;
       }
@@ -482,6 +663,9 @@ export class FormStepGrouper {
           case 'carrier-tab-setup':
             compositeCode = generateCarrierTabSetupCode(groupSteps);
             break;
+          case 'carrier-rate-and-details':
+            compositeCode = generateCarrierRateAndDetailsCode(groupSteps);
+            break;
           case 'save-alert-fix':
             compositeCode = generateSaveAlertFixCode(groupSteps);
             break;
@@ -498,7 +682,7 @@ export class FormStepGrouper {
             compositeCode = generateBTMSSwitchCode();
             break;
           case 'post-load':
-            compositeCode = generatePostLoadCode();
+            compositeCode = generatePostLoadCode(groupSteps);
             break;
           default:
             compositeCode = null;

@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(node -e \":*)",
+      "Bash(npx ts-node src/agent/run-agent.ts --mode generate --testcase DFB-97744)",
+      "Bash(npx ts-node \"c:/Users/Aman.Jain/OneDrive/Mode Global/Test cases/QA AI Agent/Playwright_Agent/src/agent/run-agent.ts\" --mode generate --testcase DFB-97744)",
+      "Bash(npx playwright test src/tests/generated/billingtoggle/BT-67846.spec.ts)",
+      "Bash(ls -lt \"c:/Users/Aman.Jain/OneDrive/Mode Global/Test cases/QA AI Agent/Playwright_Agent/src/reporting/allure-results/\"*result.json)",
+      "Bash(SHELL=/usr/bin/bash npx tsc --noEmit)",
+      "Bash(SHELL=bash npx tsc --noEmit)"
+    ]
+  }
+}

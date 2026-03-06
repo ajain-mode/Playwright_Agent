@@ -15,6 +15,7 @@ class DataConfig {
     readonly datData: string = 'datdata';
     readonly bulkChangeData: string = 'bulkchangedata'
     readonly nonOperationalLoadsData: string = 'nonoperationalloadsdata';
+    readonly billingtoggleData: string = 'billingtoggledata';
 
     private csvPath: any;
     private csvData: any;
@@ -139,6 +140,9 @@ class DataConfig {
         }
         else if (dataFile === this.nonOperationalLoadsData) {
             this.csvPath = path.join(__dirname, '..', 'data/nonOperationalLoads', 'nonoperationalloadsdata.csv');
+        }
+        else if (dataFile === this.billingtoggleData) {
+            this.csvPath = path.join(__dirname, '..', 'data/billingtoggle', 'billingtoggledata.csv');
         }
         else {
             throw new Error(`Unknown data file: ${dataFile}`);

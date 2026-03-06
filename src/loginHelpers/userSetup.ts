@@ -1,4 +1,7 @@
 import dataConfig from "@config/dataConfig";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 class UserSetup {
     globalUser: string;
@@ -33,11 +36,11 @@ class UserSetup {
     userData = dataConfig.readJsonData("loginHelpers", "userConfig.json");
     constructor() {
         this.globalUser = this.userData && this.userData.globalUser;
-        this.globalPassword = this.userData && this.userData.globalPassword;
+        this.globalPassword = process.env.GLOBAL_PASSWORD || '';
         // SSO Users
         const ssoUserData = this.userData && this.userData.ssoUser ? (this.userData.ssoUser as any) : {};
         this.btmsSSOUser = ssoUserData.btmsSSOUser || '';
-        this.btmsSSOPassword = ssoUserData.btmsSSOPassword || '';
+        this.btmsSSOPassword = process.env.BTMS_SSO_PASSWORD || '';
         const userEdiData = this.userData && this.userData.edi ? (this.userData.edi as any) : {};
         this.ediUserMarmaxx = userEdiData.UserMarmaxx || '';
         this.ediUserIBO = userEdiData.ediUserIBO || '';
@@ -47,29 +50,27 @@ class UserSetup {
         this.UserSales = userSalesData.UserSales || '';
         this.tnxUser = this.userData && this.userData.tnx ? (this.userData.tnx as any).tnxUser : '';
         this.tnxRepUser = this.userData && this.userData.tnxRep ? (this.userData.tnxRep as any).tnxRepUser : '';
-        this.tnxPassword = this.userData && this.userData.tnx ? (this.userData.tnx as any).tnxPassword : '';
-        this.tnxRepPassword = this.userData && this.userData.tnxRep ? (this.userData.tnxRep as any).tnxPassword : '';
+        this.tnxPassword = process.env.TNX_PASSWORD || '';
+        this.tnxRepPassword = process.env.TNX_REP_PASSWORD || '';
         this.dmeUser = this.userData && this.userData.dme ? (this.userData.dme as any).dmeUser : '';
-        this.dmePassword = this.userData && this.userData.dme ? (this.userData.dme as any).dmePassword : '';
+        this.dmePassword = process.env.DME_PASSWORD || '';
         // @modified : Rohit Singh - 24-oct-2025 -> users added for Tritan
         const tritanUserData = this.userData && this.userData.tritan ? (this.userData.tritan as any) : {};
         this.tritanCustomer = tritanUserData.tritanCustomer || '';
-        this.tritanCustomerPassword = tritanUserData.tritanCustomerPassword || '';
+        this.tritanCustomerPassword = process.env.TRITAN_CUSTOMER_PASSWORD || '';
         // @modified : Aniket Nale - 2025-11-03 -> users added for Customer Portal
         const customerPortalUserData = this.userData && this.userData.customerPortal ? (this.userData.customerPortal as any) : {};
         this.customerPortalUser = customerPortalUserData.customerPortalUser || '';
-        this.customerPortalPassword = customerPortalUserData.customerPortalPassword || '';
-        this.tnxRepUser = this.userData && this.userData.tnxRep ? (this.userData.tnxRep as any).tnxUser : '';
-        this.tnxRepPassword = this.userData && this.userData.tnxRep ? (this.userData.tnxRep as any).tnxPassword : '';
+        this.customerPortalPassword = process.env.CUSTOMER_PORTAL_PASSWORD || '';
         // @added : Aniket Nale - 2025-11-17 -> users added for Tritan1
         const tritanAdminUserData = this.userData && this.userData.tritanAdmin ? (this.userData.tritanAdmin as any) : {};
         this.tritanAdminCustomer = tritanAdminUserData.tritanAdminCustomer || '';
-        this.tritanAdminCustomerPassword = tritanAdminUserData.tritanAdminCustomerPassword || '';
+        this.tritanAdminCustomerPassword = process.env.TRITAN_ADMIN_CUSTOMER_PASSWORD || '';
         // @added : Aniket Nale - 2025-11-19 -> users added for Legacy Customer Portal
         const legacyCustomerPortalUserData = this.userData && this.userData.legacyCustomerPortal ? (this.userData.legacyCustomerPortal as any) : {};
         this.legacyCustomerPortalUser_pit = legacyCustomerPortalUserData.legacyCustomerPortalUser_pit || '';
         this.legacyCustomerPortalUser_stage = legacyCustomerPortalUserData.legacyCustomerPortalUser_stage || '';
-        this.legacyCustomerPortalPassword = legacyCustomerPortalUserData.legacyCustomerPortalPassword || '';
+        this.legacyCustomerPortalPassword = process.env.LEGACY_CUSTOMER_PORTAL_PASSWORD || '';
 
         // @added : Aniket Nale - 2025-12-22 -> users added for Banyan
         const banyanUserData = this.userData && this.userData.banyan ? (this.userData.banyan as any) : {};
@@ -79,7 +80,7 @@ class UserSetup {
         //@added : Tejaswini - 2025-12-01 -> user added for Bulk Change
         const bulkChangeUserData = this.userData && this.userData.bulkChange ? (this.userData.bulkChange as any) : {};
         this.bulkChangeUser = bulkChangeUserData.bulkChangeUser || '';
-        this.bulkChangePassword = bulkChangeUserData.bulkChangePassword || '';
+        this.bulkChangePassword = process.env.BULK_CHANGE_PASSWORD || '';
     }
 }
 

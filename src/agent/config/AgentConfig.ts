@@ -9,9 +9,11 @@
 import path from 'path';
 
 export interface AgentConfigOptions {
-  openaiApiKey?: string;
   modelName?: string;
   temperature?: number;
+  llmEnabled?: boolean;
+  llmMaxRetries?: number;
+  llmCacheEnabled?: boolean;
   outputDir?: string;
   dataDir?: string;
   pagesDir?: string;
@@ -20,10 +22,12 @@ export interface AgentConfigOptions {
 }
 
 export class AgentConfig {
-  // API Configuration
-  public openaiApiKey: string;
+  // LLM Configuration (uses Claude CLI with Max plan — no API key needed)
   public modelName: string;
   public temperature: number;
+  public llmEnabled: boolean;
+  public llmMaxRetries: number;
+  public llmCacheEnabled: boolean;
 
   // Directory paths (relative to project root)
   public readonly projectRoot: string;
@@ -36,7 +40,8 @@ export class AgentConfig {
   // Test categories available
   public readonly testCategories = [
     'dfb', 'edi', 'commission', 'salesLead', 'banyan', 
-    'carrier', 'bulkChange', 'dat', 'nonOperationalLoads', 'api'
+    'carrier', 'bulkChange', 'dat', 'nonOperationalLoads', 'api',
+    'billingtoggle'
   ];
 
   // Available page objects
@@ -84,9 +89,11 @@ export class AgentConfig {
 
   constructor(options: AgentConfigOptions = {}) {
     this.projectRoot = path.resolve(__dirname, '../../..');
-    this.openaiApiKey = options.openaiApiKey || process.env.OPENAI_API_KEY || '';
-    this.modelName = options.modelName || 'gpt-4-turbo-preview';
-    this.temperature = options.temperature || 0.3;
+    this.modelName = options.modelName || 'claude-opus-4-5-20250514';
+    this.temperature = options.temperature ?? 0.3;
+    this.llmEnabled = options.llmEnabled ?? true;
+    this.llmMaxRetries = options.llmMaxRetries ?? 1;
+    this.llmCacheEnabled = options.llmCacheEnabled ?? true;
     
     this.outputDir = options.outputDir || path.join(this.projectRoot, 'src/tests/generated');
     this.dataDir = options.dataDir || path.join(this.projectRoot, 'src/data');

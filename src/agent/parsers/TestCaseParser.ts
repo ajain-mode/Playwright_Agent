@@ -18,9 +18,25 @@ import {
   TestData,
   ExplicitValues
 } from '../types/TestCaseTypes';
+import { LLMService } from '../services/LLMService';
 
 export class TestCaseParser {
-  
+  private llmService: LLMService | null = null;
+
+  constructor(llmService?: LLMService) {
+    if (llmService) {
+      this.llmService = llmService;
+    }
+  }
+
+  /** Set the LLM service after construction (for late binding) */
+  setLLMService(llmService: LLMService): void {
+    this.llmService = llmService;
+  }
+
+  // Short category keywords that need word-boundary matching
+  private static readonly SHORT_CATEGORY_KEYWORDS = new Set(['edi', 'dat', 'api', 'lead']);
+
   // Keywords for detecting test categories
   private readonly categoryKeywords: Record<TestCategory, string[]> = {
     dfb: ['dfb', 'cargo value', 'post load', 'tnx', 'include carrier', 'exclude carrier', 'waterfall', 'post automation', 'nontabular', 'non-tabular', 'non tabular'],
@@ -33,6 +49,7 @@ export class TestCaseParser {
     dat: ['dat', 'loadboard'],
     nonOperationalLoads: ['non-operational', 'non operational', 'dead load'],
     api: ['api', 'rest', 'endpoint', 'request', 'response'],
+    billingtoggle: ['billing toggle', 'billing', 'toggle billing', 'billing status', 'payable toggle', 'payabletoggle'],
     custom: []
   };
 
@@ -125,32 +142,44 @@ export class TestCaseParser {
   }
 
   /**
-   * Detect test category from description and optional tags
+   * Detect test category from description and optional tags.
+   * Priority: tags first (most explicit), then text/description keywords.
    */
   detectCategory(text: string, tags?: string[]): TestCategory {
-    const lowerText = text.toLowerCase();
-    
-    // First check the text/description for category keywords
-    for (const [category, keywords] of Object.entries(this.categoryKeywords)) {
-      if (keywords.some(keyword => lowerText.includes(keyword))) {
-        return category as TestCategory;
-      }
-    }
-    
-    // If no match found in text, check tags
+    // ── PRIORITY 1: Check tags (most reliable — explicitly assigned by user) ──
     if (tags && tags.length > 0) {
       const tagText = tags.join(' ').toLowerCase();
+
+      // Check direct category names in tags
+      const categoryNames = [
+        'dfb', 'edi', 'commission', 'carrier', 'saleslead', 'salesLead',
+        'banyan', 'dat', 'api', 'bulkchange', 'bulkChange',
+        'billingtoggle', 'billing toggle', 'billing', 'payabletoggle', 'payable toggle',
+      ];
+      for (const catName of categoryNames) {
+        if (tagText.includes(catName.toLowerCase())) {
+          return this.mapCategoryString(catName);
+        }
+      }
+
+      // Check tag text against category keywords
       for (const [category, keywords] of Object.entries(this.categoryKeywords)) {
         if (keywords.some(keyword => tagText.includes(keyword))) {
           return category as TestCategory;
         }
       }
-      // Also check direct category name in tags
-      const categoryNames = ['dfb', 'edi', 'commission', 'carrier', 'saleslead', 'salesLead', 'banyan', 'dat', 'api', 'bulkchange', 'bulkChange'];
-      for (const catName of categoryNames) {
-        if (tagText.includes(catName.toLowerCase())) {
-          return this.mapCategoryString(catName);
+    }
+
+    // ── PRIORITY 2: Check text/description for category keywords ──
+    const lowerText = text.toLowerCase();
+    for (const [category, keywords] of Object.entries(this.categoryKeywords)) {
+      if (keywords.some(keyword => {
+        if (TestCaseParser.SHORT_CATEGORY_KEYWORDS.has(keyword)) {
+          return new RegExp(`\\b${keyword}\\b`, 'i').test(lowerText);
         }
+        return lowerText.includes(keyword);
+      })) {
+        return category as TestCategory;
       }
     }
     
@@ -199,21 +228,28 @@ export class TestCaseParser {
       if (steps.length > 0) return steps;
     }
 
-    // Try numbered steps with newlines
-    const numberedSteps = text.match(/(?:step\s*)?(\d+)[\.\):\s]+([^\n;]+)/gi);
+    // Try numbered steps with newlines.
+    // IMPORTANT: anchored to line start (^) so numbers embedded mid-line
+    // (e.g. zip codes "44215" in data descriptions) don't get matched as step numbers.
+    const numberedSteps = text.match(/^[\t ]*(?:step\s*)?(\d+)[\.\):\s]+([^\n;]+)/gim);
     if (numberedSteps && numberedSteps.length > 0) {
-      numberedSteps.forEach((match, index) => {
-        const actionMatch = match.match(/(?:step\s*)?(\d+)[\.\):\s]+(.+)/i);
+      for (const match of numberedSteps) {
+        const actionMatch = match.match(/^[\t ]*(?:step\s*)?(\d+)[\.\):\s]+(.+)/im);
         if (actionMatch) {
           const action = actionMatch[2].trim();
           if (action && action.length > 0) {
+            // Skip data-description lines that look like "FieldName: Value"
+            // e.g. "Type:Drop", "LoadMethod/TYPE: TL", "Customer Name: BONDED CHEMICAL"
+            // These are form field data, not test actions.
+            if (this.isDataDescriptionLine(action)) continue;
+
             steps.push({
-              stepNumber: index + 1,
+              stepNumber: steps.length + 1,
               action: action
             });
           }
         }
-      });
+      }
       if (steps.length > 0) return steps;
     }
 
@@ -263,6 +299,41 @@ export class TestCaseParser {
     }
 
     return steps;
+  }
+
+  /**
+   * Normalize loadMethod values to the short form used by the UI dropdown.
+   */
+  private normalizeLoadMethod(value: string): string {
+    const lower = value.trim().toLowerCase();
+    const tlAliases = ['truckload', 'truck load', 'ftl', 'full truckload', 'full truck load'];
+    if (tlAliases.includes(lower)) return 'TL';
+    if (lower === 'less than truckload' || lower === 'less than truck load') return 'LTL';
+    return value.trim();
+  }
+
+  /**
+   * Check if a line is a data-description (e.g. "Type:Drop", "LoadMethod/TYPE: TL",
+   * "Customer Name: BONDED CHEMICAL") rather than a real test action.
+   * These lines appear in CSV "Test Steps" or "Expected" columns as inline form field data.
+   */
+  private isDataDescriptionLine(text: string): boolean {
+    const trimmed = text.trim();
+    // Pattern: "FieldLabel: Value" or "FieldLabel/SubLabel: Value" — short label with colon-separated value
+    // Real steps start with action verbs (click, enter, navigate, verify, select, hover, etc.)
+    const actionVerbStart = /^(click|enter|navigate|verify|validate|select|hover|open|go|login|log\s+in|switch|scroll|check|upload|fill|search|type\s+in|once|now|after|if|user|on\s+this|on\s+the|on\s+create|a\s+message|an\s+agent)/i;
+    if (actionVerbStart.test(trimmed)) return false;
+
+    // Data description patterns: "Label: Value" where label is short (< 40 chars)
+    const dataPattern = /^[A-Za-z][A-Za-z0-9\s/()_-]{0,40}:\s*.+/;
+    if (dataPattern.test(trimmed)) return true;
+
+    // Standalone short labels without action context (e.g., "Equipment/Equipment Type: FLATBED")
+    if (trimmed.includes(':') && trimmed.length < 60 && !actionVerbStart.test(trimmed)) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -420,7 +491,7 @@ export class TestCaseParser {
       offerRate: csvRow['offerRate'] || csvRow['Offer Rate'] || '',
       bidRate: csvRow['bidRate'] || '',
       rateType: csvRow['rateType'] || 'SPOT',
-      loadMethod: csvRow['loadMethod'] || 'TruckLoad',
+      loadMethod: csvRow['loadMethod'] || 'TL',
       shipperEarliestTime: csvRow['shipperEarliestTime'] || '',
       shipperLatestTime: csvRow['shipperLatestTime'] || '',
       consigneeEarliestTime: csvRow['consigneeEarliestTime'] || '',
@@ -761,7 +832,12 @@ export class TestCaseParser {
       'dat': 'dat',
       'non-operational': 'nonOperationalLoads',
       'nonoperational': 'nonOperationalLoads',
-      'api': 'api'
+      'api': 'api',
+      'billing toggle': 'billingtoggle',
+      'billingtoggle': 'billingtoggle',
+      'billing': 'billingtoggle',
+      'payable toggle': 'billingtoggle',
+      'payabletoggle': 'billingtoggle'
     };
     return categoryMap[lower] || 'custom';
   }
@@ -789,6 +865,7 @@ export class TestCaseParser {
     dat: 'DAT',
     nonOperationalLoads: 'NONOP',
     api: 'API',
+    billingtoggle: 'BT',
     custom: 'TC',
   };
 
@@ -955,13 +1032,13 @@ export class TestCaseParser {
         ]},
         { key: 'pickLocation', patterns: [
           /(?:ShipperName|Pickup\s*Location|Pick)\s*(?:\/City)?\s*:\s*(.+)/i,
-          /(?:location|field)\s+from\s+the\s+"Shipper"\s+field\s*\.?\(\s*([^)]+)\s*\)/i,
-          /(?:select|choose)\s+(?:the\s+)?location\s+from\s+(?:the\s+)?"?Shipper"?\s+field\s*\.?\(\s*([^)]+)\s*\)/i,
+          /(?:location|field)\s+from\s+the\s+"Shipper"\s+field\s*\.?\(\s*(.+)\s*\)/i,
+          /(?:select|choose)\s+(?:the\s+)?location\s+from\s+(?:the\s+)?"?Shipper"?\s+field\s*\.?\(\s*(.+)\s*\)/i,
         ]},
         { key: 'dropLocation', patterns: [
           /(?:consigneeName|Drop\s*Location|Drop)\s*(?:\/City)?\s*:\s*(.+)/i,
-          /(?:location|field)\s+from\s+the\s+"Consignee"\s+field\s*\.?\(\s*([^)]+)\s*\)/i,
-          /(?:select|choose)\s+(?:the\s+)?location\s+from\s+(?:the\s+)?"?Consignee"?\s+field\s*\.?\(\s*([^)]+)\s*\)/i,
+          /(?:location|field)\s+from\s+the\s+"Consignee"\s+field\s*\.?\(\s*(.+)\s*\)/i,
+          /(?:select|choose)\s+(?:the\s+)?location\s+from\s+(?:the\s+)?"?Consignee"?\s+field\s*\.?\(\s*(.+)\s*\)/i,
         ]},
         { key: 'loadType', patterns: [
           /(?:LoadMethod|Load\s*Method)\s*(?:\/TYPE)?\s*:\s*(.+)/i,
@@ -1040,11 +1117,17 @@ export class TestCaseParser {
           if (weightMatch) values.formFields['weight'] = weightMatch[1].trim();
         }
 
-        // "length" field (Eg. 54)
-        if (!values.formFields['trailerLength']) {
-          const lenMatch = trimmed.match(/"(?:length|lenght)"\s+field\s*\(\s*(?:Eg\.?\s*)?(\d+)\s*\)/i)
+        // Equipment "length" field (Eg. 54) — on the load form
+        if (!values.formFields['equipmentLength']) {
+          const eqLenMatch = trimmed.match(/"(?:length|lenght)"\s+field\s*\(\s*(?:Eg\.?\s*)?(\d+)\s*\)/i)
             || trimmed.match(/(?:length|lenght)\s+(?:field\s+)?\(\s*(?:Eg\.?\s*)?(\d+)\s*\)/i);
-          if (lenMatch) values.formFields['trailerLength'] = lenMatch[1].trim();
+          if (eqLenMatch) values.formFields['equipmentLength'] = eqLenMatch[1].trim();
+        }
+
+        // Trailer length on carrier tab: "Enter trailer length 10"
+        if (!values.formFields['trailerLength']) {
+          const tlMatch = trimmed.match(/trailer\s+length\s+(\d+)/i);
+          if (tlMatch) values.formFields['trailerLength'] = tlMatch[1].trim();
         }
 
         // "Mileage Engine" field as "Current"
@@ -1069,10 +1152,19 @@ export class TestCaseParser {
         }
 
         // Carrier name: "Include Carriers field on the load.(Eg. 18 KING TRUCKING LLC)"
+        // Also: "choose a carrier button and enter value as XPO TRANS INC"
         if (!values.formFields['carrierName']) {
           const carrierMatch = trimmed.match(/(?:Include\s+)?Carrier[s]?\s+field[^(]*\(\s*(?:Eg\.?\s*)?([^)]+)\s*\)/i)
-            || trimmed.match(/select\s+a\s+carrier[^(]*\(\s*(?:Eg\.?\s*)?([^)]+)\s*\)/i);
-          if (carrierMatch) values.formFields['carrierName'] = carrierMatch[1].trim();
+            || trimmed.match(/select\s+a\s+carrier[^(]*\(\s*(?:Eg\.?\s*)?([^)]+)\s*\)/i)
+            || trimmed.match(/choose\s+a?\s*carrier\b.*?(?:enter|type|typing)\s+(?:value\s+as\s+|in\s+)?([A-Z][A-Z0-9\s&,.'()-]+?)(?:\s+and\s+once|\s*\.|\s*$)/i);
+          if (carrierMatch) values.formFields['carrierName'] = (carrierMatch[1] || '').trim();
+        }
+
+        // Customer Value: "select the customer [CORP RECONCILIATION]"
+        if (!values.formFields['customerValue']) {
+          const custValMatch = trimmed.match(/select\s+(?:the\s+)?customer\s*\[\s*([^\]]+)\s*\]/i)
+            || trimmed.match(/(?:Customer|customer)\s+field\s+.*?\[\s*([^\]]+)\s*\]/i);
+          if (custValMatch) values.formFields['customerValue'] = custValMatch[1].trim();
         }
 
         // "Earliest Time" / "Latest Time" (Eg. 09:00, 10:00)
@@ -1086,11 +1178,15 @@ export class TestCaseParser {
           if (ltMatch) values.formFields['shipperLatestTime'] = ltMatch[1].trim();
         }
 
-        // Carrier Contact for Rate Confirmation (Eg. email)
+        // Carrier Contact for Rate Confirmation (Eg. email) OR Email for notification
         if (!values.formFields['emailNotification']) {
           const emailMatch = trimmed.match(/Rate\s+Confirmation\s+field\s*\(\s*(?:Eg\.?\s*)?([^)]+@[^)]+)\s*\)/i)
-            || trimmed.match(/(?:loadboard\s+user)[^(]*\(\s*(?:Eg\.?\s*)?([^)]+@[^)]+)\s*\)/i);
-          if (emailMatch) values.formFields['emailNotification'] = emailMatch[1].trim();
+            || trimmed.match(/(?:loadboard\s+user)[^(]*\(\s*(?:Eg\.?\s*)?([^)]+@[^)]+)\s*\)/i)
+            || trimmed.match(/[Ee]mail\s+(?:for\s+)?notification\s*[:\-]?\s*(?:enter\s+value\s+as\s+)?\s*([\w.\-]+@[\w.\-]+\.\w+)/i);
+          if (emailMatch) {
+            const extracted = (emailMatch[1] || emailMatch[2] || emailMatch[3] || '').trim();
+            if (extracted) values.formFields['emailNotification'] = extracted;
+          }
         }
 
         // Salesperson / Dispatcher (FRISCO TL)
@@ -1126,7 +1222,101 @@ export class TestCaseParser {
       }
     }
 
+    // ── LLM FALLBACK: if regex extraction yielded very few fields, ask LLM ──
+    // Count non-empty extracted values
+    const preFieldCount = Object.values(values.precondition).filter(v => v).length;
+    const formFieldCount = Object.values(values.formFields).filter(v => v).length;
+    const totalExtracted = preFieldCount + formFieldCount;
+
+    // Check for critical missing fields that regex commonly misses.
+    // If any critical field is mentioned in test steps but not extracted, flag for LLM enrichment.
+    const criticalFieldsMissing = this.detectCriticalMissingFields(testStepsText, values);
+
+    if ((totalExtracted < 3 || criticalFieldsMissing.length > 0) && this.llmService && this.llmService.isAvailable()) {
+      if (criticalFieldsMissing.length > 0) {
+        console.log(`   🤖 Critical fields missing after regex: ${criticalFieldsMissing.join(', ')} — flagging for LLM enrichment`);
+      } else {
+        console.log(`   🤖 Regex extracted only ${totalExtracted} fields — flagging for LLM enrichment`);
+      }
+      values._needsLLMEnrichment = true;
+    }
+
     return values;
+  }
+
+  /**
+   * Async version of extractExplicitValues that can call LLM when regex is sparse.
+   * Call this instead of extractExplicitValues when async is acceptable.
+   */
+  async extractExplicitValuesAsync(
+    preconditionText: string,
+    testStepsText: string,
+    expectedText: string
+  ): Promise<ExplicitValues> {
+    // First run regex-based extraction
+    const regexValues = this.extractExplicitValues(preconditionText, testStepsText, expectedText);
+
+    // Count extracted fields
+    const preFieldCount = Object.values(regexValues.precondition).filter(v => v).length;
+    const formFieldCount = Object.values(regexValues.formFields).filter(v => v).length;
+    const totalExtracted = preFieldCount + formFieldCount;
+
+    // Check for critical missing fields that regex commonly fails to extract
+    const criticalFieldsMissing = this.detectCriticalMissingFields(testStepsText, regexValues);
+
+    // If regex got enough AND no critical fields missing, skip LLM
+    if (totalExtracted >= 3 && criticalFieldsMissing.length === 0) {
+      return regexValues;
+    }
+    if (!this.llmService || !this.llmService.isAvailable()) {
+      if (criticalFieldsMissing.length > 0) {
+        console.log(`   ⚠️ Critical fields missing but LLM unavailable: ${criticalFieldsMissing.join(', ')}`);
+      }
+      return regexValues;
+    }
+
+    // Call LLM for extraction
+    if (criticalFieldsMissing.length > 0) {
+      console.log(`   🤖 Critical fields missing after regex: ${criticalFieldsMissing.join(', ')} — invoking LLM...`);
+    } else {
+      console.log(`   🤖 Regex extracted only ${totalExtracted} fields — invoking LLM for value extraction...`);
+    }
+    const llmValues = await this.llmService.extractValues(preconditionText, testStepsText, expectedText);
+
+    if (!llmValues) {
+      return regexValues;
+    }
+
+    // Merge: regex values take priority, LLM fills gaps
+    const merged: ExplicitValues = {
+      precondition: { ...regexValues.precondition },
+      formFields: { ...regexValues.formFields },
+      preconditionSteps: regexValues.preconditionSteps,
+      testStepsRaw: regexValues.testStepsRaw,
+      expectedResultText: regexValues.expectedResultText,
+    };
+
+    // Fill precondition gaps from LLM
+    for (const [key, value] of Object.entries(llmValues.precondition)) {
+      if (value && !merged.precondition[key]) {
+        merged.precondition[key] = value;
+      }
+    }
+
+    // Fill formFields gaps from LLM
+    for (const [key, value] of Object.entries(llmValues.formFields)) {
+      if (value && !merged.formFields[key]) {
+        merged.formFields[key] = value;
+      }
+    }
+
+    const llmFilled = Object.values(merged.precondition).filter(v => v).length
+      + Object.values(merged.formFields).filter(v => v).length - totalExtracted;
+    if (llmFilled > 0) {
+      console.log(`   🤖 LLM filled ${llmFilled} additional field(s)`);
+    }
+
+    return merged;
   }
 
   /**
@@ -1180,7 +1370,7 @@ export class TestCaseParser {
       merged.equipmentType = form.equipmentType;
     }
     if (form.loadType && !merged.loadMethod) {
-      merged.loadMethod = form.loadType;
+      merged.loadMethod = this.normalizeLoadMethod(form.loadType);
     }
     if (form.offerRate && !merged.offerRate) {
       merged.offerRate = form.offerRate;
@@ -1214,6 +1404,12 @@ export class TestCaseParser {
     if (form['trailerLength'] && !merged['trailerLength']) {
       merged['trailerLength'] = form['trailerLength'];
     }
+    if (form['equipmentLength'] && !merged['equipmentLength']) {
+      merged['equipmentLength'] = form['equipmentLength'];
+    }
+    if (form['customerValue'] && !merged['Customer Value']) {
+      merged['Customer Value'] = form['customerValue'];
+    }
     if (form['mileageEngine'] && !merged['mileageEngine']) {
       merged['mileageEngine'] = form['mileageEngine'];
     }
@@ -1245,6 +1441,22 @@ export class TestCaseParser {
     if (pre.carrierName && !merged['Carrier']) {
       merged['Carrier'] = pre.carrierName;
     }
+    // Additional LLM-extracted fields
+    if (form['customerRate'] && !merged['customerRate']) {
+      merged['customerRate'] = form['customerRate'];
+    }
+    if (form['carrierRate'] && !merged['carrierRate']) {
+      merged['carrierRate'] = form['carrierRate'];
+    }
+    if (form['totalMiles'] && !merged['miles']) {
+      merged['miles'] = form['totalMiles'];
+    }
+    if (form['lhRate'] && !merged['lhRate']) {
+      merged['lhRate'] = form['lhRate'];
+    }
+    if (form['expirationTime'] && !merged['expirationTime']) {
+      merged['expirationTime'] = form['expirationTime'];
+    }
 
     // Extract city/state from shipper name format "NAME - CITY, ST" or "|NAME|CITY|ST"
     if (form.pickLocation) {
@@ -1273,6 +1485,49 @@ export class TestCaseParser {
     }
 
     return merged;
+  }
+
+  /**
+   * Detect critical fields that are mentioned in test steps but not extracted by regex.
+   * These are fields that commonly cause test failures when missing from the data CSV.
+   */
+  private detectCriticalMissingFields(testStepsText: string, values: ExplicitValues): string[] {
+    const missing: string[] = [];
+
+    // Carrier name: mentioned in steps but not extracted
+    if (!values.formFields['carrierName'] && !values.precondition.carrierName) {
+      if (/choose\s+.*carrier|include\s+carrier|select\s+.*carrier|typing\s+in\s+[A-Z]/i.test(testStepsText)) {
+        missing.push('carrierName');
+      }
+    }
+
+    // Customer Value: "[CUSTOMER NAME]" bracket pattern in steps
+    if (!values.formFields['customerValue']) {
+      if (/select\s+(?:the\s+)?customer\s*\[/i.test(testStepsText) ||
+          /customer\s+field\s+.*?\[/i.test(testStepsText)) {
+        missing.push('customerValue');
+      }
+    }
+
+    // Trailer length vs equipment length: both mentioned but only one extracted
+    if (!values.formFields['trailerLength'] && /trailer\s+length\s+\d+/i.test(testStepsText)) {
+      missing.push('trailerLength');
+    }
+    if (!values.formFields['equipmentLength'] && /"?length"?\s+field\s*\(/i.test(testStepsText)) {
+      missing.push('equipmentLength');
+    }
+
+    // Email notification: mentioned but not extracted
+    if (!values.formFields['emailNotification'] && /email\s+(?:for\s+)?notification.*?[\w.-]+@[\w.-]+/i.test(testStepsText)) {
+      missing.push('emailNotification');
+    }
+
+    // Offer rate: mentioned but not extracted
+    if (!values.formFields.offerRate && /offer\s+rate[^"]*"(\d+)"/i.test(testStepsText)) {
+      missing.push('offerRate');
+    }
+
+    return missing;
   }
 
   /**

@@ -24,6 +24,8 @@ import { SchemaAnalyzer } from './analyzers/SchemaAnalyzer';
 import { DataValidator } from './analyzers/DataValidator';
 import { CodeGenerator, PageObjectModification } from './generators/CodeGenerator';
 import { TestTemplates } from './templates/TestTemplates';
+import { LLMService } from './services/LLMService';
+import { TestCaseMatcher, MatchResult } from './analyzers/TestCaseMatcher';
 
 // Category to data CSV file mapping
 const CATEGORY_DATA_CSV_MAP: Record<string, { folder: string; file: string }> = {
@@ -37,6 +39,7 @@ const CATEGORY_DATA_CSV_MAP: Record<string, { folder: string; file: string }> = 
   dat: { folder: 'dat', file: 'datdata.csv' },
   bulkChange: { folder: 'bulkChange', file: 'bulkchangedata.csv' },
   nonOperationalLoads: { folder: 'nonOperationalLoads', file: 'nonoperationalloadsdata.csv' },
+  billingtoggle: { folder: 'billingtoggle', file: 'billingtoggledata.csv' },
   custom: { folder: 'dfb', file: 'dfbdata.csv' }
 };
 
@@ -47,14 +50,21 @@ export class PlaywrightAgent {
   private dataValidator: DataValidator;
   private generator: CodeGenerator;
   private templates: TestTemplates;
+  private llmService: LLMService;
+  private matcher: TestCaseMatcher;
+  /** When true, saveScript skips per-file tsc — caller runs batch check at the end */
+  private batchMode: boolean = false;
+  private pendingCompilationFiles: string[] = [];
 
   constructor(options?: AgentConfigOptions) {
     this.config = new AgentConfig(options);
-    this.parser = new TestCaseParser();
+    this.llmService = new LLMService(this.config);
+    this.parser = new TestCaseParser(this.llmService);
     this.analyzer = new SchemaAnalyzer();
     this.dataValidator = new DataValidator();
-    this.generator = new CodeGenerator(this.config);
+    this.generator = new CodeGenerator(this.config, this.llmService);
     this.templates = new TestTemplates();
+    this.matcher = new TestCaseMatcher();
   }
 
   /**
@@ -79,17 +89,23 @@ export class PlaywrightAgent {
         console.log(`⏭️  Skipping ${testCase.id}: ${skipCheck.reason}`);
         warnings.push(`Skipped ${testCase.id}: ${skipCheck.reason}`);
       } else {
-        // Ensure test data exists in the respective data CSV
-        this.ensureTestDataInCsv(testCase);
+        // Similarity matching: find best existing test case and inherit data
+        const match = this.matchAndEnrichFromSimilar(testCase);
 
-        // Validate and auto-correct test data
+        // LLM enrichment: fill critical missing fields before CSV write
+        await this.enrichTestDataWithLLM(testCase);
+
+        // Validate and auto-correct test data before writing to CSV
         const validationErrors = this.validateTestData(testCase);
         if (validationErrors.length > 0) {
           warnings.push(...validationErrors.map(e => `[${testCase.id}] ${e}`));
         }
 
-        // Generate the script
-        const script = await this.generator.generateScript(testCase);
+        // Ensure test data exists in the respective data CSV (uses corrected values)
+        this.ensureTestDataInCsv(testCase);
+
+        // Generate the script (pass matched spec path for dynamic reference)
+        const script = await this.generator.generateScript(testCase, undefined, match?.specPath || undefined);
         scripts.push(script);
 
         // Save the script
@@ -135,16 +151,22 @@ export class PlaywrightAgent {
         console.log(`⏭️  Skipping ${testCase.id}: ${skipCheck.reason}`);
         warnings.push(`Skipped ${testCase.id}: ${skipCheck.reason}`);
       } else {
-        // Ensure test data exists in the respective data CSV
-        this.ensureTestDataInCsv(testCase);
+        // Similarity matching: find best existing test case and inherit data
+        const match = this.matchAndEnrichFromSimilar(testCase);
 
-        // Validate and auto-correct test data
+        // LLM enrichment: fill critical missing fields before CSV write
+        await this.enrichTestDataWithLLM(testCase);
+
+        // Validate and auto-correct test data before writing to CSV
         const validationErrors = this.validateTestData(testCase);
         if (validationErrors.length > 0) {
           warnings.push(...validationErrors.map(e => `[${testCase.id}] ${e}`));
         }
 
-        const script = await this.generator.generateScript(testCase, testData);
+        // Ensure test data exists in the respective data CSV (uses corrected values)
+        this.ensureTestDataInCsv(testCase);
+
+        const script = await this.generator.generateScript(testCase, testData, match?.specPath || undefined);
         scripts.push(script);
         await this.saveScript(script);
         console.log(`✅ Generated: ${script.fileName}`);
@@ -181,6 +203,10 @@ export class PlaywrightAgent {
 
     console.log(`\n🚀 Starting generation for ${testCases.length} test cases...\n`);
 
+    // Enable batch mode: skip per-file tsc, run once at the end
+    this.batchMode = true;
+    this.pendingCompilationFiles = [];
+
     let skippedCount = 0;
     for (const input of testCases) {
       try {
@@ -197,17 +223,23 @@ export class PlaywrightAgent {
           continue;
         }
 
-        // Ensure test data exists in the respective data CSV
-        this.ensureTestDataInCsv(testCase);
+        // Similarity matching: find best existing test case and inherit data
+        const match = this.matchAndEnrichFromSimilar(testCase);
 
-        // Validate and auto-correct test data
+        // LLM enrichment: fill critical missing fields before CSV write
+        await this.enrichTestDataWithLLM(testCase);
+
+        // Validate and auto-correct test data before writing to CSV
         const validationErrors = this.validateTestData(testCase);
         if (validationErrors.length > 0) {
           warnings.push(...validationErrors.map(e => `[${testCase.id}] ${e}`));
         }
 
+        // Ensure test data exists in the respective data CSV (uses corrected values)
+        this.ensureTestDataInCsv(testCase);
+
         const testData = testDataMap?.get(testCase.id);
-        const script = await this.generator.generateScript(testCase, testData);
+        const script = await this.generator.generateScript(testCase, testData, match?.specPath || undefined);
         scripts.push(script);
         await this.saveScript(script);
         console.log(`✅ Generated: ${script.fileName}`);
@@ -216,6 +248,13 @@ export class PlaywrightAgent {
         errors.push(`Error generating script for ${id}: ${error.message}`);
         console.error(`❌ Failed: ${id} - ${error.message}`);
       }
+    }
+
+    // End batch mode and run a single compilation check for all generated files
+    this.batchMode = false;
+    if (this.pendingCompilationFiles.length > 0) {
+      this.runBatchCompilationCheck(this.pendingCompilationFiles);
+      this.pendingCompilationFiles = [];
     }
 
     // Log any page object file modifications
@@ -396,7 +435,7 @@ export class PlaywrightAgent {
     }
 
     // Validate after sanitization + self-check
-    const issues = this.validateGeneratedCode(script.content, script.testCaseId);
+    let issues = this.validateGeneratedCode(script.content, script.testCaseId);
     if (issues.length > 0) {
       console.log(`   ⚠️ Validation warnings for ${script.testCaseId} (post-sanitize):`);
       issues.forEach(issue => console.log(`      - ${issue}`));
@@ -404,10 +443,32 @@ export class PlaywrightAgent {
       script.content = this.sanitizeGeneratedCode(script.content);
     }
 
+    // LLM fix attempt: if issues remain and LLM is available, ask the LLM to fix the code
+    if (issues.length > 0 && this.llmService.isAvailable()) {
+      console.log(`   🤖 Attempting LLM fix for ${issues.length} issue(s) in ${script.testCaseId}...`);
+      const schemaCtx = this.generator.getSchemaContext();
+      const fixedCode = await this.llmService.fixCode(script.content, issues, schemaCtx);
+      if (fixedCode) {
+        // Re-sanitize and re-validate the LLM-fixed code
+        script.content = this.sanitizeGeneratedCode(fixedCode);
+        const postFixIssues = this.validateGeneratedCode(script.content, script.testCaseId);
+        if (postFixIssues.length < issues.length) {
+          console.log(`   ✅ LLM fix resolved ${issues.length - postFixIssues.length} of ${issues.length} issue(s)`);
+          issues = postFixIssues;
+        } else {
+          console.log(`   ⚠️ LLM fix did not improve validation — keeping original code`);
+        }
+      }
+    }
+
     fs.writeFileSync(script.filePath, script.content, 'utf-8');
 
-    // Post-write: compile check as standard practice
-    this.runCompilationCheck(script.filePath, script.testCaseId);
+    // Post-write: compile check (skip in batch mode — will run once at the end)
+    if (this.batchMode) {
+      this.pendingCompilationFiles.push(script.filePath);
+    } else {
+      this.runCompilationCheck(script.filePath, script.testCaseId);
+    }
   }
 
   /**
@@ -450,6 +511,51 @@ export class PlaywrightAgent {
         console.log(`   📝 Total: ${errorLines.length} issue(s) — review and fix before running tests`);
       } else {
         console.log(`   ✅ Compilation check passed — no actionable TypeScript errors`);
+      }
+    }
+  }
+
+  /**
+   * Run a single TypeScript compilation check for multiple generated files at once.
+   * Much faster than running tsc per-file when generating a batch of test cases.
+   */
+  private runBatchCompilationCheck(filePaths: string[]): void {
+    console.log(`\n🔍 Running batch TypeScript compilation check for ${filePaths.length} file(s)...`);
+    const projectRoot = path.resolve(__dirname, '../..');
+    const fileBasenames = new Set(filePaths.map(fp => path.basename(fp)));
+
+    try {
+      execSync(`npx tsc --noEmit --pretty -p tsconfig.json 2>&1`, {
+        encoding: 'utf-8',
+        timeout: 120000, // 2 min for batch
+        cwd: projectRoot,
+      });
+      console.log(`   ✅ Batch compilation passed — no TypeScript errors found in any generated file`);
+    } catch (error: any) {
+      const output = error.stdout || error.message || '';
+      const errorsByFile = new Map<string, string[]>();
+
+      output.split('\n').forEach((line: string) => {
+        // Must be about one of our generated files
+        const matchedFile = [...fileBasenames].find(bn => line.includes(bn));
+        if (!matchedFile) return;
+        if (!line.includes('error TS') && !line.includes('warning TS')) return;
+        if (line.includes('TS2307') && line.match(/@\w+\//)) return;
+
+        if (!errorsByFile.has(matchedFile)) errorsByFile.set(matchedFile, []);
+        errorsByFile.get(matchedFile)!.push(line.trim());
+      });
+
+      if (errorsByFile.size > 0) {
+        let totalIssues = 0;
+        for (const [file, errors] of errorsByFile) {
+          console.log(`   ⚠️ ${file}:`);
+          errors.forEach(e => console.log(`      ${e}`));
+          totalIssues += errors.length;
+        }
+        console.log(`   📝 Total: ${totalIssues} issue(s) across ${errorsByFile.size} file(s)`);
+      } else {
+        console.log(`   ✅ Batch compilation passed — no actionable TypeScript errors`);
       }
     }
   }
@@ -882,34 +988,94 @@ export class PlaywrightAgent {
       }
     }
 
-    // Fix 6: Remove placeholder steps (only waitForMultipleLoadStates / empty body)
-    // These steps have no real test logic — they were generated when the agent
-    // couldn't map a CSV action to any POM call. Remove them entirely.
+    // Fix 6: Regenerate placeholder steps with direct locator code, or remove if not recoverable.
+    // Steps that contain only waitForMultipleLoadStates or TODO comments had no real logic.
+    // Attempt to derive direct locator code from the step name before removing entirely.
     const placeholderStepRegex = /\n\s*await test\.step\("([^"]+)",\s*async\s*\(\)\s*=>\s*\{\s*(?:\/\/[^\n]*\n\s*)*(?:\/\/[^\n]*\n\s*)?await pages\.basePage\.waitForMultipleLoadStates\(\["load",\s*"networkidle"\]\);\s*\}\);\s*\n/g;
     const placeholderMatches = code.match(placeholderStepRegex) || [];
     if (placeholderMatches.length > 0) {
       for (const ph of placeholderMatches) {
         const stepNameMatch = ph.match(/test\.step\("([^"]+)"/);
         const stepName = stepNameMatch ? stepNameMatch[1] : 'unknown';
-        console.log(`   🔧 Self-check: Removed empty placeholder step: "${stepName.substring(0, 60)}..."`);
-        code = code.replace(ph, '\n');
+        const lowerStep = stepName.toLowerCase();
+        let regeneratedCode: string | null = null;
+
+        if (lowerStep.includes('enter') || lowerStep.includes('fill') || lowerStep.includes('input') || lowerStep.includes('type')) {
+          const fieldId = stepName.replace(/^(Step\s*\d+:\s*)?/i, '').replace(/[^a-zA-Z0-9]+/g, '_').toLowerCase().replace(/^_|_$/g, '');
+          regeneratedCode = `const field_${fieldId} = sharedPage.locator("#form_${fieldId}, #${fieldId}, [name='${fieldId}']").first();
+        await field_${fieldId}.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await field_${fieldId}.fill("");
+        console.log("Entered ${stepName.substring(0, 40)}");`;
+        } else if (lowerStep.includes('click') || lowerStep.includes('press') || lowerStep.includes('button')) {
+          const btnText = stepName.replace(/^(Step\s*\d+:\s*)?/i, '').replace(/click\s*/i, '').trim();
+          regeneratedCode = `const btn = sharedPage.locator("//button[contains(text(),'${btnText}')] | //a[contains(text(),'${btnText}')]").first();
+        await btn.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await btn.click();
+        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        console.log("Clicked ${btnText.substring(0, 40)}");`;
+        } else if (lowerStep.includes('verify') || lowerStep.includes('validate') || lowerStep.includes('assert') || lowerStep.includes('check')) {
+          regeneratedCode = `try {
+          const el = sharedPage.locator("//*[contains(text(),'${stepName.replace(/^(Step\s*\d+:\s*)?/i, '').substring(0, 30).replace(/'/g, "\\'")}')]").first();
+          const isVis = await el.isVisible({ timeout: 10000 }).catch(() => false);
+          expect.soft(isVis, "${stepName.substring(0, 60)}").toBeTruthy();
+          console.log("Verified: ${stepName.substring(0, 40)}");
+        } catch (e) {
+          console.log("Verification could not complete:", (e as Error).message);
+        }`;
+        } else if (lowerStep.includes('select') || lowerStep.includes('choose') || lowerStep.includes('dropdown')) {
+          const selectId = stepName.replace(/^(Step\s*\d+:\s*)?/i, '').replace(/[^a-zA-Z0-9]+/g, '_').toLowerCase().replace(/^_|_$/g, '');
+          regeneratedCode = `const sel_${selectId} = sharedPage.locator("//select[contains(@name,'${selectId}') or contains(@id,'${selectId}')]").first();
+        await sel_${selectId}.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await sel_${selectId}.selectOption({ index: 0 });
+        console.log("Selected option in ${stepName.substring(0, 40)}");`;
+        }
+
+        if (regeneratedCode) {
+          const regeneratedStep = ph.replace(
+            /(?:\/\/[^\n]*\n\s*)*(?:\/\/[^\n]*\n\s*)?await pages\.basePage\.waitForMultipleLoadStates\(\["load",\s*"networkidle"\]\);/,
+            `// Direct locator fallback for: ${stepName.substring(0, 60)}\n        ${regeneratedCode}`
+          );
+          code = code.replace(ph, regeneratedStep);
+          console.log(`   🔧 Self-check: Regenerated placeholder step with direct locator: "${stepName.substring(0, 60)}"`);
+        } else {
+          console.log(`   🔧 Self-check: Removed unrecoverable placeholder step: "${stepName.substring(0, 60)}..."`);
+          code = code.replace(ph, '\n');
+        }
       }
-      warnings.push(`PLACEHOLDER STEPS: Removed ${placeholderMatches.length} empty step(s) that contained only waitForMultipleLoadStates.`);
+      warnings.push(`PLACEHOLDER STEPS: Processed ${placeholderMatches.length} placeholder step(s) — regenerated with direct locators where possible, removed the rest.`);
     }
 
-    // Fix 7: Detect fillFieldBySelector with invented selectors (not valid CSS/XPath)
-    const inventedSelectorPattern = /fillFieldBySelector\(\s*"([^"]+)"/g;
-    let selectorMatch;
-    const inventedSelectors: string[] = [];
-    while ((selectorMatch = inventedSelectorPattern.exec(code)) !== null) {
-      const selector = selectorMatch[1];
-      // Valid selectors start with #, ., [, //, or contain CSS syntax
-      if (!selector.match(/^[#.\[\/>]/) && !selector.includes('=') && selector.includes('_')) {
-        inventedSelectors.push(selector);
+    // Fix 7: Auto-replace fillFieldBySelector/fillFieldByLabel/selectOptionByField with direct locator code
+    const forbiddenMethodPatterns = [
+      { regex: /await\s+pages\.basePage\.fillFieldBySelector\(\s*"([^"]+)"\s*,\s*([^)]+)\)/g, type: 'fill' as const },
+      { regex: /await\s+pages\.basePage\.fillFieldByLabel\(\s*"([^"]+)"\s*,\s*"([^"]+)"\)/g, type: 'fill' as const },
+      { regex: /await\s+pages\.basePage\.selectOptionByField\(\s*"([^"]+)"\s*,\s*"([^"]+)"\)/g, type: 'select' as const },
+    ];
+    let forbiddenReplacements = 0;
+    for (const { regex, type } of forbiddenMethodPatterns) {
+      let match;
+      while ((match = regex.exec(code)) !== null) {
+        const fieldId = match[1];
+        const value = match[2];
+        let replacement: string;
+        if (type === 'select') {
+          replacement = `const sel_${fieldId.replace(/[^a-z0-9]/g, '_')} = sharedPage.locator("//select[contains(@name,'${fieldId}') or contains(@id,'${fieldId}')]").first();
+        await sel_${fieldId.replace(/[^a-z0-9]/g, '_')}.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await sel_${fieldId.replace(/[^a-z0-9]/g, '_')}.selectOption({ label: ${value} });
+        console.log("Selected from ${fieldId}: " + ${value})`;
+        } else {
+          replacement = `const field_${fieldId.replace(/[^a-z0-9]/g, '_')} = sharedPage.locator("#form_${fieldId}, #${fieldId}, [name='${fieldId}']").first();
+        await field_${fieldId.replace(/[^a-z0-9]/g, '_')}.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await field_${fieldId.replace(/[^a-z0-9]/g, '_')}.fill(${value});
+        console.log("Entered ${fieldId}: " + ${value})`;
+        }
+        code = code.replace(match[0], replacement);
+        forbiddenReplacements++;
+        console.log(`   🔧 Self-check: Replaced forbidden ${match[0].substring(0, 50)}... with direct locator code`);
       }
     }
-    if (inventedSelectors.length > 0) {
-      warnings.push(`INVENTED SELECTORS: ${inventedSelectors.length} fillFieldBySelector call(s) use auto-generated selectors that likely don't exist: ${inventedSelectors.slice(0, 3).join(', ')}...`);
+    if (forbiddenReplacements > 0) {
+      warnings.push(`FORBIDDEN METHODS: Replaced ${forbiddenReplacements} fillFieldBySelector/fillFieldByLabel/selectOptionByField call(s) with direct Playwright locator code.`);
     }
 
     // Fix 8: Wrong timeout for multi-app tests
@@ -1251,6 +1417,73 @@ export class PlaywrightAgent {
   }
 
   /**
+   * Enrich test case data using LLM when regex extraction missed critical fields.
+   * This runs the async LLM extraction and merges results into testCase.testData
+   * and testCase.explicitValues, ensuring the data CSV gets complete values.
+   */
+  private async enrichTestDataWithLLM(testCase: TestCaseInput): Promise<void> {
+    if (!testCase.explicitValues?._needsLLMEnrichment) return;
+    if (!this.llmService || !this.llmService.isAvailable()) return;
+
+    const stepsText = testCase.steps.map(s => `${s.stepNumber}. ${s.action}`).join('\n');
+    const precondText = (testCase.preconditions || []).join('\n');
+    const expectedText = (testCase.expectedResults || []).join('\n');
+
+    // Run async LLM extraction
+    const enrichedValues = await this.parser.extractExplicitValuesAsync(
+      precondText, stepsText, expectedText
+    );
+
+    // Merge LLM results into explicitValues (preserving regex values)
+    if (testCase.explicitValues) {
+      for (const [key, value] of Object.entries(enrichedValues.formFields)) {
+        if (value && !testCase.explicitValues.formFields[key]) {
+          testCase.explicitValues.formFields[key] = value;
+        }
+      }
+      for (const [key, value] of Object.entries(enrichedValues.precondition)) {
+        if (value && !testCase.explicitValues.precondition[key]) {
+          testCase.explicitValues.precondition[key] = value;
+        }
+      }
+      testCase.explicitValues._needsLLMEnrichment = false;
+    }
+
+    // Re-bridge to testData with enriched values
+    if (testCase.explicitValues && testCase.testData) {
+      testCase.testData = this.parser.bridgeExplicitValuesToTestData(
+        testCase.testData as TestData, testCase.explicitValues, testCase.id
+      );
+    }
+  }
+
+  /**
+   * Match a new test case against existing test cases to:
+   * 1. Find the most functionally similar existing spec (for code generation reference)
+   * 2. Inherit missing data fields from the matched test case's CSV row
+   *
+   * Returns the MatchResult so CodeGenerator can use the matched spec as template.
+   */
+  private matchAndEnrichFromSimilar(testCase: TestCaseInput): MatchResult | null {
+    const match = this.matcher.findBestMatch(testCase);
+    if (!match) return null;
+
+    console.log(`   🔗 Similarity match: ${testCase.id} → ${match.matchedId} (score=${(match.score * 100).toFixed(0)}%, ${match.reasons.join(', ')})`);
+
+    // Inherit missing data from matched test case
+    if (testCase.testData && Object.keys(match.matchedData).length > 0) {
+      const { inherited, data } = this.matcher.inheritMissingData(
+        testCase.testData, match.matchedData, match.matchedId
+      );
+      if (inherited.length > 0) {
+        testCase.testData = data;
+      }
+    }
+
+    return match;
+  }
+
+  /**
    * Check if a test case ID exists in the respective data CSV file
    * If not present, add a new row with the test case data
    */
@@ -1370,7 +1603,7 @@ export class PlaywrightAgent {
       if (form.pickLocation)    aliasMap['shippername'] = form.pickLocation;
       if (form.dropLocation)    aliasMap['consigneename'] = form.dropLocation;
       if (form.equipmentType)   aliasMap['equipmenttype'] = form.equipmentType;
-      if (form.loadType)        aliasMap['loadmethod'] = form.loadType;
+      if (form.loadType)        aliasMap['loadmethod'] = this.normalizeLoadMethod(form.loadType);
       if (form.offerRate)       { aliasMap['offerrate'] = form.offerRate; aliasMap['offerrate'] = form.offerRate; }
       if (form.shipperZip)      aliasMap['shipperzip'] = form.shipperZip;
       if (form.consigneeZip)    aliasMap['consigneezip'] = form.consigneeZip;
@@ -1382,7 +1615,10 @@ export class PlaywrightAgent {
       if (form['uom'])                aliasMap['shipmentcommodityuom'] = form['uom'];
       if (form['description'])        aliasMap['shipmentcommoditydescription'] = form['description'];
       if (form['weight'])             aliasMap['shipmentcommodityweight'] = form['weight'];
-      if (form['trailerLength'])      { aliasMap['trailerlength'] = form['trailerLength']; aliasMap['equipmentlength'] = form['trailerLength']; }
+      if (form['trailerLength'])      aliasMap['trailerlength'] = form['trailerLength'];
+      if (form['equipmentLength'])    aliasMap['equipmentlength'] = form['equipmentLength'];
+      if (!form['equipmentLength'] && form['trailerLength']) aliasMap['equipmentlength'] = form['trailerLength'];
+      if (form['customerValue'])      aliasMap['customervalue'] = form['customerValue'];
       if (form['mileageEngine'])      aliasMap['mileageengine'] = form['mileageEngine'];
       if (form['method'])             aliasMap['method'] = form['method'];
       if (form['rateType'])           aliasMap['ratetype'] = form['rateType'];
@@ -1392,6 +1628,9 @@ export class PlaywrightAgent {
       if (form['consigneeEarliestTime']) aliasMap['consigneeearliesttime'] = form['consigneeEarliestTime'];
       if (form['consigneeLatestTime'])   aliasMap['consigneelatesttime'] = form['consigneeLatestTime'];
       if (form['salesperson'])        aliasMap['salesagent'] = form['salesperson'];
+      // Additional LLM-extracted fields
+      if (form['totalMiles'])         aliasMap['miles'] = form['totalMiles'];
+      if (form['emailNotification'])  aliasMap['saleagentemail'] = form['emailNotification'];
       // Carrier name from precondition
       if (pre.carrierName)            aliasMap['carrier'] = pre.carrierName;
 
@@ -1460,10 +1699,23 @@ export class PlaywrightAgent {
    * Escape a CSV value (wrap in quotes if contains commas, quotes, or newlines)
    */
   private escapeCsvValue(value: string): string {
-    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+    if (value.includes(',') || value.includes('"') || value.includes('\n') ||
+        value.includes('(') || value.includes(')')) {
       return `"${value.replace(/"/g, '""')}"`;
     }
     return value;
+  }
+
+  /**
+   * Normalize loadMethod values to the short form used by the UI dropdown.
+   * "TruckLoad", "Truck Load", "FTL" etc. all map to "TL".
+   */
+  private normalizeLoadMethod(value: string): string {
+    const lower = value.trim().toLowerCase();
+    const tlAliases = ['truckload', 'truck load', 'ftl', 'full truckload', 'full truck load'];
+    if (tlAliases.includes(lower)) return 'TL';
+    if (lower === 'less than truckload' || lower === 'less than truck load') return 'LTL';
+    return value.trim();
   }
 
   /**

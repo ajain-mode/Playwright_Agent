@@ -85,6 +85,7 @@ export class DFBGlobalConstants {
   static readonly CARRIER_CONTACT = {
     CONTACT_1: "Deepak Bohra (deepak.bohra@modeglobal.com)",
     CONTACT_2: "deepak bohra (deepak.bohra@modeglobal.com)",
+    CONTACT_3: "Mohammed Suhaib (mohammed.suhaib@modeglobal.com)"
   } as const;
 
    static readonly CARRIER_DISPATCH_EMAIL = {

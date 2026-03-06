@@ -41,6 +41,8 @@ export interface ExplicitValues {
   testStepsRaw: string[];
   /** The expected result text */
   expectedResultText: string;
+  /** Internal flag: set when regex extraction was sparse and LLM enrichment is recommended */
+  _needsLLMEnrichment?: boolean;
 }
 
 /**
@@ -87,6 +89,7 @@ export type TestCategory =
   | 'dat' 
   | 'nonOperationalLoads' 
   | 'api'
+  | 'billingtoggle'
   | 'custom';
 
 /**

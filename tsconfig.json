@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": false,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node", "playwright"],
+    "baseUrl": "./",
+    "paths": {
+      "@pages/*": ["src/pages/*"],
+      "@utils/*": ["src/utils/*"],
+      "@config/*": ["src/config/*"],
+      "@loginHelpers/*": ["src/loginHelpers/*"],
+      "@api/*": ["src/api/*"],
+      "@data/*": ["src/data/*"]
+    },
+    "noUnusedLocals": true, // Error on unused local variables
+    "noUnusedParameters": true, // Error on unused function parameters
+    "noImplicitReturns": true, // Error if not all code paths return a value
+    "noFallthroughCasesInSwitch": true // Error on fallthrough in switch statements
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"],
+  "eslintConfig": {
+    "extends": [
+      "@typescript-eslint/recommended",
+      "plugin:playwright/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint", "playwright"],
+    "rules": {
+      "no-console": "warn",
+      "prefer-const": "error"
+    }
+  }
+}

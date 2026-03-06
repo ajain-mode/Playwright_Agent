@@ -26,9 +26,21 @@ export const ALERT_PATTERNS = {
 
   A_CARRIER_CONTACT_FOR_AUTO_ACCEPT_MUST_BE_SELECTED: "A carrier contact for auto accept must be selected",
 
+  CARRIER_CAUTIONARY_SAFETY_RATING: /CAUTION/i,
+
   IN_VIEW_MODE: "in view mode",
 
   UNKNOWN_MESSAGE: ":",
+
+  FOR_SECONDARY_INVOICE: "for secondary invoice",
+
+  STATING_STATUS_HAS_MOVED_TO_THE_INVOICE_SHOULD_APPEAR_ON_THE: "stating status has moved to the INVOICE should appear on the screen.",
+
+  STATUS_HAS_BEEN_SET_TO_BOOKED: /STATUS HAS BEEN SET TO BOOKED/i,
+
+  PAYABLE_STATUS_INVOICE_RECEIVED: /Payable Status has been updated to INVOICE RECEIVED/i,
+
+  UNRECOGNISED_ZIP_CODE_ENTERED: "Unrecognised zip code entered",
 
 };
 

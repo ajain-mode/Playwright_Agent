@@ -1,24 +1,24 @@
-import { BrowserContext, expect, Page, test } from "@playwright/test";
+import { BrowserContext, Page, test } from "@playwright/test";
+import commonReusables from "@utils/commonReusables";
+import { ALERT_PATTERNS } from "@utils/alertPatterns";
 import { MultiAppManager } from "@utils/dfbUtils/MultiAppManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
-import commonReusables from "@utils/commonReusables";
 import { PageManager } from "@utils/PageManager";
-import { ALERT_PATTERNS } from "@utils/alertPatterns";
+import dfbHelpers from "@utils/dfbUtils/dfbHelpers";
 import commissionHelper from "@utils/commission-helpers";
 
 /**
- * Test Case: DFB-97746 - Automatically book a load when it is manually postedDisplay a message when an active loadboard user is not selected for the Carrier Contact for Rate Confirmation field on the load
+ * Test Case: DFB-25115 - Verify that a message is displayed when an invalid value is entered for the DROP Zip/Postal Code field on the CREATE NEW ENTRY form
  * @author AI Agent Generator
- * @date 2026-02-25
+ * @date 2026-03-05
  * @category dfb
  */
-const testcaseID = "DFB-97746";
+const testcaseID = "DFB-25115";
 const testData = dataConfig.getTestDataFromCsv(dataConfig.dfbData, testcaseID);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let cargoValue: string;
-let loadNumber: string;
 let agentEmail: string;
 let sharedContext: BrowserContext;
 let sharedPage: Page;
@@ -27,7 +27,7 @@ let pages: PageManager;
 
 test.describe.configure({ retries: 1 });
 test.describe.serial(
-  "Case ID: DFB-97746 - Automatically book a load when it is manually postedDisplay a message when an active loadboard user is not selected for the Carrier Contact for Rate Confirmation field on the load",
+  "Case ID: DFB-25115 - Verify that a message is displayed when an invalid value is entered for the DROP Zip/Postal Code field on the CREATE NEW ENTRY form",
   () => {
     test.beforeAll(async ({ browser }) => {
       sharedContext = await browser.newContext();
@@ -46,9 +46,9 @@ test.describe.serial(
     });
 
     test(
-      "Case Id: DFB-97746 - Automatically book a load when it is manually postedDisplay a message when an active loadboard user is not selected for the Carrier Contact for Rate Confirmation field on the load",
+      "Case Id: DFB-25115 - Verify that a message is displayed when an invalid value is entered for the DROP Zip/Postal Code field on the CREATE NEW ENTRY form",
       {
-        tag: "@aiteam,@carrierautoaccept,@dfb"
+        tag: "@aiteam,@dfb,@nontabular,@postautomationrules,@rulefieldvalidation"
       },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE); // 15 minutes
@@ -77,6 +77,7 @@ test.describe.serial(
         const btmsBaseUrl = new URL(sharedPage.url()).origin;
         await sharedPage.goto(btmsBaseUrl);
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await sharedPage.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });
       });
 
       await test.step("Step 3: Pre-Conditions setup — office config with DME/TNX validat...", async () => {
@@ -339,242 +340,48 @@ test.describe.serial(
         console.log("Switched back to BTMS — preconditions complete, starting test steps");
       });
 
-      await test.step("Step 7 [CSV 1-5]: Search customer and navigate to CREATE TL *NEW*", async () => {
-        const btmsBaseUrl = new URL(sharedPage.url()).origin;
-        await sharedPage.goto(btmsBaseUrl);
+      await test.step("Step 7: Click the New button to open the CREATE NEW ENTRY form", async () => {
+        // Click New button to open CREATE NEW ENTRY form
+        await pages.postAutomationRulePage.clickElementByText(POST_AUTOMATION_RULE.NEW_BUTTON);
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        await sharedPage.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });
-        console.log("Navigated to BTMS Home");
-        await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
-        await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
-        console.log("Hovered to Customers and clicked Search");
-        await pages.searchCustomerPage.enterCustomerName(testData.customerName);
-        console.log(`Entered customer name: ${testData.customerName}`);
-        await pages.searchCustomerPage.selectActiveOnCustomerPage();
-        await pages.searchCustomerPage.clickOnSearchCustomer();
-        console.log("Clicked Search button");
-        await pages.searchCustomerPage.selectCustomerByName(testData.customerName);
-        console.log("Clicked on Customer profile");
-        await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
-        console.log("Clicked CREATE TL *NEW* hyperlink");
-        pages.logger.info("Navigated to Enter New Load page");
       });
 
-      await test.step("Step 8 [CSV 6-26]: Fill Enter New Load page details (CSV 6-26)", async () => {
-        console.log("CSV 6-7: Customer field pre-selected, Salesperson/Dispatcher pre-selected");
-        await pages.nonTabularLoadPage.createNonTabularLoad({
-        shipperValue: testData.shipperName,
-        consigneeValue: testData.consigneeName,
-        shipperEarliestTime: testData.shipperEarliestTime,
-        shipperLatestTime: testData.shipperLatestTime,
-        consigneeEarliestTime: testData.consigneeEarliestTime,
-        consigneeLatestTime: testData.consigneeLatestTime,
-        shipmentCommodityQty: testData.shipmentCommodityQty,
-        shipmentCommodityUoM: testData.shipmentCommodityUoM,
-        shipmentCommodityDescription: testData.shipmentCommodityDescription,
-        shipmentCommodityWeight: testData.shipmentCommodityWeight,
-        equipmentType: testData.equipmentType,
-        equipmentLength: testData.equipmentLength,
-        distanceMethod: testData.Method,
-        shipperCountry: testData.shipperCountry,
-        shipperZip: testData.shipperZip,
-        shipperAddress: testData.shipperAddress,
-        shipperNameNew: testData.shipperNameNew,
-        });
-        console.log("Shipper, Consignee, dates/times, commodity, equipment fields filled");
-        pages.logger.info("Enter New Load form completed");
-      });
-      await test.step("Step 10 [CSV 29-30]: Click Create Load and select Rate Type", async () => {
-        await pages.nonTabularLoadPage.clickCreateLoadButton();
-        console.log("Clicked Create Load button");
-        await pages.editLoadLoadTabPage.checkLoadTabDetails(testData.rateType);
-        console.log(`Rate type set to ${testData.rateType}`);
-        await pages.editLoadPage.validateEditLoadHeadingText();
-        loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
-        console.log(`Load Number captured: ${loadNumber}`);
-        await pages.editLoadPage.validateCurrentTabValue(TABS.LOAD);
-        pages.logger.info("Load created successfully");
-      });
-
-      await test.step("Step 11 [CSV 31-35]: Carrier tab — enter offer rate, select carrier, check auto accept", async () => {
-        await pages.editLoadPage.clickOnTab(TABS.CARRIER);
-        console.log("Clicked Carrier tab");
-        await pages.dfbLoadFormPage.enterOfferRate(testData.offerRate);
-        console.log(`Entered Offer Rate: ${testData.offerRate}`);
-        await pages.dfbLoadFormPage.selectCarriersInIncludeCarriers([testData.Carrier]);
-        console.log(`Selected carrier: ${testData.Carrier}`);
-        await pages.dfbLoadFormPage.clickCarrierAutoAcceptCheckbox();
-        console.log("Checked Carrier Auto Accept checkbox");
-        console.log("Carrier Contact for Rate Confirmation intentionally left empty");
-        pages.logger.info("Carrier tab configured for auto accept test");
-      });
-
-      await test.step("Step 12 [CSV 36-38]: Save without carrier contact — validate error, fix and re-save", async () => {
-        await pages.editLoadFormPage.clickOnSaveBtn();
-        console.log("Clicked Save button");
-        await pages.commonReusables.validateAlert(
-        sharedPage,
-        ALERT_PATTERNS.A_CARRIER_CONTACT_FOR_AUTO_ACCEPT_MUST_BE_SELECTED
+      await test.step("Step 8: Select/Enter valid values for all of the fields on the CR...", async () => {
+        // Fill Post Automation Rule form - EXCLUDING field(s) as per test case
+        await dfbHelpers.fillPostAutomationRuleForm(
+        pages,
+        {
+        customer: testData.customerName,
+        emailNotification: testData.saleAgentEmail,
+        pickLocation: testData.shipperName,
+        destination: testData.consigneeName,
+        equipment: testData.equipmentType,
+        loadType: testData.loadMethod,
+        offerRate: testData.offerRate,
+        commodity: testData.commodity,
+        },
+        true
         );
-        console.log("Validated alert — A carrier contact for auto accept must be selected");
-        console.log("Clicked OK to dismiss alert");
-        pages.logger.info("Validated alert: carrier contact required for auto accept");
       });
 
-      await test.step("Step 13: Select an active loadboard user for the Carrier Contact f...", async () => {
-        // Select carrier contact for rate confirmation
-        await pages.dfbLoadFormPage.selectCarreirContactForRateConfirmation(CARRIER_CONTACT.CONTACT_1);
-        console.log("Selected carrier contact for rate confirmation");
+      await test.step("Step 9: Enter an invalid value for the DROP Zip/Postal Code field", async () => {
+        // Enter invalid value for the DROP Zip/Postal Code
+        const field_invalid_value_for_the_drop_zip_postal_code = sharedPage.locator("#form_invalid_value_for_the_drop_zip_postal_code, #invalid_value_for_the_drop_zip_postal_code, [name='invalid_value_for_the_drop_zip_postal_code']").first();
+        await field_invalid_value_for_the_drop_zip_postal_code.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await field_invalid_value_for_the_drop_zip_postal_code.fill(testData.invalidvaluefortheDROPZipPostalCode);
+        console.log("Entered invalid value for the DROP Zip/Postal Code: " + testData.invalidvaluefortheDROPZipPostalCode);
       });
 
-      await test.step("Step 14: Click the Save button on the load.", async () => {
-        await pages.editLoadFormPage.clickOnSaveBtn();
+      await test.step("Step 10: Click the Create button", async () => {
+        // Click Create button
+        await pages.postAutomationRulePage.clickElementByText(BUTTONS.CREATE);
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        await pages.viewLoadPage.validateViewLoadHeading();
-        console.log("Load saved and displayed in View mode");
       });
 
-      await test.step("Step 15 [CSV 41]: Navigate to Carrier tab and Post the load", async () => {
-        await pages.editLoadPage.clickOnTab(TABS.CARRIER);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        console.log("Clicked Carrier tab");
-        await pages.dfbLoadFormPage.clickOnPostButton();
-        console.log("Clicked Post button");
-        pages.logger.info("Load posted, moving to verification");
-      });
-
-      await test.step("Step 18 [CSV 44-46]: Switch to DME — verify load statuses", async () => {
-        console.log("Switching to DME application");
-        const dmePages = await appManager.switchToDME();
-        await dmePages.dmeDashboardPage.clickOnLoadsLink();
-        console.log("Clicked on Loads");
-        await dmePages.dmeDashboardPage.searchLoad(loadNumber);
-        console.log(`Searched for load number: ${loadNumber}`);
-        await dmePages.dmeLoadPage.validateAndGetStatusTextWithRetry(
-        LOAD_STATUS.BTMS_CANCELLED,
-        LOAD_STATUS.TNX_BOOKED,
-        loadNumber,
-        dmePages.dmeDashboardPage
-        );
-        console.log("Validated: DME statuses — BTMS CANCELLED, TNX BOOKED");
-        await dmePages.dmeLoadPage.validateSingleTableRowPresent();
-        await dmePages.dmeLoadPage.validateAndGetSourceIdText(loadNumber);
-        await dmePages.dmeLoadPage.clickOnDataDetailsLink();
-        await dmePages.dmeLoadPage.clickOnShowIconLink();
-        await dmePages.dmeLoadPage.validateAuctionAssignedText(
-        loadNumber,
-        dmePages.dmeDashboardPage
-        );
-        pages.logger.info("DME load verification completed");
-      });
-
-      await test.step("Step 19 [CSV 47-52]: Switch to TNX — verify load is Matched and execution notes", async () => {
-        console.log("Switching to TNX application and logging in");
-        const tnxPages = await appManager.switchToTNX();
-        await appManager.tnxPage.setViewportSize({ width: 1920, height: 1080 });
-        
-        const tnxPage = appManager.tnxPage;
-        const orgDropdown = tnxPage.locator("//select[@data-testid='orgSelector']");
-        await orgDropdown.waitFor({ state: "visible", timeout: 30000 });
-        const allOptions = await orgDropdown.locator("option").allTextContents();
-        console.log(`TNX org dropdown options: [${allOptions.join(" | ")}]`);
-        const carrierUpper = testData.Carrier.toUpperCase();
-        const matchedOption = allOptions.find((opt: string) => opt.toUpperCase().includes(carrierUpper));
-        if (matchedOption) {
-        console.log(`Found matching TNX org option: "${matchedOption}" for carrier "${testData.Carrier}"`);
-        await tnxPages.tnxLandingPage.selectOrganizationByText(matchedOption.trim());
-        } else {
-        console.log(`No matching option found for "${testData.Carrier}" — trying exact name`);
-        await tnxPages.tnxLandingPage.selectOrganizationByText(testData.Carrier);
-        }
-        console.log(`Selected carrier from dropdown: ${testData.Carrier}`);
-        await tnxPages.tnxLandingPage.handleOptionalSkipButton();
-        await tnxPages.tnxLandingPage.handleOptionalNoThanksButton();
-        await tnxPages.tnxLandingPage.clickOnTNXHeaderLink(TNX.ACTIVE_JOBS);
-        console.log("Clicked on Active Jobs");
-        await tnxPages.tnxLandingPage.clickPlusButton();
-        await tnxPages.tnxLandingPage.searchLoadValue(loadNumber);
-        console.log(`Clicked plus icon and searched load: ${loadNumber}`);
-        await tnxPages.tnxLandingPage.clickLoadSearchLink();
-        await tnxPages.tnxLandingPage.validateBidsTabAvailableLoadsText(
-        TNX.SINGLE_JOB_RECORD,
-        loadNumber
-        );
-        await tnxPages.tnxLandingPage.clickLoadLink();
-        console.log("Clicked load — verifying Matched status and offer rate");
-        const tnxOfferRate = await tnxPages.tnxLandingPage.getLoadOfferRateValue();
-        const tnxRateNumeric = tnxOfferRate.replace(/[\$,]/g, "").split(".")[0];
-        const expectedRateNumeric = testData.offerRate.replace(/[\$,]/g, "").split(".")[0];
-        console.log(`TNX Offer Rate: "${tnxOfferRate}" (numeric: ${tnxRateNumeric}) | Expected: "${testData.offerRate}" (numeric: ${expectedRateNumeric})`);
-        expect(tnxRateNumeric, `Offer rate mismatch`).toBe(expectedRateNumeric);
-        await tnxPages.tnxLandingPage.clickOnSelectTenderDetailsModalTab(
-        TENDER_DETAILS_MODAL_TABS.GENERAL
-        );
-        await tnxPages.tnxLandingPage.validateStatusHistoryText(
-        TNX_STATUS_HISTORY.STATUS_MATCHED
-        );
-        console.log("Validated: Load is Matched in TNX");
-        await tnxPages.tnxLandingPage.clickOnSelectTenderDetailsModalTab(
-        TENDER_DETAILS_MODAL_TABS.PROGRESS
-        );
-        console.log("Clicked Progress tab — checking execution notes fields");
-        await tnxPages.tnxExecutionTenderPage.validateExecutionNotesFieldsPresence();
-        console.log("Validated: Execution notes fields are displayed");
-        pages.logger.info("TNX validation completed — load Matched, execution notes verified");
-      });
-      await test.step("Step 21: Switch back to BTMS — verify BOOKED status, carrier detai...", async () => {
-        await appManager.switchToBTMS();
-        console.log("Switched back to BTMS to verify BOOKED status");
-        await pages.viewLoadPage.refreshAndValidateLoadStatus(LOAD_STATUS.BOOKED);
-        console.log("Expected Step 44: Load status is BOOKED");
-        
-        await pages.viewLoadPage.clickCarrierTab();
-        await pages.viewLoadCarrierTabPage.validateCarrierAssignedText(testData.Carrier);
-        console.log(`Expected Step 44: Carrier ${testData.Carrier} assigned to load`);
-        
-        await pages.viewLoadCarrierTabPage.validateCarrierDispatchName(
-        CARRIER_DISPATCH_NAME.DISPATCH_NAME_1
-        );
-        console.log("Expected Step 44: Carrier Dispatcher Name validated");
-        
-        await pages.viewLoadCarrierTabPage.validateCarrierDispatchEmail(
-        CARRIER_DISPATCH_EMAIL.EMAIL_1
-        );
-        console.log("Expected Step 44: Carrier Dispatcher Email validated");
-        
-        try {
-        const bidsReportValue = await pages.viewLoadCarrierTabPage.getBidsReportValue();
-        console.log(`Expected Step 44: BIDS Reports value = "${bidsReportValue}"`);
-        } catch (e) {
-        console.log(`Expected Step 44: BIDS Reports — could not retrieve (${(e as Error).message})`);
-        }
-        
-        try {
-        const avgRateEl = sharedPage.locator("//span[@id='bids-avg-rate'], //td[contains(text(),'Avg Rate')]/following-sibling::td").first();
-        if (await avgRateEl.isVisible({ timeout: 5000 }).catch(() => false)) {
-        const avgRate = (await avgRateEl.textContent())?.trim() || "";
-        console.log(`Expected Step 44: Avg Rate = "${avgRate}"`);
-        } else {
-        console.log("Expected Step 44: Avg Rate element not visible on page");
-        }
-        } catch (e) {
-        console.log(`Expected Step 44: Avg Rate — could not retrieve (${(e as Error).message})`);
-        }
-        
-        try {
-        await pages.commonReusables.getCurrentDateTime();
-        await pages.viewLoadCarrierTabPage.clickViewLoadPageLinks(TNX.BID_HISTORY);
-        console.log("Expected Step 44: Clicked Bid History link");
-        const bidHistoryDetails = await pages.viewLoadCarrierTabPage.getBidHistoryFirstRowDetails();
-        console.log(`Expected Step 44: Bid History row — Carrier: "${bidHistoryDetails.carrier}", Rate: "${bidHistoryDetails.bidRate}", Source: "${bidHistoryDetails.source}"`);
-        console.log(`Expected Step 44: BIDS Source = "${bidHistoryDetails.source}"`);
-        await pages.viewLoadCarrierTabPage.closeBidHistoryModal();
-        console.log("Expected Step 44: Bid History validated and modal closed");
-        } catch (e) {
-        console.log(`Expected Step 44: Bid History — could not retrieve (${(e as Error).message})`);
-        }
-        
-        pages.logger.info("BTMS BOOKED status, carrier details, BIDS and Bid History verified");
+      await test.step("Step 11: Verify Remaining Expected Results", async () => {
+        // Expected: A message is displayed relating 'Unrecognised zip code entered'
+        await pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.UNRECOGNISED_ZIP_CODE_ENTERED);
+        console.log("Alert validated");
       });
 
 

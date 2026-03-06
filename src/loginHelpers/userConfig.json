@@ -1,0 +1,47 @@
+{
+  "globalUser": "svc.testautomation",
+  "ssoUser": {
+    "btmsSSOUser": "svc_testautomation@modeglobal.com"
+  },
+  "edi": {
+    "UserMarmaxx": "agentedi.marmaxx",
+    "ediUserIBO": "ediuser.ibo"
+  },
+  "commissions": {
+    "UserCommission": "global.commission"
+  },
+  "saleslead": {
+    "UserSales": "sales.lead"
+  },
+  "tnx": {
+    "tnxUser": "deepak.bohra+staging@modeglobal.com"
+  },
+  "dme": {
+    "dmeUser": "deepak.bohra@modeglobal.com"
+  },
+  "tritan": {
+    "tritanCustomer": "CUSTOMER_RSINGH"
+  },
+  "customerPortal": {
+    "customerPortalUser": "svc_testautomation+02@modeglobal.com"
+  },
+  "tnxRep": {
+    "tnxRepUser": "service-tnx-stage@modeglobal.com"
+  },
+  "tritanAdmin": {
+    "tritanAdminCustomer": "ROHSINGH"
+  },
+  "legacyCustomerPortal": {
+    "legacyCustomerPortalUser_pit": "8211784",
+    "legacyCustomerPortalUser_stage": "5206229"
+  },
+  "banyan": {
+    "banyanUser": "banyan.user"
+  },
+  "dat": {
+    "datUser": "dat.testautomation"
+  },
+  "bulkChange": {
+    "bulkChangeUser": "bulkchange"
+  }
+}

@@ -97,6 +97,32 @@ class NonTabularLoadPage {
         }
     }
 
+    private async selectDropdownOptionFlexibly(dropdown: Locator, searchValue: string): Promise<boolean> {
+        const search = searchValue.trim().toLowerCase();
+        const allOptions = await dropdown.locator('option').evaluateAll(opts =>
+            opts.map(o => ({
+                value: (o as HTMLOptionElement).value,
+                text: (o.textContent || '').trim()
+            }))
+        );
+
+        const validOptions = allOptions.filter(o => o.value !== '' && !o.text.toLowerCase().includes('choose'));
+        console.log(`Available dropdown options (${validOptions.length}): ${validOptions.map(o => `"${o.text}"`).join(', ')}`);
+
+        let match = validOptions.find(o => o.value.toLowerCase() === search);
+        if (!match) match = validOptions.find(o => o.text.toLowerCase() === search);
+        if (!match) match = validOptions.find(o => o.text.toLowerCase().startsWith(search));
+        if (!match) match = validOptions.find(o => o.text.toLowerCase().includes(search));
+        if (!match) match = validOptions.find(o => o.value.toLowerCase().includes(search));
+
+        if (match) {
+            await dropdown.selectOption(match.value);
+            console.log(`✅ Selected dropdown option: "${match.text}" (value: "${match.value}")`);
+            return true;
+        }
+        return false;
+    }
+
     /**
    * @author Parth Rastogi
    * @description This method handles clicking the Create Load button
@@ -143,39 +169,58 @@ class NonTabularLoadPage {
         shipperZip: string;
         shipperAddress: string;
         shipperNameNew: string;
+        shipperCity?: string;
+        shipperState?: string;
+        consigneeCountry?: string;
+        consigneeZip?: string;
+        consigneeAddress?: string;
+        consigneeNameNew?: string;
+        consigneeCity?: string;
+        consigneeState?: string;
     }) {
         try {
             console.log("Starting Non-Tabular Load creation process...");
-            // Step 1: Fill Shipper Information
             console.log("Setting shipper information...");
-          
             await this.shipperDropdown_LOC.waitFor({ state: 'visible' });
-              // Check if shipper value exists in dropdown
-        const shipperOptions = await this.shipperDropdown_LOC.locator('option').allTextContents();
-        const shipperExists = shipperOptions.some(option => option.trim() === loadData.shipperValue.trim());
-        
-        if (shipperExists) {
-            await this.shipperDropdown_LOC.selectOption(loadData.shipperValue);
-            console.log(`✅ Shipper "${loadData.shipperValue}" selected successfully`);
-        } else {
-            if(loadData.shipperCountry === "Canada") {
-            console.log(`Shipper value for CA "${loadData.shipperValue}" not available in dropdown, adding details manually.`);
-            await this.formShipperNameInput_LOC.fill(loadData.shipperNameNew);
-            await this.formShipperAddressInput_LOC.fill(loadData.shipperAddress);
-            await this.shipperCountryDropdown_LOC.selectOption(loadData.shipperCountry);
-            await this.formShipperZipInput_LOC.fill(loadData.shipperZip);
+
+            const shipperSelected = await this.selectDropdownOptionFlexibly(
+                this.shipperDropdown_LOC, loadData.shipperValue
+            );
+
+            if (!shipperSelected) {
+                const shipperName = loadData.shipperNameNew || loadData.shipperValue;
+                console.log(`Shipper "${loadData.shipperValue}" not in dropdown, filling manually.`);
+                await this.formShipperNameInput_LOC.fill(shipperName);
+                if (loadData.shipperAddress) await this.formShipperAddressInput_LOC.fill(loadData.shipperAddress);
+                if (loadData.shipperCity) await this.formShipperCityInput_LOC.fill(loadData.shipperCity);
+                if (loadData.shipperCountry === "Canada") {
+                    await this.shipperCountryDropdown_LOC.selectOption(loadData.shipperCountry);
+                }
+                if (loadData.shipperState) await this.formShipperStateInput_LOC.selectOption(loadData.shipperState);
+                if (loadData.shipperZip) await this.formShipperZipInput_LOC.fill(loadData.shipperZip);
             }
-            else {
-                console.log(`Shipper value for US "${loadData.shipperValue}" not available in dropdown, adding details manually.`);
-            await this.formShipperNameInput_LOC.fill(loadData.shipperNameNew);
-            await this.formShipperAddressInput_LOC.fill(loadData.shipperAddress);
-            await this.formShipperZipInput_LOC.fill(loadData.shipperZip);
-            }
-        }
+
             await this.setShipperDatesAndTimes(loadData);
             console.log("Setting consignee information...");
             await this.consigneeDropdownValue_LOC.waitFor({ state: 'visible' });
-            await this.consigneeDropdownValue_LOC.selectOption(loadData.consigneeValue);
+
+            const consigneeSelected = await this.selectDropdownOptionFlexibly(
+                this.consigneeDropdownValue_LOC, loadData.consigneeValue
+            );
+
+            if (!consigneeSelected) {
+                const consigneeName = loadData.consigneeNameNew || loadData.consigneeValue;
+                console.log(`Consignee "${loadData.consigneeValue}" not in dropdown, filling manually.`);
+                await this.formConsigneeNameInput_LOC.fill(consigneeName);
+                if (loadData.consigneeAddress) await this.formConsigneeAddressInput_LOC.fill(loadData.consigneeAddress);
+                if (loadData.consigneeCity) await this.formConsigneeCityInput_LOC.fill(loadData.consigneeCity);
+                if (loadData.consigneeCountry === "Canada") {
+                    await this.consigneeCountryDropdown_LOC.selectOption(loadData.consigneeCountry);
+                }
+                if (loadData.consigneeState) await this.formConsigneeStateInput_LOC.selectOption(loadData.consigneeState);
+                if (loadData.consigneeZip) await this.formConsigneeZipInput_LOC.fill(loadData.consigneeZip);
+            }
+
             await this.setConsigneeDatesAndTimes(loadData);
             // Step 9: Fill Shipment Commodity Information
             await this.fillShipmentCommodityInformation(loadData);

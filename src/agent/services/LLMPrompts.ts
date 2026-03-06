@@ -1,0 +1,394 @@
+/**
+ * LLM Prompt Templates
+ * Provides rich, schema-aware prompts for Claude Opus to generate correct Playwright code
+ * that reuses existing page objects, utilities, and constants from the framework.
+ */
+
+export interface SchemaContext {
+  /** Map of PageManager getter name → list of public method names */
+  pageObjects: Record<string, string[]>;
+  /** Available constant names (HEADERS, TABS, WAIT, etc.) */
+  constants: string[];
+  /** Available testData field names for the current test case */
+  testDataFields?: string[];
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FRAMEWORK KNOWLEDGE — injected into every LLM prompt
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const FRAMEWORK_KNOWLEDGE = `
+## Test File Structure
+Every generated spec follows this structure:
+\`\`\`
+import { BrowserContext, expect, Page, test } from '@playwright/test';
+import { MultiAppManager } from '@utils/dfbUtils/MultiAppManager';
+import userSetup from '@loginHelpers/userSetup';
+import dataConfig from '@config/dataConfig';
+import { PageManager } from '@utils/PageManager';
+import { ALERT_PATTERNS } from '@utils/alertPatterns';
+
+const testData = dataConfig.getTestDataFromCsv(dataConfig.<category>Data, '<TEST_ID>');
+let sharedContext: BrowserContext;
+let sharedPage: Page;
+let appManager: MultiAppManager;
+let pages: PageManager;
+
+test.describe.serial('Case ID: <TEST_ID>', () => {
+  test.beforeAll(async ({ browser }) => {
+    sharedContext = await browser.newContext();
+    sharedPage = await sharedContext.newPage();
+    appManager = new MultiAppManager(sharedContext, sharedPage);
+    pages = appManager.btmsPageManager;
+  });
+  test.afterAll(async () => {
+    await appManager.closeAllSecondaryPages();
+    await sharedContext.close();
+  });
+  test('description', { tag: '@aiteam,@category' }, async () => {
+    await test.step('Step 1: ...', async () => { ... });
+  });
+});
+\`\`\`
+
+## Variables Always in Scope
+- sharedPage: Playwright Page object
+- sharedContext: BrowserContext
+- pages: PageManager — access all page objects via pages.<getter>
+- testData: Record<string, string> — test data from CSV
+- appManager: MultiAppManager — for multi-app switching
+- loadNumber: string — captured load ID (when applicable)
+
+## Navigation Patterns (MUST use these, not page.goto)
+- Navigate to a header menu: await pages.basePage.hoverOverHeaderByText(HEADERS.<NAME>)
+  Then click submenu: await pages.basePage.clickSubHeaderByText(<SUB_MENU>.<KEY>)
+- Header constants: HEADERS.ADMIN, HEADERS.HOME, HEADERS.CUSTOMER, HEADERS.LOAD, HEADERS.CARRIER, HEADERS.FINANCE, HEADERS.REPORTS
+- Admin submenu: ADMIN_SUB_MENU.OFFICE_SEARCH, ADMIN_SUB_MENU.POST_AUTOMATION, ADMIN_SUB_MENU.AGENT_SEARCH
+- Customer submenu: CUSTOMER_SUB_MENU.SEARCH, CUSTOMER_SUB_MENU.NEW_SALES_LEAD, CUSTOMER_SUB_MENU.LEADS
+- Load submenu: LOAD_SUB_MENU.SEARCH, LOAD_SUB_MENU.CREATE_TL, LOAD_SUB_MENU.TEMPLATES
+- Finance submenu: FINANCE_SUB_MENU.PAYABLES, FINANCE_SUB_MENU.COMMISSION_AUDIT_QUEUE, FINANCE_SUB_MENU.BILLING_ADJUSTMENTS_QUEUE
+- Carrier submenu: CARRIER_SUB_MENU.SEARCH
+
+## Login Patterns
+- BTMS login: await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser, userSetup.globalPassword)
+- TNX login (via appManager): const tnxPages = await appManager.switchToTNX()
+- DME login (via appManager): const dmePages = await appManager.switchToDME()
+- TNX Rep: const tnxRepPages = await appManager.switchToTNXRep()
+- Switch user: await pages.adminPage.hoverAndClickAdminMenu(); await pages.adminPage.switchUser(testData.salesAgent)
+
+## Alert/Dialog Handling (MUST use these patterns)
+- Validate alert: await pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.<PATTERN_NAME>)
+- Accept alert: await pages.commonReusables.dialogHandler(sharedPage)
+- Alert patterns available: ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_BOOKED, ALERT_PATTERNS.POST_AUTOMATION_RULE_MATCHED,
+  ALERT_PATTERNS.CARRIER_NOT_INCLUDED_ERROR, ALERT_PATTERNS.OFFER_RATE_SET_BY_GREENSCREENS,
+  ALERT_PATTERNS.IN_VIEW_MODE, ALERT_PATTERNS.PAYABLE_STATUS_INVOICE_RECEIVED, etc.
+
+## Wait Patterns (use the WAIT constant, not hardcoded ms)
+- await sharedPage.waitForTimeout(WAIT.DEFAULT)  // 3000ms
+- await sharedPage.waitForTimeout(WAIT.SMALL)     // 10000ms
+- await sharedPage.waitForTimeout(WAIT.MID)       // 15000ms
+- await sharedPage.waitForTimeout(WAIT.LARGE)     // 20000ms
+- await sharedPage.waitForTimeout(WAIT.XLARGE)    // 30000ms
+- await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"])
+- await pages.commonReusables.waitForAllLoadStates(sharedPage)
+- await pages.commonReusables.waitForPageStable(sharedPage)
+
+## Data Access
+- CSV test data: const testData = dataConfig.getTestDataFromCsv(dataConfig.dfbData, testcaseID)
+- dataConfig categories: dfbData, ediData, commissionData, salesleadData, banyanData, carrierData, datData, bulkChangeData, apiData, nonOperationalLoadsData, billingtoggleData
+- testData fields are accessed as: testData.customerName, testData.offerRate, testData.pickCity, etc.
+
+## User Credentials
+- userSetup.globalUser, userSetup.globalPassword — main BTMS user
+- userSetup.btmsSSOUser, userSetup.btmsSSOPassword — SSO login
+- userSetup.tnxUser, userSetup.tnxPassword — TNX
+- userSetup.dmeUser, userSetup.dmePassword — DME
+- userSetup.ediUserMarmaxx, userSetup.ediUserIBO — EDI users
+- userSetup.UserCommission — commission user
+- userSetup.UserSales — sales lead user
+- userSetup.banyanUser, userSetup.datUser — third party users
+- userSetup.bulkChangeUser, userSetup.bulkChangePassword — bulk change
+
+## Load Form Interaction (Edit Load)
+- Fill non-tabular field: await pages.nonTabularLoadPage.fillAndTab(fieldId, value)
+- Fill tabular field in tab (Load/Pick/Drop/Carrier):
+  - Load tab: await pages.editLoadLoadTabPage.<method>(value)
+  - Pick tab: await pages.editLoadPickTabPage.<method>(value)
+  - Drop tab: await pages.editLoadDropTabPage.<method>(value)
+  - Carrier tab: await pages.editLoadCarrierTabPage.<method>(value)
+  - Customer tab: await pages.editLoadCustomerTabPage.<method>(value)
+- Click tab: await pages.editLoadPage.clickOnLoadTab(TABS.<TAB_NAME>)
+  Tab constants: TABS.LOAD, TABS.PICK, TABS.DROP, TABS.CARRIER, TABS.CUSTOMERS
+- DFB form: await pages.dfbLoadFormPage.<method>(value)
+
+## Search Pattern
+- Search load by ID: await pages.basePage.searchFromMainHeader(loadNumber)
+- Search customer: await pages.searchCustomerPage.searchCustomerAndClickDetails(customerName)
+- Carrier search: await pages.carrierSearchPage.<method>(value)
+- Carrier status filter: await pages.carrierSearchPage.selectStatusOnCarrier(CARRIER_STATUS.<STATUS>)
+  Status constants: CARRIER_STATUS.ACTIVE, CARRIER_STATUS.INACTIVE, CARRIER_STATUS.CAUTION, CARRIER_STATUS.DNL, CARRIER_STATUS.ON_HOLD
+  IMPORTANT: Always use selectStatusOnCarrier(status) — NEVER use selectActiveOnCarrier()
+
+## DFB Post and Form
+- Click DFB Post button: await pages.editLoadFormPage.clickDFBButton(DFB_Button.Post)
+- Click DFB Clear: await pages.editLoadFormPage.clickDFBButton(DFB_Button.Clear_Form)
+- Set offer rate: use DFB form page or direct locator #carr_1_target_rate
+
+## Load Status Constants
+- LOAD_STATUS.ACTIVE, LOAD_STATUS.BOOKED, LOAD_STATUS.DISPATCHED, LOAD_STATUS.POSTED, LOAD_STATUS.MATCHED, etc.
+
+## TNX Patterns
+- Match on TNX: const tnxPages = await appManager.switchToTNX()
+  await tnxPages.tnxLandingPage.<method>(value)
+- TNX constants: TNX.MATCH_NOW, TNX.YES_BUTTON, TNX.CONGRATS_MESSAGE, TNX.CARRIER_NAME
+
+## DFB Constants
+- CARRIER_NAME.CARRIER_1 through CARRIER_9
+- CARRIER_TIMING.TIMING_1 through TIMING_5
+- LOAD_OFFER_RATES.OFFER_RATE_1 through OFFER_RATE_4
+- DFB_FORM_FIELDS.Include_Carriers, .Exclude_Carriers, .Email_Notification, etc.
+
+## Utility Functions
+- pages.commonReusables.getNextTwoDatesFormatted() — returns { tomorrow, dayAfterTomorrow } in MM/DD/YYYY
+- pages.commonReusables.getDate(day, format) — day: "today"|"tomorrow"|"dayAfterTomorrow", format: "MM/DD/YYYY"|"YYYY-MM-DD"
+- pages.commonReusables.formatToCurrency(value) — returns "$1,234.56"
+- pages.commonReusables.normalizeRate(rate) — removes commas, ensures $X.XX
+- pages.commonReusables.generateRandomNumber(digits) — returns random number string
+- pages.commonReusables.reloadPage(sharedPage) — reload and wait for networkidle
+- pages.commonReusables.verifyTabHeading(sharedPage, expectedTitle) — verify page title
+
+## Multi-App Switching
+- Switch to DME: const dmePages = await appManager.switchToDME()
+  then use dmePages.<getter>.<method>()
+- Switch to TNX: const tnxPages = await appManager.switchToTNX()
+  then use tnxPages.<getter>.<method>()
+- Switch back to BTMS: const btmsPages = await appManager.switchToBTMS()
+  then reassign pages = btmsPages if needed
+- Close secondary apps: await appManager.closeAllSecondaryPages()
+
+## DFB Helper (standalone import: import dfbHelpers from "@utils/dfbUtils/dfbHelpers")
+- dfbHelpers.fillPostAutomationRuleForm(pages, { customer, emailNotification, pickLocation, destination, equipment, loadType, offerRate, commodity }, true)
+  IMPORTANT: dfbHelpers is a standalone import, NOT accessed via pages. Use dfbHelpers.xxx() directly.
+- pages.dfbHelpers.setupDFBTestPreConditions(pages, officeName, toggleSettings, ensureToggle, salesAgent, customerName, cargoValue, loadType)
+- pages.dfbHelpers.reloadAndNavigateToNewLoad(pages, sharedPage, testData)
+
+## View Load Verification
+- Verify load details: await pages.viewLoadPage.viewLoadPageVisible()
+- Check status: await pages.viewLoadPage.verifyLoadStatus(LOAD_STATUS.<STATUS>)
+- View tabs: pages.viewPickDetailsTabPage, pages.viewDropDetailsTabPage, pages.viewLoadCustomerTabPage, pages.viewLoadCarrierTabPage, pages.viewLoadEDITabPage
+
+## Customer Operations
+- Search: pages.searchCustomerPage.searchCustomerAndClickDetails(name)
+- View: pages.viewCustomerPage.verifyAndSetCargoValue(CARGO_VALUES.<VALUE>)
+- Navigate to new load from customer: await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.NEW_LOAD_TL)
+`;
+
+/**
+ * Build the system prompt for Playwright step code generation.
+ * Includes full POM schema, framework patterns, coding conventions, and constraints.
+ */
+export function buildCodeGenSystemPrompt(schema: SchemaContext): string {
+  const pomSummary = Object.entries(schema.pageObjects)
+    .map(([getter, methods]) => `  pages.${getter}: ${methods.join(', ')}`)
+    .join('\n');
+
+  const constantsList = schema.constants.join(', ');
+
+  return `You are a Playwright test code generator for the SunTeck TMS QA Framework.
+You generate ONLY executable TypeScript code for a single test step — no markdown, no explanations, no wrapping.
+
+## Available Page Objects (accessed via "pages.<getter>.<method>()")
+${pomSummary}
+
+## Available Constants (global — no import needed)
+${constantsList}
+
+${FRAMEWORK_KNOWLEDGE}
+
+## CRITICAL Rules
+1. Output ONLY executable TypeScript code — no markdown fences, no explanations
+2. Use testData.* for dynamic values (e.g., testData.customerName, testData.offerRate)
+3. Use pages.<getter>.<method>() — NEVER invent methods that don't exist in the schema above
+4. Use await for all async calls
+5. Add console.log() for step progress
+6. Use try/catch ONLY for optional verifications (BIDS, bid history)
+7. NEVER use page.goto("/") — use pages.basePage navigation methods
+8. For alerts use: pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.<NAME>)
+9. For navigation: pages.basePage.hoverOverHeaderByText(HEADERS.<NAME>) then clickSubHeaderByText()
+10. Available variables in scope: sharedPage, sharedContext, pages, testData, appManager, loadNumber
+11. Use WAIT.* constants for timeouts, not hardcoded numbers
+12. If no POM method exists for a field/action, use direct Playwright locators as LAST RESORT:
+    - Text fields: await sharedPage.locator("#element_id").fill(value)
+    - Dropdowns: await sharedPage.locator("//select[@name='name']").selectOption({ label: "text" })
+    - Buttons: await sharedPage.locator("//button[contains(text(),'text')]").click()
+    - Always add .waitFor({ state: "visible" }) before the interaction
+    - NEVER fabricate locator IDs from the step description text. If the step says "Enter invoice number e.g 123456"
+      do NOT create locator "#form_enter_invoice_number_e_g_123456". Instead use realistic HTML IDs like "#invoice_number"
+      or use text-based XPath locators like "//input[contains(@id,'invoice')]".
+    - If the step is too vague to determine a real locator, output a TODO comment instead:
+      console.log("TODO: Manual implementation needed — <step description>");
+13. For billingtoggle tests — use pages.editLoadFormPage.clickOnViewBillingBtn() to navigate to billing view.
+    Use pages.loadBillingPage for billing-specific operations if available.
+14. NEVER import or reference "commonReusables" as a standalone variable. It's only available via pages.commonReusables.
+15. commissionHelper is a standalone import: import commissionHelper from "@utils/commission-helpers"
+16. For uploading documents on View Billing page:
+    - POD: await pages.viewLoadPage.uploadPODDocument() — handles file selection, doc type dropdown, and submit
+    - Carrier Invoice: await pages.viewLoadPage.uploadCarrierInvoiceDocument(testData) — handles payables radio, doc type, invoice number (auto-generated), invoice amount from testData.carrierInvoiceAmount, file upload
+17. For CHOOSE CARRIER on Carrier tab:
+    - await pages.editLoadCarrierTabPage.clickOnChooseCarrier() — opens the carrier search
+    - Type carrier name into #carr_1_carr_auto, press Tab, wait for dropdown
+    - Select from #carr_1_carr_select > option
+    - await pages.editLoadCarrierTabPage.clickOnUseCarrierBtn() — confirms selection
+18. Carrier tab rate fields:
+    - Customer rate: await pages.editLoadCarrierTabPage.enterCustomerRate(value)
+    - Carrier rate: await pages.editLoadCarrierTabPage.enterCarrierRate(value)
+    - Miles: await pages.editLoadCarrierTabPage.enterMiles(value)
+    - Trailer length: await pages.editLoadCarrierTabPage.enterValueInTrailerLength(value)
+19. Invoice fields on billing page use real locator IDs:
+    - Invoice number: #carr_invoice_num_input
+    - Invoice amount: #carr_invoice_amount
+    - Payables radio: #cat_payables
+    - Document type: //select[@name='document_type']
+    NEVER fabricate locator IDs from step description text.`;
+}
+
+/**
+ * Build the user prompt for a single step code generation.
+ */
+export function buildCodeGenUserPrompt(action: string, testDataFields?: string[]): string {
+  let prompt = `Generate Playwright code for this test step action:\n"${action}"`;
+  if (testDataFields && testDataFields.length > 0) {
+    prompt += `\n\nAvailable testData fields: ${testDataFields.join(', ')}`;
+  }
+  return prompt;
+}
+
+/**
+ * Build the prompt for extracting structured values from natural language
+ * precondition and test step text.
+ */
+export function buildValueExtractionPrompt(
+  preconditionText: string,
+  stepsText: string,
+  expectedText: string
+): { system: string; user: string } {
+  const system = `You are a structured data extractor for the SunTeck TMS QA Framework. Given test case preconditions and steps written in natural language, extract specific field values into a JSON object.
+
+## Output Format (JSON only, no markdown)
+{
+  "precondition": {
+    "officeCode": "string or null — office code like TX-RED, TX-STK",
+    "switchToUser": "string or null — user name like BRENT DURHAM(TX-RED)",
+    "customerName": "string or null — customer name",
+    "carrierName": "string or null — carrier name",
+    "matchVendors": "string or null — TNX if match vendors with TNX",
+    "enableDME": "string or null — YES if digital matching engine enabled",
+    "cargoValue": "string or null — cargo value range like $100,001 to $250,000",
+    "loadType": "string or null — TL, LTL, Intermodal",
+    "equipmentType": "string or null — Van, Flatbed, Reefer",
+    "postAutomationRule": "string or null — YES or NO",
+    "greenScreens": "string or null — YES or NO"
+  },
+  "formFields": {
+    "customerName": "string or null",
+    "pickLocation": "string or null — shipper name/location",
+    "dropLocation": "string or null — consignee name/location",
+    "equipmentType": "string or null — e.g. Van, Flatbed, Reefer",
+    "offerRate": "string or null — numeric rate value",
+    "qty": "string or null — shipment quantity",
+    "uom": "string or null — unit of measure",
+    "description": "string or null — commodity description",
+    "weight": "string or null — commodity weight",
+    "trailerLength": "string or null — trailer length",
+    "mileageEngine": "string or null",
+    "method": "string or null — e.g. Practical, Shortest",
+    "rateType": "string or null — e.g. SPOT, CONTRACT",
+    "carrierName": "string or null — carrier to choose/select/include (e.g. XPO TRANS INC, 18 WHEELER CARRIER LLC)",
+    "customerValue": "string or null — customer value to select in load form, often in [BRACKETS] like [CORP RECONCILIATION]",
+    "equipmentLength": "string or null — equipment length on load form (e.g. 54)",
+    "shipperEarliestTime": "string or null — time like 09:00",
+    "shipperLatestTime": "string or null",
+    "consigneeEarliestTime": "string or null",
+    "consigneeLatestTime": "string or null",
+    "emailNotification": "string or null — email address for notification",
+    "salesperson": "string or null",
+    "pickCity": "string or null",
+    "pickState": "string or null",
+    "dropCity": "string or null",
+    "dropState": "string or null",
+    "priority": "string or null — 1, 2, or 3",
+    "includeCarriers": "string or null — carrier names to include",
+    "excludeCarriers": "string or null — carrier names to exclude",
+    "expirationDate": "string or null",
+    "expirationTime": "string or null",
+    "customerRate": "string or null — flat rate for customer (e.g. 500)",
+    "carrierRate": "string or null — flat rate for carrier (e.g. 600)",
+    "totalMiles": "string or null — total miles (e.g. 100)",
+    "lhRate": "string or null — linehaul rate (e.g. 500)"
+  }
+}
+
+Rules:
+1. Output ONLY valid JSON — no markdown, no explanation
+2. Use null for fields that cannot be determined from the text
+3. Preserve exact values as written (names, codes, numbers)
+4. For times, use the format found in text (e.g., "09:00", "10:00 AM")
+5. For locations in "NAME - CITY, STATE" format, keep the full string
+6. Cargo value should match one of: "less than $1000", "$10,001 to $100,000", "$100,001 to $250,000", "$250,001 to $500,000"
+7. For carrierName: look for patterns like "choose a carrier...enter value as NAME", "Include Carriers field (NAME)", "typing in NAME", "select carrier NAME"
+8. For customerValue: look for "[CUSTOMER NAME]" in brackets, or "select the customer [NAME]" — this is DIFFERENT from customerName (search field)
+9. For trailerLength vs equipmentLength: "Enter the length field (54)" = equipmentLength; "Enter trailer length 10" = trailerLength
+10. For emailNotification: extract the actual email address, NOT the instruction text (e.g. from "enter value as user@example.com" extract "user@example.com")`;
+
+  const user = `Extract field values from this test case:
+
+PRECONDITIONS:
+${preconditionText || '(none)'}
+
+TEST STEPS:
+${stepsText || '(none)'}
+
+EXPECTED RESULTS:
+${expectedText || '(none)'}`;
+
+  return { system, user };
+}
+
+/**
+ * Build the prompt for fixing broken generated code using error messages.
+ */
+export function buildCodeFixPrompt(
+  code: string,
+  errors: string[],
+  schema: SchemaContext
+): { system: string; user: string } {
+  const pomSummary = Object.entries(schema.pageObjects)
+    .slice(0, 40)
+    .map(([getter, methods]) => `  pages.${getter}: ${methods.slice(0, 15).join(', ')}`)
+    .join('\n');
+
+  const system = `You are a Playwright test code fixer for the SunTeck TMS QA Framework. You receive a generated test script with errors and fix them.
+
+## Available Page Objects
+${pomSummary}
+
+${FRAMEWORK_KNOWLEDGE}
+
+## Fix Rules
+1. Output the COMPLETE fixed TypeScript file — no markdown, no explanation
+2. Fix all reported errors while preserving test logic
+3. Only use page object methods that exist in the schema above
+4. Never invent new methods — use the closest available one
+5. Ensure all braces, parentheses, and brackets are balanced
+6. Use testData.* for values, never hardcode
+7. Use WAIT.* constants for timeouts
+8. Use ALERT_PATTERNS.* for alert validation, not hardcoded strings`;
+
+  const user = `Fix this Playwright test script. It has the following errors:
+${errors.map(e => `- ${e}`).join('\n')}
+
+CODE:
+${code}`;
+
+  return { system, user };
+}

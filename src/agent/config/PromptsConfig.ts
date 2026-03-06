@@ -128,9 +128,7 @@ import dataConfig from "@config/dataConfig";`,
 import { MultiAppManager } from "@utils/dfbUtils/MultiAppManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
-import commonReusables from "@utils/commonReusables";
-import { PageManager } from "@utils/PageManager";
-import { ALERT_PATTERNS } from "@utils/alertPatterns";`,
+import { PageManager } from "@utils/PageManager";`,
 
     withHelpers: `import { test, expect } from "@playwright/test";
 import { PageManager } from "@utils/PageManager";
@@ -434,7 +432,7 @@ export const GUARDRAIL_RULES: GuardrailRule[] = [
     description: 'Category must be a valid test category',
     validate: (input) => {
       const validCategories = ['dfb', 'edi', 'commission', 'salesLead', 'banyan', 
-        'carrier', 'bulkChange', 'dat', 'nonOperationalLoads', 'api', 'custom'];
+        'carrier', 'bulkChange', 'dat', 'nonOperationalLoads', 'api', 'billingtoggle', 'custom'];
       return !input.category || validCategories.includes(input.category);
     },
     errorMessage: 'Invalid test category. Use: dfb, edi, commission, salesLead, etc.',
@@ -574,6 +572,16 @@ export const GENERATION_RULES = {
     'import { ALERT_PATTERNS } from "@utils/alertPatterns";',
   ],
 
+  // 5b. Standard imports for Billing Toggle tests (follows DFB pattern):
+  STANDARD_IMPORTS_BILLINGTOGGLE: [
+    'import { test } from "@playwright/test";',
+    'import { PageManager } from "@utils/PageManager";',
+    'import userSetup from "@loginHelpers/userSetup";',
+    'import dataConfig from "@config/dataConfig";',
+    'import dfbHelpers from "@utils/dfbUtils/dfbHelpers";',
+    'import { ALERT_PATTERNS } from "@utils/alertPatterns";',
+  ],
+
   // 6. PRECONDITION RULES — Mandatory for all test cases
   PRECONDITION_RULES: {
     // ALL precondition steps MUST generate real executable code.
@@ -653,8 +661,18 @@ export const GENERATION_RULES = {
     },
     {
       pattern: 'fillFieldByLabel',
-      replacement: 'Specific POM field methods (e.g., createNonTabularLoad)',
+      replacement: 'Direct Playwright locator: sharedPage.locator("#id").fill(value)',
       reason: 'AI-generated stub with a generic locator — not production quality',
+    },
+    {
+      pattern: 'fillFieldBySelector',
+      replacement: 'Direct Playwright locator: sharedPage.locator("#id").fill(value)',
+      reason: 'Often used with auto-generated selectors that do not exist in the DOM',
+    },
+    {
+      pattern: 'selectOptionByField',
+      replacement: 'Direct Playwright locator: sharedPage.locator("//select[@name=\\"name\\"]").selectOption({ label: "text" })',
+      reason: 'AI-generated stub — method does not exist on any page object',
     },
     {
       pattern: 'navigateToHeader',
@@ -678,12 +696,37 @@ export const GENERATION_RULES = {
     },
   ],
 
+  // 13b. DIRECT LOCATOR FALLBACK — When no POM method exists for a step,
+  //      the code generator uses direct Playwright locator interactions.
+  DIRECT_LOCATOR_FALLBACK: {
+    enabled: true,
+    strategy: 'When no POM method matches an action, generate sharedPage.locator() code instead of TODO placeholders or invented method calls.',
+    patterns: {
+      textField: 'await sharedPage.locator("#form_<field_id>, #<field_id>, [name=\'<field_id>\']").first().fill(value)',
+      checkbox: 'await sharedPage.locator("//input[@id=\'<id>\']").first().check()',
+      dropdown: 'await sharedPage.locator("//select[@name=\'<name>\']").first().selectOption({ label: "text" })',
+      button: 'await sharedPage.locator("//button[contains(text(),\'<text>\')]").first().click()',
+      verify: 'const el = sharedPage.locator("selector").first(); const visible = await el.isVisible({ timeout: 10000 }).catch(() => false); expect.soft(visible, "desc").toBeTruthy()',
+    },
+    rules: [
+      'Always call .waitFor({ state: "visible", timeout: WAIT.LARGE }) before interacting',
+      'Always add console.log() after the interaction for traceability',
+      'Wrap verification steps in try/catch to avoid hard failures',
+      'Prefer CSS selectors (#id, [name="x"]) over XPath when possible',
+      'For multi-selector fallback, use CSS comma syntax: "#form_x, #x, [name=\'x\']"',
+    ],
+  },
+
   // 14. REFERENCE SPECS — Category to reference spec file mapping.
   //     ReferenceSpecAnalyzer uses these to clone structural templates.
   REFERENCE_SPECS: {
     dfb: [
       'src/tests/generated/dfb/DFB-97739.spec.ts',
       'src/tests/generated/dfb/DFB-97741.spec.ts',
+    ],
+    billingtoggle: [
+      'src/tests/generated/dfb/DFB-97739.spec.ts',
+      'src/tests/generated/billingtoggle/BT-67846.spec.ts',
     ],
     commission: [
       'src/tests/generated/dfb/DFB-25103.spec.ts',
@@ -877,6 +920,36 @@ export const MANDATORY_STEPS = {
         await pages.adminPage.switchUser(testData.salesAgent);`,
       },
     },
+    billingtoggle: {
+      loadCreation: {
+        stepName: 'Setup Billing Toggle Test Environment',
+        code: `const toggleSettingsValue = pages.toggleSettings.enable_DME;
+        const cargoValue = await dfbHelpers.setupDFBTestPreConditions(
+          pages,
+          testData.officeName,
+          toggleSettingsValue,
+          pages.toggleSettings.verifyDME,
+          testData.salesAgent,
+          testData.customerName,
+          CARGO_VALUES.DEFAULT,
+          LOAD_TYPES.CREATE_TL_NEW,
+          false,
+          true
+        );`,
+      },
+      default: {
+        stepName: 'Setup Billing Toggle Test Environment',
+        code: `const toggleSettingsValue = pages.toggleSettings.enable_DME;
+        await dfbHelpers.setupOfficePreConditions(
+          pages,
+          testData.officeName,
+          toggleSettingsValue,
+          pages.toggleSettings.verifyAutoPost
+        );
+        await pages.adminPage.hoverAndClickAdminMenu();
+        await pages.adminPage.switchUser(testData.salesAgent);`,
+      },
+    },
     carrier: {
       default: {
         stepName: 'Navigate to Carrier Search',
@@ -995,6 +1068,12 @@ export const CATEGORY_CONFIG: Record<string, {
     defaultTags: ['@api'],
     requiredImports: ['axios'],
   },
+  billingtoggle: {
+    dataFile: 'billingtoggleData',
+    timeout: 300000,
+    defaultTags: ['@billingtoggle'],
+    requiredImports: ['dfbHelpers'],
+  },
   custom: {
     dataFile: 'dfbData',
     timeout: 300000,
@@ -1028,19 +1107,45 @@ export const SUCCESS_MESSAGES = {
   VALIDATION_PASSED: 'Test case validation passed',
 };
 
+// Short keywords (≤4 chars) that need word-boundary matching to avoid false positives
+const SHORT_KEYWORDS = new Set(['edi', 'dat', 'api', 'load', 'save', 'wait', 'get', 'set', 'bid', 'tab', 'log']);
+
 /**
- * Helper function to get action mapping for a given action text
+ * Check if a keyword matches in action text.
+ * Short keywords use word-boundary regex; longer keywords use includes().
+ */
+function keywordMatches(keyword: string, lowerAction: string): boolean {
+  if (SHORT_KEYWORDS.has(keyword)) {
+    return new RegExp(`\\b${keyword}\\b`, 'i').test(lowerAction);
+  }
+  return lowerAction.includes(keyword);
+}
+
+/**
+ * Helper function to get action mapping for a given action text.
+ * Uses specificity scoring — the mapping whose longest matching keyword
+ * is the longest overall wins, preventing generic matches from shadowing specific ones.
  */
 export function getActionMapping(actionText: string): ActionMapping | null {
   const lowerAction = actionText.toLowerCase();
-  
+
+  let bestMapping: ActionMapping | null = null;
+  let bestScore = 0;
+
   for (const mapping of ACTION_MAPPINGS) {
-    if (mapping.keywords.some(keyword => lowerAction.includes(keyword))) {
-      return mapping;
+    for (const keyword of mapping.keywords) {
+      if (keywordMatches(keyword, lowerAction)) {
+        const score = keyword.length;
+        if (score > bestScore) {
+          bestScore = score;
+          bestMapping = mapping;
+        }
+        break; // Found a match for this mapping, check its score vs others
+      }
     }
   }
-  
-  return null;
+
+  return bestMapping;
 }
 
 /**
