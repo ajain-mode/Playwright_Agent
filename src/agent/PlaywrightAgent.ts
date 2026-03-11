@@ -83,15 +83,15 @@ export class PlaywrightAgent {
       console.log(`   Category: ${testCase.category}`);
       console.log(`   Steps: ${testCase.steps.length}`);
 
-      // Skip if both spec file and data CSV row already exist
+      // Always run similarity matching first (for score calculation and data inheritance)
+      const match = this.matchAndEnrichFromSimilar(testCase);
+
+      // Skip code generation if both spec file and data CSV row already exist
       const skipCheck = this.shouldSkipGeneration(testCase);
       if (skipCheck.skip) {
         console.log(`⏭️  Skipping ${testCase.id}: ${skipCheck.reason}`);
         warnings.push(`Skipped ${testCase.id}: ${skipCheck.reason}`);
       } else {
-        // Similarity matching: find best existing test case and inherit data
-        const match = this.matchAndEnrichFromSimilar(testCase);
-
         // LLM enrichment: fill critical missing fields before CSV write
         await this.enrichTestDataWithLLM(testCase);
 
@@ -104,8 +104,8 @@ export class PlaywrightAgent {
         // Ensure test data exists in the respective data CSV (uses corrected values)
         this.ensureTestDataInCsv(testCase);
 
-        // Generate the script (pass matched spec path for dynamic reference)
-        const script = await this.generator.generateScript(testCase, undefined, match?.specPath || undefined);
+        // Generate the script (pass matched spec path and score for reference adoption)
+        const script = await this.generator.generateScript(testCase, undefined, match?.specPath || undefined, match?.score);
         scripts.push(script);
 
         // Save the script
@@ -145,15 +145,15 @@ export class PlaywrightAgent {
     const warnings: string[] = [];
 
     try {
-      // Skip if both spec file and data CSV row already exist
+      // Always run similarity matching first (for score calculation and data inheritance)
+      const match = this.matchAndEnrichFromSimilar(testCase);
+
+      // Skip code generation if both spec file and data CSV row already exist
       const skipCheck = this.shouldSkipGeneration(testCase);
       if (skipCheck.skip) {
         console.log(`⏭️  Skipping ${testCase.id}: ${skipCheck.reason}`);
         warnings.push(`Skipped ${testCase.id}: ${skipCheck.reason}`);
       } else {
-        // Similarity matching: find best existing test case and inherit data
-        const match = this.matchAndEnrichFromSimilar(testCase);
-
         // LLM enrichment: fill critical missing fields before CSV write
         await this.enrichTestDataWithLLM(testCase);
 
@@ -166,7 +166,7 @@ export class PlaywrightAgent {
         // Ensure test data exists in the respective data CSV (uses corrected values)
         this.ensureTestDataInCsv(testCase);
 
-        const script = await this.generator.generateScript(testCase, testData, match?.specPath || undefined);
+        const script = await this.generator.generateScript(testCase, testData, match?.specPath || undefined, match?.score);
         scripts.push(script);
         await this.saveScript(script);
         console.log(`✅ Generated: ${script.fileName}`);
@@ -207,6 +207,15 @@ export class PlaywrightAgent {
     this.batchMode = true;
     this.pendingCompilationFiles = [];
 
+    // Track which test cases have been generated in this batch so far.
+    // Only exclude already-generated IDs from similarity matching — NOT all batch IDs.
+    // This allows test case DFB-97748 to match against DFB-97746 (which hasn't been
+    // regenerated yet) while preventing it from matching against a freshly-generated
+    // sibling whose spec might be broken.
+    this.matcher.clearBatchExcludeIds();
+    const generatedInBatch: string[] = [];
+    console.log(`   🔍 Batch mode: ${testCases.length} test cases — similarity matching will exclude only already-generated siblings`);
+
     let skippedCount = 0;
     for (const input of testCases) {
       try {
@@ -214,7 +223,10 @@ export class PlaywrightAgent {
           ? this.parser.parseTestCase(input) 
           : input;
 
-        // Skip if both spec file and data CSV row already exist
+        // Always run similarity matching first (for score calculation and data inheritance)
+        const match = this.matchAndEnrichFromSimilar(testCase);
+
+        // Skip code generation if both spec file and data CSV row already exist
         const skipCheck = this.shouldSkipGeneration(testCase);
         if (skipCheck.skip) {
           console.log(`⏭️  Skipping ${testCase.id}: ${skipCheck.reason}`);
@@ -222,9 +234,6 @@ export class PlaywrightAgent {
           skippedCount++;
           continue;
         }
-
-        // Similarity matching: find best existing test case and inherit data
-        const match = this.matchAndEnrichFromSimilar(testCase);
 
         // LLM enrichment: fill critical missing fields before CSV write
         await this.enrichTestDataWithLLM(testCase);
@@ -239,10 +248,15 @@ export class PlaywrightAgent {
         this.ensureTestDataInCsv(testCase);
 
         const testData = testDataMap?.get(testCase.id);
-        const script = await this.generator.generateScript(testCase, testData, match?.specPath || undefined);
+        const script = await this.generator.generateScript(testCase, testData, match?.specPath || undefined, match?.score);
         scripts.push(script);
         await this.saveScript(script);
         console.log(`✅ Generated: ${script.fileName}`);
+
+        // After generating, exclude this ID from future matching in this batch
+        // to prevent sibling test cases from referencing a freshly-generated spec
+        generatedInBatch.push(testCase.id);
+        this.matcher.setBatchExcludeIds(generatedInBatch);
       } catch (error: any) {
         const id = typeof input === 'string' ? 'Unknown' : input.id;
         errors.push(`Error generating script for ${id}: ${error.message}`);
@@ -250,8 +264,9 @@ export class PlaywrightAgent {
       }
     }
 
-    // End batch mode and run a single compilation check for all generated files
+    // End batch mode and clean up
     this.batchMode = false;
+    this.matcher.clearBatchExcludeIds();
     if (this.pendingCompilationFiles.length > 0) {
       this.runBatchCompilationCheck(this.pendingCompilationFiles);
       this.pendingCompilationFiles = [];

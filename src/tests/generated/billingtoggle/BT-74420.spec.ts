@@ -1,14 +1,15 @@
 import { BrowserContext, expect, Page, test } from "@playwright/test";
+import commonReusables from "@utils/commonReusables";
 import { MultiAppManager } from "@utils/dfbUtils/MultiAppManager";
+import { PageManager } from "@utils/PageManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
-import { PageManager } from "@utils/PageManager";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
 
 /**
  * Test Case: BT-74420 - Validate updated price difference message when carrier invoice already exists in pending status and secondary invoice is received
  * @author AI Agent Generator
- * @date 2026-03-05
+ * @date 2026-03-11
  * @category billingtoggle
  */
 const testcaseID = "BT-74420";
@@ -55,7 +56,7 @@ test.describe.serial(
       // Precondition: Pending carrier invoice with price difference
 
       await test.step("Step 1: Login to BTMS application.", async () => {
-        await pages.btmsLoginPage.BTMSLogin(userSetup.UserSales);
+        await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
         pages.logger.info("BTMS Login Successfully");
       });
 
@@ -73,7 +74,7 @@ test.describe.serial(
         await pages.searchCustomerPage.selectActiveOnCustomerPage();
         await pages.searchCustomerPage.clickOnSearchCustomer();
         console.log("Clicked Search button");
-        await pages.searchCustomerPage.selectCustomerByName(testData.customerName);
+        await pages.searchCustomerPage.clickOnActiveCustomer();
         console.log("Clicked on Customer profile");
         await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         console.log("Clicked CREATE TL *NEW* hyperlink");
@@ -169,26 +170,62 @@ test.describe.serial(
         console.log("Entered Expiration Time: 18:00");
       });
 
-      await test.step("Step 11 [CSV 38-39]: Carrier tab — enter rates, trailer length, expiration, email, miles", async () => {
-        await sharedPage.locator("#form_notification_email").fill("agentbulkchange@modeglobal.com");
-        console.log("Entered Email for notification: agentbulkchange@modeglobal.com");
+      await test.step("Step 11: Enter Expiration Time  as 18:00", async () => {
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 7);
+        const mm = (futureDate.getMonth() + 1).toString().padStart(2, '0');
+        const dd = futureDate.getDate().toString().padStart(2, '0');
+        const yyyy = futureDate.getFullYear();
+        await sharedPage.locator("#form_expiration_date").fill(`${mm}/${dd}/${yyyy}`);
+        await sharedPage.locator("#form_expiration_time").fill("18:00");
+      });
+
+      await test.step("Step 12 [CSV 38-39]: Carrier tab — enter rates, trailer length, expiration, email, miles", async () => {
+        // Dynamic email notification field lookup — #form_notification_email is a label, not an input
+        const emailValue = testData.saleAgentEmail;
+        const notifSelect = sharedPage.locator("select#form_notification_address").first();
+        const notifSelectAlt = sharedPage.locator("//*[@id='form_notification_email']//following::select[1]").first();
+        const notifSelect2 = sharedPage.locator("//*[@id='form_notification_email']//following::span[contains(@class,'select2')][1]").first();
+        if (await notifSelect.isVisible({ timeout: 5000 }).catch(() => false)) {
+        const options = await notifSelect.locator("option").allTextContents();
+        const match = options.find((o: string) => o.toLowerCase().includes(emailValue.toLowerCase()));
+        await notifSelect.selectOption({ label: match ? match.trim() : emailValue });
+        console.log("Selected email notification via dropdown: " + (match || emailValue));
+        } else if (await notifSelectAlt.isVisible({ timeout: 3000 }).catch(() => false)) {
+        const options = await notifSelectAlt.locator("option").allTextContents();
+        const match = options.find((o: string) => o.toLowerCase().includes(emailValue.toLowerCase()));
+        await notifSelectAlt.selectOption({ label: match ? match.trim() : emailValue });
+        console.log("Selected email notification via sibling select: " + (match || emailValue));
+        } else if (await notifSelect2.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await notifSelect2.click();
+        const searchInput = sharedPage.locator("input.select2-search__field").first();
+        await searchInput.waitFor({ state: "visible", timeout: 5000 });
+        await searchInput.fill(emailValue);
+        await sharedPage.waitForTimeout(2000);
+        const resultItem = sharedPage.locator("//li[contains(@class,'select2-results__option') and contains(text(),'" + emailValue + "')]").first();
+        await resultItem.waitFor({ state: "visible", timeout: 10000 });
+        await resultItem.click();
+        console.log("Selected email notification via Select2: " + emailValue);
+        } else {
+        console.log("Email notification field not found via known selectors");
+        }
         await pages.editLoadCarrierTabPage.enterMiles("100");
         console.log("Entered total miles: 100");
       });
 
-      await test.step("Step 12: On Carrier tab click on CHOOSE CARRIER and select any ACT...", async () => {
+      await test.step("Step 13: On Carrier tab click on CHOOSE CARRIER and select any ACT...", async () => {
         await pages.editLoadPage.clickOnTab(TABS.CARRIER);
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         console.log("Navigated to Carrier tab for carrier selection");
       });
 
-      await test.step("Step 13: Click on Save button", async () => {
+      await test.step("Step 14: Click on Save button", async () => {
         // Save
         await pages.editLoadFormPage.clickOnSaveBtn();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
-      await test.step("Step 14: Navigate to Load tab and click on View Billing button.", async () => {
+      await test.step("Step 15: Navigate to Load tab and click on View Billing button.", async () => {
         await pages.editLoadPage.clickOnTab(TABS.LOAD);
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.editLoadFormPage.clickOnViewBillingBtn();
@@ -217,7 +254,7 @@ test.describe.serial(
         }
       });
 
-      await test.step("Step 15 [CSV 43]: Search customer and navigate to CREATE TL *NEW*", async () => {
+      await test.step("Step 16 [CSV 43]: Search customer and navigate to CREATE TL *NEW*", async () => {
         const btmsBaseUrl = new URL(sharedPage.url()).origin;
         await sharedPage.goto(btmsBaseUrl);
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
@@ -231,20 +268,20 @@ test.describe.serial(
         await pages.searchCustomerPage.selectActiveOnCustomerPage();
         await pages.searchCustomerPage.clickOnSearchCustomer();
         console.log("Clicked Search button");
-        await pages.searchCustomerPage.selectCustomerByName(testData.customerName);
+        await pages.searchCustomerPage.clickOnActiveCustomer();
         console.log("Clicked on Customer profile");
         await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         console.log("Clicked CREATE TL *NEW* hyperlink");
         pages.logger.info("Navigated to Enter New Load page");
       });
 
-      await test.step("Step 16: Upload the proof of delivery document.", async () => {
+      await test.step("Step 17: Upload the proof of delivery document.", async () => {
         const uploadInput = sharedPage.locator("input[type='file']").first();
         await uploadInput.waitFor({ state: "attached", timeout: WAIT.LARGE });
         console.log("Proof of delivery upload field located — manual file upload required");
       });
 
-      await test.step("Step 17 [CSV 45]: Search customer and navigate to CREATE TL *NEW*", async () => {
+      await test.step("Step 18 [CSV 45]: Search customer and navigate to CREATE TL *NEW*", async () => {
         const btmsBaseUrl = new URL(sharedPage.url()).origin;
         await sharedPage.goto(btmsBaseUrl);
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
@@ -258,28 +295,28 @@ test.describe.serial(
         await pages.searchCustomerPage.selectActiveOnCustomerPage();
         await pages.searchCustomerPage.clickOnSearchCustomer();
         console.log("Clicked Search button");
-        await pages.searchCustomerPage.selectCustomerByName(testData.customerName);
+        await pages.searchCustomerPage.clickOnActiveCustomer();
         console.log("Clicked on Customer profile");
         await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         console.log("Clicked CREATE TL *NEW* hyperlink");
         pages.logger.info("Navigated to Enter New Load page");
       });
 
-      await test.step("Step 18: Now select radio button", async () => {
+      await test.step("Step 19: Now select radio button", async () => {
         const payablesRadio = sharedPage.locator("#cat_payables").first();
         await payablesRadio.waitFor({ state: "visible", timeout: WAIT.LARGE });
         await payablesRadio.check();
         console.log("Selected Payables radio button");
       });
 
-      await test.step("Step 19: Upload the carrier invoice document.", async () => {
+      await test.step("Step 20: Upload the carrier invoice document.", async () => {
         const uploadInput = sharedPage.locator("input[type='file']").first();
         await uploadInput.waitFor({ state: "attached", timeout: WAIT.LARGE });
         console.log("Carrier invoice upload field located — manual file upload required");
       });
 
-      await test.step("Step 20: Select radio button Payables and Select Document Type as ...", async () => {
-        const payablesRadio = sharedPage.locator("//input[@id='cat_payables']");
+      await test.step("Step 21: Select radio button Payables and Select Document Type as ...", async () => {
+        const payablesRadio = sharedPage.locator("#cat_payables");
         await payablesRadio.waitFor({ state: "visible", timeout: WAIT.LARGE });
         await payablesRadio.check();
         console.log("Selected Payables radio button");
@@ -290,7 +327,7 @@ test.describe.serial(
         console.log("Selected Document Type: Carrier Invoice");
       });
 
-      await test.step("Step 21: Enter invoice number e.g 123456 and Enter Invoice Amount ...", async () => {
+      await test.step("Step 22: Enter invoice number e.g 123456 and Enter Invoice Amount ...", async () => {
         const invoiceNumber = sharedPage.locator("#form_invoice_number, #invoice_number, [name='invoice_number']").first();
         await invoiceNumber.waitFor({ state: "visible", timeout: WAIT.LARGE });
         await invoiceNumber.fill("123456");
@@ -306,11 +343,13 @@ test.describe.serial(
         console.log("Entered Amount: 1000");
         // click on attach. (alert message will come that status has been moved to INVOICE)
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        // Close the pop up
-        const field_close_the_pop_up = sharedPage.locator("#form_close_the_pop_up, #close_the_pop_up, [name='close_the_pop_up']").first();
-        await field_close_the_pop_up.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await field_close_the_pop_up.fill("");
-        console.log("Entered Close the pop up: " + "");
+        const closeDialogBtn = sharedPage.locator(
+        "//div[@role='dialog' and .//span[text()='Document Upload Utility']]//button[contains(@class,'ui-dialog-titlebar-close')]"
+        ).first();
+        await closeDialogBtn.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await closeDialogBtn.click({ force: true });
+        console.log("Closed document upload dialog");
+        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.editLoadFormPage.clickOnSaveBtn();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await sharedPage.reload();
@@ -318,7 +357,7 @@ test.describe.serial(
         console.log("Saved invoice and refreshed page");
       });
 
-      await test.step("Step 22: Validate if payable toggle is set to agent or not. If tog...", async () => {
+      await test.step("Step 23: Validate if payable toggle is set to agent or not. If tog...", async () => {
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         
         const billingToggle = sharedPage.locator(
@@ -350,7 +389,7 @@ test.describe.serial(
         console.log("Alert validated");
       });
 
-      await test.step("Step 23: If not then click on Add New button againt Carrier Invoic...", async () => {
+      await test.step("Step 24: If not then click on Add New button againt Carrier Invoic...", async () => {
         // Click Add New button
         await pages.basePage.clickButtonByText("Add New");
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
@@ -360,14 +399,14 @@ test.describe.serial(
         // TODO: Add specific assertion for this expected result
       });
 
-      await test.step("Step 24: Enter Amount as let's say 1000.", async () => {
+      await test.step("Step 25: Enter Amount as let's say 1000.", async () => {
         const field_amount = sharedPage.locator("#form_amount, #amount, [name='amount']").first();
         await field_amount.waitFor({ state: "visible", timeout: WAIT.LARGE });
         await field_amount.fill("1000");
         console.log("Entered Amount: 1000");
       });
 
-      await test.step("Step 25: Save invoice and refresh the page.", async () => {
+      await test.step("Step 26: Save invoice and refresh the page.", async () => {
         await pages.editLoadFormPage.clickOnSaveBtn();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await sharedPage.reload();
@@ -375,7 +414,7 @@ test.describe.serial(
         console.log("Saved invoice and refreshed page");
       });
 
-      await test.step("Step 26: Click on View history to see payable messages and Check f...", async () => {
+      await test.step("Step 27: Click on View history to see payable messages and Check f...", async () => {
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         
         const viewHistoryBtn = sharedPage.locator("//button[contains(text(),'View history')] | //a[contains(text(),'View history')] | //button[contains(text(),'View History')]").first();
@@ -398,15 +437,15 @@ test.describe.serial(
         // TODO: Add specific assertion for this expected result
       });
 
-      await test.step("Step 27: Create a secondary invoice and Check for the price differ...", async () => {
+      await test.step("Step 28: Create a secondary invoice and Check for the price differ...", async () => {
         await pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.FOR_SECONDARY_INVOICE);
         console.log("Secondary invoice price difference alert validated");
         
-        await pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.UNKNOWN_MESSAGE);
+        await pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.A_CARRIER_CONTACT_FOR_AUTO_ACCEPT_MUST_BE_SELECTED);
         console.log("System recalculated discrepancy alert validated");
 
         // Expected Step 4: 55.The system should recalculate the discrepancy to show the correct price difference in the new message
-        await pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.UNKNOWN_MESSAGE);
+        await pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.A_CARRIER_CONTACT_FOR_AUTO_ACCEPT_MUST_BE_SELECTED);
         console.log("Alert validated");
       });
 

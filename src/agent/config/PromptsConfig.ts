@@ -507,6 +507,55 @@ export const GUARDRAIL_RULES: GuardrailRule[] = [
     },
     errorMessage: 'Expected results should be embedded inline in their corresponding test steps, not grouped in a trailing "Verify Expected Results" block.',
   },
+  {
+    name: 'noUnknownMessageAlert',
+    description: 'Generated code must not use ALERT_PATTERNS.UNKNOWN_MESSAGE — it matches any alert containing a colon',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      return !input._generatedCode.includes('ALERT_PATTERNS.UNKNOWN_MESSAGE');
+    },
+    errorMessage: 'ALERT_PATTERNS.UNKNOWN_MESSAGE matches any alert with a colon character. Use a specific alert pattern constant instead.',
+  },
+  {
+    name: 'noConsoleLogAsValidation',
+    description: 'console.log must not be used as a substitute for assertion/validation',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      const suspiciousPattern = /console\.log\([^)]*(?:verif|validat|expected|should\s*be|assert|confirmed)[^)]*\)/i;
+      return !suspiciousPattern.test(input._generatedCode);
+    },
+    errorMessage: 'console.log() is not a validation mechanism. Use expect(), expect.soft(), or POM validation methods (e.g., pages.viewLoadPage.validateCarrierAssignedText()) instead.',
+  },
+  {
+    name: 'noDuplicateConsecutivePOMCalls',
+    description: 'Generated code should not have identical consecutive POM method calls',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      const lines = input._generatedCode.split('\n').map((l: string) => l.trim());
+      for (let i = 1; i < lines.length; i++) {
+        if (lines[i].length > 20 && lines[i] === lines[i - 1] && /await\s+pages\./.test(lines[i])) {
+          return false;
+        }
+      }
+      return true;
+    },
+    errorMessage: 'Duplicate consecutive POM method calls detected — likely a copy-paste error from LLM generation.',
+  },
+  {
+    name: 'noFabricatedLocatorIds',
+    description: 'Locator IDs should not be fabricated from step description text',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      const idPattern = /#([\w-]+)/g;
+      let m;
+      while ((m = idPattern.exec(input._generatedCode)) !== null) {
+        const id = m[1];
+        if (id.length > 40 || id.split(/[_-]/).length > 6) return false;
+      }
+      return true;
+    },
+    errorMessage: 'Locator ID appears fabricated (>40 chars or >6 segments). Use real DOM element IDs or text-based XPath locators.',
+  },
 ];
 
 /**
@@ -725,7 +774,6 @@ export const GENERATION_RULES = {
       'src/tests/generated/dfb/DFB-97741.spec.ts',
     ],
     billingtoggle: [
-      'src/tests/generated/dfb/DFB-97739.spec.ts',
       'src/tests/generated/billingtoggle/BT-67846.spec.ts',
     ],
     commission: [
@@ -922,32 +970,41 @@ export const MANDATORY_STEPS = {
     },
     billingtoggle: {
       loadCreation: {
-        stepName: 'Setup Billing Toggle Test Environment',
-        code: `const toggleSettingsValue = pages.toggleSettings.enable_DME;
-        const cargoValue = await dfbHelpers.setupDFBTestPreConditions(
-          pages,
-          testData.officeName,
-          toggleSettingsValue,
-          pages.toggleSettings.verifyDME,
-          testData.salesAgent,
-          testData.customerName,
-          CARGO_VALUES.DEFAULT,
-          LOAD_TYPES.CREATE_TL_NEW,
-          false,
-          true
-        );`,
+        stepName: 'Login and Search Customer for Billing Toggle',
+        code: `await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
+        if (await pages.btmsAcceptTermPage.validateOnBTMSAcceptTermPage()) {
+          await pages.btmsAcceptTermPage.acceptTermsAndConditions();
+        }
+        const btmsBaseUrl = new URL(sharedPage.url()).origin;
+        await sharedPage.goto(btmsBaseUrl);
+        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
+        await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
+        await pages.searchCustomerPage.enterCustomerName(testData.customerName);
+        await pages.searchCustomerPage.selectActiveOnCustomerPage();
+        await pages.searchCustomerPage.clickOnSearchCustomer();
+        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await pages.searchCustomerPage.clickOnActiveCustomer();
+        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);`,
       },
       default: {
-        stepName: 'Setup Billing Toggle Test Environment',
-        code: `const toggleSettingsValue = pages.toggleSettings.enable_DME;
-        await dfbHelpers.setupOfficePreConditions(
-          pages,
-          testData.officeName,
-          toggleSettingsValue,
-          pages.toggleSettings.verifyAutoPost
-        );
-        await pages.adminPage.hoverAndClickAdminMenu();
-        await pages.adminPage.switchUser(testData.salesAgent);`,
+        stepName: 'Login and Search Customer for Billing Toggle',
+        code: `await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
+        if (await pages.btmsAcceptTermPage.validateOnBTMSAcceptTermPage()) {
+          await pages.btmsAcceptTermPage.acceptTermsAndConditions();
+        }
+        const btmsBaseUrl = new URL(sharedPage.url()).origin;
+        await sharedPage.goto(btmsBaseUrl);
+        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
+        await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
+        await pages.searchCustomerPage.enterCustomerName(testData.customerName);
+        await pages.searchCustomerPage.selectActiveOnCustomerPage();
+        await pages.searchCustomerPage.clickOnSearchCustomer();
+        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await pages.searchCustomerPage.clickOnActiveCustomer();
+        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
       },
     },
     carrier: {
@@ -1072,7 +1129,7 @@ export const CATEGORY_CONFIG: Record<string, {
     dataFile: 'billingtoggleData',
     timeout: 300000,
     defaultTags: ['@billingtoggle'],
-    requiredImports: ['dfbHelpers'],
+    requiredImports: [],
   },
   custom: {
     dataFile: 'dfbData',

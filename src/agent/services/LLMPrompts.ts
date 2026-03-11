@@ -70,7 +70,8 @@ test.describe.serial('Case ID: <TEST_ID>', () => {
 - Carrier submenu: CARRIER_SUB_MENU.SEARCH
 
 ## Login Patterns
-- BTMS login: await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser, userSetup.globalPassword)
+- BTMS login: await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser)
+- CRITICAL: Always use userSetup.globalUser for BTMSLogin in ALL categories (dfb, billingtoggle, commission, edi, carrier, etc). NEVER use userSetup.UserSales for BTMSLogin — UserSales is ONLY for salesLead category tests.
 - TNX login (via appManager): const tnxPages = await appManager.switchToTNX()
 - DME login (via appManager): const dmePages = await appManager.switchToDME()
 - TNX Rep: const tnxRepPages = await appManager.switchToTNXRep()
@@ -249,7 +250,90 @@ ${FRAMEWORK_KNOWLEDGE}
     - Invoice amount: #carr_invoice_amount
     - Payables radio: #cat_payables
     - Document type: //select[@name='document_type']
-    NEVER fabricate locator IDs from step description text.`;
+    NEVER fabricate locator IDs from step description text.
+20. NEVER use ALERT_PATTERNS.UNKNOWN_MESSAGE — it matches ANY alert containing a colon (catches everything).
+    Use the specific pattern constant: A_CARRIER_CONTACT_FOR_AUTO_ACCEPT_MUST_BE_SELECTED, STATUS_HAS_BEEN_SET_TO_BOOKED,
+    IN_VIEW_MODE, POST_AUTOMATION_RULE_MATCHED, etc. If no matching constant exists, add a new entry to alertPatterns.ts.
+21. NEVER use console.log() as a substitute for assertions or validations. Every "Expected:" result in the test case
+    MUST map to either: expect()/expect.soft() assertion, or a POM validation method (e.g., validateCarrierAssignedText()).
+    console.log is for progress tracking ONLY (e.g., "Step completed", "Load number captured").
+22. When a test step says "Validate X is Y" or "Verify X shows Y", ALWAYS produce an expect() or expect.soft() assertion.
+    Pattern: const value = await <get_value>; expect.soft(value).toBe/toContain/toMatch(expected);
+23. Constant key validation — use ONLY these valid keys:
+    - CARRIER_DISPATCH_EMAIL: EMAIL_1 (NOT DISPATCH_EMAIL_1)
+    - CARRIER_DISPATCH_NAME: DISPATCH_NAME_1, DISPATCH_NAME_2
+    - CARRIER_CONTACT: CONTACT_1, CONTACT_2, CONTACT_3
+    - CARRIER_NAME: CARRIER_1 through CARRIER_9
+    - PRIORITY: PRIORITY_1, PRIORITY_2, PRIORITY_3
+    - LOAD_OFFER_RATES: OFFER_RATE_1 through OFFER_RATE_4
+    Do NOT invent constant keys that aren't listed above.`;
+}
+
+/**
+ * Build the prompt for full-spec generation from a reference spec.
+ * Used when TestCaseMatcher score >= 0.7 — the LLM adapts the entire reference
+ * spec in one pass instead of generating step-by-step.
+ */
+export function buildFullSpecPrompt(
+  referenceSpecCode: string,
+  testCaseId: string,
+  testCaseTitle: string,
+  testCaseCategory: string,
+  preconditions: string[],
+  steps: { stepNumber: number; action: string; expectedResult?: string }[],
+  expectedResults: string[],
+  testDataFields: string[],
+  _schema: SchemaContext,
+): { system: string; user: string } {
+  // LEAN prompt — no full POM schema or framework knowledge.
+  // The reference spec already contains correct methods, imports, and patterns.
+  // The LLM just needs to adapt it to the new test case.
+
+  const system = `You are a Playwright test code generator. You adapt an existing working test spec to a new test case.
+
+## Rules
+1. Output ONLY the complete .spec.ts file — no markdown fences, no explanations, no commentary before or after
+2. Keep ALL steps from the reference spec — do NOT skip, collapse, or remove any steps
+3. Keep ALL imports, variable declarations, beforeAll/afterAll blocks from the reference
+4. Keep ALL method calls exactly as they appear in the reference — do NOT invent new methods
+5. Only change: test case ID, title, and test-specific values (testData fields, constants)
+6. Every expected result MUST use expect() or expect.soft() — NEVER use console.log as a substitute for validation
+7. Use testData.* for all CSV-derived values
+8. Correct constant keys: CARRIER_DISPATCH_EMAIL.EMAIL_1 (NOT DISPATCH_EMAIL_1), CARRIER_CONTACT.CONTACT_1
+9. NEVER use ALERT_PATTERNS.UNKNOWN_MESSAGE
+10. validateCarrierAssignedText() requires argument: validateCarrierAssignedText(testData.Carrier)
+11. The const testcaseID must be "${testCaseId}" and dataConfig must use dataConfig.${testCaseCategory}Data
+12. Output must compile with TypeScript strict mode (noUnusedLocals, noUnusedParameters)`;
+
+  const stepsText = steps.map(s => `  ${s.stepNumber}. ${s.action}${s.expectedResult ? ` → Expected: ${s.expectedResult}` : ''}`).join('\n');
+  const expectedText = expectedResults.length > 0
+    ? expectedResults.map((e, i) => `  ${i + 1}. ${e}`).join('\n')
+    : '  (Same as reference spec)';
+  const precondText = preconditions.length > 0 ? preconditions.join('\n  ') : 'Same as reference spec';
+
+  const user = `Adapt this reference spec for test case ${testCaseId}.
+
+REFERENCE SPEC (keep this exact structure, all steps, all method calls):
+${referenceSpecCode}
+
+NEW TEST CASE:
+- ID: ${testCaseId}
+- Title: ${testCaseTitle}
+- Category: ${testCaseCategory}
+- testData fields: ${testDataFields.join(', ') || 'same as reference'}
+
+Preconditions:
+  ${precondText}
+
+Steps:
+${stepsText}
+
+Expected Results:
+${expectedText}
+
+Output the complete adapted .spec.ts file:`;
+
+  return { system, user };
 }
 
 /**

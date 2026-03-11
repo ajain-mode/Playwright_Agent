@@ -14,6 +14,7 @@ import {
   buildCodeGenUserPrompt,
   buildValueExtractionPrompt,
   buildCodeFixPrompt,
+  buildFullSpecPrompt,
 } from './LLMPrompts';
 
 /** Context passed alongside a step action for code generation */
@@ -22,6 +23,10 @@ export interface StepContext {
   testDataFields?: string[];
   /** Code from a similar reference spec to guide generation */
   referenceSpecCode?: string;
+  /** Code from a secondary reference spec for POM method discovery */
+  secondaryRefSpecCode?: string;
+  /** Match score from TestCaseMatcher — when >= 0.7, adopt full reference structure */
+  matchScore?: number;
 }
 
 export class LLMService {
@@ -86,7 +91,17 @@ export class LLMService {
 
     // Append reference spec context so LLM can see how similar test cases are implemented
     if (context.referenceSpecCode) {
-      userPrompt += `\n\n## Reference Spec (from a similar existing test case — adapt patterns, do NOT copy verbatim):\n\`\`\`typescript\n${context.referenceSpecCode.substring(0, 3000)}\n\`\`\``;
+      const isHighMatch = (context.matchScore || 0) >= 0.7;
+      const maxRefLength = isHighMatch ? 8000 : 3000;
+      const instruction = isHighMatch
+        ? '## Reference Spec (HIGH MATCH ≥70% — adopt the FULL step structure, method calls, and flow from this reference. Adjust only test-specific values like testData fields, load numbers, and carrier names):'
+        : '## Reference Spec (from a similar existing test case — adapt patterns, do NOT copy verbatim):';
+      userPrompt += `\n\n${instruction}\n\`\`\`typescript\n${context.referenceSpecCode.substring(0, maxRefLength)}\n\`\`\``;
+    }
+
+    // Append secondary reference for POM method discovery (e.g., DFB-97746 has carrier/load methods)
+    if (context.secondaryRefSpecCode && !context.referenceSpecCode) {
+      userPrompt += `\n\n## Secondary Reference (for POM method discovery only — use method signatures and patterns, but do NOT copy DFB-specific preconditions or flow):\n\`\`\`typescript\n${context.secondaryRefSpecCode.substring(0, 3000)}\n\`\`\``;
     }
 
     const code = await this.chatCompletion(systemPrompt, userPrompt);
@@ -107,6 +122,64 @@ export class LLMService {
     }
 
     console.log(`      LLM generated code for: "${action.substring(0, 50)}..."`);
+    return cleaned;
+  }
+
+  /**
+   * Generate a COMPLETE .spec.ts file by adapting a reference spec to a new test case.
+   * Used when TestCaseMatcher score >= 0.7 — bypasses step-by-step generation entirely.
+   * Returns the complete spec file content, or null on failure.
+   */
+  async generateFullSpecFromReference(
+    referenceSpecCode: string,
+    testCaseId: string,
+    testCaseTitle: string,
+    testCaseCategory: string,
+    preconditions: string[],
+    steps: { stepNumber: number; action: string; expectedResult?: string }[],
+    expectedResults: string[],
+    testDataFields: string[],
+    schema: SchemaContext,
+  ): Promise<string | null> {
+    if (!this.isAvailable()) return null;
+
+    console.log(`   🧠 Full-spec LLM generation: adapting reference to ${testCaseId} (${steps.length} steps, ${expectedResults.length} expected results)`);
+
+    const { system, user } = buildFullSpecPrompt(
+      referenceSpecCode,
+      testCaseId,
+      testCaseTitle,
+      testCaseCategory,
+      preconditions,
+      steps,
+      expectedResults,
+      testDataFields,
+      schema,
+    );
+
+    // Full-spec generation needs a longer timeout (5 min) since it produces a complete 600+ line file
+    const response = await this.chatCompletion(system, user, 300000);
+    if (!response) {
+      console.log(`   ⚠️ Full-spec LLM generation failed (no response — likely timeout or CLI error) — falling back to step-by-step`);
+      return null;
+    }
+    console.log(`   📏 Full-spec LLM response: ${response.length} chars, ${response.split('\n').length} lines`);
+
+    const cleaned = this.stripMarkdownFences(response);
+
+    // Validate: must look like a complete spec file
+    if (!cleaned.includes('test.describe') || !cleaned.includes('test.step')) {
+      console.log(`   ⚠️ Full-spec LLM response doesn't look like a complete spec file, discarding`);
+      return null;
+    }
+
+    // Validate: must reference the correct test case ID
+    if (!cleaned.includes(testCaseId)) {
+      console.log(`   ⚠️ Full-spec LLM response doesn't reference ${testCaseId}, discarding`);
+      return null;
+    }
+
+    console.log(`   ✅ Full-spec LLM generation successful for ${testCaseId}`);
     return cleaned;
   }
 
@@ -187,15 +260,16 @@ export class LLMService {
   /**
    * Core method: invoke Claude CLI in print mode.
    * Pipes the prompt via stdin, returns the response text or null on error.
+   * @param timeoutMs — override default timeout (120s) for large prompts like full-spec generation
    */
-  private async chatCompletion(systemPrompt: string, userPrompt: string): Promise<string | null> {
+  private async chatCompletion(systemPrompt: string, userPrompt: string, timeoutMs?: number): Promise<string | null> {
     for (let attempt = 0; attempt <= this.config.llmMaxRetries; attempt++) {
       try {
-        const response = await this.invokeClaudeCLI(systemPrompt, userPrompt);
+        const response = await this.invokeClaudeCLI(systemPrompt, userPrompt, timeoutMs);
         if (response && response.trim()) {
           return response.trim();
         }
-        console.log(`      LLM returned empty response (attempt ${attempt + 1})`);
+        console.log(`      LLM returned empty response (attempt ${attempt + 1}/${this.config.llmMaxRetries + 1}) — prompt length: ${(systemPrompt.length + userPrompt.length)} chars`);
       } catch (error: any) {
         console.log(`      LLM CLI error (attempt ${attempt + 1}/${this.config.llmMaxRetries + 1}): ${error.message}`);
         if (attempt < this.config.llmMaxRetries) {
@@ -209,17 +283,19 @@ export class LLMService {
   /**
    * Spawn Claude CLI process, pipe prompt via stdin, collect stdout.
    */
-  private invokeClaudeCLI(systemPrompt: string, userPrompt: string): Promise<string | null> {
+  private invokeClaudeCLI(systemPrompt: string, userPrompt: string, timeoutMs?: number): Promise<string | null> {
     return new Promise((resolve, reject) => {
       const args = ['-p', '--output-format', 'text'];
+      // Only pass --model if a valid model name is configured
       if (this.config.modelName) {
         args.push('--model', this.config.modelName);
       }
 
+      const effectiveTimeout = timeoutMs || 120000;
       const proc = spawn('claude', args, {
         stdio: ['pipe', 'pipe', 'pipe'],
         shell: true,
-        timeout: 120000,
+        timeout: effectiveTimeout,
       });
 
       let stdout = '';
@@ -232,9 +308,19 @@ export class LLMService {
         if (code === 0 && stdout.trim()) {
           resolve(stdout.trim());
         } else if (code === 0) {
+          console.log(`      LLM CLI returned empty stdout (exit code 0)`);
+          console.log(`      LLM CLI prompt length: system=${systemPrompt.length}, user=${userPrompt.length}, total=${systemPrompt.length + userPrompt.length}`);
+          if (stderr.trim()) {
+            console.log(`      LLM CLI stderr: ${stderr.trim().substring(0, 500)}`);
+          }
           resolve(null);
         } else {
-          const errMsg = stderr.trim().substring(0, 300) || `exit code ${code}`;
+          console.log(`      LLM CLI exit code: ${code}`);
+          console.log(`      LLM CLI prompt length: system=${systemPrompt.length}, user=${userPrompt.length}, total=${systemPrompt.length + userPrompt.length}`);
+          if (stderr.trim()) {
+            console.log(`      LLM CLI stderr: ${stderr.trim().substring(0, 500)}`);
+          }
+          const errMsg = stderr.trim().substring(0, 500) || `exit code ${code}`;
           reject(new Error(errMsg));
         }
       });
@@ -246,6 +332,7 @@ export class LLMService {
 
       // Combine system + user prompts with clear separation
       const fullPrompt = `<instructions>\n${systemPrompt}\n</instructions>\n\n${userPrompt}`;
+      console.log(`      LLM CLI args: ${args.join(' ')} | prompt: ${fullPrompt.length} chars`);
       proc.stdin.write(fullPrompt);
       proc.stdin.end();
     });

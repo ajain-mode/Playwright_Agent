@@ -10,7 +10,16 @@
       "Bash(npx playwright test src/tests/generated/billingtoggle/BT-67846.spec.ts)",
       "Bash(ls -lt \"c:/Users/Aman.Jain/OneDrive/Mode Global/Test cases/QA AI Agent/Playwright_Agent/src/reporting/allure-results/\"*result.json)",
       "Bash(SHELL=/usr/bin/bash npx tsc --noEmit)",
-      "Bash(SHELL=bash npx tsc --noEmit)"
+      "Bash(SHELL=bash npx tsc --noEmit)",
+      "Bash(npx.cmd tsc --noEmit)",
+      "Bash(git -C \"c:/Users/Aman.Jain/OneDrive/Mode Global/Test cases/QA AI Agent/Playwright_Agent\" diff --name-only -- \"src/tests/generated/\")",
+      "Bash(git.exe status --porcelain)",
+      "Bash(\"C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe\" status --porcelain -- src/tests/generated/)",
+      "Bash(cmd /c \"git status --porcelain -- src/tests/generated/\")",
+      "Bash(powershell -Command \"git status --porcelain -- src/tests/generated/\")",
+      "Bash(SHELL=/bin/bash git status --porcelain -- src/tests/generated/)",
+      "Bash(/bin/bash -c \"cd ''/c/Users/Aman.Jain/OneDrive/Mode Global/Test cases/QA AI Agent/Playwright_Agent'' && git status --porcelain -- src/tests/generated/\")",
+      "Bash(\"C:/Program Files/Git/bin/bash.exe\" -c \"cd ''/c/Users/Aman.Jain/OneDrive/Mode Global/Test cases/QA AI Agent/Playwright_Agent'' && git status --porcelain -- src/tests/generated/\")"
     ]
   }
 }

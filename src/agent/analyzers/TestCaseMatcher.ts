@@ -105,9 +105,27 @@ const FUNCTIONAL_PATTERNS: Record<string, RegExp[]> = {
 export class TestCaseMatcher {
   private projectRoot: string;
   private existingTestCases: ExistingTestCase[] | null = null;
+  /** IDs generated in the current batch — excluded from matching to avoid self-referencing */
+  private batchExcludeIds: Set<string> = new Set();
 
   constructor(projectRoot?: string) {
     this.projectRoot = projectRoot || process.cwd();
+  }
+
+  /**
+   * Set IDs to exclude from matching during batch generation.
+   * Prevents test cases in the same batch from referencing each other's
+   * freshly-generated (and potentially broken) specs.
+   */
+  setBatchExcludeIds(ids: string[]): void {
+    this.batchExcludeIds = new Set(ids);
+    // No need to clear cache — exclusion is applied in findBestMatch's filter,
+    // not during loadExistingTestCases. Keeping cache avoids re-reading CSV on every call.
+  }
+
+  /** Clear batch exclusion list (call after batch completes) */
+  clearBatchExcludeIds(): void {
+    this.batchExcludeIds.clear();
   }
 
   /**
@@ -118,8 +136,10 @@ export class TestCaseMatcher {
     const existing = this.loadExistingTestCases();
     if (existing.length === 0) return null;
 
-    // Don't match against self
-    const candidates = existing.filter(e => e.id !== newTestCase.id);
+    // Don't match against self or other test cases in the current batch
+    const candidates = existing.filter(e =>
+      e.id !== newTestCase.id && !this.batchExcludeIds.has(e.id)
+    );
     if (candidates.length === 0) return null;
 
     const newStepsText = newTestCase.steps.map(s => s.action).join('\n');
@@ -183,7 +203,15 @@ export class TestCaseMatcher {
         reasons.push('has-spec');
       }
 
-      if (score > bestScore) {
+      // Prefer same-category matches: if scores are within 0.10, same-category wins
+      const isSameCategory = newTestCase.category === candidate.category;
+      const isBetter = score > bestScore ||
+        (isSameCategory && bestMatch && score >= bestScore - 0.10 &&
+         newTestCase.category !== this.detectCategoryFromTags(
+           existing.find(e => e.id === bestMatch!.matchedId)?.tags || []
+         ));
+
+      if (isBetter) {
         bestScore = score;
         bestMatch = {
           matchedId: candidate.id,
