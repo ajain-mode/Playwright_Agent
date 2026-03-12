@@ -19,7 +19,13 @@
       "Bash(powershell -Command \"git status --porcelain -- src/tests/generated/\")",
       "Bash(SHELL=/bin/bash git status --porcelain -- src/tests/generated/)",
       "Bash(/bin/bash -c \"cd ''/c/Users/Aman.Jain/OneDrive/Mode Global/Test cases/QA AI Agent/Playwright_Agent'' && git status --porcelain -- src/tests/generated/\")",
-      "Bash(\"C:/Program Files/Git/bin/bash.exe\" -c \"cd ''/c/Users/Aman.Jain/OneDrive/Mode Global/Test cases/QA AI Agent/Playwright_Agent'' && git status --porcelain -- src/tests/generated/\")"
+      "Bash(\"C:/Program Files/Git/bin/bash.exe\" -c \"cd ''/c/Users/Aman.Jain/OneDrive/Mode Global/Test cases/QA AI Agent/Playwright_Agent'' && git status --porcelain -- src/tests/generated/\")",
+      "Bash(gh repo clone modetrans/mono /tmp/mono -- --depth 1)",
+      "Bash(git clone --depth 1 https://github.com/modetrans/mono.git \"c:/tmp/mono\")",
+      "Bash(SHELL=/usr/bin/bash git clone --depth 1 https://github.com/modetrans/mono.git C:/tmp/mono)",
+      "Bash(mkdir -p /c/tmp)",
+      "Bash(git clone --depth 1 https://github.com/modetrans/mono.git /c/tmp/mono_repo)",
+      "WebFetch(domain:api.github.com)"
     ]
   }
 }
