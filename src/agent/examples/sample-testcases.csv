@@ -386,151 +386,6 @@ Pending carrier invoice with price difference
 51. Billing toggle is at the Agent
 54. Billing should get moved to the Agent.
 55.The system should recalculate the discrepancy to show the correct price difference in the new message",,"aiteam,payabletoggle"
-97740,,,Automatically book a load when it is manually postedDisplay a message when an active loadboard user is not selected for the Carrier Contact for Rate Confirmation field on the load," 1.Agent is logged into BTMS in any valid environment.(http://brokerage.stage.suntecktts.com/) 
-2. Click on Sign in with Single Sign- On
-3. Enter the User ID and Click Next
-4. Enter the Password 
-5. Click Sign In.
-6. Hover to ADMIN.
-7. Click on OFFICE SEARCH.
-8. Enter the office code (TX-STK)
-9. Click on Search. 
-10. Click on Office profile.
-11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
-12. Click on Edit.
-13. Set  Enable Digital Matching Engine as YES. and click on save.
-14.Click on Edit set Match Vender as ""TNX"" and click on save 
-15. Now hover the mouse over the ADMIN tab and click on it.
-16. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  FRISCO TL
-17.Once suggestion is shown click on FRISCO TL
-18.Once user gets switched, select Hover the mouse on HOME tab and select sub tab OFFICE CONFIG.
-19. Click on POST AUTOMATION button.
-20. Search for the customer(MillerCoors Accessorial) that going to create a load and if the rule created with that customer then delete the rule by clicking checkbox and click on delete button.
-21.Hover over the Carriers 
-22.Click on Search
-23.Enter the value into name field as ""121 TRANSPORTATION LLC""
-24.Click on LoadBoard tab
-25 Loadboard Status must show as ""Caution""
-26 .Under Carrier Visibility below field  toogle should be enabled Avenger Logistics ,Mode Transportation,Sunteck Transport Co, TTS(If all of them is already enabled then skip step 27 to 30)
-27.Click on Edit 
-28.Enable the field which are not enabled  as  mention on step 26
-29 Click on save.
-30. Log into DME(https://dme.stage.modetrans.com/login)
-31. Click on Carriers.
-32. Search for the Carrier (121 TRANSPORTATION LLC)
-33. Ensure the carrier is Enabled with toggled ON.","1.Switch to BTMS application and Hover to Customers and click Search.
-2. Enter the Customer name in the ""Customer"" field (MillerCoors Accessorial)
-3. Click on ""Search"" button.
-4. Click on Customer profile.
-5. Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*
-6. In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer.
-7. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.(FRISCO TL)
-8. Select the location from the ""Shipper"" field(|COHO DIST|SANTA ROSA|CA).
-9. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
-10. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
-11. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
-12. Enter the ""Earliest Time"" (Eg. 09:00)
-14. Enter the ""Latest Time"" (Eg. 09:00)
-15. Select the location from the ""Consignee"" field.(|EUCLID BEVERAGE OF NORTH AURORA|NORTH AURORA|IL)
-16. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
-17. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
-18. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
-19. Enter the ""Earliest Time"" (Eg. 10:00)
-20. Enter the ""Latest Time"" (Eg. 10:00)
-21. Enter the Quantity in the ""Qty"" field (Eg. 95)
-22. Select the ""UoM"" field (Eg. Case or Cases)
-23. Enter the description in the ""Description"" field (Eg. Total 95 cases)
-24. Enter the weight in the ""Weight"" field (Eg. 8500)
-25. Select the ""Equipment"" field as ""FLATBED""
-26. Enter the ""lenght"" field (Eg. 54)
-27. Select the ""Mileage Engine"" field as ""Current""
-28. Select the ""Method"" as ""Practical""
-29. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
-30. Click on ""Create Load"" button. 
-31.Under the load tab select Rate type as ""SPOT"" if no rate type is selected
-32. Click the ""Carrier tab"" in the ""Edit load"" page.
-33. Enter a valid value for the Offer Rate field on the load as ""2000"".
-34. Select a carrier for the Include Carriers field on the load.(Eg. 121 TRANSPORTATION LLC)
-35. Check the Carrier Auto Accept checkbox.
-36. A message is displayed relating ""CAUTION: Carrier has a cautionary safety rating""
-39. Click OK on popup
-40. Select an active loadboard user for the Carrier Contact for Rate Confirmation field (Eg. mohammed.suhaib@modeglobal.com)
-41. Click the Save button on the load
-42. Load is in View mode.
-43. Click on Carrier tab. 
-44. Click the Post button.
-45. Log into DME(https://dme.stage.modetrans.com/login)
-46. Click on Loads.
-47. Enter the Load number and search it.
-48. Log into TNX (https://marketplace.modeglobal.com/)
-49. Enter the Email address and Password.
-50. Click Continue.
-51. Select the Carrier from the Dropdown(121 TRANSPORTATION LLC). 
-52. Click on Active Jobs.
-53 Click on the plus icon and search the load
-54. Click the load and Ensure the load is Matched and check the offer rate match with the offer rate entered at step 33 . 
-55. Click on Progress and Check the fields for providing execution notes are displayed","Ensure the Step:38
-A message is displayed relating ""CAUTION: Carrier has a cautionary safety rating""
-
-Ensure after Step: 41
-The load is saved and is displayed in view mode
-- The Offer Rate field is populated with the rate entered
-- The Expiration Date field is auto populated with the value of the origin pick deadline date
-- The Expiration Time field is auto populated with the origin pick deadline time
-- The Email for Notifications field is auto populated with the agent's email address
-- The Include Carriers field has the carrier selected
-- The Carrier Auto Accept checkbox is checked
-- The Carrier Contact for Rate Confirmation field has the active loadboard user selected
-
-All fields are not editable except the Include Carriers field
-
-Ensure after Step:42
-The following DFB UI elements are displayed:
-- Post Status of the load is NOT POSTED
-- Activated Post button
-- Activated Create Rule button
-- Activated Clear Form button
-
-Ensure after step:44
-BTMS
-- The Status of the load is BOOKED
-- The Carrier selected for the Include Carriers field is assigned to the load
-- The Carrier Dispatcher Name field is auto populated with the name of the active loadboard user selected for the Carrier Contact for Rate Confirmation field
-- The Carrier Dispatcher Email field is auto populated with the email address of the active loadboard user selected for the Carrier Contact for Rate Confirmation field
-- BIDS Source
-- Avg Rate accurately updated
-- Reports accurately updated
-- Bid Results accurately updated
-- Bid History accurately updated
-- Email containing the Rate Confirmation is sent to the carrier user
-- Email notification sent to the agent(s) selected for the Email for Notifications field on the load
-
-Ensure after Step:47
-DME
-- Load is created in DME 
-- Vendor Statuses:
-- BTMS CANCELLED
-- TNX BOOKED
-
-Ensure after Step:54
-TNX
-- A load is matched for the included carrier and offer rate is also same 
-Ensure after Step:55
-- The fields for providing execution notes are displayed 
-Carrier Dispatch Name
-Carrier Dispatch Email
-Carrier Dispatch Phone Number
-Driver Name 
-Driver Cell 
-Truck Number
-Trailer Number
-Is Empty 
-Current Location City 
-Current Location State
-Current Location Zip 
-Empty Location City 
-Empty Location State
-Empty Location Zip",,"aiteam,carrierautoaccept,dfb"
 67847,,FD-35847,,"1.Load status ? 'Delivered Final'
 2.Paperwork received date ? delivered date","1.Login to BTMS application and Hover to Customers and click Search.
 2. Enter the Customer name in the ""Customer"" field (FORD MOTOR C/O CASS INFO SYSTEMS)
@@ -1436,3 +1291,67 @@ Pending carrier invoice with price difference
 52. Click on View history to see payable messages and Check for the price difference message ","44. Status has been set to INVOICED ALERT should appear on the screen.
 48. Payable Toggle should get moved to the Agent.
 52.The system should recalculate the discrepancy to show the correct price difference in the new message",,"aiteam,payabletoggle"
+97740,,,Automatically book a load when it is manually postedDisplay a message when a carrier having a status of CAUTION is selected,"Agent has logged into the BTMS
+Agent's Office Info has the following field settings:
+- Match vendors is set to TNX
+- Enable Digital Matching Engine is set to YES
+A load has been created by the agent which:
+- has a status of ACTIVE
+- has a method of TL
+- is in edit mode
+Agent's Office Config does not have a post automation rule that matches the load
+Carrier:
+- Has a status of CAUTION in BTMS
+- Is enabled in DME","1. Enter a valid value for the Offer Rate field on the load
+2. Select a carrier having a status of CAUTION for the Include Carriers field on the load
+3. Check the Carrier Auto Accept checkbox
+
+Next Steps
+1. Click OK
+2. Select an active loadboard user for the Carrier Contact for Rate Confirmation field
+3. Click the Save button on the load
+Next Steps
+1. Click the Post button
+Next Steps","A message is displayed relating ""CAUTION: Carrier has a cautionary safety rating""
+Next Steps
+The load is saved and is displayed in view mode
+- The Offer Rate field is populated with the rate entered
+- The Expiration Date field is auto populated with the value of the origin pick deadline date
+- The Expiration Time field is auto populated with the origin pick deadline time
+- The Email for Notifications field is auto populated with the agent's email address
+- The Include Carriers field has the carrier selected
+- The Carrier Auto Accept checkbox is checked
+- The Carrier Contact for Rate Confirmation field has the active loadboard user selected
+
+All fields are not editable except the Include Carriers field
+
+The following DFB UI elements are displayed:
+- Post Status of the load is NOT POSTED
+- Activated Post button
+- Activated Create Rule button
+- Activated Clear Form button
+Next Steps
+BTMS
+- The Status of the load is BOOKED
+- The Carrier selected for the Include Carriers field is assigned to the load
+- The Carrier Dispatcher Name field is auto populated with the name of the active loadboard user selected for the Carrier Contact for Rate Confirmation field
+- The Carrier Dispatcher Email field is auto populated with the email address of the active loadboard user selected for the Carrier Contact for Rate Confirmation field
+- BIDS Source
+- Avg Rate accurately updated
+- Reports accurately updated
+- Bid Results accurately updated
+- Bid History accurately updated
+- Email containing the Rate Confirmation is sent to the carrier user
+- Email notification sent to the agent(s) selected for the Email for Notifications field on the load
+DME
+- Load is created
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED
+TNX
+- A load is matched for the included carrier
+- The fields for providing execution notes are displayed
+Next Steps",,"aiteam,carrierautoaccept,dfb"

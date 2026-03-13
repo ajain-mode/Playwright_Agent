@@ -50,6 +50,8 @@ export const ALERT_PATTERNS = {
 
   OFFER_RATE_MUST_BE_WITHIN_THE_RANGE_OF_200_AND_20000: "Offer Rate must be within the range of $200.00 and $20,000.00",
 
+  CAUTION_CARRIER_HAS_A_CAUTIONARY_SAFETY_RATING: "CAUTION: Carrier has a cautionary safety rating",
+
 };
 
 
