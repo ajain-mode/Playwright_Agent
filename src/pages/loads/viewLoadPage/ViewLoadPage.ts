@@ -72,8 +72,10 @@ export default class ViewLoadPage {
   private readonly successMessage_LOC: Locator;
   private readonly closeDocumentUploadDialog_LOC: Locator;
   private readonly payablesButton_LOC: Locator;
+  private readonly customerButton_LOC: Locator;
   private readonly carrierInvoiceNumber_LOC: Locator;
   private readonly carrierInvoiceAmount_LOC: Locator;
+  private readonly submitRemoteButton_LOC: Locator;
 
   constructor(private page: Page) {
     this.viewLoadPageHeader_LOC = this.page.locator("//td[contains(text(),'View Load #')]");
@@ -176,8 +178,10 @@ export default class ViewLoadPage {
     this.successMessage_LOC = this.page.locator("//div[@id='message_display']");
     this.closeDocumentUploadDialog_LOC = this.page.locator("//div[@role='dialog' and .//span[text()='Document Upload Utility']]//button[contains(@class,'ui-dialog-titlebar-close')]");
     this.payablesButton_LOC = this.page.locator("//input[@id='cat_payables']");
+    this.customerButton_LOC = this.page.locator("#cat_customer");
     this.carrierInvoiceNumber_LOC = this.page.locator("//input[@id='carr_invoice_num_input']");
     this.carrierInvoiceAmount_LOC = this.page.locator("//input[@id='carr_invoice_amount']");
+    this.submitRemoteButton_LOC = this.page.locator("#submit_remote");
     this.autoLoadTenderCheckbox_LOC = this.page.locator("//input[@id='loadsh_auto_edi204']");
   }
 
@@ -1318,6 +1322,102 @@ export default class ViewLoadPage {
     const closeButton = this.closeDocumentUploadDialog_LOC;
     await closeButton.first().click({ force: true });
     console.log("✅ Carrier Invoice document uploaded and dialog closed successfully.");
+  }
+
+  /**
+   * Opens the Document Upload Utility dialog by clicking the upload icon.
+   */
+  async openDocumentUploadDialog(): Promise<void> {
+    await this.uploadDocumentIcon_LOC.first().scrollIntoViewIfNeeded();
+    await this.uploadDocumentIcon_LOC.first().waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await this.uploadDocumentIcon_LOC.first().click();
+    await this.page.waitForTimeout(2000);
+    console.log("Opened Document Upload Utility");
+  }
+
+  /**
+   * Closes the Document Upload Utility dialog.
+   * Scoped to the specific jQuery UI dialog wrapper containing #upload_load_document.
+   */
+  async closeDocumentUploadDialogSafe(): Promise<void> {
+    const uploadDialog = this.page.locator(".ui-dialog").filter({ has: this.page.locator("#upload_load_document") });
+    const closeBtn = uploadDialog.locator(".ui-dialog-titlebar-close");
+    if (await closeBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await closeBtn.click({ force: true });
+    } else {
+      await this.page.keyboard.press('Escape');
+    }
+    await commonReusables.waitForPageStable(this.page);
+    console.log("Closed Document Upload Utility dialog");
+  }
+
+  /**
+   * Selects the Customer radio button in the Document Upload Utility.
+   */
+  async selectCustomerRadio(): Promise<void> {
+    await this.customerButton_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await this.customerButton_LOC.check();
+    console.log("Selected Customer radio button");
+  }
+
+  /**
+   * Selects the Payables radio button in the Document Upload Utility.
+   */
+  async selectPayablesRadio(): Promise<void> {
+    await this.payablesButton_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await expect(this.payablesButton_LOC).toBeEnabled({ timeout: WAIT.LARGE });
+    await this.payablesButton_LOC.check();
+    console.log("Selected Payables radio button");
+  }
+
+  /**
+   * Selects the document type from the dropdown in the Document Upload Utility.
+   */
+  async selectDocumentType(label: string): Promise<void> {
+    await this.selectDocumentType_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await this.selectDocumentType_LOC.selectOption({ label });
+    console.log(`Selected Document Type: ${label}`);
+  }
+
+  /**
+   * Fills the carrier invoice number in the Document Upload Utility.
+   */
+  async fillCarrierInvoiceNumber(invoiceNumber: string): Promise<void> {
+    await this.carrierInvoiceNumber_LOC.fill(invoiceNumber);
+    console.log(`Filled carrier invoice number: ${invoiceNumber}`);
+  }
+
+  /**
+   * Fills the carrier invoice amount in the Document Upload Utility.
+   */
+  async fillCarrierInvoiceAmount(amount: string): Promise<void> {
+    await this.carrierInvoiceAmount_LOC.fill(amount);
+    console.log(`Filled carrier invoice amount: ${amount}`);
+  }
+
+  /**
+   * Attaches a file in the Document Upload Utility.
+   */
+  async attachFile(filePath: string): Promise<void> {
+    await this.uploadTypeFile_LOC.first().setInputFiles(filePath);
+    console.log(`Attached file: ${filePath}`);
+  }
+
+  /**
+   * Clicks the Submit/Attach button (#submit_remote) in the Document Upload Utility.
+   */
+  async clickSubmitRemote(): Promise<void> {
+    await this.submitRemoteButton_LOC.click();
+    console.log("Clicked Submit/Attach button");
+  }
+
+  /**
+   * Waits for and validates the success message in the Document Upload Utility.
+   */
+  async waitForUploadSuccess(): Promise<void> {
+    await expect(this.successMessage_LOC).toBeVisible({ timeout: WAIT.LARGE });
+    await expect(this.successMessage_LOC).toHaveText("All documents attached successfully.", { timeout: WAIT.LARGE });
+    console.log("Upload success message confirmed");
   }
 
 }

@@ -556,6 +556,21 @@ export const GUARDRAIL_RULES: GuardrailRule[] = [
     },
     errorMessage: 'Locator ID appears fabricated (>40 chars or >6 segments). Use real DOM element IDs or text-based XPath locators.',
   },
+  {
+    name: 'noRawLocatorsWithPOMEquivalent',
+    description: 'Generated code must use POM methods instead of raw locators when POM equivalents exist',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      const pomLocators = [
+        '#cat_customer', '#cat_payables', '#carr_invoice_num_input', '#carr_invoice_amount',
+        '#submit_remote', '#message_display', '#carrier_invoice_number_id', '#carrier_invoice_amount_id',
+        '#submit_save_carrier_invoice', '#carr_invoice_add_new', '#carrier_invoice_dialog_form',
+        '#fi_waiting_on', '#waiting_on_select'
+      ];
+      return !pomLocators.some(loc => input._generatedCode.includes(loc));
+    },
+    errorMessage: 'Raw locator found that has a POM equivalent. Use pages.viewLoadPage.* or pages.loadBillingPage.* methods instead of sharedPage.locator() with raw IDs.',
+  },
 ];
 
 /**

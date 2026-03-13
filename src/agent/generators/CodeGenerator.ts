@@ -48,6 +48,9 @@ const ALERT_MESSAGE_TO_CONSTANT: Record<string, string> = {
   "Please enter a value for the Name field.": "SALES_LEAD_ALERT_PATTERNS.SALES_LEAD_CUSTOMER_NAME_ERROR",
   "Please enter a value for the City field.": "SALES_LEAD_ALERT_PATTERNS.SALES_LEAD_CITY_NAME_ERROR",
   "Please enter a value for the state field.": "SALES_LEAD_ALERT_PATTERNS.SALES_LEAD_STATE_NAME_ERROR",
+  "status has been set to booked": "ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_BOOKED",
+  "status has been set to invoiced": "ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_INVOICED",
+  "payable status has been updated to invoice received": "ALERT_PATTERNS.PAYABLE_STATUS_INVOICE_RECEIVED",
 };
 
 /**
@@ -61,6 +64,7 @@ function toConstantName(message: string): string {
     .trim()
     .replace(/\s+/g, '_')
     .toUpperCase()
+    .replace(/^[0-9_]+/, '') // Strip leading digits/underscores — invalid JS identifier start
     .substring(0, 60);
   return result || 'UNKNOWN_MESSAGE';
 }
@@ -75,9 +79,17 @@ function resolveAlertPatternConstant(messageText: string, alertPatternsPath?: st
     return 'ALERT_PATTERNS.UNKNOWN_MESSAGE';
   }
 
-  // Check known mapping first (case-insensitive)
+  // Check known mapping first (case-insensitive exact match)
   for (const [msg, constant] of Object.entries(ALERT_MESSAGE_TO_CONSTANT)) {
     if (msg.toLowerCase() === messageText.toLowerCase()) {
+      return constant;
+    }
+  }
+
+  // Fallback: check if the step text *contains* a known alert phrase (handles "44. Status has been set to INVOICED ALERT should appear...")
+  const normalizedInput = messageText.toLowerCase();
+  for (const [msg, constant] of Object.entries(ALERT_MESSAGE_TO_CONSTANT)) {
+    if (normalizedInput.includes(msg.toLowerCase())) {
       return constant;
     }
   }
@@ -1842,6 +1854,41 @@ ${formFields.join('\n')}
         await pages.searchCustomerPage.searchCustomerAndClickDetails(testData.customerName);`;
     }
 
+    // ==================== CUSTOMER VALUE SELECT ON ENTER NEW LOAD FORM ====================
+    // Handles: "Customer field is already selected or if not select the customer [NAME]"
+    if (lowerAction.includes('customer') && (lowerAction.includes('field') || lowerAction.includes('select the customer') || lowerAction.includes('enter new load')) && !lowerAction.includes('search')) {
+      return `// Select customer value on Enter New Load form
+        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        const customerName = testData['Customer Value'] || testData.customerName;
+        const customerSelect2 = sharedPage.locator(
+          "//select[contains(@id,'customer')]//following-sibling::span[contains(@class,'select2')]"
+        ).first();
+        const customerDropdown = sharedPage.locator(
+          "//select[contains(@id,'customer_id') or contains(@id,'customer')]"
+        ).first();
+        if (await customerSelect2.isVisible({ timeout: 5000 }).catch(() => false)) {
+          await customerSelect2.click();
+          const searchInput = sharedPage.locator("input.select2-search__field");
+          await searchInput.waitFor({ state: "visible", timeout: 5000 });
+          await searchInput.fill(customerName);
+          await sharedPage.waitForTimeout(2000);
+          const resultItem = sharedPage.locator(
+            \`//li[contains(@class,'select2-results__option') and contains(text(),'\${customerName}')]\`
+          ).first();
+          await resultItem.waitFor({ state: "visible", timeout: 10000 });
+          await resultItem.click();
+          console.log(\`Selected customer via Select2: \${customerName}\`);
+        } else if (await customerDropdown.isVisible({ timeout: 5000 }).catch(() => false)) {
+          await customerDropdown.selectOption({ label: customerName });
+          console.log(\`Selected customer via dropdown: \${customerName}\`);
+        }
+        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await sharedPage.waitForTimeout(3000);
+        await sharedPage.locator("//select[@id='form_shipper_ship_point']")
+          .waitFor({ state: "visible", timeout: WAIT.LARGE });
+        console.log("Customer value selected and form reloaded");`;
+    }
+
     // ==================== COMMISSION ACTIONS ====================
     if (lowerAction.includes('commission') || lowerAction.includes('audit')) {
       if (lowerAction.includes('navigate') || lowerAction.includes('open')) {
@@ -2330,79 +2377,20 @@ ${formFields.join('\n')}
       return `const futureDate = new Date();
         futureDate.setDate(futureDate.getDate() + 7);
         const formattedDate = \`\${(futureDate.getMonth() + 1).toString().padStart(2, '0')}/\${futureDate.getDate().toString().padStart(2, '0')}/\${futureDate.getFullYear()}\`;
-        await sharedPage.locator("#form_expiration_date").fill(formattedDate);
+        await pages.editLoadFormPage.enterExpirationDate(formattedDate);
         console.log(\`Entered Expiration Date: \${formattedDate}\`);`;
     }
     if (lowerAction.includes('expiration time') && (lowerAction.includes('enter') || lowerAction.includes('select'))) {
       const timeMatch = action.match(/(?:as|=|:)\s*(\d{1,2}:\d{2})/i);
       const timeValue = timeMatch ? timeMatch[1] : '18:00';
-      return `await sharedPage.locator("#form_expiration_time").fill("${timeValue}");
+      return `await pages.editLoadFormPage.enterExpirationTime("${timeValue}");
         console.log("Entered Expiration Time: ${timeValue}");`;
     }
 
     // ==================== EMAIL FOR NOTIFICATION ====================
     if (lowerAction.includes('email') && lowerAction.includes('notification') && (lowerAction.includes('enter') || lowerAction.includes('value'))) {
-      return `// Dynamic email notification field lookup — #form_notification_email is a label, not an input
-        const emailValue = testData.saleAgentEmail;
-        console.log(\`Looking for email notification field to enter: \${emailValue}\`);
-
-        // Try 1: Select dropdown #form_notification_address (TNX loadboard / post automation)
-        const notifSelect = sharedPage.locator("select#form_notification_address").first();
-        // Try 2: Any select following the Email Notification label
-        const notifSelectAlt = sharedPage.locator("//*[@id='form_notification_email']//following::select[1]").first();
-        // Try 3: Select2 widget near the notification label
-        const notifSelect2 = sharedPage.locator("//*[@id='form_notification_email']//following::span[contains(@class,'select2')][1]").first();
-
-        if (await notifSelect.isVisible({ timeout: 5000 }).catch(() => false)) {
-          const options = await notifSelect.locator("option").allTextContents();
-          const match = options.find((o: string) => o.toLowerCase().includes(emailValue.toLowerCase()));
-          if (match) {
-            await notifSelect.selectOption({ label: match.trim() });
-            console.log(\`Selected email notification via dropdown: \${match.trim()}\`);
-          } else {
-            await notifSelect.selectOption({ label: emailValue });
-            console.log(\`Selected email notification by exact label: \${emailValue}\`);
-          }
-        } else if (await notifSelectAlt.isVisible({ timeout: 3000 }).catch(() => false)) {
-          const options = await notifSelectAlt.locator("option").allTextContents();
-          const match = options.find((o: string) => o.toLowerCase().includes(emailValue.toLowerCase()));
-          if (match) {
-            await notifSelectAlt.selectOption({ label: match.trim() });
-            console.log(\`Selected email notification via sibling select: \${match.trim()}\`);
-          } else {
-            await notifSelectAlt.selectOption({ label: emailValue });
-          }
-        } else if (await notifSelect2.isVisible({ timeout: 3000 }).catch(() => false)) {
-          await notifSelect2.click();
-          const searchInput = sharedPage.locator("input.select2-search__field").first();
-          await searchInput.waitFor({ state: "visible", timeout: 5000 });
-          await searchInput.fill(emailValue);
-          await sharedPage.waitForTimeout(2000);
-          const resultItem = sharedPage.locator(
-            \`//li[contains(@class,'select2-results__option') and contains(text(),'\${emailValue}')]\`
-          ).first();
-          await resultItem.waitFor({ state: "visible", timeout: 10000 });
-          await resultItem.click();
-          console.log(\`Selected email notification via Select2: \${emailValue}\`);
-        } else {
-          // Fallback: scan all selects on the page for notification/email related ones
-          console.log("Email notification field not found via known selectors — scanning page selects");
-          const allSelects = await sharedPage.locator("select").all();
-          for (const sel of allSelects) {
-            const id = await sel.getAttribute("id").catch(() => "");
-            const name = await sel.getAttribute("name").catch(() => "");
-            if (id?.includes("notif") || name?.includes("notif") || id?.includes("email") || name?.includes("email")) {
-              console.log(\`Found candidate select: id=\${id}, name=\${name}\`);
-              const opts = await sel.locator("option").allTextContents();
-              const match = opts.find((o: string) => o.toLowerCase().includes(emailValue.toLowerCase()));
-              if (match) {
-                await sel.selectOption({ label: match.trim() });
-                console.log(\`Selected email notification via discovered select: \${match.trim()}\`);
-                break;
-              }
-            }
-          }
-        }`;
+      return `await pages.editLoadCarrierTabPage.selectEmailNotificationAddress(testData.saleAgentEmail);
+        console.log(\`Selected email notification: \${testData.saleAgentEmail}\`);`;
     }
 
     // ==================== INVOICE NUMBER / AMOUNT ====================
@@ -3481,6 +3469,101 @@ ${stepCode}
         }
         // Don't warn for methods that will be auto-generated — ensurePageObjectMethodsExist handles this
       }
+    }
+
+    // ── 9. Auto-convert raw locators to POM calls ──
+    // Converts sharedPage.locator("#known_id").action(value) → pages.<page>.<method>(value)
+    const rawLocatorReplacements: Array<{ pattern: RegExp; replacement: string; description: string }> = [
+      // Document Upload Utility — ViewLoadPage methods
+      { pattern: /await\s+(?:sharedPage|this\.page)\.locator\(\s*["']#cat_customer["']\s*\)[\s\S]*?\.check\(\)/g, replacement: 'await pages.viewLoadPage.selectCustomerRadio()', description: 'Customer radio → selectCustomerRadio()' },
+      { pattern: /await\s+(?:sharedPage|this\.page)\.locator\(\s*["']#cat_payables["']\s*\)[\s\S]*?\.check\(\)/g, replacement: 'await pages.viewLoadPage.selectPayablesRadio()', description: 'Payables radio → selectPayablesRadio()' },
+      { pattern: /await\s+(?:sharedPage|this\.page)\.locator\(\s*["']#document_type["']\s*\)[\s\S]*?\.selectOption\(\s*\{\s*label:\s*["']([^"']+)["']\s*\}\s*\)/g, replacement: 'await pages.viewLoadPage.selectDocumentType("$1")', description: 'Document type → selectDocumentType()' },
+      { pattern: /await\s+(?:sharedPage|this\.page)\.locator\(\s*["']#carr_invoice_num_input["']\s*\)\.fill\(([^)]+)\)/g, replacement: 'await pages.viewLoadPage.fillCarrierInvoiceNumber($1)', description: 'Invoice number → fillCarrierInvoiceNumber()' },
+      { pattern: /await\s+(?:sharedPage|this\.page)\.locator\(\s*["']#carr_invoice_amount["']\s*\)\.fill\(([^)]+)\)/g, replacement: 'await pages.viewLoadPage.fillCarrierInvoiceAmount($1)', description: 'Invoice amount → fillCarrierInvoiceAmount()' },
+      { pattern: /await\s+(?:sharedPage|this\.page)\.locator\(\s*["']#submit_remote["']\s*\)\.click\(\)/g, replacement: 'await pages.viewLoadPage.clickSubmitRemote()', description: 'Submit remote → clickSubmitRemote()' },
+      // Upload icon
+      { pattern: /await\s+(?:sharedPage|this\.page)\.locator\(\s*["']\/\/img\[@title='Upload document'\]["']\s*\)\.first\(\)\.click\(\)/g, replacement: 'await pages.viewLoadPage.openDocumentUploadDialog()', description: 'Upload icon → openDocumentUploadDialog()' },
+      // Add New Carrier Invoice dialog — LoadBillingPage methods
+      { pattern: /await\s+(?:sharedPage|this\.page)\.locator\(\s*["']#carr_invoice_add_new["']\s*\)[\s\S]*?\.click\(\)/g, replacement: 'await pages.loadBillingPage.clickAddNewCarrierInvoice()', description: 'Add New btn → clickAddNewCarrierInvoice()' },
+      { pattern: /await\s+(?:sharedPage|this\.page)\.locator\(\s*["']#carrier_invoice_number_id["']\s*\)[\s\S]*?\.fill\(([^)]+)\)/g, replacement: 'await pages.loadBillingPage.enterCarrierInvoiceNumber($1)', description: 'Invoice # → enterCarrierInvoiceNumber()' },
+      { pattern: /await\s+(?:sharedPage|this\.page)\.locator\(\s*["']#carrier_invoice_amount_id["']\s*\)[\s\S]*?\.fill\(([^)]+)\)/g, replacement: 'await pages.loadBillingPage.enterCarrierInvoiceAmount($1)', description: 'Invoice amt → enterCarrierInvoiceAmount()' },
+      { pattern: /await\s+(?:sharedPage|this\.page)\.locator\(\s*["']#submit_save_carrier_invoice["']\s*\)[\s\S]*?\.click\(\)/g, replacement: 'await pages.loadBillingPage.clickSaveCarrierInvoice()', description: 'Save invoice → clickSaveCarrierInvoice()' },
+    ];
+    for (const { pattern, replacement, description } of rawLocatorReplacements) {
+      pattern.lastIndex = 0; // reset after test()
+      if (pattern.test(fixed)) {
+        pattern.lastIndex = 0; // reset before replace()
+        fixed = fixed.replace(pattern, replacement);
+        warnings.push(`✅ Guardrail: Auto-converted raw locator → POM: ${description}`);
+      }
+    }
+
+    // Warn about remaining known raw locators that weren't auto-converted (complex patterns)
+    const knownPomLocators: Record<string, string> = {
+      '#cat_customer': 'pages.viewLoadPage.selectCustomerRadio()',
+      '#cat_payables': 'pages.viewLoadPage.selectPayablesRadio()',
+      '#document_type': 'pages.viewLoadPage.selectDocumentType(label)',
+      '#carr_invoice_num_input': 'pages.viewLoadPage.fillCarrierInvoiceNumber(value)',
+      '#carr_invoice_amount': 'pages.viewLoadPage.fillCarrierInvoiceAmount(value)',
+      '#submit_remote': 'pages.viewLoadPage.clickSubmitRemote()',
+      '#message_display': 'pages.viewLoadPage.waitForUploadSuccess()',
+      '#carrier_invoice_number_id': 'pages.loadBillingPage.enterCarrierInvoiceNumber(value)',
+      '#carrier_invoice_amount_id': 'pages.loadBillingPage.enterCarrierInvoiceAmount(value)',
+      '#submit_save_carrier_invoice': 'pages.loadBillingPage.clickSaveCarrierInvoice()',
+      '#carr_invoice_add_new': 'pages.loadBillingPage.clickAddNewCarrierInvoice()',
+      '#carrier_invoice_dialog_form': 'pages.loadBillingPage.clickAddNewCarrierInvoice()',
+      '#fi_waiting_on': 'pages.loadBillingPage.getBillingToggleValue()',
+      '#waiting_on_select': 'pages.loadBillingPage.getBillingToggleValue()',
+    };
+    for (const [locatorId, pomMethod] of Object.entries(knownPomLocators)) {
+      const escaped = locatorId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (new RegExp(escaped).test(fixed)) {
+        warnings.push(`⚠️  Guardrail: Raw locator "${locatorId}" still present after auto-fix — manually replace with: ${pomMethod}`);
+      }
+    }
+
+    // ── 10. Convert generic sharedPage.locator() patterns to POM calls ──
+    // For ANY raw locator usage, attempt to convert fill/click/check to pages.<page>.<method>() call
+    // so that ensurePageObjectMethodsExist can auto-create the method in the appropriate POM file
+    const genericLocatorPattern = /await\s+sharedPage\.locator\(\s*["']#(\w+)["']\s*\)\s*\.\s*(fill|click|check|selectOption)\s*\(([^)]*)\)/g;
+    let genericMatch;
+    const genericReplacements: Array<{ original: string; replacement: string }> = [];
+    while ((genericMatch = genericLocatorPattern.exec(fixed)) !== null) {
+      const elementId = genericMatch[1];
+      const action = genericMatch[2];
+      const args = genericMatch[3];
+      // Skip IDs that are already handled by known POM methods above
+      const alreadyHandled = Object.keys(knownPomLocators).some(k => k === `#${elementId}`);
+      if (alreadyHandled) continue;
+
+      // Determine the appropriate page object and method name
+      let pageGetter = 'editLoadFormPage'; // default for form fields
+      let methodName = '';
+
+      // Infer page getter from ID prefix patterns
+      if (elementId.startsWith('form_')) {
+        pageGetter = 'editLoadFormPage';
+        const fieldName = elementId.replace('form_', '');
+        if (action === 'fill') methodName = `enter${fieldName.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`;
+        else if (action === 'click') methodName = `clickOn${fieldName.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`;
+        else if (action === 'selectOption') methodName = `select${fieldName.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`;
+        else if (action === 'check') methodName = `check${fieldName.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`;
+      } else if (elementId.startsWith('carr_') || elementId.startsWith('carrier_')) {
+        pageGetter = 'editLoadCarrierTabPage';
+        if (action === 'fill') methodName = `enter${elementId.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`;
+        else methodName = `${action}${elementId.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`;
+      }
+
+      if (methodName) {
+        const pomCall = args
+          ? `await pages.${pageGetter}.${methodName}(${args})`
+          : `await pages.${pageGetter}.${methodName}()`;
+        genericReplacements.push({ original: genericMatch[0], replacement: pomCall });
+      }
+    }
+    for (const { original, replacement } of genericReplacements) {
+      fixed = fixed.replace(original, replacement);
+      warnings.push(`✅ Guardrail: Auto-converted generic raw locator to POM call: ${replacement}`);
     }
 
     // Log all warnings

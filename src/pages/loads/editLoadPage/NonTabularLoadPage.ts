@@ -97,6 +97,12 @@ class NonTabularLoadPage {
         }
     }
 
+    async selectMethod(method: string): Promise<void> {
+        await this.distanceMethodDropdown_LOC.waitFor({ state: 'visible' });
+        await this.distanceMethodDropdown_LOC.selectOption({ label: method });
+        console.log(`Selected Distance Method: ${method}`);
+    }
+
     private async selectDropdownOptionFlexibly(dropdown: Locator, searchValue: string): Promise<boolean> {
         const search = searchValue.trim().toLowerCase();
         const allOptions = await dropdown.locator('option').evaluateAll(opts =>

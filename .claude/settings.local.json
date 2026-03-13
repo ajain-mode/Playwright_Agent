@@ -25,7 +25,11 @@
       "Bash(SHELL=/usr/bin/bash git clone --depth 1 https://github.com/modetrans/mono.git C:/tmp/mono)",
       "Bash(mkdir -p /c/tmp)",
       "Bash(git clone --depth 1 https://github.com/modetrans/mono.git /c/tmp/mono_repo)",
-      "WebFetch(domain:api.github.com)"
+      "WebFetch(domain:api.github.com)",
+      "Bash(dir \"c:\\\\Users\\\\Aman.Jain\" /b)",
+      "Bash(dir)",
+      "Bash(gh api repos/modetrans/mono/git/trees/main --jq '.tree[].path')",
+      "Read(//c/Users/Aman.Jain/Monotrans/**)"
     ]
   }
 }

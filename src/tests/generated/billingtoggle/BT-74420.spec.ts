@@ -4,6 +4,7 @@ import { PageManager } from "@utils/PageManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
+import * as path from "path";
 
 /**
  * Test Case: BT-74420 - Validate updated price difference message when carrier invoice already exists in pending status and secondary invoice is received
@@ -19,45 +20,6 @@ let sharedContext: BrowserContext;
 let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
-
-/**
- * Helper: Reads the Billing Issues "Waiting On" toggle value.
- * Reads the hidden field #fi_waiting_on (1=Billing, 2=Neutral, 3=Agent).
- * Falls back to reading the Bootstrap Slider handle position.
- */
-async function getBillingToggleValue(page: Page): Promise<string> {
-  // Primary: read the hidden field #fi_waiting_on (type="hidden", so use count + inputValue, NOT isVisible)
-  const hiddenField = page.locator("#fi_waiting_on");
-  if (await hiddenField.count() > 0) {
-    const val = await hiddenField.inputValue();
-    if (val === '3') return 'Agent';
-    if (val === '1') return 'Billing';
-    if (val === '2') return 'Neutral';
-  }
-
-  // Fallback: read the Bootstrap Slider's data-slider-value attribute
-  const sliderInput = page.locator("#waiting_on_select");
-  if (await sliderInput.count() > 0) {
-    const dataVal = await sliderInput.getAttribute('data-slider-value');
-    if (dataVal === '3') return 'Agent';
-    if (dataVal === '1') return 'Billing';
-    if (dataVal === '2') return 'Neutral';
-  }
-
-  // Last resort: read slider handle position from the Bootstrap Slider DOM
-  const slider = page.locator("div.slider-selection").last();
-  await slider.scrollIntoViewIfNeeded();
-  await expect.soft(slider, "Billing Issues toggle slider should be visible").toBeVisible({ timeout: WAIT.LARGE });
-  return slider.evaluate(el => {
-    const container = el.closest('.slider') || el.closest('[class*="slider"]') || el.parentElement;
-    const handle = container?.querySelector('.slider-handle, .min-slider-handle') as HTMLElement | null;
-    if (handle) {
-      const left = parseFloat(handle.style.left);
-      if (!isNaN(left)) return left >= 50 ? 'Agent' : 'Billing';
-    }
-    return 'unknown';
-  });
-}
 
 test.describe.configure({ retries: 1 });
 test.describe.serial(
@@ -255,32 +217,34 @@ test.describe.serial(
 
       await test.step("Step 13: Enter Email for notification", async () => {
         const emailValue = testData.saleAgentEmail;
-        const emailSelect = sharedPage.locator("select#form_notification_address");
 
-        if (await emailSelect.isVisible({ timeout: 10000 }).catch(() => false)) {
-          const options = await emailSelect.locator("option").allTextContents();
-          const match = options.find((o: string) => o.toLowerCase().includes(emailValue.toLowerCase()));
-          if (match) {
-            await emailSelect.selectOption({ label: match.trim() });
-            console.log(`Selected email: ${match.trim()}`);
+        // #form_notification_email is a <select multiple> wrapped by Select2 (class: js-enable-tags)
+        const select2Container = sharedPage.locator("#form_notification_email").locator("..").locator(".select2-container").first();
+        const searchInput = sharedPage.locator("#form_notification_email").locator("..").locator("input.select2-search__field").first();
+
+        if (await select2Container.isVisible({ timeout: 10000 }).catch(() => false)) {
+          await select2Container.click();
+          await searchInput.waitFor({ state: "visible", timeout: 5000 });
+          await searchInput.fill(emailValue);
+          await sharedPage.waitForTimeout(2000);
+          const resultItem = sharedPage.locator("li.select2-results__option").filter({ hasText: emailValue }).first();
+          if (await resultItem.isVisible({ timeout: 5000 }).catch(() => false)) {
+            await resultItem.click();
+            console.log(`Selected email via Select2: ${emailValue}`);
           } else {
-            console.log(`Email option not found for: ${emailValue}. Available: ${options.join(', ')}`);
+            console.log(`Email option not found in Select2 results for: ${emailValue}`);
           }
         } else {
-          const allSelects = await sharedPage.locator("select").all();
-          let found = false;
-          for (const sel of allSelects) {
-            const options = await sel.locator("option").allTextContents();
+          // Fallback: direct selectOption on the underlying <select multiple>
+          const emailSelect = sharedPage.locator("select#form_notification_email");
+          if (await emailSelect.count() > 0) {
+            const options = await emailSelect.locator("option").allTextContents();
+            console.log(`Email select options: [${options.filter((o: string) => o.trim()).join(" | ")}]`);
             const match = options.find((o: string) => o.toLowerCase().includes(emailValue.toLowerCase()));
             if (match) {
-              await sel.selectOption({ label: match.trim() });
-              console.log(`Selected email from fallback select: ${match.trim()}`);
-              found = true;
-              break;
+              await emailSelect.selectOption({ label: match.trim() });
+              console.log(`Selected email via native select: ${match.trim()}`);
             }
-          }
-          if (!found) {
-            console.log(`Email notification field not found for: ${emailValue}`);
           }
         }
       });
@@ -313,92 +277,52 @@ test.describe.serial(
         await pages.editLoadFormPage.clickOnViewBillingBtn();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
-        const toggleValue = await getBillingToggleValue(sharedPage);
+        const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
         console.log(`Billing Issues toggle value: "${toggleValue}"`);
         expect.soft(toggleValue, "Billing Issues toggle should be set to 'Agent'").toBe('Agent');
       });
 
       // ===== Steps 44-46: Upload POD under Customer via Document Upload Utility =====
       await test.step("Step 18: Click upload icon against Customer in Load Documents (Step 44)", async () => {
-        const uploadIcon = sharedPage.locator("//img[@title='Upload document']").first();
-        await uploadIcon.scrollIntoViewIfNeeded();
-        await uploadIcon.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await uploadIcon.click();
-        await sharedPage.waitForTimeout(2000);
-        console.log("Opened Document Upload Utility");
+        await pages.viewLoadPage.openDocumentUploadDialog();
       });
 
       await test.step("Step 19: Select Customer radio, POD document type, upload and attach (Steps 45-46)", async () => {
-        const customerRadio = sharedPage.locator("#cat_customer");
-        await customerRadio.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await customerRadio.check();
-        console.log("Selected Customer radio button");
+        await pages.viewLoadPage.selectCustomerRadio();
+        await pages.viewLoadPage.selectDocumentType("Proof of Delivery");
 
-        const documentTypeDropdown = sharedPage.locator("#document_type");
-        await documentTypeDropdown.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await documentTypeDropdown.selectOption({ label: "Proof of Delivery" });
-        console.log("Selected Document Type: Proof of Delivery");
-
-        const path = require("path");
         const filePath = path.resolve(process.cwd(), "src", "data", "bulkchange", "ProofOfDelivery.pdf");
-        await sharedPage.locator("//input[@type='file']").first().setInputFiles(filePath);
-        await sharedPage.locator("#submit_remote").click();
+        await pages.viewLoadPage.attachFile(filePath);
+        await pages.viewLoadPage.clickSubmitRemote();
+        await pages.viewLoadPage.waitForUploadSuccess();
 
-        // Wait for success message before closing
-        const successMessage = sharedPage.locator("#message_display");
-        await expect(successMessage).toBeVisible({ timeout: WAIT.LARGE });
-        await expect(successMessage).toHaveText("All documents attached successfully.", { timeout: WAIT.LARGE });
-        console.log("POD upload success message confirmed");
-
-        // Close the Document Upload Utility dialog (close button is in the jQuery UI wrapper parent)
-        const uploadDialog = sharedPage.locator(".ui-dialog").filter({ has: sharedPage.locator("#upload_load_document") });
-        const closeBtn = uploadDialog.locator(".ui-dialog-titlebar-close");
-        if (await closeBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-          await closeBtn.click({ force: true });
-        } else {
-          await sharedPage.keyboard.press('Escape');
-        }
+        await pages.viewLoadPage.closeDocumentUploadDialogSafe();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         console.log("Uploaded Proof of Delivery under Customer and closed dialog");
       });
 
       // ===== Steps 47-50: Upload Carrier Invoice under Payables =====
       await test.step("Step 20: Click upload icon and select Payables + Carrier Invoice (Steps 47-49)", async () => {
-        const uploadIcon = sharedPage.locator("//img[@title='Upload document']").first();
-        await uploadIcon.scrollIntoViewIfNeeded();
-        await uploadIcon.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await uploadIcon.click();
-        await sharedPage.waitForTimeout(2000);
-
-        const payablesRadio = sharedPage.locator("#cat_payables");
-        await payablesRadio.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await expect(payablesRadio).toBeEnabled({ timeout: WAIT.LARGE });
-        await payablesRadio.check();
-        console.log("Selected Payables radio button");
-
-        const documentTypeDropdown = sharedPage.locator("#document_type");
-        await documentTypeDropdown.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await documentTypeDropdown.selectOption({ label: "Carrier Invoice" });
-        console.log("Selected Document Type: Carrier Invoice");
+        await pages.viewLoadPage.openDocumentUploadDialog();
+        await pages.viewLoadPage.selectPayablesRadio();
+        await pages.viewLoadPage.selectDocumentType("Carrier Invoice");
       });
 
       await test.step("Step 21: Enter invoice details, attach carrier invoice, and submit (Step 50)", async () => {
-        // Enter invoice number and amount in Document Upload Utility
         const invoiceNumber = Math.floor(Math.random() * 9000000000 + 1000000000).toString();
-        await sharedPage.locator("#carr_invoice_num_input").fill(invoiceNumber);
-        await sharedPage.locator("#carr_invoice_amount").fill("1000");
+        await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNumber);
+        await pages.viewLoadPage.fillCarrierInvoiceAmount("1000");
         console.log(`Entered Invoice Number: ${invoiceNumber}, Amount: 1000`);
 
-        const path = require("path");
         const filePath = path.resolve(process.cwd(), "src", "data", "bulkchange", "CarrierInvoice.pdf");
-        await sharedPage.locator("//input[@type='file']").first().setInputFiles(filePath);
+        await pages.viewLoadPage.attachFile(filePath);
 
         // Expected (Step 50): Alert message stating status has moved to INVOICE should appear
         const alertPromise = pages.commonReusables.validateAlert(
           sharedPage,
           ALERT_PATTERNS.PAYABLE_STATUS_INVOICE_RECEIVED
         );
-        await sharedPage.locator("#submit_remote").click();
+        await pages.viewLoadPage.clickSubmitRemote();
 
         // Handle duplicate invoice confirmation if it appears
         const confirmBtn = sharedPage.locator("//button[text()='Confirm']").first();
@@ -409,14 +333,7 @@ test.describe.serial(
         await alertPromise;
         console.log("Expected validated: Alert message stating status has moved to INVOICE appeared");
 
-        // Close the Document Upload Utility dialog (close button is in jQuery UI wrapper parent)
-        const uploadDialog = sharedPage.locator(".ui-dialog").filter({ has: sharedPage.locator("#upload_load_document") });
-        const closeBtn = uploadDialog.locator(".ui-dialog-titlebar-close");
-        if (await closeBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-          await closeBtn.click({ force: true });
-        } else {
-          await sharedPage.keyboard.press('Escape');
-        }
+        await pages.viewLoadPage.closeDocumentUploadDialogSafe();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         console.log("First carrier invoice submitted successfully");
       });
@@ -426,56 +343,30 @@ test.describe.serial(
         await sharedPage.reload();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
-        const toggleValue = await getBillingToggleValue(sharedPage);
+        const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
         console.log(`Billing Issues toggle value: "${toggleValue}"`);
         expect.soft(toggleValue, "Expected: Billing toggle is at the Agent").toBe('Agent');
       });
 
       // ===== Steps 52-53: Click Add New and enter invoice details =====
       await test.step("Step 23: Click Add New against Carrier Invoices, enter invoice # and amount (Steps 52-53)", async () => {
-        // Click the Add New button (actual ID: #carr_invoice_add_new)
-        const addNewBtn = sharedPage.locator("#carr_invoice_add_new");
-        await addNewBtn.scrollIntoViewIfNeeded();
-        await addNewBtn.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await addNewBtn.click();
-        await sharedPage.waitForTimeout(2000);
-        console.log("Clicked Add New button against Carrier Invoices");
+        await pages.loadBillingPage.clickAddNewCarrierInvoice();
 
-        // Wait for the carrier invoice dialog to appear
-        const dialogForm = sharedPage.locator("#carrier_invoice_dialog_form");
-        await dialogForm.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        console.log("Carrier invoice dialog opened");
-
-        // Enter carrier invoice number
-        const invoiceNumField = sharedPage.locator("#carrier_invoice_number_id");
-        await invoiceNumField.waitFor({ state: "visible", timeout: WAIT.LARGE });
         const invoiceNumber = Math.floor(Math.random() * 9000000000 + 1000000000).toString();
-        await invoiceNumField.fill(invoiceNumber);
-        console.log("Entered Invoice #: " + invoiceNumber);
-
-        // Enter carrier invoice amount with price difference
-        const amountField = sharedPage.locator("#carrier_invoice_amount_id");
-        await amountField.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await amountField.fill("1000");
-        console.log("Entered Amount: 1000");
+        await pages.loadBillingPage.enterCarrierInvoiceNumber(invoiceNumber);
+        await pages.loadBillingPage.enterCarrierInvoiceAmount("1000");
       });
 
       // ===== Step 54: Save invoice and refresh (Expected: Billing should get moved to the Agent) =====
       await test.step("Step 24: Save invoice and refresh the page (Step 54)", async () => {
-        // Click the Save Invoice button inside the carrier invoice dialog
-        const saveBtn = sharedPage.locator("#submit_save_carrier_invoice");
-        await saveBtn.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await saveBtn.click();
-        console.log("Clicked Save Invoice button in carrier invoice dialog");
+        await pages.loadBillingPage.clickSaveCarrierInvoice();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
-        // Refresh the page
         await sharedPage.reload();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         console.log("Saved invoice and refreshed page");
 
-        // Expected (Step 54): Billing should get moved to the Agent
-        const toggleValue = await getBillingToggleValue(sharedPage);
+        const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
         console.log(`Billing Issues toggle after save: "${toggleValue}"`);
         expect.soft(toggleValue, "Expected: Billing should get moved to the Agent").toBe('Agent');
       });
@@ -483,27 +374,11 @@ test.describe.serial(
       // ===== Step 55: View History — check price difference for first invoice =====
       // Expected: The system should recalculate the discrepancy to show the correct price difference
       await test.step("Step 25: Click View History and check price difference for first invoice (Step 55)", async () => {
-        // The payables "View History" link opens a new browser window (window.open)
-        const viewHistoryLink = sharedPage.locator(
-          "//a[contains(.,'View History') or contains(.,'View history')]"
-        ).first();
-        await viewHistoryLink.scrollIntoViewIfNeeded();
-        await viewHistoryLink.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        const historyPopup = await pages.loadBillingPage.clickViewHistoryAndGetPopup();
 
-        // Listen for the popup window before clicking
-        const [historyPopup] = await Promise.all([
-          sharedPage.context().waitForEvent('page'),
-          viewHistoryLink.click(),
-        ]);
-        await historyPopup.waitForLoadState("load");
-        await historyPopup.waitForLoadState("networkidle");
-        console.log("View History popup window opened");
-
-        // Read all messages from the history popup window
         const allText = await historyPopup.locator("body").textContent();
         console.log("History window content (truncated): " + (allText || "").substring(0, 500));
 
-        // Expected: System should recalculate discrepancy and show correct price difference
         const hasPriceDiff = (allText || "").toLowerCase().includes("price difference") ||
                              (allText || "").toLowerCase().includes("discrepancy");
         if (hasPriceDiff) {
@@ -511,58 +386,35 @@ test.describe.serial(
         }
         expect.soft(hasPriceDiff, "Expected: System should show price difference message for first invoice").toBeTruthy();
 
-        // Close the history popup window
         await historyPopup.close();
         console.log("Closed View History popup window");
 
-        // Validate billing toggle is still at Agent on the main page
-        const toggleValue = await getBillingToggleValue(sharedPage);
+        const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
         console.log(`Billing Issues toggle after View History: "${toggleValue}"`);
         expect.soft(toggleValue, "Billing should be moved to the Agent").toBe('Agent');
       });
 
       // ===== Step 56: Create a secondary invoice and check price difference =====
       await test.step("Step 26: Open Document Upload Utility for secondary invoice (Step 56)", async () => {
-        // Click upload icon to open Document Upload Utility
-        const uploadIcon = sharedPage.locator("//img[@title='Upload document']").first();
-        await uploadIcon.scrollIntoViewIfNeeded();
-        await uploadIcon.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await uploadIcon.click();
-        await sharedPage.waitForTimeout(2000);
-        console.log("Opened Document Upload Utility for secondary invoice");
-
-        // Select Payables radio button
-        const payablesRadio = sharedPage.locator("#cat_payables");
-        await payablesRadio.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await expect(payablesRadio).toBeEnabled({ timeout: WAIT.LARGE });
-        await payablesRadio.check();
-        console.log("Selected Payables radio button");
-
-        // Select Document Type as Carrier Invoice
-        const documentTypeDropdown = sharedPage.locator("#document_type");
-        await documentTypeDropdown.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await documentTypeDropdown.selectOption({ label: "Carrier Invoice" });
-        console.log("Selected Document Type: Carrier Invoice");
+        await pages.viewLoadPage.openDocumentUploadDialog();
+        await pages.viewLoadPage.selectPayablesRadio();
+        await pages.viewLoadPage.selectDocumentType("Carrier Invoice");
       });
 
       await test.step("Step 27: Enter secondary invoice details, attach, submit and validate (Step 56)", async () => {
-        // Enter secondary invoice number and amount
         const secondaryInvoiceNumber = Math.floor(Math.random() * 9000000000 + 1000000000).toString();
-        await sharedPage.locator("#carr_invoice_num_input").fill(secondaryInvoiceNumber);
-        await sharedPage.locator("#carr_invoice_amount").fill("1000");
+        await pages.viewLoadPage.fillCarrierInvoiceNumber(secondaryInvoiceNumber);
+        await pages.viewLoadPage.fillCarrierInvoiceAmount("1000");
         console.log(`Entered Secondary Invoice Number: ${secondaryInvoiceNumber}, Amount: 1000`);
 
-        // Attach carrier invoice file
-        const path = require("path");
         const filePath = path.resolve(process.cwd(), "src", "data", "bulkchange", "CarrierInvoice.pdf");
-        await sharedPage.locator("//input[@type='file']").first().setInputFiles(filePath);
+        await pages.viewLoadPage.attachFile(filePath);
 
-        // Submit and handle alert
         const alertPromise = pages.commonReusables.validateAlert(
           sharedPage,
           ALERT_PATTERNS.PAYABLE_STATUS_INVOICE_RECEIVED
         );
-        await sharedPage.locator("#submit_remote").click();
+        await pages.viewLoadPage.clickSubmitRemote();
 
         // Handle duplicate invoice confirmation if it appears
         const confirmBtn = sharedPage.locator("//button[text()='Confirm']").first();
@@ -573,56 +425,26 @@ test.describe.serial(
         await alertPromise;
         console.log("Secondary invoice alert validated: status moved to INVOICE");
 
-        // Close the Document Upload Utility dialog (close button is in jQuery UI wrapper parent)
-        const uploadDialog = sharedPage.locator(".ui-dialog").filter({ has: sharedPage.locator("#upload_load_document") });
-        const closeBtn = uploadDialog.locator(".ui-dialog-titlebar-close");
-        if (await closeBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-          await closeBtn.click({ force: true });
-        } else {
-          await sharedPage.keyboard.press('Escape');
-        }
+        await pages.viewLoadPage.closeDocumentUploadDialogSafe();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         console.log("Secondary carrier invoice submitted successfully");
       });
 
       await test.step("Step 28: Check price difference message for secondary invoice (Step 56)", async () => {
-        // Refresh and check for updated price difference message
         await sharedPage.reload();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
-        // Check finance messages on the billing page for secondary invoice price difference
-        const financeMessages = sharedPage.locator(".finance-messages .message");
-        const messageCount = await financeMessages.count();
-        console.log(`Found ${messageCount} finance messages on billing page`);
+        // Check finance messages on the billing page
+        const messages = await pages.loadBillingPage.getFinanceMessages();
+        console.log(`Found ${messages.length} finance messages on billing page`);
+        messages.forEach(msg => console.log(`Finance message: ${msg}`));
 
-        let foundSecondaryPriceDiff = false;
-        if (messageCount > 0) {
-          const texts = await financeMessages.allTextContents();
-          for (const text of texts) {
-            if (text.trim()) {
-              console.log(`Finance message: ${text.trim()}`);
-              if (text.toLowerCase().includes("price difference") || text.toLowerCase().includes("discrepancy")) {
-                foundSecondaryPriceDiff = true;
-              }
-            }
-          }
-        }
+        let foundSecondaryPriceDiff = await pages.loadBillingPage.hasFinanceMessageContaining("price difference") ||
+                                      await pages.loadBillingPage.hasFinanceMessageContaining("discrepancy");
 
         // Click View History to see payable messages for secondary invoice in popup window
-        const viewHistoryLink = sharedPage.locator(
-          "//a[contains(.,'View History') or contains(.,'View history')]"
-        ).first();
-        if (await viewHistoryLink.isVisible({ timeout: 5000 }).catch(() => false)) {
-          await viewHistoryLink.scrollIntoViewIfNeeded();
-
-          const [historyPopup] = await Promise.all([
-            sharedPage.context().waitForEvent('page'),
-            viewHistoryLink.click(),
-          ]);
-          await historyPopup.waitForLoadState("load");
-          await historyPopup.waitForLoadState("networkidle");
-          console.log("View History popup opened for secondary invoice check");
-
+        try {
+          const historyPopup = await pages.loadBillingPage.clickViewHistoryAndGetPopup();
           const historyText = await historyPopup.locator("body").textContent();
           console.log("History content (truncated): " + (historyText || "").substring(0, 500));
 
@@ -634,6 +456,8 @@ test.describe.serial(
 
           await historyPopup.close();
           console.log("Closed View History popup");
+        } catch {
+          console.log("View History link not available");
         }
 
         // Also try alert pattern validation as fallback

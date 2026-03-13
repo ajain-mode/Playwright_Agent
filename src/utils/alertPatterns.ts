@@ -38,6 +38,8 @@ export const ALERT_PATTERNS = {
 
   STATUS_HAS_BEEN_SET_TO_BOOKED: /STATUS HAS BEEN SET TO BOOKED/i,
 
+  STATUS_HAS_BEEN_SET_TO_INVOICED: /STATUS HAS BEEN SET TO INVOICED/i,
+
   PAYABLE_STATUS_INVOICE_RECEIVED: /Payable Status has been updated to INVOICE RECEIVED/i,
 
   UNRECOGNISED_ZIP_CODE_ENTERED: "Unrecognised zip code entered",
@@ -47,6 +49,7 @@ export const ALERT_PATTERNS = {
   THE_255_CHARACTER_LIMIT_OF_THE_EMAIL_FOR_NOTIFICATIONS_FIELD: "The 255 character limit of the Email for Notifications field has been exceeded.  Another email address cannot be selected.",
 
   OFFER_RATE_MUST_BE_WITHIN_THE_RANGE_OF_200_AND_20000: "Offer Rate must be within the range of $200.00 and $20,000.00",
+
 };
 
 

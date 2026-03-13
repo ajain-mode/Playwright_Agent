@@ -32,6 +32,23 @@ class LoadBillingPage {
     private readonly financeNotesValue_LOC: Locator;
     private readonly financeNotesNewButton_LOC: Locator;
 
+    // Billing Toggle locators
+    private readonly billingToggleHiddenField_LOC: Locator;
+    private readonly billingToggleSliderInput_LOC: Locator;
+    private readonly billingToggleSliderSelection_LOC: Locator;
+
+    // Add New Carrier Invoice dialog locators
+    private readonly addNewCarrierInvoiceBtn_LOC: Locator;
+    private readonly carrierInvoiceDialogForm_LOC: Locator;
+    private readonly carrierInvoiceNumberInput_LOC: Locator;
+    private readonly carrierInvoiceAmountInput_LOC: Locator;
+    private readonly saveCarrierInvoiceBtn_LOC: Locator;
+
+    // Finance Messages locators
+    private readonly financeMessagesList_LOC: Locator;
+
+    // View History link
+    private readonly viewHistoryLink_LOC: Locator;
 
     // locators copied from View Billing Page
     private readonly viewLoadButton_LOC: Locator;
@@ -87,6 +104,24 @@ class LoadBillingPage {
         this.financeNotesInput_LOC = this.page.locator("//ul[@id='notes_section_bill']//input[@id='bill_note_input_0']");
         this.financeNotesValue_LOC = this.page.locator("//ul[@id='notes_section_bill']//div[@class='note-container']");
         this.financeNotesNewButton_LOC = this.page.locator("//ul[@id='notes_section_bill']//button[@value='new_note']");
+
+        // Billing Toggle
+        this.billingToggleHiddenField_LOC = this.page.locator("#fi_waiting_on");
+        this.billingToggleSliderInput_LOC = this.page.locator("#waiting_on_select");
+        this.billingToggleSliderSelection_LOC = this.page.locator("div.slider-selection").last();
+
+        // Add New Carrier Invoice dialog
+        this.addNewCarrierInvoiceBtn_LOC = this.page.locator("#carr_invoice_add_new");
+        this.carrierInvoiceDialogForm_LOC = this.page.locator("#carrier_invoice_dialog_form");
+        this.carrierInvoiceNumberInput_LOC = this.page.locator("#carrier_invoice_number_id");
+        this.carrierInvoiceAmountInput_LOC = this.page.locator("#carrier_invoice_amount_id");
+        this.saveCarrierInvoiceBtn_LOC = this.page.locator("#submit_save_carrier_invoice");
+
+        // Finance Messages
+        this.financeMessagesList_LOC = this.page.locator(".finance-messages .message");
+
+        // View History
+        this.viewHistoryLink_LOC = this.page.locator("//a[contains(.,'View History') or contains(.,'View history')]").first();
 
     }
     /**
@@ -470,6 +505,211 @@ class LoadBillingPage {
         await this.page.waitForTimeout(WAIT.DEFAULT);
         const actualNotes = await this.getDispatchNotes();
         expect.soft(actualNotes, `Expected dispatch note "${expectedNote}" not found.`).toContain(expectedNote);
+    }
+    /**
+     * Reads the Billing Issues "Waiting On" toggle value.
+     * Returns 'Billing' (1), 'Neutral' (2), or 'Agent' (3).
+     * Uses hidden field first, then slider data attribute, then DOM position.
+     */
+    async getBillingToggleValue(): Promise<string> {
+        // Strategy 1: Read from div.slider-selection (payable toggle above View History)
+        const sliderSelection = this.billingToggleSliderSelection_LOC;
+        if (await sliderSelection.isVisible({ timeout: 5000 }).catch(() => false)) {
+            await sliderSelection.scrollIntoViewIfNeeded();
+            const value = await sliderSelection.evaluate(el => {
+                const container = el.closest('.slider') || el.closest('[class*="slider"]') || el.parentElement;
+
+                // Check slider handle position
+                const handle = container?.querySelector('.slider-handle, .min-slider-handle') as HTMLElement | null;
+                if (handle) {
+                    const left = parseFloat(handle.style.left);
+                    if (!isNaN(left)) {
+                        if (left >= 80) return 'Agent';
+                        if (left >= 40) return 'Neutral';
+                        return 'Billing';
+                    }
+                }
+
+                // Check selection bar width + left position
+                const selWidth = parseFloat(el.style.width || '0');
+                if (!isNaN(selWidth) && selWidth > 0) {
+                    const selLeft = parseFloat(el.style.left || '0');
+                    if (selLeft + selWidth >= 80) return 'Agent';
+                    if (selLeft + selWidth >= 40) return 'Neutral';
+                    return 'Billing';
+                }
+
+                // Check data attributes on container
+                const dataVal = container?.getAttribute('data-value') || container?.getAttribute('data-slider-value');
+                if (dataVal === '3') return 'Agent';
+                if (dataVal === '1') return 'Billing';
+                if (dataVal === '2') return 'Neutral';
+
+                return '';
+            });
+
+            if (value === 'Agent' || value === 'Billing' || value === 'Neutral') {
+                console.log(`Payable toggle from div.slider-selection: "${value}"`);
+                return value;
+            }
+        }
+
+        // Strategy 2: Read from #waiting_on_select data-slider-value
+        const sliderInput = this.billingToggleSliderInput_LOC;
+        if (await sliderInput.count() > 0) {
+            const dataVal = await sliderInput.getAttribute('data-slider-value');
+            if (dataVal === '3') { console.log('Payable toggle from #waiting_on_select: Agent'); return 'Agent'; }
+            if (dataVal === '1') { console.log('Payable toggle from #waiting_on_select: Billing'); return 'Billing'; }
+            if (dataVal === '2') { console.log('Payable toggle from #waiting_on_select: Neutral'); return 'Neutral'; }
+        }
+
+        // Strategy 3: Read from #fi_waiting_on hidden field
+        const hiddenField = this.billingToggleHiddenField_LOC;
+        if (await hiddenField.count() > 0) {
+            const val = await hiddenField.inputValue();
+            if (val === '3') { console.log('Payable toggle from #fi_waiting_on: Agent'); return 'Agent'; }
+            if (val === '1') { console.log('Payable toggle from #fi_waiting_on: Billing'); return 'Billing'; }
+            if (val === '2') { console.log('Payable toggle from #fi_waiting_on: Neutral'); return 'Neutral'; }
+        }
+
+        console.log('Payable toggle: none of the strategies returned a value');
+        return 'unknown';
+    }
+
+    /**
+     * Reads the Payable toggle value from the Bootstrap Slider on the billing page.
+     * There are TWO slider toggles on the billing page:
+     *   - TOP slider = Payable toggle (this method) → .first()
+     *   - BOTTOM slider = Billing toggle (getBillingToggleValue) → .last()
+     * Returns 'Payables', 'Neutral', or 'Agent' based on the slider handle position.
+     * Returns 'unknown' if the toggle element is not found.
+     */
+    async getPayableToggleValue(): Promise<string> {
+        // Use .first() to target the TOP slider (payable toggle)
+        const slider = this.page.locator("div.slider-selection").first();
+
+        if (await slider.isVisible({ timeout: 5000 }).catch(() => false)) {
+            await slider.scrollIntoViewIfNeeded();
+            const value = await slider.evaluate(el => {
+                const container = el.closest('.slider') || el.closest('[class*="slider"]') || el.parentElement;
+
+                // Check slider handle position
+                const handle = container?.querySelector('.slider-handle, .min-slider-handle') as HTMLElement | null;
+                if (handle) {
+                    const left = parseFloat(handle.style.left);
+                    if (!isNaN(left)) {
+                        if (left >= 80) return 'Agent';
+                        if (left >= 40) return 'Neutral';
+                        return 'Payables';
+                    }
+                }
+
+                // Check selection bar width + left position
+                const selWidth = parseFloat(el.style.width || '0');
+                if (!isNaN(selWidth) && selWidth > 0) {
+                    const selLeft = parseFloat(el.style.left || '0');
+                    if (selLeft + selWidth >= 80) return 'Agent';
+                    if (selLeft + selWidth >= 40) return 'Neutral';
+                    return 'Payables';
+                }
+
+                // Check data attributes on container
+                const dataVal = container?.getAttribute('data-value') || container?.getAttribute('data-slider-value');
+                if (dataVal === '3') return 'Agent';
+                if (dataVal === '2') return 'Neutral';
+                if (dataVal === '1') return 'Payables';
+
+                return '';
+            });
+
+            if (value === 'Agent' || value === 'Payables' || value === 'Neutral') {
+                console.log(`Payable toggle (top slider) value: "${value}"`);
+                return value;
+            }
+        }
+
+        console.log('Payable toggle: top slider not found or unreadable');
+        return 'unknown';
+    }
+
+    /**
+     * Clicks the "Add New" button against Carrier Invoices to open the Add Carrier Invoice dialog.
+     */
+    async clickAddNewCarrierInvoice(): Promise<void> {
+        await this.addNewCarrierInvoiceBtn_LOC.scrollIntoViewIfNeeded();
+        await this.addNewCarrierInvoiceBtn_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await this.addNewCarrierInvoiceBtn_LOC.click();
+        await this.carrierInvoiceDialogForm_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        console.log("Opened Add Carrier Invoice dialog");
+    }
+
+    /**
+     * Fills the carrier invoice number in the Add Carrier Invoice dialog.
+     */
+    async enterCarrierInvoiceNumber(invoiceNumber: string): Promise<void> {
+        await this.carrierInvoiceNumberInput_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await this.carrierInvoiceNumberInput_LOC.fill(invoiceNumber);
+        console.log(`Entered carrier invoice number: ${invoiceNumber}`);
+    }
+
+    /**
+     * Fills the carrier invoice amount in the Add Carrier Invoice dialog.
+     */
+    async enterCarrierInvoiceAmount(amount: string): Promise<void> {
+        await this.carrierInvoiceAmountInput_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await this.carrierInvoiceAmountInput_LOC.fill(amount);
+        console.log(`Entered carrier invoice amount: ${amount}`);
+    }
+
+    /**
+     * Clicks the Save Invoice button in the Add Carrier Invoice dialog.
+     */
+    async clickSaveCarrierInvoice(): Promise<void> {
+        await this.saveCarrierInvoiceBtn_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await this.saveCarrierInvoiceBtn_LOC.click();
+        console.log("Clicked Save Invoice button");
+    }
+
+    /**
+     * Gets all finance messages from the billing page.
+     * @returns Array of finance message texts.
+     */
+    async getFinanceMessages(): Promise<string[]> {
+        const count = await this.financeMessagesList_LOC.count();
+        const messages: string[] = [];
+        for (let i = 0; i < count; i++) {
+            const text = await this.financeMessagesList_LOC.nth(i).textContent();
+            if (text?.trim()) {
+                messages.push(text.trim());
+            }
+        }
+        return messages;
+    }
+
+    /**
+     * Checks if any finance message contains the given text (case-insensitive).
+     */
+    async hasFinanceMessageContaining(searchText: string): Promise<boolean> {
+        const messages = await this.getFinanceMessages();
+        return messages.some(msg => msg.toLowerCase().includes(searchText.toLowerCase()));
+    }
+
+    /**
+     * Clicks "View History" link on the billing page and returns the popup Page.
+     * View History opens a new browser window via window.open().
+     */
+    async clickViewHistoryAndGetPopup(): Promise<import('@playwright/test').Page> {
+        await this.viewHistoryLink_LOC.scrollIntoViewIfNeeded();
+        await this.viewHistoryLink_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+
+        const [historyPopup] = await Promise.all([
+            this.page.context().waitForEvent('page'),
+            this.viewHistoryLink_LOC.click(),
+        ]);
+        await historyPopup.waitForLoadState("load");
+        await historyPopup.waitForLoadState("networkidle");
+        console.log("View History popup window opened");
+        return historyPopup;
     }
 }
 export default LoadBillingPage;

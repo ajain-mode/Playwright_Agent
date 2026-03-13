@@ -1376,3 +1376,63 @@ TNX
 - A load is matched for the included carrier
 - The fields for providing execution notes are displayed
 Next Steps",,"aiteam,carrierautoaccept,dfb"
+74421,,FD-36339,Validate updated price difference message when carrier invoice already exists in pending status and secondary invoice is received.,"Load office invoice process = Central or Office
+Load status = invoiced or posted
+Payable toggle = Agent
+Pending carrier invoice with price difference
+
+
+","1.Login to BTMS application.
+2. Enter the Customer name in the ""Customer"" field(AGENT RESPONSE TEST CUSTOMER)
+3. Click on ""Search"" button.
+4. Click on Customer detail 3rd row where salesperson is AGENT RESPONSE-TEST .
+5. Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*
+6. In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer [AGENT RESPONSE TEST CUSTOMER (192815)].
+7. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.
+8. Select the location from the ""Shipper"" field(DARRELL'S HOME (USE PU# 12345)).
+9. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+10. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
+11. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
+12. Enter the ""Earliest Time"" (Eg. 09:00)
+13. Enter the ""Latest Time"" (Eg. 09:00)
+14. Select the location from the ""Consignee"" field.(DARRELL'S HOME (USE PU# 12345))
+15. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+16. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
+17. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
+18. Enter the ""Earliest Time"" (Eg. 10:00)
+19. Enter the ""Latest Time"" (Eg. 10:00)
+20.
+21. Enter the Quantity in the ""Qty"" field (Eg. 95)
+22. Select the ""UoM"" field (Eg. Case or Cases)
+23. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+24. Enter the weight in the ""Weight"" field (Eg. 8500)
+25. Select the ""Equipment"" field as ""FLATBED""
+26. Enter the ""length"" field (Eg. 54)
+27. Select the ""Mileage Engine"" field as ""Current""
+28. Select the ""Method"" as ""Practical""
+29. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
+30. Click on ""Create Load"" button. 
+31.Under the load tab select Rate type as ""SPOT"" if no rate type is selected
+32. Click the ""Carrier tab"" in the ""Edit load"" page.
+33. Enter a valid value for the Offer Rate field on the load as ""1000"".
+34. Enter flat rate in Customer eg 500.
+35. Enter flat rate in Carrier eg 600
+36.  Enter trailer length .
+37. Enter Expiration Date as future date.
+38. Enter Expiration Time  as 18:00
+39. Enter Email for notification : enter value as agentbulkchange@modeglobal.com
+40. Enter total miles  eg 100
+41. On Carrier tab click on CHOOSE CARRIER and select any ACTIVE carrier by typing in XPO TRANS INC.
+42.Click on Save button[Status has been set to booked alert will appear on the screen.] Accept the alert.
+43.  Click on EDIT button and select value as DELIVERED FINAL from status dropDown.
+44. Click on Save button and select Ok button on the pop up. 
+45. Click on View Billing button. 
+46. Click on ADD NEW button present adjacent to text CARRIER INVOICES.
+47. Enter Invoice Number, Enter Amount as 1500 and click on SAVE INVOICE.
+48. Reload the page.
+49.Again Click on ADD NEW button present adjacent to text CARRIER INVOICES.
+50. Enter Invoice Number, Enter Amount as 2000 and click on SAVE INVOICE.
+51.Reload the page. 
+52. Click on View history to see payable messages and Check for the price difference message ","44. Status has been set to INVOICED ALERT should appear on the screen.
+48. Payable Toggle should get moved to the Agent.
+52.The system should recalculate the discrepancy to show the correct price difference in the new message",,"aiteam,payabletoggle"

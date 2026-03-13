@@ -209,7 +209,10 @@ ${FRAMEWORK_KNOWLEDGE}
 ## CRITICAL Rules
 1. Output ONLY executable TypeScript code — no markdown fences, no explanations
 2. Use testData.* for dynamic values (e.g., testData.customerName, testData.offerRate)
-3. Use pages.<getter>.<method>() — NEVER invent methods that don't exist in the schema above
+3. ALWAYS use pages.<getter>.<method>() for ALL element interactions. If a method doesn't exist yet in the schema,
+    generate the call anyway using a descriptive method name — the pipeline will auto-create the method in the POM file.
+    Use naming conventions: clickOn<Element>(), enter<FieldName>(value), select<Option>(value), verify<State>(), get<Value>().
+    NEVER use sharedPage.locator() directly in spec files — all locators MUST live in page object files.
 4. Use await for all async calls
 5. Add console.log() for step progress
 6. Use try/catch ONLY for optional verifications (BIDS, bid history)
@@ -218,23 +221,42 @@ ${FRAMEWORK_KNOWLEDGE}
 9. For navigation: pages.basePage.hoverOverHeaderByText(HEADERS.<NAME>) then clickSubHeaderByText()
 10. Available variables in scope: sharedPage, sharedContext, pages, testData, appManager, loadNumber
 11. Use WAIT.* constants for timeouts, not hardcoded numbers
-12. If no POM method exists for a field/action, use direct Playwright locators as LAST RESORT:
-    - Text fields: await sharedPage.locator("#element_id").fill(value)
-    - Dropdowns: await sharedPage.locator("//select[@name='name']").selectOption({ label: "text" })
-    - Buttons: await sharedPage.locator("//button[contains(text(),'text')]").click()
-    - Always add .waitFor({ state: "visible" }) before the interaction
-    - NEVER fabricate locator IDs from the step description text. If the step says "Enter invoice number e.g 123456"
-      do NOT create locator "#form_enter_invoice_number_e_g_123456". Instead use realistic HTML IDs like "#invoice_number"
-      or use text-based XPath locators like "//input[contains(@id,'invoice')]".
-    - If the step is too vague to determine a real locator, output a TODO comment instead:
+12. NEVER use sharedPage.locator() directly in spec files. ALL element interactions MUST go through POM methods.
+    If no POM method exists for a field/action, generate a pages.<getter>.<method>() call with a descriptive name —
+    the pipeline will auto-create the method in the appropriate POM file under src/pages/.
+    Naming conventions for new methods:
+    - Fill/enter: pages.<page>.enter<FieldName>(value) — e.g., pages.editLoadFormPage.enterExpirationDate(date)
+    - Click: pages.<page>.clickOn<Element>() — e.g., pages.editLoadFormPage.clickOnSaveBtn()
+    - Select dropdown: pages.<page>.select<Option>(value) — e.g., pages.editLoadFormPage.selectMethod("Practical")
+    - Verify: pages.<page>.verify<State>() — e.g., pages.loadBillingPage.verifyToggleIsAgent()
+    - Get value: pages.<page>.get<Value>() — e.g., pages.loadBillingPage.getBillingToggleValue()
+    Choose the appropriate page getter based on which page the element belongs to:
+    - editLoadFormPage: Edit Load form fields (form_* IDs)
+    - editLoadCarrierTabPage: Carrier tab fields (carrier rates, miles, trailer length)
+    - viewLoadPage: Document Upload Utility, view load operations
+    - loadBillingPage: Billing page operations (toggle, invoices, finance messages, view history)
+    - nonTabularLoadPage: Enter New Load form operations
+    - basePage: Common navigation, headers, menus
+    NEVER fabricate locator IDs from step description text. If the step is too vague, use a TODO comment:
       console.log("TODO: Manual implementation needed — <step description>");
 13. For billingtoggle tests — use pages.editLoadFormPage.clickOnViewBillingBtn() to navigate to billing view.
     Use pages.loadBillingPage for billing-specific operations if available.
 14. NEVER import or reference "commonReusables" as a standalone variable. It's only available via pages.commonReusables.
 15. commissionHelper is a standalone import: import commissionHelper from "@utils/commission-helpers"
-16. For uploading documents on View Billing page:
+16. For uploading documents on View Billing page — use POM methods, NEVER raw locators:
     - POD: await pages.viewLoadPage.uploadPODDocument() — handles file selection, doc type dropdown, and submit
     - Carrier Invoice: await pages.viewLoadPage.uploadCarrierInvoiceDocument(testData) — handles payables radio, doc type, invoice number (auto-generated), invoice amount from testData.carrierInvoiceAmount, file upload
+    - For step-by-step document upload control:
+      - await pages.viewLoadPage.openDocumentUploadDialog() — opens the Document Upload Utility
+      - await pages.viewLoadPage.selectCustomerRadio() — selects Customer radio button
+      - await pages.viewLoadPage.selectPayablesRadio() — selects Payables radio button
+      - await pages.viewLoadPage.selectDocumentType("Proof of Delivery") — selects document type dropdown
+      - await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNum) — fills invoice number
+      - await pages.viewLoadPage.fillCarrierInvoiceAmount(amount) — fills invoice amount
+      - await pages.viewLoadPage.attachFile(filePath) — attaches a file
+      - await pages.viewLoadPage.clickSubmitRemote() — clicks Submit/Attach button
+      - await pages.viewLoadPage.waitForUploadSuccess() — waits for success message
+      - await pages.viewLoadPage.closeDocumentUploadDialogSafe() — closes the dialog safely
 17. For CHOOSE CARRIER on Carrier tab:
     - await pages.editLoadCarrierTabPage.clickOnChooseCarrier() — opens the carrier search
     - Type carrier name into #carr_1_carr_auto, press Tab, wait for dropdown
@@ -245,12 +267,16 @@ ${FRAMEWORK_KNOWLEDGE}
     - Carrier rate: await pages.editLoadCarrierTabPage.enterCarrierRate(value)
     - Miles: await pages.editLoadCarrierTabPage.enterMiles(value)
     - Trailer length: await pages.editLoadCarrierTabPage.enterValueInTrailerLength(value)
-19. Invoice fields on billing page use real locator IDs:
-    - Invoice number: #carr_invoice_num_input
-    - Invoice amount: #carr_invoice_amount
-    - Payables radio: #cat_payables
-    - Document type: //select[@name='document_type']
-    NEVER fabricate locator IDs from step description text.
+19. Billing page operations — use POM methods from pages.loadBillingPage, NEVER raw locators:
+    - Billing toggle: await pages.loadBillingPage.getBillingToggleValue() — returns 'Agent', 'Billing', or 'Neutral'
+    - Add New carrier invoice: await pages.loadBillingPage.clickAddNewCarrierInvoice() — opens Add Carrier Invoice dialog
+    - Invoice number (Add New dialog): await pages.loadBillingPage.enterCarrierInvoiceNumber(invoiceNum)
+    - Invoice amount (Add New dialog): await pages.loadBillingPage.enterCarrierInvoiceAmount(amount)
+    - Save invoice (Add New dialog): await pages.loadBillingPage.clickSaveCarrierInvoice()
+    - Finance messages: await pages.loadBillingPage.getFinanceMessages() — returns string[]
+    - Check message content: await pages.loadBillingPage.hasFinanceMessageContaining("text")
+    - View History (opens popup window): const popup = await pages.loadBillingPage.clickViewHistoryAndGetPopup()
+    For Document Upload Utility invoice fields, use pages.viewLoadPage methods (see rule 16).
 20. NEVER use ALERT_PATTERNS.UNKNOWN_MESSAGE — it matches ANY alert containing a colon (catches everything).
     Use the specific pattern constant: A_CARRIER_CONTACT_FOR_AUTO_ACCEPT_MUST_BE_SELECTED, STATUS_HAS_BEEN_SET_TO_BOOKED,
     IN_VIEW_MODE, POST_AUTOMATION_RULE_MATCHED, etc. If no matching constant exists, add a new entry to alertPatterns.ts.

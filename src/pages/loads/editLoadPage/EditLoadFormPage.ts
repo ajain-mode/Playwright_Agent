@@ -528,6 +528,26 @@ export class EditLoadFormPage {
     console.log("Total Miles: " + totalMiles);
     return totalMiles;
   }
+
+  /**
+   * Enters the expiration date on the carrier tab.
+   */
+  async enterExpirationDate(date: string): Promise<void> {
+    const expirationDate = this.page.locator("#form_expiration_date");
+    await expirationDate.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await expirationDate.fill(date);
+    console.log(`Entered Expiration Date: ${date}`);
+  }
+
+  /**
+   * Enters the expiration time on the carrier tab.
+   */
+  async enterExpirationTime(time: string): Promise<void> {
+    const expirationTime = this.page.locator("#form_expiration_time");
+    await expirationTime.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await expirationTime.fill(time);
+    console.log(`Entered Expiration Time: ${time}`);
+  }
 }
 
 export default EditLoadFormPage;
