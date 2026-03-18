@@ -292,7 +292,36 @@ ${FRAMEWORK_KNOWLEDGE}
     - CARRIER_NAME: CARRIER_1 through CARRIER_9
     - PRIORITY: PRIORITY_1, PRIORITY_2, PRIORITY_3
     - LOAD_OFFER_RATES: OFFER_RATE_1 through OFFER_RATE_4
-    Do NOT invent constant keys that aren't listed above.`;
+    Do NOT invent constant keys that aren't listed above.
+24. NEVER use XPath translate() for case-insensitive matching (e.g., translate(text(),'ABC...','abc...')).
+    These locators are brittle and break when UI labels change. Instead, use multiple explicit text matchers:
+    contains(text(),'LabelA') or contains(text(),'LabelB')
+25. NEVER wrap validation/assertion code in try/catch blocks that swallow errors with console.log().
+    Swallowing errors creates false positives — the test passes even when the validation fails.
+    Use expect.soft() for non-critical assertions that should report failure without stopping the test.
+    Pattern: expect.soft(value, "descriptive failure message").toBe/toContain/toBeTruthy(expected);
+26. All locators MUST reside in POM files under src/pages/, NEVER inside spec files.
+    - Do NOT use sharedPage.locator(), tnxPage.locator(), dmePage.locator() etc. in spec files.
+    - Instead, create/use POM methods: pages.<getter>.<method>() or pageInstance.<method>()
+    - The pipeline will auto-create missing POM methods via ensurePageObjectMethodsExist().
+27. When a tab or label has been renamed in the UI (e.g., "LoadBoard" → "Mode ID"), the POM locator
+    must match BOTH old and new names to ensure backward compatibility during the transition period.
+28. NEVER use page.evaluate() with querySelector, closest, getComputedStyle, or classList.contains to read element state.
+    These are DOM-guessing anti-patterns that are fragile and break with CSS/HTML changes.
+    Instead, use Playwright built-in methods: isChecked(), inputValue(), getAttribute(), isVisible(), textContent().
+29. Every POM method MUST have a JSDoc block with @author and @created tags. Format:
+    /** Description. @author AI Agent @created YYYY-MM-DD */
+30. NEVER use waitForTimeout() with hardcoded millisecond values in spec files.
+    Use Playwright auto-waiting, waitForLoadState(), element.waitFor(), or POM methods with built-in waits.
+31. NEVER use require() or path.resolve() inline in spec files.
+    For file attachments, use POM methods: pages.viewLoadPage.attachCarrierInvoiceFile() or pages.viewLoadPage.attachPODFile().
+32. NEVER use duplicate locating strategies for the same element. Pick one reliable locator per element.
+    Prefer CSS selectors and Playwright getByRole/getByLabel over XPath. XPath is slower and more fragile.
+33. Before creating a new POM method, check if the same functionality already exists on another page object class.
+    Do NOT duplicate methods that already exist in the framework (e.g., clickOnActiveCustomer on SearchCustomerPage).
+34. NEVER pass hardcoded numeric strings to POM methods for rates, amounts, miles, or invoice numbers.
+    Always use testData.* from CSV: testData.customerRate, testData.carrierRate, testData.miles, testData.linehaulRate,
+    testData.carrierInvoiceNumber, testData.carrierInvoiceAmount1, testData.carrierInvoiceAmount2.`;
 }
 
 /**
@@ -329,7 +358,17 @@ export function buildFullSpecPrompt(
 9. NEVER use ALERT_PATTERNS.UNKNOWN_MESSAGE
 10. validateCarrierAssignedText() requires argument: validateCarrierAssignedText(testData.Carrier)
 11. The const testcaseID must be "${testCaseId}" and dataConfig must use dataConfig.${testCaseCategory}Data
-12. Output must compile with TypeScript strict mode (noUnusedLocals, noUnusedParameters)`;
+12. Output must compile with TypeScript strict mode (noUnusedLocals, noUnusedParameters)
+13. NEVER use sharedPage.locator(), tnxPage.locator(), dmePage.locator() in spec files — all locators must be POM methods
+14. NEVER wrap validation code in try/catch that swallows errors with console.log — use expect.soft() instead
+15. NEVER use XPath translate() for case-insensitive matching — use explicit text alternatives instead
+16. NEVER use page.evaluate() with querySelector/closest/getComputedStyle — use Playwright built-in methods (isChecked, inputValue, getAttribute) instead
+17. Every POM method must include JSDoc with @author AI Agent and @created date
+18. NEVER use waitForTimeout() with hardcoded delays — use Playwright auto-waiting or waitForLoadState
+19. NEVER use require() or path.resolve() inline — use POM methods like attachCarrierInvoiceFile() or attachPODFile()
+20. NEVER use duplicate locating strategies for the same element. One reliable locator per element. Prefer CSS/getByRole over XPath
+21. NEVER pass hardcoded numeric strings to POM methods for rates, amounts, miles, or invoice numbers.
+    Use testData.customerRate, testData.carrierRate, testData.miles, testData.linehaulRate, testData.carrierInvoiceNumber, testData.carrierInvoiceAmount1, testData.carrierInvoiceAmount2`;
 
   const stepsText = steps.map(s => `  ${s.stepNumber}. ${s.action}${s.expectedResult ? ` → Expected: ${s.expectedResult}` : ''}`).join('\n');
   const expectedText = expectedResults.length > 0

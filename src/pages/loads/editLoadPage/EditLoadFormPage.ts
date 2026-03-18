@@ -548,6 +548,107 @@ export class EditLoadFormPage {
     await expirationTime.fill(time);
     console.log(`Entered Expiration Time: ${time}`);
   }
+  /**
+   * Selects a value from the Mileage Engine dropdown.
+   */
+  async selectMileageEngine(value: string): Promise<void> {
+    const mileageEngine = this.page.locator("//select[contains(@id,'mileage_engine')]").first();
+    await mileageEngine.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await mileageEngine.selectOption({ label: value });
+    console.log(`Selected Mileage Engine: ${value}`);
+  }
+
+  /**
+   * Selects a value from the Mileage Method dropdown.
+   */
+  async selectMileageMethod(value: string): Promise<void> {
+    const mileageMethod = this.page.locator("//select[contains(@id,'mileage_method')]").first();
+    await mileageMethod.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await mileageMethod.selectOption({ label: value });
+    console.log(`Selected Mileage Method: ${value}`);
+  }
+
+  /**
+   * Enters a value in the Linehaul Rate input field.
+   */
+  async enterLinehaulRate(value: string): Promise<void> {
+    const linehaulRate = this.page.locator("//input[contains(@id,'linehaul_rate')]").first();
+    await linehaulRate.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await linehaulRate.fill(value);
+    console.log(`Entered Linehaul Rate: ${value}`);
+  }
+
+  /**
+   * Fills the Whse Instructions textarea/input field.
+   */
+  async fillWhseInstructions(value: string): Promise<void> {
+    const whseField = this.page.locator("//textarea[contains(@id,'shipper_whse')] | //input[contains(@id,'shipper_whse')]").first();
+    await whseField.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await whseField.fill(value);
+    console.log(`Filled Whse Instructions: ${value}`);
+  }
+
+  /**
+   * Reads the current value of the Rate Type dropdown.
+   * Returns the selected option label or empty string.
+   */
+  async getRateTypeValue(): Promise<string> {
+    const rateType = this.page.locator("//select[contains(@id,'rate_type') or contains(@name,'rate_type')]").first();
+    if (await rateType.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const value = await rateType.inputValue();
+      console.log(`Rate Type value: ${value}`);
+      return value;
+    }
+    return '';
+  }
+
+  /**
+   * Checks whether the Rate Type dropdown field is visible on the page.
+   * @author AI Agent
+   * @created 17-Mar-2026
+   */
+  async isRateTypeFieldVisible(): Promise<boolean> {
+    const rateType = this.page.locator("//select[contains(@id,'rate_type') or contains(@name,'rate_type')]").first();
+    return rateType.isVisible({ timeout: 5000 }).catch(() => false);
+  }
+
+  /**
+   * Reads the default value from the Linehaul field (when it's a select/dropdown).
+   * @author AI Agent
+   * @created 17-Mar-2026
+   */
+  async getLinehaulDefaultValue(): Promise<string> {
+    const linehaulField = this.page.locator("//select[contains(@name,'linehaul') or contains(@id,'linehaul')]").first();
+    if (await linehaulField.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const value = await linehaulField.inputValue();
+      console.log(`Linehaul default: ${value}`);
+      return value;
+    }
+    return '';
+  }
+
+  /**
+   * Reads the default value from the Fuel Surcharge field.
+   */
+  async getFuelSurchargeDefaultValue(): Promise<string> {
+    const fuelField = this.page.locator("//select[contains(@name,'fuel') or contains(@id,'fuel')]").first();
+    if (await fuelField.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const value = await fuelField.inputValue();
+      console.log(`Fuel Surcharge default: ${value}`);
+      return value;
+    }
+    return '';
+  }
+
+  /**
+   * Selects Method dropdown value (e.g., "Practical").
+   */
+  async selectMethod(value: string): Promise<void> {
+    const methodDropdown = this.page.locator("//select[contains(@name,'method') or contains(@id,'method')]").first();
+    await methodDropdown.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await methodDropdown.selectOption({ label: value });
+    console.log(`Selected Method: ${value}`);
+  }
 }
 
 export default EditLoadFormPage;

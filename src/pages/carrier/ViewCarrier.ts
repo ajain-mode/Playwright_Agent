@@ -303,4 +303,125 @@ export default class ViewCarrier {
         await this.brokerAuthorityCell.waitFor({ state: 'attached', timeout: WAIT.LARGE });
         await expect.soft(this.brokerAuthorityCell).toBeVisible();
     }
+
+    /**
+     * Gets the Loadboard Status text from the carrier details page.
+     * @author AI Agent
+     * @created 17-Mar-2026
+     */
+    async getLoadboardStatus(): Promise<string> {
+        const statusEl = this.page.locator(
+            "//td[contains(text(),'Loadboard Status') or contains(text(),'Mode ID Status')]/following-sibling::td"
+        ).first();
+        if (await statusEl.isVisible({ timeout: 5000 }).catch(() => false)) {
+            const text = (await statusEl.textContent())?.trim() || '';
+            console.log(`Loadboard/Mode ID Status: "${text}"`);
+            return text;
+        }
+        console.log('Loadboard/Mode ID Status element not found');
+        return '';
+    }
+
+    /**
+     * Clicks the Mode ID tab (formerly LoadBoard) on the carrier page.
+     * Matches both the old "LoadBoard" and new "Mode ID" tab names.
+     * @author AI Agent
+     * @created 17-Mar-2026
+     */
+    async clickLoadboardTab(): Promise<boolean> {
+        const tab = this.page.locator(
+            "//a[contains(text(),'Mode ID') or contains(text(),'mode id') or contains(text(),'LoadBoard') or contains(text(),'Loadboard')] | //li[contains(text(),'Mode ID') or contains(text(),'mode id') or contains(text(),'LoadBoard') or contains(text(),'Loadboard')]"
+        ).first();
+        if (await tab.isVisible({ timeout: 5000 }).catch(() => false)) {
+            await tab.click();
+            console.log('Clicked Mode ID tab');
+            return true;
+        }
+        console.log('Mode ID / LoadBoard tab not found — verify tab name manually');
+        return false;
+    }
+
+    /**
+     * Checks if a carrier visibility label is visible on the page.
+     * @author AI Agent
+     * @created 17-Mar-2026
+     */
+    async isCarrierVisibilityLabelVisible(name: string): Promise<boolean> {
+        const label = this.page.locator(`//*[contains(text(),'${name}')]`).first();
+        return label.isVisible({ timeout: 3000 }).catch(() => false);
+    }
+
+    /**
+     * Gets the toggle states for the given carrier visibility labels by inspecting the DOM.
+     */
+    async getCarrierVisibilityToggleStates(carriers: string[]): Promise<Record<string, { enabled: boolean; debug: string }>> {
+        return this.page.evaluate((carrierNames: string[]) => {
+            const results: Record<string, { enabled: boolean; debug: string }> = {};
+            for (const name of carrierNames) {
+                results[name] = { enabled: false, debug: "label not found" };
+                const labels = document.querySelectorAll("label");
+                for (const label of labels) {
+                    if (label.textContent?.trim() === name) {
+                        const container = label.closest(".slider-select") || label.parentElement;
+                        if (!container) { results[name].debug = "no container"; break; }
+                        const sel = container.querySelector(".slider-selection");
+                        if (sel) {
+                            const rect = sel.getBoundingClientRect();
+                            const style = window.getComputedStyle(sel);
+                            if (rect.width > 2 && style.display !== "none" && style.visibility !== "hidden") {
+                                results[name] = { enabled: true, debug: `slider-selection width=${rect.width.toFixed(0)}` };
+                                break;
+                            }
+                            results[name].debug = `slider-selection width=${rect.width.toFixed(0)}, display=${style.display}`;
+                        }
+                        const cb = container.querySelector("input[type='checkbox']") as HTMLInputElement | null;
+                        if (cb?.checked) { results[name] = { enabled: true, debug: "checkbox checked" }; break; }
+                        const allEls = container.querySelectorAll("*");
+                        for (const el of allEls) {
+                            const cls = typeof el.className === "string" ? el.className : "";
+                            if (cls.includes("slider-on") || cls.includes("-on") || cls.includes("active")) {
+                                results[name] = { enabled: true, debug: `class="${cls}"` }; break;
+                            }
+                        }
+                        if (!results[name].enabled) results[name].debug += " | no enabled indicator";
+                        break;
+                    }
+                }
+            }
+            return results;
+        }, carriers);
+    }
+
+    /**
+     * Enables carrier visibility toggles for the given carrier names.
+     * Clicks Edit, toggles disabled carriers, and saves.
+     */
+    async enableCarrierVisibilityToggles(disabledCarriers: string[]): Promise<void> {
+        for (const name of disabledCarriers) {
+            const slider = this.page.locator(
+                `//div[contains(@class,'slider-select')]//label[text()='${name}']/following-sibling::div//div[contains(@class,'slider-selection')]`
+            ).first();
+            if (await slider.isVisible({ timeout: 3000 }).catch(() => false)) {
+                await slider.click({ position: { x: 5, y: 5 } });
+                console.log(`Enabled toggle for "${name}"`);
+            } else {
+                const labelEl = this.page.locator(`//label[text()='${name}']`).first();
+                const parentDiv = labelEl.locator("xpath=following-sibling::div").first();
+                if (await parentDiv.isVisible({ timeout: 2000 }).catch(() => false)) {
+                    await parentDiv.click();
+                    console.log(`Enabled toggle for "${name}" (via sibling div)`);
+                }
+            }
+        }
+    }
+
+    /**
+     * Clicks the Save button on the carrier edit page.
+     */
+    async clickSaveOnCarrierEditPage(): Promise<void> {
+        const saveBtn = this.page.locator("input[type='button'][value='  Save  ']");
+        await saveBtn.waitFor({ state: "visible", timeout: 10000 });
+        await saveBtn.click();
+        console.log('Clicked Save on carrier edit page');
+    }
 }

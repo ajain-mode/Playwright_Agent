@@ -207,8 +207,8 @@ test.describe("Carrier Search Tests", { tag: ['@tporegression', '@smoke', '@at_c
         await pages.carrierSearchPage.carrierStatus(CARRIER_STATUS.ACTIVE);
         await pages.carrierSearchPage.nameInputOnCarrierPage(testData.carrierName);
         await pages.carrierSearchPage.clickOnSearchButton();
-        await pages.carrierSearchPage.verifyCarrerListTableData(testData.carrierName.toUpperCase());
-        await pages.carrierSearchPage.verifyCarrerListTableData(CARRIER_STATUS.ACTIVE.toUpperCase());
+        await pages.carrierSearchPage.verifyCarrierListTableData(testData.carrierName.toUpperCase());
+        await pages.carrierSearchPage.verifyCarrierListTableData(CARRIER_STATUS.ACTIVE.toUpperCase());
         pages.logger.info("Carrier search by Status executed successfully");
     });
     /**
@@ -225,8 +225,8 @@ test.describe("Carrier Search Tests", { tag: ['@tporegression', '@smoke', '@at_c
         await pages.carrierSearchPage.selectFactorByName(testData.factor);
         await pages.carrierSearchPage.nameInputOnCarrierPage(testData.carrierName);
         await pages.carrierSearchPage.clickOnSearchButton();
-        await pages.carrierSearchPage.verifyCarrerListTableData(testData.carrierName.toUpperCase());
-        await pages.carrierSearchPage.verifyCarrerListTableData(testData.factor.toUpperCase());
+        await pages.carrierSearchPage.verifyCarrierListTableData(testData.carrierName.toUpperCase());
+        await pages.carrierSearchPage.verifyCarrierListTableData(testData.factor.toUpperCase());
         pages.logger.info("Carrier search by Factor executed successfully");
         await pages.carrierSearchPage.selectCarrierByName(testData.carrierName);
         await pages.viewCarrierPage.verifyCarrierNameInDetails(testData.carrierName);
@@ -256,7 +256,7 @@ test.describe("Carrier Search Tests", { tag: ['@tporegression', '@smoke', '@at_c
         await pages.carrierSearchPage.nameInputOnCarrierPage(testData.carrierName);
         await pages.carrierSearchPage.setSliderValue(TOGGLE_NAME.CARB, carbValue);
         await pages.carrierSearchPage.clickOnSearchButton();
-        await pages.carrierSearchPage.verifyCarrerListTableData(testData.carrierName.toUpperCase());
+        await pages.carrierSearchPage.verifyCarrierListTableData(testData.carrierName.toUpperCase());
         pages.logger.info("Carrier search by CARB executed successfully");
 
         await pages.basePage.clickHomeButton();
@@ -288,8 +288,8 @@ test.describe("Carrier Search Tests", { tag: ['@tporegression', '@smoke', '@at_c
         await pages.carrierSearchPage.nameInputOnCarrierPage(testData.carrierName);
         await pages.carrierSearchPage.selectValueFromDropdownFilter(CARRIER_SEARCH_FILTERS.SAFETY_RATING_SFD, SAFETY_RATING_SFD.SATISFACTORY)
         await pages.carrierSearchPage.clickOnSearchButton();
-        await pages.carrierSearchPage.verifyCarrerListTableData(testData.carrierName.toUpperCase());
-        await pages.carrierSearchPage.verifyCarrerListTableData(SAFETY_RATING_SFD.SATISFACTORY);
+        await pages.carrierSearchPage.verifyCarrierListTableData(testData.carrierName.toUpperCase());
+        await pages.carrierSearchPage.verifyCarrierListTableData(SAFETY_RATING_SFD.SATISFACTORY);
         pages.logger.info("Carrier search by Safety Rating/SFD executed successfully");
     });
 
@@ -315,7 +315,7 @@ test.describe("Carrier Search Tests", { tag: ['@tporegression', '@smoke', '@at_c
             await pages.carrierSearchPage.nameInputOnCarrierPage(testData.carrierName);
             await pages.carrierSearchPage.setToggleValue(TOGGLE_NAME.INTRASTATE_ONLY, intraStateOnlyValue);
             await pages.carrierSearchPage.clickOnSearchButton();
-            await pages.carrierSearchPage.verifyCarrerListTableData(testData.carrierName.toUpperCase());
+            await pages.carrierSearchPage.verifyCarrierListTableData(testData.carrierName.toUpperCase());
             pages.logger.info("Carrier search by INTRASTATE_ONLY executed successfully");
             await pages.basePage.clickHomeButton();
             await pages.basePage.hoverOverHeaderByText(HEADERS.CARRIER);
@@ -345,7 +345,7 @@ test.describe("Carrier Search Tests", { tag: ['@tporegression', '@smoke', '@at_c
             await pages.carrierSearchPage.nameInputOnCarrierPage(testData.carrierName);
             await pages.carrierSearchPage.setToggleValue(TOGGLE_NAME.EIGHT_A, eightAValue);
             await pages.carrierSearchPage.clickOnSearchButton();
-            await pages.carrierSearchPage.verifyCarrerListTableData(testData.carrierName.toUpperCase());
+            await pages.carrierSearchPage.verifyCarrierListTableData(testData.carrierName.toUpperCase());
             pages.logger.info("Carrier search by EIGHT_A executed successfully");
 
             await pages.basePage.clickHomeButton();
@@ -377,7 +377,7 @@ test.describe("Carrier Search Tests", { tag: ['@tporegression', '@smoke', '@at_c
             await pages.carrierSearchPage.nameInputOnCarrierPage(testData.carrierName);
             await pages.carrierSearchPage.setToggleValue(TOGGLE_NAME.Q_STAR, qStarValue);
             await pages.carrierSearchPage.clickOnSearchButton();
-            await pages.carrierSearchPage.verifyCarrerListTableData(testData.carrierName.toUpperCase());
+            await pages.carrierSearchPage.verifyCarrierListTableData(testData.carrierName.toUpperCase());
             pages.logger.info("Carrier search by Q_STAR executed successfully");
 
             await pages.basePage.clickHomeButton();
@@ -409,7 +409,7 @@ test.describe("Carrier Search Tests", { tag: ['@tporegression', '@smoke', '@at_c
             await pages.carrierSearchPage.nameInputOnCarrierPage(testData.carrierName);
             await pages.carrierSearchPage.setToggleValue(TOGGLE_NAME.TSA_CERTIFIED, tCertifiedValue);
             await pages.carrierSearchPage.clickOnSearchButton();
-            await pages.carrierSearchPage.verifyCarrerListTableData(testData.carrierName.toUpperCase());
+            await pages.carrierSearchPage.verifyCarrierListTableData(testData.carrierName.toUpperCase());
             pages.logger.info("Carrier search by TSA_CERTIFIED executed successfully");
 
             await pages.basePage.clickHomeButton();
@@ -441,7 +441,7 @@ test.describe("Carrier Search Tests", { tag: ['@tporegression', '@smoke', '@at_c
             await pages.carrierSearchPage.nameInputOnCarrierPage(testData.carrierName);
             await pages.carrierSearchPage.setToggleValue(TOGGLE_NAME.UIIA_PARTICIPATION, uiiaParticipationValue);
             await pages.carrierSearchPage.clickOnSearchButton();
-            await pages.carrierSearchPage.verifyCarrerListTableData(testData.carrierName.toUpperCase());
+            await pages.carrierSearchPage.verifyCarrierListTableData(testData.carrierName.toUpperCase());
             pages.logger.info("Carrier search by UIIA_PARTICIPATION executed successfully");
 
             await pages.basePage.clickHomeButton();
@@ -473,7 +473,7 @@ test.describe("Carrier Search Tests", { tag: ['@tporegression', '@smoke', '@at_c
             await pages.carrierSearchPage.nameInputOnCarrierPage(testData.carrierName);
             await pages.carrierSearchPage.setSliderValue(TOGGLE_NAME.SMARTWAY, smartWayValue);
             await pages.carrierSearchPage.clickOnSearchButton();
-            await pages.carrierSearchPage.verifyCarrerListTableData(testData.carrierName.toUpperCase());
+            await pages.carrierSearchPage.verifyCarrierListTableData(testData.carrierName.toUpperCase());
             pages.logger.info("Carrier search by SmartWay? executed successfully");
 
             await pages.basePage.clickHomeButton();
@@ -519,7 +519,7 @@ test.describe("Carrier Search Tests", { tag: ['@tporegression', '@smoke', '@at_c
         await pages.carrierSearchPage.nameInputOnCarrierPage(testData.carrierName);
         await pages.carrierSearchPage.selectValueFromDropdownFilter(CARRIER_SEARCH_FILTERS.INV_PROCESS_GROUP, INV_PROCESS_GROUP.STANDARD);
         await pages.carrierSearchPage.clickOnSearchButton();
-        await pages.carrierSearchPage.verifyCarrerListTableData(testData.carrierName.toUpperCase());
+        await pages.carrierSearchPage.verifyCarrierListTableData(testData.carrierName.toUpperCase());
         await pages.carrierSearchPage.selectCarrierByName(testData.carrierName.toUpperCase());
         const invProcessGroupValue = await pages.viewCarrierPage.getInvProcessGroupValue();
         expect(invProcessGroupValue).toBe(INV_PROCESS_GROUP.STANDARD);
@@ -562,7 +562,7 @@ test.describe("Carrier Search Tests", { tag: ['@tporegression', '@smoke', '@at_c
             await pages.carrierSearchPage.nameInputOnCarrierPage(testData.carrierName);
             await pages.carrierSearchPage.selectValueFromDropdownFilter(CARRIER_SEARCH_FILTERS.VENDOR_TYPE, VENDOR_TYPE.AIR_CARRIER);
             await pages.carrierSearchPage.clickOnSearchButton();
-            await pages.carrierSearchPage.verifyCarrerListTableData(testData.carrierName.toUpperCase());
+            await pages.carrierSearchPage.verifyCarrierListTableData(testData.carrierName.toUpperCase());
             await pages.carrierSearchPage.selectCarrierByName(testData.carrierName.toUpperCase());
             const vendorTypeValue = await pages.viewCarrierPage.getVendorTypeValue();
             expect(vendorTypeValue).toBe(VENDOR_TYPE.AIR_CARRIER);
@@ -607,7 +607,7 @@ test.describe("Carrier Search Tests", { tag: ['@tporegression', '@smoke', '@at_c
             await pages.carrierSearchPage.nameInputOnCarrierPage(testData.carrierName);
             await pages.carrierSearchPage.selectValueFromDropdownFilter(CARRIER_SEARCH_FILTERS.CARRIER_MODE, CARRIER_MODE.ROAD);
             await pages.carrierSearchPage.clickOnSearchButton();
-            await pages.carrierSearchPage.verifyCarrerListTableData(testData.carrierName.toUpperCase());
+            await pages.carrierSearchPage.verifyCarrierListTableData(testData.carrierName.toUpperCase());
             await pages.carrierSearchPage.selectCarrierByName(testData.carrierName.toUpperCase());
             const carrierModeValue = await pages.viewCarrierPage.getCarrierModeValue();
             expect(carrierModeValue).toBe(CARRIER_MODE.ROAD);
@@ -640,7 +640,7 @@ test.describe("Carrier Search Tests", { tag: ['@tporegression', '@smoke', '@at_c
             await pages.carrierSearchPage.nameInputOnCarrierPage(testData.carrierName);
             await pages.carrierSearchPage.setToggleValue(TOGGLE_NAME.NO_BCA, noBcaValue);
             await pages.carrierSearchPage.clickOnSearchButton();
-            await pages.carrierSearchPage.verifyCarrerListTableData(testData.carrierName.toUpperCase());
+            await pages.carrierSearchPage.verifyCarrierListTableData(testData.carrierName.toUpperCase());
             pages.logger.info("Carrier search by NO_BCA executed successfully");
 
             await pages.basePage.clickHomeButton();
@@ -690,7 +690,7 @@ test.describe("Carrier Search Tests", { tag: ['@tporegression', '@smoke', '@at_c
             await pages.carrierSearchPage.selectValueFromDropdownFilter
                 (CARRIER_SEARCH_FILTERS.BROKER_AUTHORITY, BROKER_AUTHORITY.ACTIVE);
             await pages.carrierSearchPage.clickOnSearchButton();
-            await pages.carrierSearchPage.verifyCarrerListTableData(testData.carrierName.toUpperCase());
+            await pages.carrierSearchPage.verifyCarrierListTableData(testData.carrierName.toUpperCase());
             await pages.carrierSearchPage.selectCarrierByName(testData.carrierName.toUpperCase());
 
             await pages.viewCarrierPage.verifyBrokerAuthorityStatus();

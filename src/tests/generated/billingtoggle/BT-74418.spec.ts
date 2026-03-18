@@ -57,10 +57,7 @@ test.describe.serial("Case ID: BT-74418 - Validate updated price difference mess
       });
 
       await test.step("Step 2: Search customer and navigate to CREATE TL *NEW*", async () => {
-        const btmsBaseUrl = new URL(sharedPage.url()).origin;
-        await sharedPage.goto(btmsBaseUrl);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        await sharedPage.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });
+        await pages.basePage.navigateToBaseUrl();
         console.log("Navigated to BTMS Home");
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
@@ -112,23 +109,18 @@ test.describe.serial("Case ID: BT-74418 - Validate updated price difference mess
       });
 
       await test.step("Step 4: Select the Method as Practical", async () => {
-        const dropdown_method = sharedPage.locator("//select[contains(@name,'method') or contains(@id,'method')]").first();
-        await dropdown_method.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await dropdown_method.selectOption({ label: "Practical" });
+        await pages.editLoadFormPage.selectMethod("Practical");
         console.log("Selected Method: Practical");
       });
 
       await test.step("Step 5: Verify Linehaul and Fuel Surcharge default to Flat Rate", async () => {
-        try {
-          const linehaulField = sharedPage.locator("//select[contains(@name,'linehaul') or contains(@id,'linehaul')]").first();
-          const linehaulValue = await linehaulField.inputValue().catch(() => "");
-          console.log("Linehaul default value: " + linehaulValue);
-          const fuelField = sharedPage.locator("//select[contains(@name,'fuel') or contains(@id,'fuel')]").first();
-          const fuelValue = await fuelField.inputValue().catch(() => "");
-          console.log("Fuel Surcharge default value: " + fuelValue);
-        } catch (e) {
-          console.log("Linehaul/Fuel verification could not complete:", (e as Error).message);
-        }
+        const linehaulValue = await pages.editLoadFormPage.getLinehaulDefaultValue();
+        console.log(`Linehaul default value = "${linehaulValue}"`);
+        expect.soft(linehaulValue, "Linehaul should default to Flat Rate").toBeTruthy();
+
+        const fuelValue = await pages.editLoadFormPage.getFuelSurchargeDefaultValue();
+        console.log(`Fuel Surcharge default value = "${fuelValue}"`);
+        expect.soft(fuelValue, "Fuel Surcharge should default to Flat Rate").toBeTruthy();
       });
 
       await test.step("Step 6: Click Create Load and select Rate Type", async () => {
@@ -169,20 +161,20 @@ test.describe.serial("Case ID: BT-74418 - Validate updated price difference mess
         const futureDate = new Date();
         futureDate.setDate(futureDate.getDate() + 7);
         const formattedDate = `${(futureDate.getMonth() + 1).toString().padStart(2, '0')}/${futureDate.getDate().toString().padStart(2, '0')}/${futureDate.getFullYear()}`;
-        await sharedPage.locator("#form_expiration_date").fill(formattedDate);
+        await pages.editLoadFormPage.enterExpirationDate(formattedDate);
         console.log(`Entered Expiration Date: ${formattedDate}`);
-        await sharedPage.locator("#form_expiration_time").fill("18:00");
+        await pages.editLoadFormPage.enterExpirationTime("18:00");
         console.log("Entered Expiration Time: 18:00");
       });
 
       await test.step("Step 11: Enter Email for notification", async () => {
-        await sharedPage.locator("#form_notification_email").fill("agentbulkchange@modeglobal.com");
-        console.log("Entered Email for notification: agentbulkchange@modeglobal.com");
+        await pages.editLoadCarrierTabPage.selectEmailNotificationViaSelect2(testData.saleAgentEmail);
+        console.log(`Entered Email for notification: ${testData.saleAgentEmail}`);
       });
 
       await test.step("Step 12: Enter total miles eg 500", async () => {
-        await pages.editLoadCarrierTabPage.enterMiles("500");
-        console.log("Entered total miles: 500");
+        await pages.editLoadCarrierTabPage.enterMiles(testData.miles);
+        console.log(`Entered total miles: ${testData.miles}`);
       });
 
       await test.step("Step 13: On Carrier tab click on CHOOSE CARRIER and select any ACTIVE carrier", async () => {
@@ -204,33 +196,13 @@ test.describe.serial("Case ID: BT-74418 - Validate updated price difference mess
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         console.log("Clicked View Billing");
 
-        const billingToggle = sharedPage.locator(
-          "//input[contains(@id,'billing_toggle') or contains(@name,'billing_toggle')]," +
-          "//button[contains(@class,'billing-toggle') or contains(text(),'Agent')]," +
-          "//label[contains(text(),'Agent')]/preceding-sibling::input[@type='radio']"
-        ).first();
-        if (await billingToggle.isVisible({ timeout: 5000 }).catch(() => false)) {
-          const toggleText = await billingToggle.inputValue().catch(() =>
-            billingToggle.textContent().catch(() => "")
-          );
-          console.log(`Billing toggle value: ${toggleText}`);
-          expect.soft(
-            toggleText?.toLowerCase().includes("agent") || await billingToggle.isChecked().catch(() => false),
-            "Billing toggle button should be set to 'Agent'"
-          ).toBeTruthy();
-        } else {
-          const agentLabel = sharedPage.locator("//*[contains(@class,'active') and contains(text(),'Agent')]").first();
-          const isAgentActive = await agentLabel.isVisible({ timeout: 5000 }).catch(() => false);
-          expect.soft(isAgentActive, "Billing toggle should show 'Agent' as active").toBeTruthy();
-          console.log(`Billing toggle Agent active: ${isAgentActive}`);
-        }
+        const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
+        console.log(`Billing toggle value: ${toggleValue}`);
+        expect.soft(toggleValue, "Billing toggle button should be set to 'Agent'").toBe('Agent');
       });
 
       await test.step("Step 16: Navigate to customer and create a new load", async () => {
-        const btmsBaseUrl = new URL(sharedPage.url()).origin;
-        await sharedPage.goto(btmsBaseUrl);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        await sharedPage.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });
+        await pages.basePage.navigateToBaseUrl();
         console.log("Navigated to BTMS Home");
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
@@ -250,16 +222,12 @@ test.describe.serial("Case ID: BT-74418 - Validate updated price difference mess
       });
 
       await test.step("Step 17: Upload the proof of delivery document", async () => {
-        const uploadInput = sharedPage.locator("input[type='file']").first();
-        await uploadInput.waitFor({ state: "attached", timeout: WAIT.LARGE });
-        console.log("Proof of delivery upload field located — manual file upload required");
+        await pages.viewLoadPage.uploadPODDocument();
+        console.log("Proof of delivery document uploaded");
       });
 
       await test.step("Step 18: Navigate to customer and create another load", async () => {
-        const btmsBaseUrl = new URL(sharedPage.url()).origin;
-        await sharedPage.goto(btmsBaseUrl);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        await sharedPage.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });
+        await pages.basePage.navigateToBaseUrl();
         console.log("Navigated to BTMS Home");
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
@@ -279,94 +247,59 @@ test.describe.serial("Case ID: BT-74418 - Validate updated price difference mess
       });
 
       await test.step("Step 19: Select radio button Payables", async () => {
-        const payablesRadio = sharedPage.locator("#cat_payables").first();
-        await payablesRadio.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await payablesRadio.check();
+        await pages.viewLoadPage.selectPayablesRadio();
         console.log("Selected Payables radio button");
       });
 
       await test.step("Step 20: Upload the carrier invoice document", async () => {
-        const uploadInput = sharedPage.locator("input[type='file']").first();
-        await uploadInput.waitFor({ state: "attached", timeout: WAIT.LARGE });
-        console.log("Carrier invoice upload field located — manual file upload required");
+        await pages.viewLoadPage.uploadCarrierInvoiceDocument(testData);
+        console.log("Carrier invoice document uploaded");
       });
 
       await test.step("Step 21: Select radio button Payables and Select Document Type as Carrier Invoice", async () => {
-        const payablesRadio = sharedPage.locator("#cat_payables");
-        await payablesRadio.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await payablesRadio.check();
+        await pages.viewLoadPage.selectPayablesRadio();
         console.log("Selected Payables radio button");
 
-        const documentTypeDropdown = sharedPage.locator("//select[@name='document_type']");
-        await documentTypeDropdown.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await documentTypeDropdown.selectOption({ label: "Carrier Invoice" });
+        await pages.viewLoadPage.selectDocumentType("Carrier Invoice");
         console.log("Selected Document Type: Carrier Invoice");
       });
 
       await test.step("Step 22: Enter invoice number and Invoice Amount", async () => {
-        const invoiceNumber = sharedPage.locator("#form_invoice_number, #invoice_number, [name='invoice_number']").first();
-        await invoiceNumber.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await invoiceNumber.fill("123456");
-        console.log("Entered Invoice Number: 123456");
+        await pages.viewLoadPage.fillCarrierInvoiceNumber(testData.carrierInvoiceNumber);
+        console.log(`Entered Invoice Number: ${testData.carrierInvoiceNumber}`);
 
-        const invoiceAmount = sharedPage.locator("#form_invoice_amount, #invoice_amount, [name='invoice_amount']").first();
-        await invoiceAmount.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await invoiceAmount.fill("1000");
-        console.log("Entered Invoice Amount: 1000");
+        await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
+        console.log(`Entered Invoice Amount: ${testData.carrierInvoiceAmount1}`);
       });
 
       await test.step("Step 23: Validate if payable toggle is set to Agent", async () => {
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
-        const billingToggle = sharedPage.locator(
-          "//input[contains(@id,'billing_toggle') or contains(@name,'billing_toggle')]," +
-          "//button[contains(@class,'billing-toggle') or contains(text(),'Agent')]," +
-          "//label[contains(text(),'Agent')]/preceding-sibling::input[@type='radio']"
-        ).first();
-        if (await billingToggle.isVisible({ timeout: 5000 }).catch(() => false)) {
-          const toggleText = await billingToggle.inputValue().catch(() =>
-            billingToggle.textContent().catch(() => "")
-          );
-          console.log(`Payable toggle value: ${toggleText}`);
-          expect.soft(
-            toggleText?.toLowerCase().includes("agent") || await billingToggle.isChecked().catch(() => false),
-            "Payable toggle should be set to 'Agent'"
-          ).toBeTruthy();
-        } else {
-          const agentLabel = sharedPage.locator("//*[contains(@class,'active') and contains(text(),'Agent')]").first();
-          const isAgentActive = await agentLabel.isVisible({ timeout: 5000 }).catch(() => false);
-          expect.soft(isAgentActive, "Payable toggle should show 'Agent' as active").toBeTruthy();
-          console.log(`Payable toggle Agent active: ${isAgentActive}`);
-        }
+        const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
+        console.log(`Payable toggle value: ${toggleValue}`);
+        expect.soft(toggleValue, "Payable toggle should be set to 'Agent'").toBe('Agent');
 
         await pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.STATING_STATUS_HAS_MOVED_TO_THE_INVOICE_SHOULD_APPEAR_ON_THE);
         console.log("Alert validated: status moved to invoice");
       });
 
       await test.step("Step 24: Click on Add New button against Carrier Invoice", async () => {
-        await pages.basePage.clickButtonByText("Add New");
+        await pages.loadBillingPage.clickAddNewCarrierInvoice();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         console.log("Clicked Add New button");
 
-        const billingToggle = sharedPage.locator(
-          "//input[contains(@id,'billing_toggle') or contains(@name,'billing_toggle')]," +
-          "//button[contains(@class,'billing-toggle') or contains(text(),'Agent')]," +
-          "//label[contains(text(),'Agent')]/preceding-sibling::input[@type='radio']"
-        ).first();
-        const isVisible = await billingToggle.isVisible({ timeout: 5000 }).catch(() => false);
-        expect.soft(isVisible, "Billing toggle should be at Agent after Add New").toBeTruthy();
-        console.log(`Billing toggle visible after Add New: ${isVisible}`);
+        const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
+        expect.soft(toggleValue, "Billing toggle should be at Agent after Add New").toBe('Agent');
+        console.log(`Billing toggle value after Add New: ${toggleValue}`);
       });
 
       await test.step("Step 25: Enter Amount as 1000", async () => {
-        const field_amount = sharedPage.locator("#form_amount, #amount, [name='amount']").first();
-        await field_amount.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await field_amount.fill("1000");
-        console.log("Entered Amount: 1000");
+        await pages.loadBillingPage.enterCarrierInvoiceAmount(testData.carrierInvoiceAmount2);
+        console.log(`Entered Amount: ${testData.carrierInvoiceAmount2}`);
       });
 
       await test.step("Step 26: Save invoice and refresh the page", async () => {
-        await pages.editLoadFormPage.clickOnSaveBtn();
+        await pages.loadBillingPage.clickSaveCarrierInvoice();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await sharedPage.reload();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
@@ -376,20 +309,12 @@ test.describe.serial("Case ID: BT-74418 - Validate updated price difference mess
       await test.step("Step 27: Click on View history and check payable messages", async () => {
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
-        const viewHistoryBtn = sharedPage.locator("//button[contains(text(),'View history')] | //a[contains(text(),'View history')] | //button[contains(text(),'View History')]").first();
-        if (await viewHistoryBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-          await viewHistoryBtn.click();
-          console.log("Clicked View History");
-        }
+        await pages.loadBillingPage.clickViewHistoryAndGetPopup();
+        console.log("Clicked View History");
 
-        const billingToggle = sharedPage.locator(
-          "//input[contains(@id,'billing_toggle') or contains(@name,'billing_toggle')]," +
-          "//button[contains(@class,'billing-toggle') or contains(text(),'Agent')]," +
-          "//label[contains(text(),'Agent')]/preceding-sibling::input[@type='radio']"
-        ).first();
-        const isAgentToggle = await billingToggle.isVisible({ timeout: 5000 }).catch(() => false);
-        expect.soft(isAgentToggle, "Billing should be moved to the Agent").toBeTruthy();
-        console.log(`Billing moved to Agent: ${isAgentToggle}`);
+        const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
+        expect.soft(toggleValue, "Billing should be moved to the Agent").toBe('Agent');
+        console.log(`Billing moved to Agent: ${toggleValue}`);
       });
 
       await test.step("Step 28: Create a secondary invoice and check for price difference message", async () => {

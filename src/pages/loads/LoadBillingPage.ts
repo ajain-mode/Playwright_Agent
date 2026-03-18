@@ -37,6 +37,14 @@ class LoadBillingPage {
     private readonly billingToggleSliderInput_LOC: Locator;
     private readonly billingToggleSliderSelection_LOC: Locator;
 
+    // Payable Toggle locators (top slider)
+    private readonly payableToggleHiddenField_LOC: Locator;
+    private readonly payableToggleSliderInput_LOC: Locator;
+
+    // Not Delivered Final checkbox locators
+    private readonly notDeliveredFinalCheckbox_LOC: Locator;
+    private readonly notDeliveredFinalLabel_LOC: Locator;
+
     // Add New Carrier Invoice dialog locators
     private readonly addNewCarrierInvoiceBtn_LOC: Locator;
     private readonly carrierInvoiceDialogForm_LOC: Locator;
@@ -109,6 +117,14 @@ class LoadBillingPage {
         this.billingToggleHiddenField_LOC = this.page.locator("#fi_waiting_on");
         this.billingToggleSliderInput_LOC = this.page.locator("#waiting_on_select");
         this.billingToggleSliderSelection_LOC = this.page.locator("div.slider-selection").last();
+
+        // Payable Toggle (top slider — separate hidden input)
+        this.payableToggleHiddenField_LOC = this.page.locator("#fi_payable_waiting_on");
+        this.payableToggleSliderInput_LOC = this.page.locator("#payable_waiting_on_select");
+
+        // Not Delivered Final checkbox
+        this.notDeliveredFinalCheckbox_LOC = this.page.locator("#Delivs");
+        this.notDeliveredFinalLabel_LOC = this.page.locator("label[for='Delivs'].ckb");
 
         // Add New Carrier Invoice dialog
         this.addNewCarrierInvoiceBtn_LOC = this.page.locator("#carr_invoice_add_new");
@@ -509,131 +525,63 @@ class LoadBillingPage {
     /**
      * Reads the Billing Issues "Waiting On" toggle value.
      * Returns 'Billing' (1), 'Neutral' (2), or 'Agent' (3).
-     * Uses hidden field first, then slider data attribute, then DOM position.
+     * Primary source: hidden input #fi_waiting_on. Fallback: data-slider-value on #waiting_on_select.
+     * @author AI Agent
+     * @created 17-Mar-2026
      */
     async getBillingToggleValue(): Promise<string> {
-        // Strategy 1: Read from div.slider-selection (payable toggle above View History)
-        const sliderSelection = this.billingToggleSliderSelection_LOC;
-        if (await sliderSelection.isVisible({ timeout: 5000 }).catch(() => false)) {
-            await sliderSelection.scrollIntoViewIfNeeded();
-            const value = await sliderSelection.evaluate(el => {
-                const container = el.closest('.slider') || el.closest('[class*="slider"]') || el.parentElement;
+        const valueMap: Record<string, string> = { '1': 'Billing', '2': 'Neutral', '3': 'Agent' };
 
-                // Check slider handle position
-                const handle = container?.querySelector('.slider-handle, .min-slider-handle') as HTMLElement | null;
-                if (handle) {
-                    const left = parseFloat(handle.style.left);
-                    if (!isNaN(left)) {
-                        if (left >= 80) return 'Agent';
-                        if (left >= 40) return 'Neutral';
-                        return 'Billing';
-                    }
-                }
-
-                // Check selection bar width + left position
-                const selWidth = parseFloat(el.style.width || '0');
-                if (!isNaN(selWidth) && selWidth > 0) {
-                    const selLeft = parseFloat(el.style.left || '0');
-                    if (selLeft + selWidth >= 80) return 'Agent';
-                    if (selLeft + selWidth >= 40) return 'Neutral';
-                    return 'Billing';
-                }
-
-                // Check data attributes on container
-                const dataVal = container?.getAttribute('data-value') || container?.getAttribute('data-slider-value');
-                if (dataVal === '3') return 'Agent';
-                if (dataVal === '1') return 'Billing';
-                if (dataVal === '2') return 'Neutral';
-
-                return '';
-            });
-
-            if (value === 'Agent' || value === 'Billing' || value === 'Neutral') {
-                console.log(`Payable toggle from div.slider-selection: "${value}"`);
-                return value;
-            }
+        // Primary: hidden input #fi_waiting_on (source of truth)
+        const hiddenVal = await this.billingToggleHiddenField_LOC.inputValue().catch(() => '');
+        if (valueMap[hiddenVal]) {
+            console.log(`Billing toggle from #fi_waiting_on: ${valueMap[hiddenVal]}`);
+            return valueMap[hiddenVal];
         }
 
-        // Strategy 2: Read from #waiting_on_select data-slider-value
-        const sliderInput = this.billingToggleSliderInput_LOC;
-        if (await sliderInput.count() > 0) {
-            const dataVal = await sliderInput.getAttribute('data-slider-value');
-            if (dataVal === '3') { console.log('Payable toggle from #waiting_on_select: Agent'); return 'Agent'; }
-            if (dataVal === '1') { console.log('Payable toggle from #waiting_on_select: Billing'); return 'Billing'; }
-            if (dataVal === '2') { console.log('Payable toggle from #waiting_on_select: Neutral'); return 'Neutral'; }
+        // Fallback: data-slider-value on #waiting_on_select
+        const dataVal = await this.billingToggleSliderInput_LOC.getAttribute('data-slider-value').catch(() => '');
+        if (dataVal && valueMap[dataVal]) {
+            console.log(`Billing toggle from data-slider-value: ${valueMap[dataVal]}`);
+            return valueMap[dataVal];
         }
 
-        // Strategy 3: Read from #fi_waiting_on hidden field
-        const hiddenField = this.billingToggleHiddenField_LOC;
-        if (await hiddenField.count() > 0) {
-            const val = await hiddenField.inputValue();
-            if (val === '3') { console.log('Payable toggle from #fi_waiting_on: Agent'); return 'Agent'; }
-            if (val === '1') { console.log('Payable toggle from #fi_waiting_on: Billing'); return 'Billing'; }
-            if (val === '2') { console.log('Payable toggle from #fi_waiting_on: Neutral'); return 'Neutral'; }
-        }
-
-        console.log('Payable toggle: none of the strategies returned a value');
+        console.log('Billing toggle: could not determine value');
         return 'unknown';
     }
 
     /**
-     * Reads the Payable toggle value from the Bootstrap Slider on the billing page.
-     * There are TWO slider toggles on the billing page:
-     *   - TOP slider = Payable toggle (this method) → .first()
-     *   - BOTTOM slider = Billing toggle (getBillingToggleValue) → .last()
-     * Returns 'Payables', 'Neutral', or 'Agent' based on the slider handle position.
-     * Returns 'unknown' if the toggle element is not found.
+     * Reads the Payable toggle value from the billing page (top slider).
+     * Returns 'Payables' (1), 'Neutral' (2), or 'Agent' (3).
+     * Primary source: hidden input #fi_payable_waiting_on. Fallback: data-slider-value on #payable_waiting_on_select.
+     * @author AI Agent
+     * @created 17-Mar-2026
      */
     async getPayableToggleValue(): Promise<string> {
-        // Use .first() to target the TOP slider (payable toggle)
-        const slider = this.page.locator("div.slider-selection").first();
+        const valueMap: Record<string, string> = { '1': 'Payables', '2': 'Neutral', '3': 'Agent' };
 
-        if (await slider.isVisible({ timeout: 5000 }).catch(() => false)) {
-            await slider.scrollIntoViewIfNeeded();
-            const value = await slider.evaluate(el => {
-                const container = el.closest('.slider') || el.closest('[class*="slider"]') || el.parentElement;
-
-                // Check slider handle position
-                const handle = container?.querySelector('.slider-handle, .min-slider-handle') as HTMLElement | null;
-                if (handle) {
-                    const left = parseFloat(handle.style.left);
-                    if (!isNaN(left)) {
-                        if (left >= 80) return 'Agent';
-                        if (left >= 40) return 'Neutral';
-                        return 'Payables';
-                    }
-                }
-
-                // Check selection bar width + left position
-                const selWidth = parseFloat(el.style.width || '0');
-                if (!isNaN(selWidth) && selWidth > 0) {
-                    const selLeft = parseFloat(el.style.left || '0');
-                    if (selLeft + selWidth >= 80) return 'Agent';
-                    if (selLeft + selWidth >= 40) return 'Neutral';
-                    return 'Payables';
-                }
-
-                // Check data attributes on container
-                const dataVal = container?.getAttribute('data-value') || container?.getAttribute('data-slider-value');
-                if (dataVal === '3') return 'Agent';
-                if (dataVal === '2') return 'Neutral';
-                if (dataVal === '1') return 'Payables';
-
-                return '';
-            });
-
-            if (value === 'Agent' || value === 'Payables' || value === 'Neutral') {
-                console.log(`Payable toggle (top slider) value: "${value}"`);
-                return value;
-            }
+        // Primary: hidden input #fi_payable_waiting_on (source of truth)
+        const hiddenVal = await this.payableToggleHiddenField_LOC.inputValue().catch(() => '');
+        if (valueMap[hiddenVal]) {
+            console.log(`Payable toggle from #fi_payable_waiting_on: ${valueMap[hiddenVal]}`);
+            return valueMap[hiddenVal];
         }
 
-        console.log('Payable toggle: top slider not found or unreadable');
+        // Fallback: data-slider-value on #payable_waiting_on_select
+        const dataVal = await this.payableToggleSliderInput_LOC.getAttribute('data-slider-value').catch(() => '');
+        if (dataVal && valueMap[dataVal]) {
+            console.log(`Payable toggle from data-slider-value: ${valueMap[dataVal]}`);
+            return valueMap[dataVal];
+        }
+
+        console.log('Payable toggle: could not determine value');
         return 'unknown';
     }
 
     /**
      * Clicks the "Add New" button against Carrier Invoices to open the Add Carrier Invoice dialog.
+     * @author AI Agent
+     * @created 17-Mar-2026
      */
     async clickAddNewCarrierInvoice(): Promise<void> {
         await this.addNewCarrierInvoiceBtn_LOC.scrollIntoViewIfNeeded();
@@ -645,6 +593,8 @@ class LoadBillingPage {
 
     /**
      * Fills the carrier invoice number in the Add Carrier Invoice dialog.
+     * @author AI Agent
+     * @created 17-Mar-2026
      */
     async enterCarrierInvoiceNumber(invoiceNumber: string): Promise<void> {
         await this.carrierInvoiceNumberInput_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
@@ -654,6 +604,8 @@ class LoadBillingPage {
 
     /**
      * Fills the carrier invoice amount in the Add Carrier Invoice dialog.
+     * @author AI Agent
+     * @created 17-Mar-2026
      */
     async enterCarrierInvoiceAmount(amount: string): Promise<void> {
         await this.carrierInvoiceAmountInput_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
@@ -663,6 +615,8 @@ class LoadBillingPage {
 
     /**
      * Clicks the Save Invoice button in the Add Carrier Invoice dialog.
+     * @author AI Agent
+     * @created 17-Mar-2026
      */
     async clickSaveCarrierInvoice(): Promise<void> {
         await this.saveCarrierInvoiceBtn_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
@@ -672,6 +626,8 @@ class LoadBillingPage {
 
     /**
      * Gets all finance messages from the billing page.
+     * @author AI Agent
+     * @created 17-Mar-2026
      * @returns Array of finance message texts.
      */
     async getFinanceMessages(): Promise<string[]> {
@@ -688,6 +644,8 @@ class LoadBillingPage {
 
     /**
      * Checks if any finance message contains the given text (case-insensitive).
+     * @author AI Agent
+     * @created 17-Mar-2026
      */
     async hasFinanceMessageContaining(searchText: string): Promise<boolean> {
         const messages = await this.getFinanceMessages();
@@ -697,6 +655,8 @@ class LoadBillingPage {
     /**
      * Clicks "View History" link on the billing page and returns the popup Page.
      * View History opens a new browser window via window.open().
+     * @author AI Agent
+     * @created 17-Mar-2026
      */
     async clickViewHistoryAndGetPopup(): Promise<import('@playwright/test').Page> {
         await this.viewHistoryLink_LOC.scrollIntoViewIfNeeded();
@@ -710,6 +670,50 @@ class LoadBillingPage {
         await historyPopup.waitForLoadState("networkidle");
         console.log("View History popup window opened");
         return historyPopup;
+    }
+    /**
+     * Checks whether the "Not Deliv. Final" checkbox is checked.
+     * Uses Playwright's isChecked() on the actual #Delivs input element.
+     * @author AI Agent
+     * @created 17-Mar-2026
+     */
+    async isNotDeliveredFinalChecked(): Promise<boolean> {
+        if (!(await this.notDeliveredFinalCheckbox_LOC.isVisible({ timeout: 5000 }).catch(() => false))) {
+            console.log('Not Deliv. Final checkbox #Delivs not found');
+            return false;
+        }
+        const checked = await this.notDeliveredFinalCheckbox_LOC.isChecked();
+        console.log(`Not Deliv. Final checkbox is ${checked ? 'checked' : 'unchecked'}`);
+        return checked;
+    }
+
+    /**
+     * Clicks the "Not Deliv. Final" checkbox label to toggle its state.
+     * @author AI Agent
+     * @created 17-Mar-2026
+     */
+    async toggleNotDeliveredFinal(): Promise<void> {
+        await this.notDeliveredFinalLabel_LOC.scrollIntoViewIfNeeded();
+        await this.notDeliveredFinalLabel_LOC.click();
+        console.log('Toggled Not Delivered Final checkbox');
+    }
+
+    /**
+     * Validates the Not Delivered Final checkbox text/label is visible.
+     * @author AI Agent
+     * @created 17-Mar-2026
+     */
+    async isNotDeliveredFinalVisible(): Promise<boolean> {
+        return this.notDeliveredFinalLabel_LOC.isVisible({ timeout: 5000 }).catch(() => false);
+    }
+    /**
+     * Reads and returns the full body text from a popup Page object (e.g. View History popup).
+     * @author AI Agent
+     * @created 17-Mar-2026
+     * @param popup - The popup Page returned by clickViewHistoryAndGetPopup()
+     */
+    async getPopupBodyText(popup: import('@playwright/test').Page): Promise<string> {
+        return (await popup.locator("body").textContent()) || '';
     }
 }
 export default LoadBillingPage;

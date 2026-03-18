@@ -58,10 +58,7 @@ test.describe.serial(
         });
 
         await test.step("Step 2 [CSV 1-5]: Search customer and navigate to CREATE TL *NEW*", async () => {
-          const btmsBaseUrl = new URL(sharedPage.url()).origin;
-          await sharedPage.goto(btmsBaseUrl);
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-          await sharedPage.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });
+          await pages.basePage.navigateToBaseUrl();
           console.log("Navigated to BTMS Home");
           await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
           await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
@@ -84,42 +81,11 @@ test.describe.serial(
           await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           const customerName = testData['Customer Value'];
 
-          const customerSelect2 = sharedPage.locator(
-            "//select[contains(@id,'customer')]//following-sibling::span[contains(@class,'select2')]"
-          ).first();
-          const customerDropdown = sharedPage.locator(
-            "//select[contains(@id,'customer_id') or contains(@id,'customer')]"
-          ).first();
-
-          if (await customerSelect2.isVisible({ timeout: 5000 }).catch(() => false)) {
-            console.log(`Customer field has Select2 widget — searching for "${customerName}"`);
-            await customerSelect2.click();
-            const searchInput = sharedPage.locator("input.select2-search__field");
-            await searchInput.waitFor({ state: "visible", timeout: 5000 });
-            await searchInput.fill(customerName);
-            await sharedPage.waitForTimeout(2000);
-            const resultItem = sharedPage.locator(
-              `//li[contains(@class,'select2-results__option') and contains(text(),'${customerName}')]`
-            ).first();
-            await resultItem.waitFor({ state: "visible", timeout: 10000 });
-            await resultItem.click();
-            console.log(`Selected customer via Select2: "${customerName}"`);
-          } else if (await customerDropdown.isVisible({ timeout: 5000 }).catch(() => false)) {
-            console.log(`Customer field is a plain dropdown — selecting "${customerName}"`);
-            await customerDropdown.selectOption({ label: customerName });
-            console.log(`Selected customer via dropdown: "${customerName}"`);
-          } else {
-            console.log("Customer dropdown not found — checking if already correct");
-          }
+          await pages.editLoadCarrierTabPage.selectCustomerViaSelect2(customerName);
+          console.log(`Selected customer via Select2: "${customerName}"`);
 
           await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-          await sharedPage.waitForTimeout(3000);
-
-          const shipperDropdown = sharedPage.locator("//select[@id='form_shipper_ship_point']");
-          await shipperDropdown.waitFor({ state: "visible", timeout: WAIT.LARGE });
-          const shipperOptions = await shipperDropdown.locator("option").allTextContents();
-          const validShipperOptions = shipperOptions.filter(o => o.trim() !== "" && !o.toLowerCase().includes("choose"));
-          console.log(`Shipper dropdown now has ${validShipperOptions.length} options: ${validShipperOptions.map(o => `"${o.trim()}"`).join(", ")}`);
+          await pages.editLoadCarrierTabPage.waitForShipperDropdown();
           pages.logger.info(`Customer set to ${customerName}, shipper/consignee dropdowns repopulated`);
         });
 
@@ -156,43 +122,26 @@ test.describe.serial(
         });
 
         await test.step("Step 5 [CSV 20]: Enter Whse Instructions", async () => {
-          const whseInput = sharedPage.locator(
-            "//textarea[contains(@id,'shipper_whse') or contains(@name,'shipper_whse')]," +
-            "//input[contains(@id,'shipper_whse') or contains(@name,'shipper_whse')]"
-          ).first();
-          if (await whseInput.isVisible({ timeout: 5000 }).catch(() => false)) {
-            await whseInput.fill("TestData");
-            console.log("Entered Whse Instructions: TestData");
-          } else {
-            console.log("Whse Instructions field not found — skipping");
-          }
+          await pages.editLoadFormPage.fillWhseInstructions("TestData");
+          console.log("Entered Whse Instructions: TestData");
         });
 
         await test.step("Step 6 [CSV 27-29]: Select Mileage Engine, Method, and enter LH Rate", async () => {
-          const mileageEngineDropdown = sharedPage.locator("//select[contains(@id,'mileage_engine')]").first();
-          if (await mileageEngineDropdown.isVisible({ timeout: 5000 }).catch(() => false)) {
-            await mileageEngineDropdown.selectOption({ label: testData.mileageEngine || "Current" });
-            console.log(`Selected Mileage Engine: ${testData.mileageEngine || "Current"}`);
-          }
+          await pages.editLoadFormPage.selectMileageEngine(testData.mileageEngine || "Current");
+          console.log(`Selected Mileage Engine: ${testData.mileageEngine || "Current"}`);
 
-          const methodDropdown = sharedPage.locator("//select[contains(@id,'mileage_method')]").first();
-          await methodDropdown.waitFor({ state: "visible", timeout: WAIT.LARGE });
-          await methodDropdown.selectOption({ label: testData.Method || "Practical" });
+          await pages.editLoadFormPage.selectMileageMethod(testData.Method || "Practical");
           console.log(`Selected Method: ${testData.Method || "Practical"}`);
 
-          const lhRateInput = sharedPage.locator("//input[contains(@id,'linehaul_rate')]").first();
-          await lhRateInput.waitFor({ state: "visible", timeout: WAIT.LARGE });
-          await lhRateInput.clear();
-          await lhRateInput.fill("500");
-          console.log("Entered LH Rate: 500");
+          await pages.editLoadFormPage.enterLinehaulRate(testData.linehaulRate);
+          console.log(`Entered LH Rate: ${testData.linehaulRate}`);
         });
 
         await test.step("Step 7 [CSV 30-31]: Click Create Load and select Rate Type", async () => {
           await pages.nonTabularLoadPage.clickCreateLoadButton();
           console.log("Clicked Create Load button");
 
-          const rateTypeField = sharedPage.locator("//select[contains(@id,'rate_type') or contains(@name,'rate_type')]").first();
-          if (await rateTypeField.isVisible({ timeout: 5000 }).catch(() => false)) {
+          if (await pages.editLoadFormPage.isRateTypeFieldVisible()) {
             await pages.editLoadLoadTabPage.checkLoadTabDetails(testData.rateType);
             console.log(`Rate type set to ${testData.rateType}`);
           } else {
@@ -213,13 +162,13 @@ test.describe.serial(
         });
 
         await test.step("Step 9 [CSV 34]: Enter flat rate in Customer as 500", async () => {
-          await pages.editLoadCarrierTabPage.enterCustomerRate("500");
-          console.log("Entered Customer flat rate: 500");
+          await pages.editLoadCarrierTabPage.enterCustomerRate(testData.customerRate);
+          console.log(`Entered Customer flat rate: ${testData.customerRate}`);
         });
 
-        await test.step("Step 10 [CSV 35]: Enter flat rate in Carrier as 600", async () => {
-          await pages.editLoadCarrierTabPage.enterCarrierRate("600");
-          console.log("Entered Carrier flat rate: 600");
+        await test.step("Step 10 [CSV 35]: Enter flat rate in Carrier", async () => {
+          await pages.editLoadCarrierTabPage.enterCarrierRate(testData.carrierRate);
+          console.log(`Entered Carrier flat rate: ${testData.carrierRate}`);
         });
 
         await test.step("Step 11 [CSV 36]: Enter trailer length", async () => {
@@ -231,20 +180,20 @@ test.describe.serial(
           const futureDate = new Date();
           futureDate.setDate(futureDate.getDate() + 7);
           const formattedDate = `${(futureDate.getMonth() + 1).toString().padStart(2, '0')}/${futureDate.getDate().toString().padStart(2, '0')}/${futureDate.getFullYear()}`;
-          await sharedPage.locator("#form_expiration_date").fill(formattedDate);
+          await pages.editLoadFormPage.enterExpirationDate(formattedDate);
           console.log(`Entered Expiration Date: ${formattedDate}`);
-          await sharedPage.locator("#form_expiration_time").fill("18:00");
+          await pages.editLoadFormPage.enterExpirationTime("18:00");
           console.log("Entered Expiration Time: 18:00");
         });
 
         await test.step("Step 13 [CSV 39]: Enter Email for notification", async () => {
-          await sharedPage.locator("#form_notification_email").fill("abhinav.mishra@modeglobal.com");
-          console.log("Entered Email for notification: abhinav.mishra@modeglobal.com");
+          await pages.editLoadCarrierTabPage.selectEmailNotificationViaSelect2(testData.saleAgentEmail);
+          console.log(`Entered Email for notification: ${testData.saleAgentEmail}`);
         });
 
         await test.step("Step 14 [CSV 40]: Enter total miles", async () => {
-          await pages.editLoadCarrierTabPage.enterMiles("100");
-          console.log("Entered total miles: 100");
+          await pages.editLoadCarrierTabPage.enterMiles(testData.miles);
+          console.log(`Entered total miles: ${testData.miles}`);
         });
 
         await test.step("Step 15 [CSV 41]: Choose a carrier — XPO TRANS INC", async () => {
@@ -273,26 +222,9 @@ test.describe.serial(
           await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           console.log("Clicked View Billing");
 
-          const billingToggle = sharedPage.locator(
-            "//input[contains(@id,'billing_toggle') or contains(@name,'billing_toggle')]," +
-            "//button[contains(@class,'billing-toggle') or contains(text(),'Agent')]," +
-            "//label[contains(text(),'Agent')]/preceding-sibling::input[@type='radio']"
-          ).first();
-          if (await billingToggle.isVisible({ timeout: 5000 }).catch(() => false)) {
-            const toggleText = await billingToggle.inputValue().catch(() =>
-              billingToggle.textContent().catch(() => "")
-            );
-            console.log(`Billing toggle value: ${toggleText}`);
-            expect.soft(
-              toggleText?.toLowerCase().includes("agent") || await billingToggle.isChecked().catch(() => false),
-              "Billing toggle button should be set to 'Agent'"
-            ).toBeTruthy();
-          } else {
-            const agentLabel = sharedPage.locator("//*[contains(@class,'active') and contains(text(),'Agent')]").first();
-            const isAgentActive = await agentLabel.isVisible({ timeout: 5000 }).catch(() => false);
-            expect.soft(isAgentActive, "Billing toggle should show 'Agent' as active").toBeTruthy();
-            console.log(`Billing toggle Agent active: ${isAgentActive}`);
-          }
+          const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
+          console.log(`Billing toggle value: ${toggleValue}`);
+          expect.soft(toggleValue, "Billing toggle button should be set to 'Agent'").toBe('Agent');
           pages.logger.info("Expected Result 1: Billing toggle validated as Agent");
         });
 
@@ -301,80 +233,41 @@ test.describe.serial(
           await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           console.log("Navigated back to View Load page");
 
-          // Click the upload document icon (first icon = Customer section)
-          const uploadIcon = sharedPage.locator("//img[@title='Upload document']").first();
-          await uploadIcon.waitFor({ state: "visible", timeout: WAIT.LARGE });
-          await uploadIcon.click();
+          await pages.viewLoadPage.openDocumentUploadDialog();
           console.log("Clicked document upload icon against Customer");
-          await sharedPage.waitForTimeout(2000);
         });
 
         await test.step("Step 19 [CSV 45-46]: Select Payables, Document Type as Carrier Invoice, and upload file", async () => {
-          const payablesRadio = sharedPage.locator("//input[@id='cat_payables']");
-          await payablesRadio.waitFor({ state: "visible", timeout: WAIT.LARGE });
-          await expect(payablesRadio).toBeEnabled({ timeout: WAIT.LARGE });
-          await payablesRadio.check();
+          await pages.viewLoadPage.selectPayablesRadio();
           console.log("Selected Payables radio button");
 
-          const documentTypeDropdown = sharedPage.locator("//select[@name='document_type']");
-          await documentTypeDropdown.waitFor({ state: "visible", timeout: WAIT.LARGE });
-          await documentTypeDropdown.selectOption({ label: "Carrier Invoice" });
+          await pages.viewLoadPage.selectDocumentType('Carrier Invoice');
           console.log("Selected Document Type: Carrier Invoice");
         });
 
         await test.step("Step 20 [CSV 47]: Enter invoice number, amount, attach, and accept alert", async () => {
-          const invoiceNumberInput = sharedPage.locator("//input[@id='carr_invoice_num_input']");
-          await invoiceNumberInput.waitFor({ state: "visible", timeout: WAIT.LARGE });
-          await invoiceNumberInput.fill("123456");
-          console.log("Entered Invoice Number: 123456");
+          await pages.viewLoadPage.fillCarrierInvoiceNumber(testData.carrierInvoiceNumber);
+          console.log(`Entered Invoice Number: ${testData.carrierInvoiceNumber}`);
 
-          const invoiceAmountInput = sharedPage.locator("//input[@id='carr_invoice_amount']");
-          await invoiceAmountInput.waitFor({ state: "visible", timeout: WAIT.LARGE });
-          await invoiceAmountInput.fill("1500");
-          console.log("Entered Invoice Amount: 1500");
+          await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
+          console.log(`Entered Invoice Amount: ${testData.carrierInvoiceAmount1}`);
 
-          const dragDropArea = sharedPage.locator("//div[@class='dz-message']");
-          await dragDropArea.click().catch(() => console.log("Drag-drop area not clickable, trying file input directly"));
-          const fileInput = sharedPage.locator("//input[@type='file']").first();
-          const path = require("path");
-          const fs = require("fs");
-          const candidatePaths = [
-            path.resolve(process.cwd(), "src", "data", "bulkchange", "CarrierInvoice.pdf"),
-            path.resolve(process.cwd(), "src", "data", "bulkchange", "ProofOfDelivery.pdf"),
-          ];
-          const filePath = candidatePaths.find((p: string) => fs.existsSync(p));
-          if (filePath) {
-            await fileInput.setInputFiles(filePath);
-            console.log(`Uploaded file: ${filePath}`);
-          } else {
-            console.log("No invoice file found in expected paths — skipping file upload");
-          }
+          await pages.viewLoadPage.attachCarrierInvoiceFile();
 
           const alertPromise = pages.commonReusables.validateAlert(
             sharedPage,
             ALERT_PATTERNS.PAYABLE_STATUS_INVOICE_RECEIVED
           );
-          const submitBtn = sharedPage.locator("//input[@type='submit']").last();
-          await submitBtn.waitFor({ state: "visible", timeout: WAIT.LARGE });
-          await submitBtn.click();
+          await pages.viewLoadPage.clickSubmitRemote();
           console.log("Clicked Attach/Submit button");
 
           const alertMsg = await alertPromise;
           console.log(`Invoice alert handled: "${alertMsg}"`);
 
-          const successMessage = sharedPage.locator("//div[@id='message_display']");
-          if (await successMessage.isVisible({ timeout: WAIT.LARGE }).catch(() => false)) {
-            const msgText = (await successMessage.textContent())?.trim() || "";
-            console.log(`Upload result: ${msgText}`);
-          }
+          await pages.viewLoadPage.waitForUploadSuccess();
 
-          const closeDialogBtn = sharedPage.locator(
-            "//div[@role='dialog' and .//span[text()='Document Upload Utility']]//button[contains(@class,'ui-dialog-titlebar-close')]"
-          ).first();
-          if (await closeDialogBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-            await closeDialogBtn.click({ force: true });
-            console.log("Closed document upload dialog");
-          }
+          await pages.viewLoadPage.closeDocumentUploadDialogSafe();
+          console.log("Closed document upload dialog");
           pages.logger.info("Carrier invoice uploaded and alert accepted");
         });
 
@@ -389,43 +282,13 @@ test.describe.serial(
           await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           console.log("Navigated to View Billing after reload");
 
-          const billingToggle = sharedPage.locator(
-            "//input[contains(@id,'billing_toggle') or contains(@name,'billing_toggle')]," +
-            "//button[contains(@class,'billing-toggle') or contains(text(),'Agent')]," +
-            "//label[contains(text(),'Agent')]/preceding-sibling::input[@type='radio']"
-          ).first();
-          if (await billingToggle.isVisible({ timeout: 5000 }).catch(() => false)) {
-            const toggleText = await billingToggle.inputValue().catch(() =>
-              billingToggle.textContent().catch(() => "")
-            );
-            console.log(`Billing toggle after reload: ${toggleText}`);
-            expect.soft(
-              toggleText?.toLowerCase().includes("agent") || await billingToggle.isChecked().catch(() => false),
-              "Billing toggle should still be 'Agent' after reload"
-            ).toBeTruthy();
-          } else {
-            const agentLabel = sharedPage.locator("//*[contains(@class,'active') and contains(text(),'Agent')]").first();
-            const isAgentActive = await agentLabel.isVisible({ timeout: 5000 }).catch(() => false);
-            expect.soft(isAgentActive, "Billing toggle should show 'Agent' as active after reload").toBeTruthy();
-            console.log(`Billing toggle Agent active after reload: ${isAgentActive}`);
-          }
+          const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
+          console.log(`Billing toggle after reload: ${toggleValue}`);
+          expect.soft(toggleValue, "Billing toggle should still be 'Agent' after reload").toBe('Agent');
 
-          const notDelivFinalCheckbox = sharedPage.locator(
-            "//input[contains(@id,'not_delivered_final') or contains(@name,'not_delivered_final')]," +
-            "//input[contains(@id,'not_deliv_final') or contains(@name,'not_deliv_final')]"
-          ).first();
-          if (await notDelivFinalCheckbox.isVisible({ timeout: 5000 }).catch(() => false)) {
-            const isChecked = await notDelivFinalCheckbox.isChecked();
-            console.log(`Not Delivered Final checkbox is ${isChecked ? "checked" : "NOT checked"}`);
-            expect.soft(isChecked, "Finance issue should be marked as 'Not Delivered Final'").toBeTruthy();
-          } else {
-            const notDelivText = sharedPage.locator(
-              "//*[contains(text(),'Not Delivered Final') or contains(text(),'Not Deliv Final') or contains(text(),'NOT DELIVERED FINAL')]"
-            ).first();
-            const isVisible = await notDelivText.isVisible({ timeout: 5000 }).catch(() => false);
-            console.log(`Not Delivered Final label visible: ${isVisible}`);
-            expect.soft(isVisible, "Finance issue 'Not Delivered Final' should be visible").toBeTruthy();
-          }
+          const isChecked = await pages.loadBillingPage.isNotDeliveredFinalChecked();
+          console.log(`Not Delivered Final checkbox is ${isChecked ? "checked" : "NOT checked"}`);
+          expect.soft(isChecked, "Finance issue should be marked as 'Not Delivered Final'").toBeTruthy();
           pages.logger.info("Expected Result 2: Not Delivered Final validated");
         });
 

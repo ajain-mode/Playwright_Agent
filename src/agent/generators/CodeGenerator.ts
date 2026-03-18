@@ -545,6 +545,14 @@ export class CodeGenerator {
         continue; // Already exists, nothing to do
       }
 
+      // Check if method already exists on a DIFFERENT POM class (duplicate detection)
+      const existsElsewhere = this.schemaAnalyzer.methodExistsAnywhere(methodName);
+      if (existsElsewhere.exists && existsElsewhere.className && existsElsewhere.className !== className) {
+        console.log(`\n⚠️  Duplicate POM method detected: '${methodName}' already exists on '${existsElsewhere.className}' but spec calls it on '${className}'.`);
+        console.log(`   Review whether the existing method on '${existsElsewhere.className}' can be reused instead of creating a duplicate.`);
+        console.log(`   Proceeding with auto-generation on '${className}' — review for potential deduplication.`);
+      }
+
       // Method doesn't exist — generate and add it
       console.log(`\n🔧 Method '${methodName}' not found on '${className}'. Generating reusable function...`);
 
@@ -3564,6 +3572,80 @@ ${stepCode}
     for (const { original, replacement } of genericReplacements) {
       fixed = fixed.replace(original, replacement);
       warnings.push(`✅ Guardrail: Auto-converted generic raw locator to POM call: ${replacement}`);
+    }
+
+    // ── 11. Detect brittle XPath translate() patterns ──
+    const translatePattern = /translate\s*\(\s*text\s*\(\s*\)\s*,\s*['"]ABCDEFGHIJKLMNOPQRSTUVWXYZ/g;
+    if (translatePattern.test(fixed)) {
+      warnings.push('⚠️  Guardrail: Brittle XPath translate() detected for case-insensitive matching. Use explicit text alternatives instead (e.g., contains(text(),"LabelA") or contains(text(),"labelb")).');
+    }
+
+    // ── 12. Detect try/catch blocks that swallow validation errors ──
+    const tryCatchSwallowPattern = /try\s*\{[^}]*(?:validate|getBids|getAvgRate|getBidHistory|getReport|getFinance)[^}]*\}\s*catch\s*\([^)]*\)\s*\{[^}]*console\.log/gi;
+    if (tryCatchSwallowPattern.test(fixed)) {
+      warnings.push('⚠️  Guardrail: Validation code wrapped in try/catch that swallows errors with console.log(). Use expect.soft() for non-blocking assertions instead of hiding failures.');
+    }
+
+    // ── 13. Detect any remaining sharedPage.locator() calls ──
+    const rawSharedPageLocator = /sharedPage\.locator\s*\(/g;
+    const rawLocatorMatches = fixed.match(rawSharedPageLocator);
+    if (rawLocatorMatches && rawLocatorMatches.length > 0) {
+      warnings.push(`⚠️  Guardrail: ${rawLocatorMatches.length} sharedPage.locator() call(s) found in spec file. All locators must be in POM files under src/pages/. Use pages.<getter>.<method>() instead.`);
+    }
+
+    // ── 14. Detect page.evaluate() with querySelector/closest DOM guessing ──
+    const domGuessingPattern = /\.evaluate\s*\([^)]*(?:querySelector|closest|getComputedStyle|classList\.contains)/g;
+    const domGuessingMatches = fixed.match(domGuessingPattern);
+    if (domGuessingMatches && domGuessingMatches.length > 0) {
+      warnings.push(`⚠️  Guardrail: ${domGuessingMatches.length} page.evaluate() call(s) using DOM guessing (querySelector/closest/getComputedStyle). Use Playwright built-in methods (isChecked, inputValue, getAttribute) instead.`);
+    }
+
+    // ── 15. Remove hardcoded waitForTimeout calls ──
+    const waitForTimeoutPattern = /^\s*await\s+(?:sharedPage|dmePage|tnxPage|this\.page)\.waitForTimeout\s*\(\s*\d+\s*\)\s*;?\s*$/gm;
+    const waitMatches = fixed.match(waitForTimeoutPattern);
+    if (waitMatches && waitMatches.length > 0) {
+      fixed = fixed.replace(waitForTimeoutPattern, '');
+      // Clean up double blank lines left behind
+      fixed = fixed.replace(/\n{3,}/g, '\n\n');
+      warnings.push(`⚠️  Guardrail: Removed ${waitMatches.length} hardcoded waitForTimeout() call(s). Use waitForLoadState or element-based waits instead.`);
+    }
+
+    // ── 16. Replace inline require("path")/path.resolve for known files with POM methods ──
+    const inlineCarrierInvoicePath = /const\s+(?:path|filePath)\s*=\s*(?:require\s*\(\s*["']path["']\s*\)\s*\.resolve|path\.resolve)\s*\([^)]*CarrierInvoice[^)]*\)\s*;?\s*\n?\s*(?:const\s+\w+\s*=\s*[^;]*;\s*\n?\s*)*(?:if\s*\([^)]*\)\s*\{[^}]*\}\s*else\s*\{[^}]*\}\s*|await\s+pages\.viewLoadPage\.attachFile\s*\([^)]*\)\s*;?\s*)/g;
+    if (inlineCarrierInvoicePath.test(fixed)) {
+      fixed = fixed.replace(inlineCarrierInvoicePath, 'await pages.viewLoadPage.attachCarrierInvoiceFile();');
+      warnings.push('✅ Guardrail: Replaced inline path.resolve(CarrierInvoice) → pages.viewLoadPage.attachCarrierInvoiceFile()');
+    }
+    const inlinePODPath = /const\s+(?:path|filePath)\s*=\s*(?:require\s*\(\s*["']path["']\s*\)\s*\.resolve|path\.resolve)\s*\([^)]*ProofOfDelivery[^)]*\)\s*;?\s*\n?\s*await\s+pages\.viewLoadPage\.attachFile\s*\([^)]*\)\s*;?/g;
+    if (inlinePODPath.test(fixed)) {
+      fixed = fixed.replace(inlinePODPath, 'await pages.viewLoadPage.attachPODFile();');
+      warnings.push('✅ Guardrail: Replaced inline path.resolve(ProofOfDelivery) → pages.viewLoadPage.attachPODFile()');
+    }
+
+    // ── 17. Warn on inline require() calls in spec files ──
+    const inlineRequirePattern = /(?:const|let|var)\s+\w+\s*=\s*require\s*\(/g;
+    const requireMatches = fixed.match(inlineRequirePattern);
+    if (requireMatches && requireMatches.length > 0) {
+      warnings.push(`⚠️  Guardrail: ${requireMatches.length} inline require() call(s) found in spec file. Use ES module imports or encapsulate in POM methods.`);
+    }
+
+    // ── 18. Detect hardcoded numeric values passed to POM methods ──
+    // Methods that accept rates, amounts, miles etc. should use testData.* instead of hardcoded strings
+    const hardcodedValueMethods = [
+      'enterMiles', 'enterCustomerRate', 'enterCarrierRate', 'enterLinehaulRate',
+      'fillCarrierInvoiceAmount', 'fillCarrierInvoiceNumber', 'enterCarrierInvoiceAmount',
+      'enterCarrierInvoiceNumber', 'enterOfferRate', 'enterAmount'
+    ];
+    const hardcodedMethodPattern = new RegExp(
+      `(?:${hardcodedValueMethods.join('|')})\\s*\\(\\s*["']\\d+["']\\s*\\)`,
+      'g'
+    );
+    const hardcodedMatches = fixed.match(hardcodedMethodPattern);
+    if (hardcodedMatches && hardcodedMatches.length > 0) {
+      warnings.push(
+        `⚠️  Guardrail: ${hardcodedMatches.length} POM method call(s) with hardcoded numeric values detected. ` +
+        `Use testData.* from CSV instead: ${hardcodedMatches.map(m => m.replace(/\s+/g, '')).join(', ')}`
+      );
     }
 
     // Log all warnings

@@ -1397,10 +1397,40 @@ export default class ViewLoadPage {
 
   /**
    * Attaches a file in the Document Upload Utility.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async attachFile(filePath: string): Promise<void> {
     await this.uploadTypeFile_LOC.first().setInputFiles(filePath);
     console.log(`Attached file: ${filePath}`);
+  }
+
+  /**
+   * Attaches the CarrierInvoice.pdf file from src/data/bulkchange/ in the Document Upload Utility.
+   * Encapsulates path resolution so specs don't need inline require("path").
+   * @author AI Agent
+   * @created 17-Mar-2026
+   */
+  async attachCarrierInvoiceFile(): Promise<void> {
+    const filePath = path.resolve(process.cwd(), "src", "data", "bulkchange", "CarrierInvoice.pdf");
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Carrier Invoice file not found at: ${filePath}`);
+    }
+    await this.attachFile(filePath);
+  }
+
+  /**
+   * Attaches the ProofOfDelivery.pdf file from src/data/bulkchange/ in the Document Upload Utility.
+   * Encapsulates path resolution so specs don't need inline require("path").
+   * @author AI Agent
+   * @created 17-Mar-2026
+   */
+  async attachPODFile(): Promise<void> {
+    const filePath = path.resolve(process.cwd(), "src", "data", "bulkchange", "ProofOfDelivery.pdf");
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`POD file not found at: ${filePath}`);
+    }
+    await this.attachFile(filePath);
   }
 
   /**
@@ -1418,6 +1448,91 @@ export default class ViewLoadPage {
     await expect(this.successMessage_LOC).toBeVisible({ timeout: WAIT.LARGE });
     await expect(this.successMessage_LOC).toHaveText("All documents attached successfully.", { timeout: WAIT.LARGE });
     console.log("Upload success message confirmed");
+  }
+
+  /**
+   * Clicks the Confirm button on the duplicate invoice dialog.
+   */
+  async clickConfirmDuplicateInvoiceDialog(): Promise<void> {
+    const confirmBtn = this.page.locator("//button[text()='Confirm']").first();
+    if (await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await confirmBtn.click();
+      console.log("Clicked Confirm on duplicate invoice dialog");
+    }
+  }
+
+  /**
+   * Scrolls to the Billing Issues section on the page.
+   */
+  async scrollToBillingIssuesSection(): Promise<void> {
+    const billingSection = this.page.locator("//h4[contains(text(),'Billing Issues')]/parent::*").first();
+    if (await billingSection.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await billingSection.scrollIntoViewIfNeeded();
+      console.log("Scrolled to Billing Issues section");
+    }
+  }
+
+  /**
+   * Reads the average rate value from the bids section.
+   */
+  async getAvgRate(): Promise<string> {
+    const avgRateEl = this.page.locator("//span[@id='bids-avg-rate'], //td[contains(text(),'Avg Rate')]/following-sibling::td").first();
+    if (await avgRateEl.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const text = (await avgRateEl.textContent())?.trim() || '';
+      console.log(`Average Rate: ${text}`);
+      return text;
+    }
+    return '';
+  }
+
+  /**
+   * Scrolls to the DFB / TNX Load Board section.
+   */
+  async scrollToDFBSection(): Promise<void> {
+    const dfbSection = this.page.locator("#tnx_load_board");
+    if (await dfbSection.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await dfbSection.scrollIntoViewIfNeeded();
+      console.log("Scrolled to DFB/TNX Load Board section");
+    }
+  }
+
+  /**
+   * Checks the state of the Auto Accept checkbox.
+   */
+  async isAutoAcceptChecked(): Promise<boolean> {
+    const autoAcceptCheckbox = this.page.locator("//input[@id='form_auto_accept']");
+    if (await autoAcceptCheckbox.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const checked = await autoAcceptCheckbox.isChecked();
+      console.log(`Auto Accept checkbox is ${checked ? 'checked' : 'unchecked'}`);
+      return checked;
+    }
+    return false;
+  }
+
+  /**
+   * Gets the selected value from the Carrier Contact (Accept As User) dropdown.
+   */
+  async getCarrierContactDropdownValue(): Promise<string> {
+    const dropdown = this.page.locator("//select[@id='form_accept_as_user']");
+    if (await dropdown.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const value = await dropdown.inputValue();
+      console.log(`Carrier Contact dropdown value: ${value}`);
+      return value;
+    }
+    return '';
+  }
+
+  /**
+   * Gets all options from the Carrier Contact (Accept As User) dropdown.
+   */
+  async getCarrierContactDropdownOptions(): Promise<string[]> {
+    const dropdown = this.page.locator("//select[@id='form_accept_as_user']");
+    await this.page.waitForTimeout(2000);
+    if (await dropdown.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const options = await dropdown.locator("option").allTextContents();
+      return options;
+    }
+    return [];
   }
 
 }

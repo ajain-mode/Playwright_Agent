@@ -79,5 +79,119 @@ class DMEDashboardPage {
     
     console.log("Search completed and results loaded");
   }
+  /**
+   * Clicks on the Carriers link in the DME sidebar.
+   * @author AI Agent
+   * @created 17-Mar-2026
+   */
+  async clickCarriersLink(): Promise<void> {
+    const carriersLink = this.page.locator("//span[normalize-space()='Carriers']").first();
+    await carriersLink.waitFor({ state: "visible", timeout: 15000 });
+    await carriersLink.click();
+    console.log("Clicked Carriers link in DME sidebar");
+    await this.page.waitForLoadState("networkidle");
+    await this.page.waitForTimeout(2000);
+  }
+
+  /**
+   * Searches for a carrier by name in the DME carriers table.
+   * @author AI Agent
+   * @created 17-Mar-2026
+   */
+  async searchCarrierByName(carrierName: string): Promise<void> {
+    const searchInput = this.page.locator("input[type='search']").first();
+    if (await searchInput.isVisible({ timeout: 10000 }).catch(() => false)) {
+      await searchInput.clear();
+      await searchInput.fill(carrierName);
+      await this.page.waitForTimeout(1000);
+      await this.page.keyboard.press("Enter");
+      await this.page.waitForLoadState("networkidle");
+      await this.page.waitForTimeout(2000);
+      console.log(`Searched for carrier in DME: ${carrierName}`);
+    }
+  }
+
+  /**
+   * Checks the carrier toggle state in the DME carriers table.
+   * Finds the carrier row and inspects the toggle/checkbox state.
+   * @author AI Agent
+   * @created 17-Mar-2026
+   * @returns true if carrier toggle is ON, false if OFF or not found.
+   */
+  async getCarrierToggleState(carrierName: string): Promise<{found: boolean; enabled: boolean}> {
+    const tableRows = this.page.locator("table tbody tr");
+    await tableRows.first().waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
+    const rowCount = await tableRows.count();
+
+    for (let i = 0; i < rowCount; i++) {
+      const row = tableRows.nth(i);
+      const rowText = (await row.textContent()) || '';
+      if (rowText.includes(carrierName)) {
+        const toggleCell = row.locator("td.has-switch, td.field-boolean").first();
+        if (await toggleCell.isVisible({ timeout: 3000 }).catch(() => false)) {
+          const checkbox = toggleCell.locator("input[type='checkbox']").first();
+          if (await checkbox.count() > 0) {
+            const isChecked = await checkbox.isChecked();
+            console.log(`DME carrier "${carrierName}" toggle is ${isChecked ? 'ON' : 'OFF'}`);
+            return { found: true, enabled: isChecked };
+          }
+          const switchContainer = toggleCell.locator("div.make-switch, div.bootstrap-switch, div[class*='switch']").first();
+          if (await switchContainer.count() > 0) {
+            const classes = await switchContainer.getAttribute("class") || '';
+            const isOn = classes.includes('switch-on') || classes.includes('bootstrap-switch-on');
+            console.log(`DME carrier "${carrierName}" switch is ${isOn ? 'ON' : 'OFF'} (class: ${classes})`);
+            return { found: true, enabled: isOn };
+          }
+        }
+        console.log(`DME carrier "${carrierName}" found but toggle state unclear`);
+        return { found: true, enabled: false };
+      }
+    }
+    console.log(`DME carrier "${carrierName}" not found in table`);
+    return { found: false, enabled: false };
+  }
+
+  /**
+   * Enables the carrier toggle in the DME carriers table if it is currently OFF.
+   * Finds the carrier row, clicks the toggle switch or cell to enable it.
+   * @author AI Agent
+   * @created 17-Mar-2026
+   * @returns true if toggle was clicked (was OFF), false if already ON or not found.
+   */
+  async enableCarrierToggle(carrierName: string): Promise<boolean> {
+    const state = await this.getCarrierToggleState(carrierName);
+    if (!state.found) {
+      console.log(`Carrier "${carrierName}" not found in DME carriers table — may already be enabled`);
+      return false;
+    }
+    if (state.enabled) {
+      console.log("Carrier toggle is already ON — no action needed");
+      return false;
+    }
+
+    const tableRows = this.page.locator("table tbody tr");
+    const rowCount = await tableRows.count();
+    for (let i = 0; i < rowCount; i++) {
+      const row = tableRows.nth(i);
+      const rowText = (await row.textContent()) || '';
+      if (rowText.includes(carrierName)) {
+        const toggleCell = row.locator("td.has-switch, td.field-boolean").first();
+        if (await toggleCell.isVisible({ timeout: 5000 }).catch(() => false)) {
+          const switchContainer = toggleCell.locator("div.make-switch, div.bootstrap-switch, div[class*='switch']").first();
+          if (await switchContainer.isVisible({ timeout: 2000 }).catch(() => false)) {
+            await switchContainer.click();
+          } else {
+            await toggleCell.click();
+          }
+          await this.page.waitForTimeout(2000);
+          await this.page.waitForLoadState("networkidle");
+          console.log("Carrier toggle was OFF — clicked to enable");
+          return true;
+        }
+        break;
+      }
+    }
+    return false;
+  }
 }
 export default DMEDashboardPage;

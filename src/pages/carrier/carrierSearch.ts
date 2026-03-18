@@ -371,7 +371,7 @@ export default class CarrierSearch {
         await commonReusables.waitForPageStable(this.page);
         await this.clearButton_LOC.click();
     }
-    async verifyCarrerListTableData(dataToViisible: string) {
+    async verifyCarrierListTableData(dataToViisible: string) {
         await commonReusables.waitForPageStable(this.page);
         const cell = this.carrierListTableData_LOC(dataToViisible);
         await expect(cell).toBeVisible({ timeout: WAIT.LARGE });

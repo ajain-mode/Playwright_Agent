@@ -388,6 +388,11 @@ class TNXLandingPage {
     }
   }
 
+  /**
+   * Gets the load offer rate value from the TNX page.
+   * @author AI Agent
+   * @created 17-Mar-2026
+   */
   async getLoadOfferRateValue(): Promise<string> {
     try {
       await this.page.waitForLoadState("domcontentloaded");
@@ -800,6 +805,16 @@ class TNXLandingPage {
       );
       throw error; // Re-throw to fail the test
     }
+  }
+
+  /**
+   * Returns all option texts from the organization selector dropdown.
+   * @author AI Agent
+   * @created 17-Mar-2026
+   */
+  async getOrgDropdownOptions(): Promise<string[]> {
+    await this.orgSelectorDropdown_LOC.waitFor({ state: "visible", timeout: 30000 });
+    return await this.orgSelectorDropdown_LOC.locator("option").allTextContents();
   }
 }
 export default TNXLandingPage;

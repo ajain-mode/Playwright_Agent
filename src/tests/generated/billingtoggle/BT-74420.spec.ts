@@ -4,7 +4,6 @@ import { PageManager } from "@utils/PageManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
-import * as path from "path";
 
 /**
  * Test Case: BT-74420 - Validate updated price difference message when carrier invoice already exists in pending status and secondary invoice is received
@@ -61,10 +60,7 @@ test.describe.serial(
       });
 
       await test.step("Step 2 [CSV 2-5]: Search customer and navigate to CREATE TL *NEW*", async () => {
-        const btmsBaseUrl = new URL(sharedPage.url()).origin;
-        await sharedPage.goto(btmsBaseUrl);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        await sharedPage.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });
+        await pages.basePage.navigateToBaseUrl();
         console.log("Navigated to BTMS Home");
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
@@ -74,17 +70,9 @@ test.describe.serial(
         await pages.searchCustomerPage.selectActiveOnCustomerPage();
         await pages.searchCustomerPage.clickOnSearchCustomer();
         console.log("Clicked Search button");
-        const customerValue = testData['Customer Value'] || testData.customerName;
-        const customerRow = sharedPage.locator(`//tr[contains(.,'ACTIVE')]//td[contains(text(),'${customerValue}')]`).first();
-        if (await customerRow.isVisible({ timeout: 10000 }).catch(() => false)) {
-          await customerRow.click();
-          console.log(`Selected customer by Customer Value: ${customerValue}`);
-        } else {
-          const partialMatch = sharedPage.locator(`//tr[contains(.,'ACTIVE')]//td[contains(text(),'${testData.customerName}')]`).first();
-          await partialMatch.waitFor({ state: 'visible', timeout: 10000 });
-          await partialMatch.click();
-          console.log(`Selected customer by partial name match: ${testData.customerName}`);
-        }
+        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await pages.searchCustomerPage.clickOnActiveCustomer();
+        console.log("Selected active customer from search results");
         await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         console.log("Clicked CREATE TL *NEW* hyperlink");
         pages.logger.info("Navigated to Enter New Load page");
@@ -94,34 +82,11 @@ test.describe.serial(
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         const customerName = testData['Customer Value'];
 
-        const customerSelect2 = sharedPage.locator(
-          "//select[contains(@id,'customer')]//following-sibling::span[contains(@class,'select2')]"
-        ).first();
-        const customerDropdown = sharedPage.locator(
-          "//select[contains(@id,'customer_id') or contains(@id,'customer')]"
-        ).first();
-
-        if (await customerSelect2.isVisible({ timeout: 5000 }).catch(() => false)) {
-          await customerSelect2.click();
-          const searchInput = sharedPage.locator("input.select2-search__field");
-          await searchInput.waitFor({ state: "visible", timeout: 5000 });
-          await searchInput.fill(customerName);
-          await sharedPage.waitForTimeout(2000);
-          const resultItem = sharedPage.locator(
-            `//li[contains(@class,'select2-results__option') and contains(text(),'${customerName}')]`
-          ).first();
-          await resultItem.waitFor({ state: "visible", timeout: 10000 });
-          await resultItem.click();
-          console.log(`Selected customer via Select2: ${customerName}`);
-        } else if (await customerDropdown.isVisible({ timeout: 5000 }).catch(() => false)) {
-          await customerDropdown.selectOption({ label: customerName });
-          console.log(`Selected customer via dropdown: ${customerName}`);
-        }
+        await pages.editLoadCarrierTabPage.selectCustomerViaSelect2(customerName);
+        console.log(`Selected customer via Select2: ${customerName}`);
 
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        await sharedPage.waitForTimeout(3000);
-        await sharedPage.locator("//select[@id='form_shipper_ship_point']")
-          .waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await pages.editLoadCarrierTabPage.waitForShipperDropdown();
         console.log("Customer value changed and form reloaded");
       });
 
@@ -151,23 +116,18 @@ test.describe.serial(
       });
 
       await test.step("Step 5: Select the 'Method' as 'Practical'", async () => {
-        const dropdown_method = sharedPage.locator("//select[contains(@name,'method') or contains(@id,'method')]").first();
-        await dropdown_method.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await dropdown_method.selectOption({ label: "Practical" });
+        await pages.nonTabularLoadPage.selectMethod("Practical");
         console.log("Selected Method: Practical");
       });
 
       await test.step("Step 6: 'Linehaul' and Fuel Surcharge' default value will be 'Flat'", async () => {
-        try {
-        const linehaulField = sharedPage.locator("//select[contains(@name,'linehaul') or contains(@id,'linehaul')]").first();
-        const linehaulValue = await linehaulField.inputValue().catch(() => "");
-        console.log("Linehaul default value: " + linehaulValue);
-        const fuelField = sharedPage.locator("//select[contains(@name,'fuel') or contains(@id,'fuel')]").first();
-        const fuelValue = await fuelField.inputValue().catch(() => "");
-        console.log("Fuel Surcharge default value: " + fuelValue);
-        } catch (e) {
-        console.log("Linehaul/Fuel verification could not complete:", (e as Error).message);
-        }
+        const linehaulDefault = await pages.editLoadFormPage.getLinehaulDefaultValue();
+        console.log(`Linehaul default value: "${linehaulDefault}"`);
+        expect.soft(linehaulDefault, "Linehaul should default to 'Flat'").toBe("Flat");
+
+        const fuelSurchargeDefault = await pages.editLoadFormPage.getFuelSurchargeDefaultValue();
+        console.log(`Fuel Surcharge default value: "${fuelSurchargeDefault}"`);
+        expect.soft(fuelSurchargeDefault, "Fuel Surcharge should default to 'Flat'").toBe("Flat");
       });
 
       await test.step("Step 7: Click Create Load and select Rate Type", async () => {
@@ -190,13 +150,13 @@ test.describe.serial(
       });
 
       await test.step("Step 9: Enter Customer flat rate as 500", async () => {
-        await pages.editLoadCarrierTabPage.enterCustomerRate("500");
-        console.log("Entered Customer Rate: 500");
+        await pages.editLoadCarrierTabPage.enterCustomerRate(testData.customerRate);
+        console.log(`Entered Customer Rate: ${testData.customerRate}`);
       });
 
-      await test.step("Step 10: Enter Carrier flat rate as 600", async () => {
-        await pages.editLoadCarrierTabPage.enterCarrierRate("600");
-        console.log("Entered Carrier Rate: 600");
+      await test.step("Step 10: Enter Carrier flat rate", async () => {
+        await pages.editLoadCarrierTabPage.enterCarrierRate(testData.carrierRate);
+        console.log(`Entered Carrier Rate: ${testData.carrierRate}`);
       });
 
       await test.step("Step 11: Enter trailer length", async () => {
@@ -210,48 +170,20 @@ test.describe.serial(
         const mm = (futureDate.getMonth() + 1).toString().padStart(2, '0');
         const dd = futureDate.getDate().toString().padStart(2, '0');
         const yyyy = futureDate.getFullYear();
-        await sharedPage.locator("#form_expiration_date").fill(`${mm}/${dd}/${yyyy}`);
-        await sharedPage.locator("#form_expiration_time").fill("18:00");
+        await pages.editLoadFormPage.enterExpirationDate(`${mm}/${dd}/${yyyy}`);
+        await pages.editLoadFormPage.enterExpirationTime("18:00");
         console.log(`Entered Expiration Date: ${mm}/${dd}/${yyyy}, Time: 18:00`);
       });
 
       await test.step("Step 13: Enter Email for notification", async () => {
         const emailValue = testData.saleAgentEmail;
-
-        // #form_notification_email is a <select multiple> wrapped by Select2 (class: js-enable-tags)
-        const select2Container = sharedPage.locator("#form_notification_email").locator("..").locator(".select2-container").first();
-        const searchInput = sharedPage.locator("#form_notification_email").locator("..").locator("input.select2-search__field").first();
-
-        if (await select2Container.isVisible({ timeout: 10000 }).catch(() => false)) {
-          await select2Container.click();
-          await searchInput.waitFor({ state: "visible", timeout: 5000 });
-          await searchInput.fill(emailValue);
-          await sharedPage.waitForTimeout(2000);
-          const resultItem = sharedPage.locator("li.select2-results__option").filter({ hasText: emailValue }).first();
-          if (await resultItem.isVisible({ timeout: 5000 }).catch(() => false)) {
-            await resultItem.click();
-            console.log(`Selected email via Select2: ${emailValue}`);
-          } else {
-            console.log(`Email option not found in Select2 results for: ${emailValue}`);
-          }
-        } else {
-          // Fallback: direct selectOption on the underlying <select multiple>
-          const emailSelect = sharedPage.locator("select#form_notification_email");
-          if (await emailSelect.count() > 0) {
-            const options = await emailSelect.locator("option").allTextContents();
-            console.log(`Email select options: [${options.filter((o: string) => o.trim()).join(" | ")}]`);
-            const match = options.find((o: string) => o.toLowerCase().includes(emailValue.toLowerCase()));
-            if (match) {
-              await emailSelect.selectOption({ label: match.trim() });
-              console.log(`Selected email via native select: ${match.trim()}`);
-            }
-          }
-        }
+        await pages.editLoadCarrierTabPage.selectEmailNotificationViaSelect2(emailValue);
+        console.log(`Selected email for notification: ${emailValue}`);
       });
 
       await test.step("Step 14: Enter total miles", async () => {
-        await pages.editLoadCarrierTabPage.enterMiles("100");
-        console.log("Entered total miles: 100");
+        await pages.editLoadCarrierTabPage.enterMiles(testData.miles);
+        console.log(`Entered total miles: ${testData.miles}`);
       });
 
       await test.step("Step 15: Choose carrier", async () => {
@@ -291,8 +223,7 @@ test.describe.serial(
         await pages.viewLoadPage.selectCustomerRadio();
         await pages.viewLoadPage.selectDocumentType("Proof of Delivery");
 
-        const filePath = path.resolve(process.cwd(), "src", "data", "bulkchange", "ProofOfDelivery.pdf");
-        await pages.viewLoadPage.attachFile(filePath);
+        await pages.viewLoadPage.attachPODFile();
         await pages.viewLoadPage.clickSubmitRemote();
         await pages.viewLoadPage.waitForUploadSuccess();
 
@@ -311,11 +242,10 @@ test.describe.serial(
       await test.step("Step 21: Enter invoice details, attach carrier invoice, and submit (Step 50)", async () => {
         const invoiceNumber = Math.floor(Math.random() * 9000000000 + 1000000000).toString();
         await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNumber);
-        await pages.viewLoadPage.fillCarrierInvoiceAmount("1000");
-        console.log(`Entered Invoice Number: ${invoiceNumber}, Amount: 1000`);
+        await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
+        console.log(`Entered Invoice Number: ${invoiceNumber}, Amount: ${testData.carrierInvoiceAmount1}`);
 
-        const filePath = path.resolve(process.cwd(), "src", "data", "bulkchange", "CarrierInvoice.pdf");
-        await pages.viewLoadPage.attachFile(filePath);
+        await pages.viewLoadPage.attachCarrierInvoiceFile();
 
         // Expected (Step 50): Alert message stating status has moved to INVOICE should appear
         const alertPromise = pages.commonReusables.validateAlert(
@@ -325,10 +255,7 @@ test.describe.serial(
         await pages.viewLoadPage.clickSubmitRemote();
 
         // Handle duplicate invoice confirmation if it appears
-        const confirmBtn = sharedPage.locator("//button[text()='Confirm']").first();
-        if (await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-          await confirmBtn.click();
-        }
+        await pages.viewLoadPage.clickConfirmDuplicateInvoiceDialog();
 
         await alertPromise;
         console.log("Expected validated: Alert message stating status has moved to INVOICE appeared");
@@ -354,7 +281,7 @@ test.describe.serial(
 
         const invoiceNumber = Math.floor(Math.random() * 9000000000 + 1000000000).toString();
         await pages.loadBillingPage.enterCarrierInvoiceNumber(invoiceNumber);
-        await pages.loadBillingPage.enterCarrierInvoiceAmount("1000");
+        await pages.loadBillingPage.enterCarrierInvoiceAmount(testData.carrierInvoiceAmount2);
       });
 
       // ===== Step 54: Save invoice and refresh (Expected: Billing should get moved to the Agent) =====
@@ -376,7 +303,7 @@ test.describe.serial(
       await test.step("Step 25: Click View History and check price difference for first invoice (Step 55)", async () => {
         const historyPopup = await pages.loadBillingPage.clickViewHistoryAndGetPopup();
 
-        const allText = await historyPopup.locator("body").textContent();
+        const allText = await pages.loadBillingPage.getPopupBodyText(historyPopup);
         console.log("History window content (truncated): " + (allText || "").substring(0, 500));
 
         const hasPriceDiff = (allText || "").toLowerCase().includes("price difference") ||
@@ -404,11 +331,10 @@ test.describe.serial(
       await test.step("Step 27: Enter secondary invoice details, attach, submit and validate (Step 56)", async () => {
         const secondaryInvoiceNumber = Math.floor(Math.random() * 9000000000 + 1000000000).toString();
         await pages.viewLoadPage.fillCarrierInvoiceNumber(secondaryInvoiceNumber);
-        await pages.viewLoadPage.fillCarrierInvoiceAmount("1000");
-        console.log(`Entered Secondary Invoice Number: ${secondaryInvoiceNumber}, Amount: 1000`);
+        await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount2);
+        console.log(`Entered Secondary Invoice Number: ${secondaryInvoiceNumber}, Amount: ${testData.carrierInvoiceAmount2}`);
 
-        const filePath = path.resolve(process.cwd(), "src", "data", "bulkchange", "CarrierInvoice.pdf");
-        await pages.viewLoadPage.attachFile(filePath);
+        await pages.viewLoadPage.attachCarrierInvoiceFile();
 
         const alertPromise = pages.commonReusables.validateAlert(
           sharedPage,
@@ -417,10 +343,7 @@ test.describe.serial(
         await pages.viewLoadPage.clickSubmitRemote();
 
         // Handle duplicate invoice confirmation if it appears
-        const confirmBtn = sharedPage.locator("//button[text()='Confirm']").first();
-        if (await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-          await confirmBtn.click();
-        }
+        await pages.viewLoadPage.clickConfirmDuplicateInvoiceDialog();
 
         await alertPromise;
         console.log("Secondary invoice alert validated: status moved to INVOICE");
@@ -443,33 +366,18 @@ test.describe.serial(
                                       await pages.loadBillingPage.hasFinanceMessageContaining("discrepancy");
 
         // Click View History to see payable messages for secondary invoice in popup window
-        try {
-          const historyPopup = await pages.loadBillingPage.clickViewHistoryAndGetPopup();
-          const historyText = await historyPopup.locator("body").textContent();
-          console.log("History content (truncated): " + (historyText || "").substring(0, 500));
+        const historyPopup = await pages.loadBillingPage.clickViewHistoryAndGetPopup();
+        const historyText = await pages.loadBillingPage.getPopupBodyText(historyPopup);
+        console.log("History content (truncated): " + (historyText || "").substring(0, 500));
 
-          if ((historyText || "").toLowerCase().includes("price difference") ||
-              (historyText || "").toLowerCase().includes("discrepancy")) {
-            foundSecondaryPriceDiff = true;
-            console.log("Price difference message found in history for secondary invoice");
-          }
-
-          await historyPopup.close();
-          console.log("Closed View History popup");
-        } catch {
-          console.log("View History link not available");
+        if ((historyText || "").toLowerCase().includes("price difference") ||
+            (historyText || "").toLowerCase().includes("discrepancy")) {
+          foundSecondaryPriceDiff = true;
+          console.log("Price difference message found in history for secondary invoice");
         }
 
-        // Also try alert pattern validation as fallback
-        if (!foundSecondaryPriceDiff) {
-          try {
-            await pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.FOR_SECONDARY_INVOICE);
-            foundSecondaryPriceDiff = true;
-            console.log("Secondary invoice price difference alert validated via ALERT_PATTERNS");
-          } catch {
-            console.log("No secondary invoice alert found");
-          }
-        }
+        await historyPopup.close();
+        console.log("Closed View History popup");
 
         expect.soft(foundSecondaryPriceDiff, "Expected: Price difference message for secondary invoice should be present").toBeTruthy();
         console.log("Secondary invoice price difference validation complete");

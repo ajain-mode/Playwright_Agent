@@ -302,6 +302,18 @@ export default class BasePage {
     console.log(`Selected '${optionLabel}' from field '${fieldIdentifier}'`);
   }
 
+  /**
+   * Navigates to BTMS base URL (origin) and waits for site menu to load.
+   * Replaces inline `new URL(sharedPage.url()).origin` + `goto()` + `#c-sitemenu-container` wait.
+   */
+  async navigateToBaseUrl(): Promise<void> {
+    const baseUrl = new URL(this.page.url()).origin;
+    await this.page.goto(baseUrl);
+    await this.waitForMultipleLoadStates(["load", "networkidle"]);
+    await this.page.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });
+    console.log('Navigated to BTMS base URL');
+  }
+
   async clickButton(buttonText: string): Promise<void> {
     const btn = this.page.locator(`//button[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'${buttonText.toLowerCase()}')] | //input[contains(translate(@value,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'${buttonText.toLowerCase()}')]`);
     await btn.waitFor({ state: 'visible', timeout: 10000 });

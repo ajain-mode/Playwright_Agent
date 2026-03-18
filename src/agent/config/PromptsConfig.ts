@@ -571,6 +571,103 @@ export const GUARDRAIL_RULES: GuardrailRule[] = [
     },
     errorMessage: 'Raw locator found that has a POM equivalent. Use pages.viewLoadPage.* or pages.loadBillingPage.* methods instead of sharedPage.locator() with raw IDs.',
   },
+  {
+    name: 'noBrittleTranslateXPath',
+    description: 'Generated code must not use XPath translate() for case-insensitive matching — it is fragile and breaks when UI labels change',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      return !(/translate\s*\(\s*text\s*\(\s*\)\s*,\s*['"]ABCDEFGHIJKLMNOPQRSTUVWXYZ/.test(input._generatedCode));
+    },
+    errorMessage: 'Do not use XPath translate() for case-insensitive matching. Use exact text matching with multiple alternatives: contains(text(),"LabelA") or contains(text(),"LabelB").',
+  },
+  {
+    name: 'noTryCatchSwallowingValidations',
+    description: 'Validation steps must not be wrapped in try/catch that swallows errors with console.log',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      const tryCatchLogPattern = /try\s*\{[^}]*(?:validate|getBids|getAvgRate|getBidHistory|getReport)[^}]*\}\s*catch\s*\([^)]*\)\s*\{[^}]*console\.log/gi;
+      return !tryCatchLogPattern.test(input._generatedCode);
+    },
+    errorMessage: 'Validation/assertion code must not be wrapped in try/catch that silently logs errors. Use expect.soft() for non-blocking assertions, or let the error propagate to fail the test.',
+  },
+  {
+    name: 'noLocatorsInSpecFiles',
+    description: 'Generated spec files must not contain .locator() calls — all locators must be in POM files',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      // Allow locators on popup objects (historyPopup, dmePage, tnxPage) that are handled via POM
+      // Flag any sharedPage.locator() or page.locator() with raw selectors
+      return !(/sharedPage\.locator\s*\(/.test(input._generatedCode));
+    },
+    errorMessage: 'sharedPage.locator() found in spec file. All locators must reside in page object files under src/pages/. Use pages.<getter>.<method>() instead.',
+  },
+  {
+    name: 'noConsoleLogOnlyForExpectedResults',
+    description: 'Expected results must use expect() or expect.soft() assertions, not just console.log',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      // Detect pattern: console.log with "Expected Step" but no expect() call nearby
+      const lines = input._generatedCode.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (/console\.log\s*\(\s*[`"'].*Expected\s+Step/i.test(line)) {
+          // Check surrounding 3 lines for an expect() call
+          const context = lines.slice(Math.max(0, i - 2), i + 3).join('\n');
+          if (!/expect\s*[.(]/.test(context)) {
+            return false;
+          }
+        }
+      }
+      return true;
+    },
+    errorMessage: 'Expected result is only logged via console.log without any expect()/expect.soft() assertion. Add proper assertions for all expected outcomes.',
+  },
+  {
+    name: 'noDOMGuessingInEvaluate',
+    description: 'Generated code must not use page.evaluate() with querySelector/closest/getComputedStyle for reading element state — use Playwright built-in methods instead',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      return !/\.evaluate\s*\([^)]*(?:querySelector|closest|getComputedStyle|classList\.contains)/g.test(input._generatedCode);
+    },
+    errorMessage: 'page.evaluate() with DOM guessing (querySelector/closest/getComputedStyle) detected. Use Playwright built-in methods: isChecked(), inputValue(), getAttribute(), isVisible() instead.',
+  },
+  {
+    name: 'noHardcodedWaitForTimeout',
+    description: 'Generated spec files must not use waitForTimeout() with hardcoded millisecond values — use waitForLoadState, waitFor, or element-based waits',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      return !/\.waitForTimeout\s*\(\s*\d+\s*\)/g.test(input._generatedCode);
+    },
+    errorMessage: 'Hardcoded waitForTimeout() detected. Use waitForLoadState(), element.waitFor(), or Playwright auto-waiting instead of arbitrary delays.',
+  },
+  {
+    name: 'noInlineRequireInSpecs',
+    description: 'Generated spec files must not use inline require() calls — use ES module imports or POM methods',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      return !/(?:const|let|var)\s+\w+\s*=\s*require\s*\(/g.test(input._generatedCode);
+    },
+    errorMessage: 'Inline require() call detected in spec file. Use ES module imports at the top of the file or encapsulate file operations in POM methods.',
+  },
+  {
+    name: 'noInlinePathResolveInSpecs',
+    description: 'Generated spec files must not use path.resolve() inline — use POM methods like attachCarrierInvoiceFile() or attachPODFile()',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      return !/path\.resolve\s*\(\s*process\.cwd\(\)/g.test(input._generatedCode);
+    },
+    errorMessage: 'Inline path.resolve(process.cwd()...) detected. Use POM methods: pages.viewLoadPage.attachCarrierInvoiceFile() or attachPODFile().',
+  },
+  {
+    name: 'noHardcodedNumericValuesInPOMCalls',
+    description: 'POM method calls for rates, amounts, miles, and invoice numbers must use testData.* from CSV — never hardcoded numeric strings',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      const hardcodedMethods = /(?:enterMiles|enterCustomerRate|enterCarrierRate|enterLinehaulRate|fillCarrierInvoiceAmount|fillCarrierInvoiceNumber|enterCarrierInvoiceAmount|enterCarrierInvoiceNumber)\s*\(\s*["']\d+["']\s*\)/g;
+      return !hardcodedMethods.test(input._generatedCode);
+    },
+    errorMessage: 'Hardcoded numeric values passed to POM methods (rates, miles, amounts). Use testData.customerRate, testData.carrierRate, testData.miles, testData.carrierInvoiceAmount1 etc. from CSV instead.',
+  },
 ];
 
 /**
