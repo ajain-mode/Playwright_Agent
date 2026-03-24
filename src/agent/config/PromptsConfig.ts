@@ -668,6 +668,17 @@ export const GUARDRAIL_RULES: GuardrailRule[] = [
     },
     errorMessage: 'Hardcoded numeric values passed to POM methods (rates, miles, amounts). Use testData.customerRate, testData.carrierRate, testData.miles, testData.carrierInvoiceAmount1 etc. from CSV instead.',
   },
+  {
+    name: 'noExcessiveConsoleLogInSpecs',
+    description: 'Spec files must not contain console.log() — logging belongs in Page Object classes',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      const matches = input._generatedCode.match(/console\.log\s*\(/g);
+      // Allow up to 3 console.log calls (for conditional branch logging only)
+      return !matches || matches.length <= 3;
+    },
+    errorMessage: 'Excessive console.log() in spec file. Logging should occur inside Page Object classes, not in specs. Use pages.logger.info() for runtime values only.',
+  },
 ];
 
 /**

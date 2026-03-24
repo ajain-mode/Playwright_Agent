@@ -46,11 +46,6 @@ test.describe.serial(
 
         await test.step("Step 1: Login BTMS", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
-          if (
-            await pages.btmsAcceptTermPage.validateOnBTMSAcceptTermPage()
-          ) {
-            await pages.btmsAcceptTermPage.acceptTermsAndConditions();
-          }
           pages.logger.info("Logged in successfully");
         });
 
@@ -70,9 +65,6 @@ test.describe.serial(
 
             await pages.adminPage.hoverAndClickAdminMenu();
             await pages.adminPage.switchUser(testData.salesAgent);
-            console.log(
-              "Office preconditions set and switched to sales agent"
-            );
           }
         );
 

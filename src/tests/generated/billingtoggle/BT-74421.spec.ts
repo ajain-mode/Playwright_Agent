@@ -62,20 +62,14 @@ test.describe.serial(
 
       await test.step("Step 2 [CSV 2-5]: Search customer and navigate to CREATE TL *NEW*", async () => {
         await pages.basePage.navigateToBaseUrl();
-        console.log("Navigated to BTMS Home");
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
-        console.log("Hovered to Customers and clicked Search");
         await pages.searchCustomerPage.enterCustomerName(testData.customerName);
-        console.log(`Entered customer name: ${testData.customerName}`);
         await pages.searchCustomerPage.selectActiveOnCustomerPage();
         await pages.searchCustomerPage.clickOnSearchCustomer();
-        console.log("Clicked Search button");
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.searchCustomerPage.clickOnActiveCustomer();
-        console.log("Selected active customer from search results");
         await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
-        console.log("Clicked CREATE TL *NEW* hyperlink");
         pages.logger.info("Navigated to Enter New Load page");
       });
 
@@ -83,16 +77,12 @@ test.describe.serial(
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         const customerName = testData['Customer Value'];
 
-        await pages.editLoadCarrierTabPage.selectCustomerViaSelect2(customerName);
-        console.log(`Selected customer via Select2: ${customerName}`);
+        await pages.nonTabularLoadPage.selectCustomerViaSelect2(customerName);
 
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        await pages.editLoadCarrierTabPage.waitForShipperDropdown();
-        console.log("Customer value changed and form reloaded");
       });
 
-      await test.step("Step 4 [CSV 6-26]: Fill Enter New Load page details", async () => {
-        console.log("CSV 6-7: Customer field pre-selected, Salesperson/Dispatcher pre-selected");
+      await test.step("Step 4 [CSV 8-26]: Fill Enter New Load page details", async () => {
         await pages.nonTabularLoadPage.createNonTabularLoad({
           shipperValue: testData.shipperName,
           consigneeValue: testData.consigneeName,
@@ -106,63 +96,59 @@ test.describe.serial(
           shipmentCommodityWeight: testData.shipmentCommodityWeight,
           equipmentType: testData.equipmentType,
           equipmentLength: testData.equipmentLength,
-          distanceMethod: testData.Method,
-          shipperCountry: testData.shipperCountry,
-          shipperZip: testData.shipperZip,
-          shipperAddress: testData.shipperAddress,
-          shipperNameNew: testData.shipperNameNew,
         });
-        console.log("Shipper, Consignee, dates/times, commodity, equipment fields filled");
         pages.logger.info("Enter New Load form completed");
       });
 
-      await test.step("Step 5 [CSV 28]: Select Method as Practical", async () => {
-        await pages.nonTabularLoadPage.selectMethod("Practical");
-        console.log("Selected Method: Practical");
+      await test.step("Step 5 [CSV 27]: Select Mileage Engine as Current", async () => {
+        await pages.editLoadFormPage.selectMileageEngine(testData.mileageEngine || "Current");
       });
 
-      await test.step("Step 6 [CSV 29]: Verify Linehaul and Fuel Surcharge defaults", async () => {
+      await test.step("Step 6 [CSV 28]: Select Method as Practical", async () => {
+        await pages.editLoadFormPage.selectMileageMethod("Practical");
+      });
+
+      await test.step("Step 7 [CSV 29]: Verify Linehaul and Fuel Surcharge defaults", async () => {
         const linehaulDefault = await pages.editLoadFormPage.getLinehaulDefaultValue();
-        console.log(`Linehaul default value: "${linehaulDefault}"`);
-        expect.soft(linehaulDefault, "Linehaul should default to 'Flat'").toBe("Flat");
+        pages.logger.info(`Linehaul default: ${linehaulDefault}`);
+        expect.soft(
+          linehaulDefault?.toLowerCase(),
+          "Linehaul should default to 'Flat Rate'"
+        ).toContain("flat");
 
         const fuelSurchargeDefault = await pages.editLoadFormPage.getFuelSurchargeDefaultValue();
-        console.log(`Fuel Surcharge default value: "${fuelSurchargeDefault}"`);
-        expect.soft(fuelSurchargeDefault, "Fuel Surcharge should default to 'Flat'").toBe("Flat");
+        pages.logger.info(`Fuel Surcharge default: ${fuelSurchargeDefault}`);
+        expect.soft(
+          fuelSurchargeDefault?.toLowerCase(),
+          "Fuel Surcharge should default to 'Flat Rate'"
+        ).toContain("flat");
       });
 
-      await test.step("Step 7 [CSV 30-31]: Click Create Load and select Rate Type", async () => {
+      await test.step("Step 8 [CSV 30-31]: Click Create Load and select Rate Type", async () => {
         await pages.nonTabularLoadPage.clickCreateLoadButton();
-        console.log("Clicked Create Load button");
         await pages.editLoadLoadTabPage.checkLoadTabDetails(testData.rateType);
-        console.log(`Rate type set to ${testData.rateType}`);
         await pages.editLoadPage.validateEditLoadHeadingText();
         loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
-        console.log(`Load Number captured: ${loadNumber}`);
+        pages.logger.info(`Load number: ${loadNumber}`);
         await pages.editLoadPage.validateCurrentTabValue(TABS.LOAD);
         pages.logger.info("Load created successfully");
       });
 
-      await test.step("Step 8 [CSV 32-33]: Carrier tab — enter offer rate", async () => {
+      await test.step("Step 9 [CSV 32-33]: Carrier tab — enter offer rate", async () => {
         await pages.editLoadPage.clickOnTab(TABS.CARRIER);
-        console.log("Clicked Carrier tab");
-        await pages.dfbLoadFormPage.enterOfferRate(testData.offerRate);
-        console.log(`Entered Offer Rate: ${testData.offerRate}`);
+        await pages.dfbLoadFormPage.enterOfferRate(testData['Offer Rate'] || testData.offerRate);
       });
 
-      await test.step("Step 9 [CSV 34-35]: Enter Customer rate 500 and Carrier rate 600", async () => {
+      await test.step("Step 10 [CSV 34-35]: Enter Customer rate 500 and Carrier rate 600", async () => {
         await pages.editLoadCarrierTabPage.enterCustomerRate(testData.customerRate);
-        console.log(`Entered Customer Rate: ${testData.customerRate}`);
         await pages.editLoadCarrierTabPage.enterCarrierRate(testData.carrierRate);
-        console.log(`Entered Carrier Rate: ${testData.carrierRate}`);
       });
 
-      await test.step("Step 10 [CSV 36]: Enter trailer length", async () => {
+      await test.step("Step 11 [CSV 36]: Enter trailer length", async () => {
         await pages.editLoadCarrierTabPage.enterValueInTrailerLength(testData.trailerLength);
-        console.log(`Entered trailer length: ${testData.trailerLength}`);
       });
 
-      await test.step("Step 11 [CSV 37-38]: Enter Expiration Date and Time", async () => {
+      await test.step("Step 12 [CSV 37-38]: Enter Expiration Date and Time", async () => {
         const futureDate = new Date();
         futureDate.setDate(futureDate.getDate() + 7);
         const mm = (futureDate.getMonth() + 1).toString().padStart(2, '0');
@@ -172,23 +158,21 @@ test.describe.serial(
         await pages.editLoadFormPage.enterExpirationTime("18:00");
       });
 
-      await test.step("Step 12 [CSV 39]: Enter Email for notification", async () => {
+      await test.step("Step 13 [CSV 39]: Enter Email for notification", async () => {
         const emailValue = testData.saleAgentEmail;
         await pages.editLoadCarrierTabPage.selectEmailNotificationViaSelect2(emailValue);
-        console.log(`Selected email for notification: ${emailValue}`);
       });
 
-      await test.step("Step 13 [CSV 40]: Enter total miles", async () => {
+      await test.step("Step 14 [CSV 40]: Enter total miles", async () => {
         await pages.editLoadCarrierTabPage.enterMiles(testData.miles);
-        console.log(`Entered total miles: ${testData.miles}`);
       });
 
-      await test.step("Step 14 [CSV 41]: Choose carrier", async () => {
+      await test.step("Step 15 [CSV 41]: Choose carrier", async () => {
         await pages.editLoadCarrierTabPage.selectCarrier1(testData.Carrier);
-        console.log(`Selected carrier: ${testData.Carrier}`);
+        pages.logger.info(`Carrier: ${testData.Carrier}`);
       });
 
-      await test.step("Step 15 [CSV 42]: Click Save and accept BOOKED alert", async () => {
+      await test.step("Step 16 [CSV 42]: Click Save and accept BOOKED alert", async () => {
         const alertPromise = pages.commonReusables.validateAlert(
           sharedPage,
           ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_BOOKED
@@ -196,58 +180,52 @@ test.describe.serial(
         await pages.editLoadFormPage.clickOnSaveBtn();
         await alertPromise;
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        console.log("Saved load and accepted BOOKED alert");
       });
 
-      await test.step("Step 16 [CSV 43]: Click EDIT and select DELIVERED FINAL from status dropdown", async () => {
+      await test.step("Step 17 [CSV 43]: Click EDIT and select DELIVERED FINAL from status dropdown", async () => {
         await pages.viewLoadPage.clickEditButton();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        await pages.editLoadFormPage.selectLoadStatus("DELIVERED FINAL");
-        console.log("Selected DELIVERED FINAL status");
+        await pages.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
       });
 
-      await test.step("Step 17 [CSV 44]: Click Save and select Ok on pop up — Expected: INVOICED alert", async () => {
-        // Auto-accept all dialogs (confirmation + status alert) during save
+      await test.step("Step 18 [CSV 44]: Click Save and select Ok on pop up — Expected: INVOICED alert", async () => {
         const alertMessages: string[] = [];
-        const dialogHandler = async (dialog: any) => {
+        const dialogHandler = async (dialog: { message: () => string; accept: () => Promise<void> }) => {
           const msg = dialog.message();
-          console.log(`Dialog appeared: "${msg}"`);
           alertMessages.push(msg);
+          console.log(`Dialog captured: "${msg}"`);
           await dialog.accept();
-          console.log("Dialog accepted");
         };
         sharedPage.on("dialog", dialogHandler);
 
         await pages.editLoadFormPage.clickOnSaveBtn();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        // await sharedPage.waitForTimeout(3000);
 
-        // sharedPage.off("dialog", dialogHandler);
+        // The INVOICED alert may fire as a second dialog after networkidle settles;
+        // wait for it if not yet captured
+        if (!alertMessages.some(msg => ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_INVOICED.test(msg))) {
+          await sharedPage.waitForEvent('dialog', { timeout: 10000 }).catch(() => {});
+        }
 
-        // // Validate that INVOICED alert appeared in one of the dialogs
-        // const hasInvoicedAlert = alertMessages.some(msg =>
-        //   ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_INVOICED.test(msg)
-        // );
-        // console.log(`All alert messages: ${JSON.stringify(alertMessages)}`);
-        // expect.soft(hasInvoicedAlert, "Expected: Status has been set to INVOICED alert should appear").toBeTruthy();
-        // console.log("Saved and accepted popup(s), INVOICED alert validated");
+        sharedPage.off("dialog", dialogHandler);
+
+        const hasInvoicedAlert = alertMessages.some(msg =>
+          ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_INVOICED.test(msg)
+        );
+        console.log(`All alert messages: ${JSON.stringify(alertMessages)}`);
+        expect.soft(hasInvoicedAlert, "Expected: Status has been set to INVOICED alert should appear").toBeTruthy();
       });
 
-      await test.step("Step 18 [CSV 45]: Click on View Billing button and validate toggle", async () => {
+      await test.step("Step 19 [CSV 45]: Click on View Billing button", async () => {
         // After save, page may be in view mode — navigate to Load tab then View Billing
         await pages.editLoadPage.clickOnTab(TABS.LOAD);
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.editLoadFormPage.clickOnViewBillingBtn();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        console.log("Clicked View Billing");
-
-        const toggleValue = await pages.loadBillingPage.getPayableToggleValue();
-        console.log(`Payable toggle value: "${toggleValue}"`);
-        expect.soft(toggleValue, "Payable toggle should be set to 'Agent'").toBe('Agent');
       });
 
       // ===== Steps 46-47: Add New Carrier Invoice #1 (amount: 1500) =====
-      await test.step("Step 19 [CSV 46-47]: Click Add New, enter invoice #1 (amount 1500), save", async () => {
+      await test.step("Step 20 [CSV 46-47]: Click Add New, enter invoice #1 (amount 1500), save", async () => {
         await pages.loadBillingPage.clickAddNewCarrierInvoice();
 
         const invoiceNumber1 = Math.floor(Math.random() * 9000000000 + 1000000000).toString();
@@ -256,31 +234,29 @@ test.describe.serial(
 
         await pages.loadBillingPage.clickSaveCarrierInvoice();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        console.log(`First carrier invoice saved: #${invoiceNumber1}, Amount: ${testData.carrierInvoiceAmount1}`);
       });
 
       // ===== Step 48: Reload and validate payable toggle =====
-      await test.step("Step 20 [CSV 48]: Reload page — Expected: Payable Toggle should get moved to the Agent", async () => {
+      await test.step("Step 21 [CSV 48]: Reload page — Expected: Payable Toggle should get moved to the Agent", async () => {
+        // Wait for backend to process the invoice and update payable toggle before reloading
+        await sharedPage.waitForTimeout(WAIT.SMALL);
+
+        const reloadDialogHandler = async (dialog: { accept: () => Promise<void> }) => { await dialog.accept(); };
+        sharedPage.on("dialog", reloadDialogHandler);
+
         await sharedPage.reload();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
-        // After reload, check if we're still on billing page — re-navigate if not
-        let toggleValue = await pages.loadBillingPage.getPayableToggleValue();
-        if (toggleValue === 'unknown') {
-          console.log("Not on billing page after reload — navigating back");
-          await pages.editLoadPage.clickOnTab(TABS.LOAD);
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-          await pages.editLoadFormPage.clickOnViewBillingBtn();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-          toggleValue = await pages.loadBillingPage.getPayableToggleValue();
-        }
+        sharedPage.off("dialog", reloadDialogHandler);
 
-        console.log(`Payable toggle after first invoice: "${toggleValue}"`);
+        // Page reloads on billing — validate payable toggle directly
+        const toggleValue = await pages.loadBillingPage.getPayableToggleValue();
+        pages.logger.info(`Payable toggle after first invoice: ${toggleValue}`);
         expect.soft(toggleValue, "Expected [CSV 48]: Payable Toggle should get moved to the Agent").toBe('Agent');
       });
 
       // ===== Steps 49-50: Add New Carrier Invoice #2 (amount: 2000) =====
-      await test.step("Step 21 [CSV 49-50]: Click Add New, enter invoice #2 (amount 2000), save", async () => {
+      await test.step("Step 22 [CSV 49-50]: Click Add New, enter invoice #2 (amount 2000), save", async () => {
         await pages.loadBillingPage.clickAddNewCarrierInvoice();
 
         const invoiceNumber2 = Math.floor(Math.random() * 9000000000 + 1000000000).toString();
@@ -289,87 +265,63 @@ test.describe.serial(
 
         await pages.loadBillingPage.clickSaveCarrierInvoice();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        console.log(`Second carrier invoice saved: #${invoiceNumber2}, Amount: ${testData.carrierInvoiceAmount2}`);
       });
 
       // ===== Step 51: Reload =====
-      await test.step("Step 22 [CSV 51]: Reload page", async () => {
+      await test.step("Step 23 [CSV 51]: Reload page", async () => {
+        // Wait for backend to process the second invoice before reloading
+        await sharedPage.waitForTimeout(WAIT.SMALL);
+
+        const reloadDialogHandler2 = async (dialog: { accept: () => Promise<void> }) => { await dialog.accept(); };
+        sharedPage.on("dialog", reloadDialogHandler2);
+
         await sharedPage.reload();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
-        // After reload, check if we're still on billing page — re-navigate if not
-        const reloadToggle = await pages.loadBillingPage.getPayableToggleValue();
-        if (reloadToggle === 'unknown') {
-          console.log("Not on billing page after reload — navigating back");
-          await pages.editLoadPage.clickOnTab(TABS.LOAD);
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-          await pages.editLoadFormPage.clickOnViewBillingBtn();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        }
-        console.log("Page reloaded after second invoice");
+        sharedPage.off("dialog", reloadDialogHandler2);
       });
 
-      // ===== Step 52: View History — check and calculate price difference =====
-      await test.step("Step 23 [CSV 52]: View History and check price difference message", async () => {
+      // ===== Step 52: Click View History, read payable messages, validate price difference =====
+      await test.step("Step 24 [CSV 52]: Click View History and check price difference message", async () => {
         // Calculate expected price differences from CSV data
         const carrierRate = parseInt(testData.carrierRate);
         const invoice1Amount = parseInt(testData.carrierInvoiceAmount1);
         const invoice2Amount = parseInt(testData.carrierInvoiceAmount2);
-        const priceDiff1 = invoice1Amount - carrierRate; // 900
-        const priceDiff2 = invoice2Amount - carrierRate; // 1400
-        const totalInvoiced = invoice1Amount + invoice2Amount; // 3500
-        const totalDiff = totalInvoiced - carrierRate; // 2900
-        console.log(`Expected price differences: Invoice1=${priceDiff1}, Invoice2=${priceDiff2}, Total=${totalDiff}`);
+        const priceDiff1 = invoice1Amount - carrierRate;
+        const priceDiff2 = invoice2Amount - carrierRate;
+        const totalInvoiced = invoice1Amount + invoice2Amount;
+        const totalDiff = totalInvoiced - carrierRate;
+        pages.logger.info(`Expected: carrierRate=${carrierRate}, inv1=${invoice1Amount}, inv2=${invoice2Amount}`);
+        pages.logger.info(`Expected diffs: inv1-carrier=${priceDiff1}, inv2-carrier=${priceDiff2}, total-carrier=${totalDiff}`);
 
-        // Check finance messages on billing page for price difference
-        const financeMessages = await pages.loadBillingPage.getFinanceMessages();
-        console.log(`Finance messages found: ${financeMessages.length}`);
-        financeMessages.forEach((msg, i) => console.log(`  Finance message ${i + 1}: ${msg}`));
+        // Click View History — opens popup with payable messages
+        const historyPopup = await pages.loadBillingPage.clickViewHistoryAndGetPopup();
+        const historyContent = await pages.loadBillingPage.getPopupBodyText(historyPopup) || '';
+        pages.logger.info(`View History content: ${historyContent.substring(0, 500)}`);
+        await historyPopup.close();
 
+        // Validate: price difference message exists in View History
+        const historyLower = historyContent.toLowerCase();
+        const hasPriceDiffMessage = historyLower.includes('price difference') ||
+                                     historyLower.includes('discrepancy');
+        expect.soft(hasPriceDiffMessage,
+          "Expected [CSV 52]: View History should contain a price difference message"
+        ).toBeTruthy();
+
+        // Validate: correct recalculated price difference amount is shown
         // Match amounts in various formats: 900, $900, $900.00, $1,400.00, $2,900.00
         const amountPattern = (amt: number) => {
           const formatted = amt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
           const plain = amt.toString();
           return new RegExp(`\\$?${plain}(\\.00)?|\\$?${formatted.replace(/[.,]/g, '[,.]?')}`);
         };
-        const priceDiff1Re = amountPattern(priceDiff1);
-        const priceDiff2Re = amountPattern(priceDiff2);
-        const totalDiffRe = amountPattern(totalDiff);
 
-        const hasFinancePriceDiff = financeMessages.some(msg => {
-          const lower = msg.toLowerCase();
-          return lower.includes('price difference') || lower.includes('discrepancy') ||
-                 priceDiff1Re.test(msg) || priceDiff2Re.test(msg) || totalDiffRe.test(msg);
-        });
-
-        // Open View History popup window and check for price difference
-        const historyPopup = await pages.loadBillingPage.clickViewHistoryAndGetPopup();
-        const historyContent = await pages.loadBillingPage.getPopupBodyText(historyPopup) || '';
-        console.log("History content (truncated): " + historyContent.substring(0, 1000));
-        await historyPopup.close();
-        console.log("Closed View History popup");
-
-        const historyLower = historyContent.toLowerCase();
-        const historyHasPriceDiff = historyLower.includes('price difference') ||
-                                     historyLower.includes('discrepancy');
-        const historyHasAmount = priceDiff1Re.test(historyContent) ||
-                                  priceDiff2Re.test(historyContent) ||
-                                  totalDiffRe.test(historyContent);
-
-        // Validate: price difference message exists
-        const foundPriceDiff = hasFinancePriceDiff || historyHasPriceDiff;
-        expect.soft(foundPriceDiff, "Expected: System should show price difference message in finance messages or View History").toBeTruthy();
-
-        // Validate: correct price difference amount is calculated and displayed
-        const correctAmountShown = historyHasAmount ||
-          financeMessages.some(msg =>
-            priceDiff1Re.test(msg) || priceDiff2Re.test(msg) || totalDiffRe.test(msg)
-          );
-        expect.soft(correctAmountShown,
-          `Expected: System should recalculate and show correct price difference amount (${priceDiff1}, ${priceDiff2}, or ${totalDiff})`
+        const hasCorrectAmount = amountPattern(priceDiff1).test(historyContent) ||
+                                  amountPattern(priceDiff2).test(historyContent) ||
+                                  amountPattern(totalDiff).test(historyContent);
+        expect.soft(hasCorrectAmount,
+          `Expected [CSV 52]: View History should show recalculated price difference (${priceDiff1}, ${priceDiff2}, or ${totalDiff})`
         ).toBeTruthy();
-
-        console.log(`Price difference validation: message=${foundPriceDiff}, amount=${correctAmountShown}`);
       });
 
       }

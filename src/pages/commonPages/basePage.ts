@@ -198,6 +198,11 @@ export default class BasePage {
 
   }
 
+  /**
+   * Clicks on the Templates sub-menu button.
+   * @author AI Agent
+   * @created 17-Mar-2026
+   */
   async clickOnTemplateSubMenu() {
     await this.page.waitForLoadState("networkidle");
     await this.templatesButton_LOC.click();
@@ -305,6 +310,8 @@ export default class BasePage {
   /**
    * Navigates to BTMS base URL (origin) and waits for site menu to load.
    * Replaces inline `new URL(sharedPage.url()).origin` + `goto()` + `#c-sitemenu-container` wait.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async navigateToBaseUrl(): Promise<void> {
     const baseUrl = new URL(this.page.url()).origin;
@@ -314,6 +321,12 @@ export default class BasePage {
     console.log('Navigated to BTMS base URL');
   }
 
+  /**
+   * Clicks a button by its visible text label.
+   * @author AI Agent
+   * @created 17-Mar-2026
+   * @param buttonText - The button text to match.
+   */
   async clickButton(buttonText: string): Promise<void> {
     const btn = this.page.locator(`//button[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'${buttonText.toLowerCase()}')] | //input[contains(translate(@value,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'${buttonText.toLowerCase()}')]`);
     await btn.waitFor({ state: 'visible', timeout: 10000 });

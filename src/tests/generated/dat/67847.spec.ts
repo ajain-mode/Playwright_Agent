@@ -55,9 +55,6 @@ test.describe.serial("Validating the scenario when the LTL load is not  in "Deli
 
       await test.step("Step 3: Login into the BTMS.", async () => {
         await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser, userSetup.globalPassword);
-        if (await pages.btmsAcceptTermPage.validateOnBTMSAcceptTermPage()) {
-        await pages.btmsAcceptTermPage.acceptTermsAndConditions();
-        }
       });
 
       await test.step("Step 4: Navigate to Customers tab and search any customer.", async () => {
@@ -87,7 +84,7 @@ test.describe.serial("Validating the scenario when the LTL load is not  in "Deli
         distanceMethod: testData.Method
         });
         loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
-        console.log("Created Load Number:", loadNumber);
+        pages.logger.info(`Load number: ${loadNumber}`);
       });
 
       await test.step("Step 6: Set the price on the load ie Carrier charges to $1000 and...", async () => {

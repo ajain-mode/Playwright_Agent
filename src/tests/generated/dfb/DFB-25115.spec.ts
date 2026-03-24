@@ -55,9 +55,6 @@ test.describe.serial(
 
       await test.step("Step 1: Login BTMS", async () => {
         await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
-        if (await pages.btmsAcceptTermPage.validateOnBTMSAcceptTermPage()) {
-        await pages.btmsAcceptTermPage.acceptTermsAndConditions();
-        }
       });
 
       await test.step("Step 2: Navigate to Agent Search and capture agent email", async () => {
@@ -68,7 +65,6 @@ test.describe.serial(
         await pages.agentSearchPage.selectAgentByName(testData.salesAgent);
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         agentEmail = await pages.agentInfoPage.getAgentEmail();
-        console.log(`Captured agent email from Agent Info: "${agentEmail}"`);
         pages.logger.info(`Agent email captured: ${agentEmail}`);
         await pages.basePage.navigateToBaseUrl();
       });
@@ -79,12 +75,10 @@ test.describe.serial(
         await pages.officePage.officeCodeSearchField(testData.officeName);
         await pages.officePage.searchButtonClick();
         await pages.officePage.officeSearchRow(testData.officeName);
-        console.log("Precondition Steps 6-10: Navigated to Office profile");
 
-        const toggleSettingsValue = pages.toggleSettings.enabled_TNXBids;
+        const toggleSettingsValue = pages.toggleSettings.enable_DME;
         await pages.officePage.ensureToggleValues(toggleSettingsValue);
         await pages.officePage.ensureTnxValue();
-        console.log("Office toggle configuration complete");
 
         await pages.basePage.navigateToBaseUrl();
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
@@ -93,23 +87,19 @@ test.describe.serial(
         await pages.searchCustomerPage.clickOnSearchCustomer();
         await pages.searchCustomerPage.clickOnActiveCustomer();
         await commissionHelper.updateAvailableCreditOnCustomer(sharedPage);
-        console.log("Office Pre-condition set successfully");
 
         await pages.adminPage.hoverAndClickAdminMenu();
         await pages.adminPage.switchUser(testData.salesAgent);
-        console.log("Switched user to agent salesperson");
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle", "domcontentloaded"]);
 
         await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
         await pages.postAutomationRulePage.verifyCustomerPostAutomationRule(testData.customerName);
-        console.log("Verified no post automation rule for customer");
 
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
         await pages.searchCustomerPage.searchCustomerAndClickDetails(testData.customerName);
         cargoValue = await pages.viewCustomerPage.verifyAndSetCargoValue(CARGO_VALUES.DEFAULT);
         await pages.viewCustomerPage.setPracticalDefaultMethodIfNeeded();
-        console.log("Customer search and load navigation successful");
       });
 
       await test.step("Step 4: Navigate to Carrier Search and search for carrier", async () => {
@@ -128,21 +118,15 @@ test.describe.serial(
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
         const loadboardStatusText = await pages.viewCarrierPage.getLoadboardStatus();
-        console.log(`Loadboard Status: "${loadboardStatusText}"`);
         pages.logger.info(`Carrier loadboard status: ${loadboardStatusText}`);
 
-        const requiredVisibility = [
-        "Avenger Logistics",
-        "Mode Transportation",
-        "Sunteck Transport Co",
-        "TTS",
-        ];
+        const requiredVisibility = [...REQUIRED_CARRIER_VISIBILITY];
 
         const tabClicked = await pages.viewCarrierPage.clickLoadboardTab();
         if (tabClicked) {
-        console.log("Clicked on LoadBoard tab");
+        pages.logger.info("LoadBoard tab clicked");
         } else {
-        console.log("LoadBoard tab not found, checking toggles on current page view");
+        pages.logger.info("LoadBoard tab not found, checking current view");
         }
 
         let togglesFound = false;
@@ -154,33 +138,31 @@ test.describe.serial(
         }
 
         if (togglesFound) {
-        console.log("Precondition Step 32: Carrier visibility labels found. Checking toggle states via DOM inspection...");
         const toggleStates = await pages.viewCarrierPage.getCarrierVisibilityToggleStates(requiredVisibility);
 
         const disabledToggles: string[] = [];
         for (const name of requiredVisibility) {
         const state = toggleStates[name];
         if (state?.enabled) {
-        console.log(`Precondition Step 32: "${name}" is already enabled (${state.debug})`);
+        pages.logger.info(`"${name}" already enabled`);
         } else {
         disabledToggles.push(name);
-        console.log(`Precondition Step 32: "${name}" needs enabling (${state?.debug})`);
+        pages.logger.info(`"${name}" needs enabling`);
         }
         }
 
         if (disabledToggles.length > 0) {
-        console.log(`Precondition Steps 33-35: ${disabledToggles.length} toggle(s) need updating — clicking Edit...`);
+        pages.logger.info(`${disabledToggles.length} toggle(s) need updating`);
         await pages.basePage.clickButtonByText("Edit");
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.viewCarrierPage.enableCarrierVisibilityToggles(disabledToggles);
         await pages.viewCarrierPage.clickSaveOnCarrierEditPage();
-        console.log("Precondition Step 35: Clicked Save on carrier edit page");
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         } else {
-        console.log("Precondition Step 32: All carrier visibility toggles are already enabled — skipping steps 33-35");
+        pages.logger.info("All carrier visibility toggles already enabled");
         }
         } else {
-        console.log("Carrier visibility labels not found on this page. Toggle check skipped — verify manually if needed.");
+        pages.logger.info("Carrier visibility labels not found, toggle check skipped");
         }
         pages.logger.info("Carrier visibility step completed");
       });
@@ -191,20 +173,15 @@ test.describe.serial(
         const dmeDashboard = new DMEDashboardPage(dmePage);
 
         await dmeDashboard.clickCarriersLink();
-        console.log("Precondition Step 38: Clicked Carriers link in DME sidebar");
 
         await dmeDashboard.searchCarrierByName(testData.Carrier);
-        console.log(`Precondition Step 39: Searched for carrier: ${testData.Carrier}`);
 
         await dmeDashboard.enableCarrierToggle(testData.Carrier);
-        console.log(`Precondition Step 40: Ensured carrier toggle is ON for ${testData.Carrier}`);
 
-        console.log("Precondition Steps 36-40 complete");
-        pages.logger.info("Precondition Step 40: DME carrier toggle verified");
+        pages.logger.info("DME carrier toggle verified");
 
         await appManager.switchToBTMS();
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        console.log("Switched back to BTMS — preconditions complete, starting test steps");
       });
 
       await test.step("Step 7: Click the New button to open the CREATE NEW ENTRY form", async () => {
@@ -235,7 +212,7 @@ test.describe.serial(
         // TODO: Fabricated locator — the original "#form_invalid_value_for_the_drop_zip_postal_code" does not match any real element.
         // Replace with the correct POM method for entering the DROP Zip/Postal Code field
         // e.g., await pages.postAutomationRulePage.enterDropZipCode(testData.invalidDropZipCode);
-        console.log("TODO: Enter invalid value for the DROP Zip/Postal Code — fabricated locator replaced with TODO");
+        pages.logger.info("TODO: Enter invalid value for the DROP Zip/Postal Code — fabricated locator replaced with TODO");
       });
 
       await test.step("Step 10: Click the Create button", async () => {
@@ -247,7 +224,6 @@ test.describe.serial(
       await test.step("Step 11: Verify Remaining Expected Results", async () => {
         // Expected: A message is displayed relating 'Unrecognised zip code entered'
         await pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.UNRECOGNISED_ZIP_CODE_ENTERED);
-        console.log("Alert validated");
       });
 
 

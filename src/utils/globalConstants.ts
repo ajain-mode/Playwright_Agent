@@ -31,6 +31,8 @@ export class GlobalConstants {
     FINANCE: "Finance"
   } as const;
 
+
+
   // Admin Sub-Menu Items
   static readonly ADMIN_SUB_MENU = {
     OFFICE_SEARCH: "Office Search",
@@ -473,6 +475,13 @@ export class GlobalConstants {
   static readonly LOAD_METHOD = {
     ELTL: "ELTL"
   } as const;
+
+  static readonly RATE_TYPE = {
+    FLAT: "Flat",
+    PER_MILE: "Per Mile",
+    PERCENT: "Percent",
+  } as const;
+
   /**
    * @author Rohit Singh
    * @created 04-Dec-2025
@@ -568,6 +577,18 @@ export class GlobalConstants {
     dateLastUpdated: 15,
   }as const;
 
+  static readonly CARRIER_NAME = {
+    CARRIER_1: "ZZOO LOGISTICS LLC",
+    CARRIER_2: "VICTOR LOGISTICS INC",
+    CARRIER_3: "SMART WAY TRANSPORT SYSTEMS LLC",
+    CARRIER_4: "ZONA TRUCKING LLC",
+    CARRIER_5: "ZOOMY TRUCKING INC",
+    CARRIER_6: "ZZOO LOGISTICS LL",
+    CARRIER_7: "GOLDEN WISE LOGISTICS CORPORTATION",
+    CARRIER_8: "SMART WAY TRANSPORT SYSTEMS LLC (158211)",
+    CARRIER_9: "VICTOR LOGISTICS INC (256395)",
+  } as const;
+
 }
 /**
  * @author Deepak Bohra
@@ -626,6 +647,8 @@ declare global {
   const CARRIER_TABS: typeof GlobalConstants.CARRIER_TABS;
   const POST_AUTOMATION_RULE: typeof GlobalConstants.POST_AUTOMATION_RULE;
   const POST_AUTOMATION_COLUMNS: typeof GlobalConstants.POST_AUTOMATION_COLUMNS;
+  const CARRIER_NAME: typeof GlobalConstants.CARRIER_NAME;
+  const RATE_TYPE: typeof GlobalConstants.RATE_TYPE;
 }
 /**
  * @author Deepak Bohra
@@ -689,4 +712,6 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).CARRIER_TABS = GlobalConstants.CARRIER_TABS;
   (globalThis as any).POST_AUTOMATION_RULE = GlobalConstants.POST_AUTOMATION_RULE;  
   (globalThis as any).POST_AUTOMATION_COLUMNS = GlobalConstants.POST_AUTOMATION_COLUMNS;
+  (globalThis as any).CARRIER_NAME = GlobalConstants.CARRIER_NAME;
+  (globalThis as any).RATE_TYPE = GlobalConstants.RATE_TYPE;
 }

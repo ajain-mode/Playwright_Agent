@@ -150,6 +150,12 @@ export default class ViewCarrier {
         console.log(`Factor Value retrieved: ${factorValue}`);
         return factorValue;
     }
+    /**
+     * Gets the CARB value from the carrier details.
+     * @author Rohit Singh
+     * @created 04-Dec-2025
+     * @returns The CARB value as a string.
+     */
     async getCarbValue() {
         await commonReusables.waitForPageStable(this.page);
         const carbValue = (await this.carbValue_LOC.textContent())?.trim() || "";
@@ -311,33 +317,33 @@ export default class ViewCarrier {
      */
     async getLoadboardStatus(): Promise<string> {
         const statusEl = this.page.locator(
-            "//td[contains(text(),'Loadboard Status') or contains(text(),'Mode ID Status')]/following-sibling::td"
+            "//td[contains(text(),'Loadboard Status') or contains(text(),'Mode ID Status') or contains(text(),'Mode IQ Status')]/following-sibling::td"
         ).first();
         if (await statusEl.isVisible({ timeout: 5000 }).catch(() => false)) {
             const text = (await statusEl.textContent())?.trim() || '';
-            console.log(`Loadboard/Mode ID Status: "${text}"`);
+            console.log(`Loadboard/Mode IQ Status: "${text}"`);
             return text;
         }
-        console.log('Loadboard/Mode ID Status element not found');
+        console.log('Loadboard/Mode IQ Status element not found');
         return '';
     }
 
     /**
-     * Clicks the Mode ID tab (formerly LoadBoard) on the carrier page.
-     * Matches both the old "LoadBoard" and new "Mode ID" tab names.
+     * Clicks the Mode IQ tab (formerly LoadBoard / Mode ID) on the carrier page.
+     * Matches all known tab name variants: "Mode IQ", "Mode ID", "LoadBoard".
      * @author AI Agent
      * @created 17-Mar-2026
      */
     async clickLoadboardTab(): Promise<boolean> {
         const tab = this.page.locator(
-            "//a[contains(text(),'Mode ID') or contains(text(),'mode id') or contains(text(),'LoadBoard') or contains(text(),'Loadboard')] | //li[contains(text(),'Mode ID') or contains(text(),'mode id') or contains(text(),'LoadBoard') or contains(text(),'Loadboard')]"
+            "//a[contains(text(),'Mode IQ') or contains(text(),'mode iq') or contains(text(),'Mode ID') or contains(text(),'mode id') or contains(text(),'LoadBoard') or contains(text(),'Loadboard')] | //li[contains(text(),'Mode IQ') or contains(text(),'mode iq') or contains(text(),'Mode ID') or contains(text(),'mode id') or contains(text(),'LoadBoard') or contains(text(),'Loadboard')]"
         ).first();
         if (await tab.isVisible({ timeout: 5000 }).catch(() => false)) {
             await tab.click();
-            console.log('Clicked Mode ID tab');
+            console.log('Clicked Mode IQ tab');
             return true;
         }
-        console.log('Mode ID / LoadBoard tab not found — verify tab name manually');
+        console.log('Mode IQ / Mode ID / LoadBoard tab not found — verify tab name manually');
         return false;
     }
 
@@ -345,6 +351,7 @@ export default class ViewCarrier {
      * Checks if a carrier visibility label is visible on the page.
      * @author AI Agent
      * @created 17-Mar-2026
+     * @param name - The carrier visibility label name to check.
      */
     async isCarrierVisibilityLabelVisible(name: string): Promise<boolean> {
         const label = this.page.locator(`//*[contains(text(),'${name}')]`).first();
@@ -353,6 +360,10 @@ export default class ViewCarrier {
 
     /**
      * Gets the toggle states for the given carrier visibility labels by inspecting the DOM.
+     * @author AI Agent
+     * @created 17-Mar-2026
+     * @param carriers - Array of carrier visibility label names to check.
+     * @returns Record mapping each carrier name to its enabled state and debug info.
      */
     async getCarrierVisibilityToggleStates(carriers: string[]): Promise<Record<string, { enabled: boolean; debug: string }>> {
         return this.page.evaluate((carrierNames: string[]) => {
@@ -394,7 +405,9 @@ export default class ViewCarrier {
 
     /**
      * Enables carrier visibility toggles for the given carrier names.
-     * Clicks Edit, toggles disabled carriers, and saves.
+     * @author AI Agent
+     * @created 17-Mar-2026
+     * @param disabledCarriers - Array of carrier names whose toggles need enabling.
      */
     async enableCarrierVisibilityToggles(disabledCarriers: string[]): Promise<void> {
         for (const name of disabledCarriers) {
@@ -417,6 +430,8 @@ export default class ViewCarrier {
 
     /**
      * Clicks the Save button on the carrier edit page.
+     * @author AI Agent
+     * @created 17-Mar-2026
      */
     async clickSaveOnCarrierEditPage(): Promise<void> {
         const saveBtn = this.page.locator("input[type='button'][value='  Save  ']");

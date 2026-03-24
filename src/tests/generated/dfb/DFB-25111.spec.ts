@@ -52,9 +52,6 @@ test.describe.serial(
 
       await test.step("Step 1: Login BTMS", async () => {
         await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
-        if (await pages.btmsAcceptTermPage.validateOnBTMSAcceptTermPage()) {
-        await pages.btmsAcceptTermPage.acceptTermsAndConditions();
-        }
       });
 
       await test.step("Step 2: Setup Office Preconditions", async () => {
@@ -69,7 +66,6 @@ test.describe.serial(
         
         await pages.adminPage.hoverAndClickAdminMenu();
         await pages.adminPage.switchUser(testData.salesAgent);
-        console.log("Office preconditions set and switched to sales agent");
       });
 
       await test.step("Step 3: Navigate to Post Automation Page", async () => {
@@ -109,7 +105,6 @@ test.describe.serial(
           pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.EMAIL_NOTIFICATION_REQUIRED),
           await pages.postAutomationRulePage.clickElementByText(BUTTONS.CREATE),
         ]);
-        console.log("Alert validated");
       });
 
 

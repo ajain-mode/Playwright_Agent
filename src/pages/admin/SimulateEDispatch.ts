@@ -51,12 +51,26 @@ class SimulateEDispatchPage {
         await commonReusables.waitForPageStable(this.page);
     }
 
+    /**
+     * Selects an event from the event dropdown.
+     * @author Aniket Nale
+     * @created 2025-11-11
+     * @param event - The event label to select.
+     */
     async selectEventDropdown(event: string) {
         await this.eventDropdown_LOC.waitFor({ state: "visible", timeout: WAIT.MID });
         await this.eventDropdown_LOC.selectOption({ label: event });
         await commonReusables.waitForPageStable(this.page);
     }
 
+    /**
+     * Enters city, state, and zip code location details.
+     * @author Aniket Nale
+     * @created 2025-11-11
+     * @param city - The city name.
+     * @param state - The state abbreviation.
+     * @param zip - The zip code.
+     */
     async enterLocationDetails(city: string, state: string, zip: string) {
         await this.cityInput_LOC.waitFor({ state: "visible", timeout: WAIT.MID });
         await this.cityInput_LOC.fill(city);
@@ -67,6 +81,11 @@ class SimulateEDispatchPage {
         await commonReusables.waitForPageStable(this.page);
     }
 
+    /**
+     * Clicks the Submit button and waits for success message.
+     * @author Aniket Nale
+     * @created 2025-11-11
+     */
     async clickOnSubmitButton() {
         await this.submitButton_LOC.waitFor({ state: "visible", timeout: WAIT.MID });
         await this.submitButton_LOC.click();

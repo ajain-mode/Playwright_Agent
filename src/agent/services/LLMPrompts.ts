@@ -9,6 +9,8 @@ export interface SchemaContext {
   pageObjects: Record<string, string[]>;
   /** Available constant names (HEADERS, TABS, WAIT, etc.) */
   constants: string[];
+  /** Detailed constants: GROUP_NAME → { KEY: value } for reverse-lookup */
+  constantsDetail?: Record<string, Record<string, string>>;
   /** Available testData field names for the current test case */
   testDataFields?: string[];
 }
@@ -195,6 +197,20 @@ export function buildCodeGenSystemPrompt(schema: SchemaContext): string {
 
   const constantsList = schema.constants.join(', ');
 
+  // Build detailed constants reference if available
+  let constantsDetailSection = '';
+  if (schema.constantsDetail && Object.keys(schema.constantsDetail).length > 0) {
+    const detailLines = Object.entries(schema.constantsDetail)
+      .map(([group, keys]) => {
+        const keyEntries = Object.entries(keys)
+          .map(([k, v]) => `    ${k}: "${v}"`)
+          .join('\n');
+        return `  ${group}:\n${keyEntries}`;
+      })
+      .join('\n');
+    constantsDetailSection = `\n\n## Constants Reference (use these instead of hardcoding values)\n${detailLines}`;
+  }
+
   return `You are a Playwright test code generator for the SunTeck TMS QA Framework.
 You generate ONLY executable TypeScript code for a single test step — no markdown, no explanations, no wrapping.
 
@@ -202,15 +218,18 @@ You generate ONLY executable TypeScript code for a single test step — no markd
 ${pomSummary}
 
 ## Available Constants (global — no import needed)
-${constantsList}
+${constantsList}${constantsDetailSection}
 
 ${FRAMEWORK_KNOWLEDGE}
 
 ## CRITICAL Rules
 1. Output ONLY executable TypeScript code — no markdown fences, no explanations
 2. Use testData.* for dynamic values (e.g., testData.customerName, testData.offerRate)
-3. ALWAYS use pages.<getter>.<method>() for ALL element interactions. If a method doesn't exist yet in the schema,
-    generate the call anyway using a descriptive method name — the pipeline will auto-create the method in the POM file.
+3. ALWAYS use pages.<getter>.<method>() for ALL element interactions.
+    FIRST check the Available Page Objects schema above for an existing method that does what you need.
+    If a functionally equivalent method already exists (even with a slightly different name), USE IT — do NOT invent a new one.
+    For example, if getRateTypeValue() exists, do NOT create getLinehaulDefaultValue() for the same purpose.
+    Only if NO existing method covers the functionality, generate the call using a descriptive method name — the pipeline will auto-create it.
     Use naming conventions: clickOn<Element>(), enter<FieldName>(value), select<Option>(value), verify<State>(), get<Value>().
     NEVER use sharedPage.locator() directly in spec files — all locators MUST live in page object files.
 4. Use await for all async calls
@@ -232,11 +251,13 @@ ${FRAMEWORK_KNOWLEDGE}
     - Get value: pages.<page>.get<Value>() — e.g., pages.loadBillingPage.getBillingToggleValue()
     Choose the appropriate page getter based on which page the element belongs to:
     - editLoadFormPage: Edit Load form fields (form_* IDs)
-    - editLoadCarrierTabPage: Carrier tab fields (carrier rates, miles, trailer length)
+    - editLoadCarrierTabPage: Carrier tab fields ONLY (carrier rates, miles, trailer length, email notification Select2)
     - viewLoadPage: Document Upload Utility, view load operations
     - loadBillingPage: Billing page operations (toggle, invoices, finance messages, view history)
-    - nonTabularLoadPage: Enter New Load form operations
+    - nonTabularLoadPage: Enter New Load form operations (customer Select2, shipper/consignee dropdowns, commodity, equipment, dates/times, Create Load button)
     - basePage: Common navigation, headers, menus
+    IMPORTANT: Customer selection (form_customer) and shipper dropdown (form_shipper_ship_point) are on the Enter New Load form,
+    so they belong on nonTabularLoadPage, NOT editLoadCarrierTabPage. Use pages.nonTabularLoadPage.selectCustomerViaSelect2(customerName).
     NEVER fabricate locator IDs from step description text. If the step is too vague, use a TODO comment:
       console.log("TODO: Manual implementation needed — <step description>");
 13. For billingtoggle tests — use pages.editLoadFormPage.clickOnViewBillingBtn() to navigate to billing view.
@@ -285,14 +306,19 @@ ${FRAMEWORK_KNOWLEDGE}
     console.log is for progress tracking ONLY (e.g., "Step completed", "Load number captured").
 22. When a test step says "Validate X is Y" or "Verify X shows Y", ALWAYS produce an expect() or expect.soft() assertion.
     Pattern: const value = await <get_value>; expect.soft(value).toBe/toContain/toMatch(expected);
-23. Constant key validation — use ONLY these valid keys:
-    - CARRIER_DISPATCH_EMAIL: EMAIL_1 (NOT DISPATCH_EMAIL_1)
-    - CARRIER_DISPATCH_NAME: DISPATCH_NAME_1, DISPATCH_NAME_2
-    - CARRIER_CONTACT: CONTACT_1, CONTACT_2, CONTACT_3
-    - CARRIER_NAME: CARRIER_1 through CARRIER_9
-    - PRIORITY: PRIORITY_1, PRIORITY_2, PRIORITY_3
-    - LOAD_OFFER_RATES: OFFER_RATE_1 through OFFER_RATE_4
-    Do NOT invent constant keys that aren't listed above.
+23. NEVER hardcode string values that exist in the Constants Reference above. Always use the constant reference.
+    Examples of what NOT to do vs what TO do:
+    - BAD: "ACTIVE" → GOOD: LOAD_STATUS.ACTIVE or CARRIER_STATUS.ACTIVE (pick the right group)
+    - BAD: "Admin" → GOOD: HEADERS.ADMIN
+    - BAD: "Search" → GOOD: CARRIER_SUB_MENU.SEARCH or LOAD_SUB_MENU.SEARCH
+    - BAD: "ZZOO LOGISTICS LLC" → GOOD: CARRIER_NAME.CARRIER_1
+    - BAD: "Avenger Logistics" → GOOD: CARRIER_VISIBILITY.AVENGER_LOGISTICS
+    - BAD: "1500" (offer rate) → GOOD: LOAD_OFFER_RATES.OFFER_RATE_1
+    - BAD: "Satisfactory" (safety rating) → GOOD: SAFETY_RATING_SFD.SATISFACTORY
+    - BAD: "NET 15" → GOOD: paymentTermsOptions.NET_15
+    - BAD: "Set Complete" → GOOD: LOAD_ACTIVITIES.SET_COMPLETE
+    Use the Constants Reference section to find the correct constant group and key.
+    Do NOT invent constant keys that aren't listed in the reference.
 24. NEVER use XPath translate() for case-insensitive matching (e.g., translate(text(),'ABC...','abc...')).
     These locators are brittle and break when UI labels change. Instead, use multiple explicit text matchers:
     contains(text(),'LabelA') or contains(text(),'LabelB')
@@ -304,8 +330,8 @@ ${FRAMEWORK_KNOWLEDGE}
     - Do NOT use sharedPage.locator(), tnxPage.locator(), dmePage.locator() etc. in spec files.
     - Instead, create/use POM methods: pages.<getter>.<method>() or pageInstance.<method>()
     - The pipeline will auto-create missing POM methods via ensurePageObjectMethodsExist().
-27. When a tab or label has been renamed in the UI (e.g., "LoadBoard" → "Mode ID"), the POM locator
-    must match BOTH old and new names to ensure backward compatibility during the transition period.
+27. When a tab or label has been renamed in the UI (e.g., "LoadBoard" → "Mode ID" → "Mode IQ"), the POM locator
+    must match ALL known name variants to ensure backward compatibility during the transition period.
 28. NEVER use page.evaluate() with querySelector, closest, getComputedStyle, or classList.contains to read element state.
     These are DOM-guessing anti-patterns that are fragile and break with CSS/HTML changes.
     Instead, use Playwright built-in methods: isChecked(), inputValue(), getAttribute(), isVisible(), textContent().
@@ -317,11 +343,24 @@ ${FRAMEWORK_KNOWLEDGE}
     For file attachments, use POM methods: pages.viewLoadPage.attachCarrierInvoiceFile() or pages.viewLoadPage.attachPODFile().
 32. NEVER use duplicate locating strategies for the same element. Pick one reliable locator per element.
     Prefer CSS selectors and Playwright getByRole/getByLabel over XPath. XPath is slower and more fragile.
-33. Before creating a new POM method, check if the same functionality already exists on another page object class.
-    Do NOT duplicate methods that already exist in the framework (e.g., clickOnActiveCustomer on SearchCustomerPage).
+33. Before inventing a new POM method name, ALWAYS scan the Available Page Objects schema above for existing methods
+    that serve the same purpose. Prefer an existing method even if its name is slightly different from what you would invent.
+    Examples of duplicates to AVOID:
+    - Do NOT create getLinehaulDefaultValue() when getRateTypeValue() already reads from the same dropdown
+    - Do NOT create getFuelSurchargeDefaultValue() when a similar getter already exists
+    - Do NOT create enterCarrierLinehaul() when enterCarrierLinehaulRate() already exists
+    The pipeline will BLOCK creation of methods that are semantically similar to existing ones.
 34. NEVER pass hardcoded numeric strings to POM methods for rates, amounts, miles, or invoice numbers.
     Always use testData.* from CSV: testData.customerRate, testData.carrierRate, testData.miles, testData.linehaulRate,
-    testData.carrierInvoiceNumber, testData.carrierInvoiceAmount1, testData.carrierInvoiceAmount2.`;
+    testData.carrierInvoiceNumber, testData.carrierInvoiceAmount1, testData.carrierInvoiceAmount2.
+36. NEVER use hardcoded string literals in expect() assertions or POM method arguments when a global constant exists.
+    FIRST check the Available Constants list above for an existing constant (e.g., RATE_TYPE.FLAT, LOAD_STATUS.BOOKED).
+    If no matching constant exists, the pipeline should create one in globalConstants.ts — do NOT hardcode the value.
+    Examples: use RATE_TYPE.FLAT instead of "Flat", LOAD_STATUS.BOOKED instead of "Booked".
+35. Do NOT use console.log() in spec files. All logging must occur inside Page Object classes via this.logger or similar.
+    - Narration logs like "Clicked Save button" or "Navigated to page" are redundant — the test.step() name already describes the action.
+    - For runtime values that aid debugging (load numbers, captured emails, toggle states), use pages.logger.info() instead.
+    - The ONLY acceptable console.log in a spec is inside conditional branches to log which path was taken (e.g., toggle ON vs OFF).`;
 }
 
 /**
@@ -354,7 +393,7 @@ export function buildFullSpecPrompt(
 5. Only change: test case ID, title, and test-specific values (testData fields, constants)
 6. Every expected result MUST use expect() or expect.soft() — NEVER use console.log as a substitute for validation
 7. Use testData.* for all CSV-derived values
-8. Correct constant keys: CARRIER_DISPATCH_EMAIL.EMAIL_1 (NOT DISPATCH_EMAIL_1), CARRIER_CONTACT.CONTACT_1
+8. NEVER hardcode string values that exist as global constants. Use the constant reference (e.g., CARRIER_DISPATCH_EMAIL.EMAIL_1, CARRIER_VISIBILITY.AVENGER_LOGISTICS, LOAD_STATUS.ACTIVE, CARRIER_STATUS.ACTIVE, SAFETY_RATING_SFD.SATISFACTORY, etc.)
 9. NEVER use ALERT_PATTERNS.UNKNOWN_MESSAGE
 10. validateCarrierAssignedText() requires argument: validateCarrierAssignedText(testData.Carrier)
 11. The const testcaseID must be "${testCaseId}" and dataConfig must use dataConfig.${testCaseCategory}Data
@@ -368,7 +407,9 @@ export function buildFullSpecPrompt(
 19. NEVER use require() or path.resolve() inline — use POM methods like attachCarrierInvoiceFile() or attachPODFile()
 20. NEVER use duplicate locating strategies for the same element. One reliable locator per element. Prefer CSS/getByRole over XPath
 21. NEVER pass hardcoded numeric strings to POM methods for rates, amounts, miles, or invoice numbers.
-    Use testData.customerRate, testData.carrierRate, testData.miles, testData.linehaulRate, testData.carrierInvoiceNumber, testData.carrierInvoiceAmount1, testData.carrierInvoiceAmount2`;
+    Use testData.customerRate, testData.carrierRate, testData.miles, testData.linehaulRate, testData.carrierInvoiceNumber, testData.carrierInvoiceAmount1, testData.carrierInvoiceAmount2
+22. Do NOT use console.log() in spec files. Logging belongs inside Page Object classes.
+    Use pages.logger.info() for runtime values only (load numbers, emails, statuses). Do not log narration like "Clicked button".`;
 
   const stepsText = steps.map(s => `  ${s.stepNumber}. ${s.action}${s.expectedResult ? ` → Expected: ${s.expectedResult}` : ''}`).join('\n');
   const expectedText = expectedResults.length > 0

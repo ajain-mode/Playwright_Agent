@@ -45,9 +45,6 @@ test.describe.serial("Verify that a message is displayed when a value is not ent
 
       await test.step("Step 1: Login BTMS", async () => {
         await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
-        if (await pages.btmsAcceptTermPage.validateOnBTMSAcceptTermPage()) {
-        await pages.btmsAcceptTermPage.acceptTermsAndConditions();
-        }
       });
 
       await test.step("Step 2: Setup Office Preconditions", async () => {
@@ -64,7 +61,6 @@ test.describe.serial("Verify that a message is displayed when a value is not ent
         
         await pages.adminPage.hoverAndClickAdminMenu();
         await pages.adminPage.switchUser(testData.salesAgent);
-        console.log("Office preconditions set and switched to sales agent");
       });
 
       await test.step("Step 3: Navigate to Post Automation Page", async () => {

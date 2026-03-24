@@ -515,6 +515,61 @@ export class CodeGenerator {
    * actually exist in the page files. If a method is missing, generate and
    * add a reusable locator function to the respective page object file.
    */
+  /**
+   * Tokenize a camelCase method name into lowercase keywords.
+   * e.g. "getLinehaulDefaultValue" → ["get", "linehaul", "default", "value"]
+   */
+  private tokenizeMethodName(name: string): string[] {
+    return name.replace(/([A-Z])/g, ' $1').trim().toLowerCase().split(/\s+/);
+  }
+
+  /**
+   * Find semantically similar existing methods on the same class.
+   * Uses Jaccard similarity on camelCase tokens.
+   * Returns the best match if similarity >= threshold.
+   */
+  private findSimilarExistingMethod(
+    className: string,
+    methodName: string,
+    threshold = 0.5
+  ): { existingMethod: string; similarity: number } | null {
+    const existingMethods = this.schemaAnalyzer.getClassMethods(className);
+    const newTokens = new Set(this.tokenizeMethodName(methodName));
+    let bestMatch: { existingMethod: string; similarity: number } | null = null;
+
+    for (const existing of existingMethods) {
+      const existTokens = new Set(this.tokenizeMethodName(existing));
+      const intersection = [...newTokens].filter(t => existTokens.has(t)).length;
+      const union = new Set([...newTokens, ...existTokens]).size;
+      const similarity = union > 0 ? intersection / union : 0;
+
+      if (similarity >= threshold && (!bestMatch || similarity > bestMatch.similarity)) {
+        bestMatch = { existingMethod: existing, similarity };
+      }
+    }
+
+    // Also check across ALL POM classes for high-similarity methods
+    if (!bestMatch) {
+      const allSummary = this.schemaAnalyzer.getPageObjectSummary();
+      for (const [cls, methods] of allSummary) {
+        if (cls === className) continue;
+        for (const existing of methods) {
+          const existTokens = new Set(this.tokenizeMethodName(existing));
+          const intersection = [...newTokens].filter(t => existTokens.has(t)).length;
+          const union = new Set([...newTokens, ...existTokens]).size;
+          const similarity = union > 0 ? intersection / union : 0;
+
+          if (similarity >= threshold && (!bestMatch || similarity > bestMatch.similarity)) {
+            bestMatch = { existingMethod: existing, similarity };
+            console.log(`   ℹ️  Similar method '${existing}' found on '${cls}' (similarity: ${(similarity * 100).toFixed(0)}%)`);
+          }
+        }
+      }
+    }
+
+    return bestMatch;
+  }
+
   private ensurePageObjectMethodsExist(content: string, testCase: TestCaseInput): void {
     // Pattern: pages.<pageGetter>.<methodName>(
     const pageCallRegex = /pages\.(\w+)\.(\w+)\s*\(/g;
@@ -545,12 +600,21 @@ export class CodeGenerator {
         continue; // Already exists, nothing to do
       }
 
-      // Check if method already exists on a DIFFERENT POM class (duplicate detection)
+      // Check if method already exists on a DIFFERENT POM class (exact name match)
       const existsElsewhere = this.schemaAnalyzer.methodExistsAnywhere(methodName);
       if (existsElsewhere.exists && existsElsewhere.className && existsElsewhere.className !== className) {
         console.log(`\n⚠️  Duplicate POM method detected: '${methodName}' already exists on '${existsElsewhere.className}' but spec calls it on '${className}'.`);
         console.log(`   Review whether the existing method on '${existsElsewhere.className}' can be reused instead of creating a duplicate.`);
         console.log(`   Proceeding with auto-generation on '${className}' — review for potential deduplication.`);
+      }
+
+      // Fuzzy match: check if a semantically similar method already exists
+      const similarMatch = this.findSimilarExistingMethod(className, methodName);
+      if (similarMatch) {
+        console.log(`\n⚠️  Similar POM method already exists: '${similarMatch.existingMethod}' (${(similarMatch.similarity * 100).toFixed(0)}% similar to '${methodName}')`);
+        console.log(`   Consider using '${similarMatch.existingMethod}' instead of creating '${methodName}'.`);
+        console.log(`   Skipping auto-generation — update the spec to use the existing method.`);
+        continue; // Skip creation — prefer existing similar method
       }
 
       // Method doesn't exist — generate and add it
@@ -2672,12 +2736,95 @@ ${formFields.join('\n')}
       pageObjects[getter] = methods;
     }
 
+    // Build detailed constants registry by scanning all constant files
+    const constantsDetail = this.buildConstantsDetail();
+
     this._schemaContext = {
       pageObjects,
       constants: this.config.globalConstants,
+      constantsDetail,
     };
 
     return this._schemaContext;
+  }
+
+  /**
+   * Dynamically reads all constant files under src/utils/ and extracts
+   * GROUP_NAME → { KEY: value } mappings for LLM context.
+   * @author AI Agent
+   * @created 2026-03-19
+   */
+  private buildConstantsDetail(): Record<string, Record<string, string>> {
+    const result: Record<string, Record<string, string>> = {};
+    const utilsDir = this.config.utilsDir;
+
+    // All known constant files (relative to utilsDir)
+    const constantFiles = [
+      'globalConstants.ts',
+      'dfbUtils/dfbGlobalConstants.ts',
+      'carrierUtils/carrierConstants.ts',
+      'datUtils/datConstants.ts',
+      'ediUtils/ediConstants.ts',
+      'salesLeadUtils/salesLeadConstants.ts',
+      'bulkChangeUtils/bulkChangeConstants.ts',
+      'nonOperationalLoadsUtils/nonOperationalLoadsConstant.ts',
+    ];
+
+    for (const relPath of constantFiles) {
+      const filePath = path.join(utilsDir, relPath);
+      if (!fs.existsSync(filePath)) continue;
+
+      try {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        // Parse static readonly blocks: static readonly GROUP_NAME = { KEY: "value", ... }
+        const blockRegex = /static\s+readonly\s+(\w+)\s*=\s*\{([^}]+)\}/g;
+        let match;
+        while ((match = blockRegex.exec(content)) !== null) {
+          const groupName = match[1];
+          const blockBody = match[2];
+          const keys: Record<string, string> = {};
+          // Extract KEY: "value" or KEY: 'value' pairs
+          const kvRegex = /(\w+)\s*:\s*["']([^"']+)["']/g;
+          let kvMatch;
+          while ((kvMatch = kvRegex.exec(blockBody)) !== null) {
+            keys[kvMatch[1]] = kvMatch[2];
+          }
+          if (Object.keys(keys).length > 0) {
+            result[groupName] = keys;
+          }
+        }
+      } catch {
+        // Skip files that can't be read
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Reverse-lookup map: lowercase value → "GROUP.KEY" constant reference.
+   * Built from constantsDetail, cached per generation run.
+   * @author AI Agent
+   * @created 2026-03-19
+   */
+  private _constantsValueMap: Map<string, string> | null = null;
+
+  private getConstantsValueMap(): Map<string, string> {
+    if (this._constantsValueMap) return this._constantsValueMap;
+    const map = new Map<string, string>();
+    const detail = this.getSchemaContext().constantsDetail;
+    if (detail) {
+      for (const [group, keys] of Object.entries(detail)) {
+        for (const [key, value] of Object.entries(keys)) {
+          // Only index values that are specific enough (>= 3 chars, not pure numbers < 4 digits)
+          if (value.length >= 3 && !/^\d{1,3}$/.test(value)) {
+            map.set(value.toLowerCase(), `${group}.${key}`);
+          }
+        }
+      }
+    }
+    this._constantsValueMap = map;
+    return map;
   }
 
   /**
@@ -3648,6 +3795,75 @@ ${stepCode}
       );
     }
 
+    // ── 19. Strip narration console.log() calls from spec code ──
+    // console.log with static strings that just narrate POM actions are noise.
+    // Keep only pages.logger.info() for runtime values.
+    const consoleLogLines = fixed.split('\n');
+    const cleanedLines: string[] = [];
+    let consoleLogsRemoved = 0;
+    for (const line of consoleLogLines) {
+      const trimmed = line.trim();
+      // Remove pure narration console.log() — static strings with no template literals capturing runtime values
+      if (/^\s*console\.log\s*\(/.test(line)) {
+        // Keep console.log inside conditional branches (if/else) for decision logging
+        const prevNonEmpty = cleanedLines.filter(l => l.trim().length > 0);
+        const prevLine = prevNonEmpty.length > 0 ? prevNonEmpty[prevNonEmpty.length - 1].trim() : '';
+        const isInsideConditional = prevLine.endsWith('{') || prevLine.startsWith('} else');
+        if (!isInsideConditional) {
+          consoleLogsRemoved++;
+          continue; // skip this line
+        }
+      }
+      cleanedLines.push(line);
+    }
+    fixed = cleanedLines.join('\n');
+    if (consoleLogsRemoved > 0) {
+      warnings.push(
+        `🧹 Guardrail: Removed ${consoleLogsRemoved} narration console.log() call(s) from spec. Logging belongs in Page Object classes.`
+      );
+    }
+
+    // ── 20. Replace hardcoded string values with global constant references ──
+    // Scan for quoted strings that match known constant values and replace them.
+    const valueMap = this.getConstantsValueMap();
+    if (valueMap.size > 0) {
+      let constantReplacements = 0;
+      const fixedLines = fixed.split('\n');
+      for (let i = 0; i < fixedLines.length; i++) {
+        const line = fixedLines[i];
+        // Skip import lines, comments, const declarations for testcaseID/testData, and lines that already use CONSTANT.KEY
+        if (line.trim().startsWith('import ') || line.trim().startsWith('//') ||
+            line.trim().startsWith('*') || line.includes('testcaseID') ||
+            line.includes('dataConfig.') || line.includes('tag:')) continue;
+
+        // Find quoted strings in this line
+        const quotedRegex = /["']([^"']{3,})["']/g;
+        let qMatch;
+        let newLine = line;
+        while ((qMatch = quotedRegex.exec(line)) !== null) {
+          const quotedValue = qMatch[1];
+          const constantRef = valueMap.get(quotedValue.toLowerCase());
+          if (constantRef) {
+            // Don't replace if this is already inside a constant reference (e.g., LOAD_STATUS.ACTIVE)
+            const beforeQuote = line.substring(0, qMatch.index);
+            if (/\w+\.\w+\s*$/.test(beforeQuote)) continue;
+            // Don't replace values in step descriptions (test.step('Step N: ...')), test titles, or describe blocks
+            if (/test\.step\s*\(/.test(line) || /test\s*\(/.test(line) || /describe/.test(line)) continue;
+            // Replace the quoted value with the constant reference
+            newLine = newLine.replace(qMatch[0], constantRef);
+            constantReplacements++;
+          }
+        }
+        fixedLines[i] = newLine;
+      }
+      fixed = fixedLines.join('\n');
+      if (constantReplacements > 0) {
+        warnings.push(
+          `🔗 Guardrail: Replaced ${constantReplacements} hardcoded value(s) with global constant references.`
+        );
+      }
+    }
+
     // Log all warnings
     if (warnings.length > 0) {
       console.log('\n📋 Post-Generation Guardrail Results:');
@@ -4249,9 +4465,11 @@ ${stepCode}
     let emittedSwitchUser = false;
 
     // Determine correct toggle config once from the full text
+    // Note: "Enable TNX Bids" toggle is distinct from "Match Vendor = TNX" (handled by ensureTnxValue).
+    // Only select enabled_TNXBids when preconditions explicitly mention the "TNX Bids" toggle.
     const allText = groups.map(g => g.join(' ').toLowerCase()).join(' ');
     let toggleConfig = 'pages.toggleSettings.enable_DME';
-    if (allText.includes('tnx bids') || allText.includes('enable tnx')) {
+    if (allText.includes('tnx bids') || allText.includes('enable tnx bids')) {
       toggleConfig = 'pages.toggleSettings.enabled_TNXBids';
     }
     if (allText.includes('greenscreen')) {
@@ -4468,19 +4686,49 @@ ${stepCode}
         await pages.basePage.hoverOverHeaderByText(HEADERS.CARRIER);
         await pages.basePage.clickSubHeaderByText(CARRIER_SUB_MENU.SEARCH);
         await pages.carrierSearchPage.nameInputOnCarrierPage(testData.Carrier);
-        await pages.carrierSearchPage.selectStatusOnCarrier(testData.carrierStatus || CARRIER_STATUS.ACTIVE);
+        await pages.carrierSearchPage.selectActiveOnCarrier();
         await pages.carrierSearchPage.clickOnSearchButton();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await pages.carrierSearchPage.verifyCarrierListTableData(testData.Carrier);
         await pages.carrierSearchPage.selectCarrierByName(testData.Carrier);
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        // Check loadboard status and visibility toggles
-        const loadboardStatus = sharedPage.locator("//td[contains(@class,'loadboard')]").first();
-        if (await loadboardStatus.isVisible({ timeout: 5000 }).catch(() => false)) {
-          const statusText = (await loadboardStatus.textContent())?.trim() || "";
-          console.log(\`Loadboard Status: "\${statusText}"\`);
+
+        const statusText = await pages.viewCarrierPage.getLoadboardStatus();
+        pages.logger.info(\`Carrier loadboard status: \${statusText}\`);
+
+        const requiredVisibility = [...REQUIRED_CARRIER_VISIBILITY];
+        const tabClicked = await pages.viewCarrierPage.clickLoadboardTab();
+        expect.soft(tabClicked, "Mode IQ tab should be visible and clickable on carrier page").toBeTruthy();
+        if (tabClicked) {
+          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         }
-        console.log("Carrier visibility preconditions verified");`,
-          pageObjects: ['basePage', 'carrierSearchPage'],
+
+        let togglesFound = false;
+        for (const name of requiredVisibility) {
+          if (await pages.viewCarrierPage.isCarrierVisibilityLabelVisible(name)) {
+            togglesFound = true;
+            break;
+          }
+        }
+
+        if (togglesFound) {
+          const toggleStates = await pages.viewCarrierPage.getCarrierVisibilityToggleStates(requiredVisibility);
+          const disabledToggles: string[] = [];
+          for (const name of requiredVisibility) {
+            const state = toggleStates[name];
+            if (!state?.enabled) {
+              disabledToggles.push(name);
+            }
+          }
+          if (disabledToggles.length > 0) {
+            await pages.basePage.clickButtonByText("Edit");
+            await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+            await pages.viewCarrierPage.enableCarrierVisibilityToggles(disabledToggles);
+            await pages.viewCarrierPage.clickSaveOnCarrierEditPage();
+            await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+          }
+        }
+        pages.logger.info("Carrier visibility step completed");`,
+          pageObjects: ['basePage', 'carrierSearchPage', 'viewCarrierPage'],
           assertions: []
         };
       }

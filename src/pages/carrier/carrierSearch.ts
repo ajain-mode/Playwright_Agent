@@ -371,6 +371,12 @@ export default class CarrierSearch {
         await commonReusables.waitForPageStable(this.page);
         await this.clearButton_LOC.click();
     }
+    /**
+     * Verifies that the specified data is visible in the carrier search results table.
+     * @author AI Agent
+     * @created 17-Mar-2026
+     * @param dataToViisible - The text value to verify in the carrier list table.
+     */
     async verifyCarrierListTableData(dataToViisible: string) {
         await commonReusables.waitForPageStable(this.page);
         const cell = this.carrierListTableData_LOC(dataToViisible);

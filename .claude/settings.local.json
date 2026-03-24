@@ -30,7 +30,8 @@
       "Bash(dir)",
       "Bash(gh api repos/modetrans/mono/git/trees/main --jq '.tree[].path')",
       "Read(//c/Users/Aman.Jain/Monotrans/**)",
-      "Bash(git -C \"c:/Users/Aman.Jain/OneDrive/Mode Global/Test cases/QA AI Agent/Playwright_Agent\" status src/data/dfb/dfbdata.csv)"
+      "Bash(git -C \"c:/Users/Aman.Jain/OneDrive/Mode Global/Test cases/QA AI Agent/Playwright_Agent\" status src/data/dfb/dfbdata.csv)",
+      "Bash(grep -E \"\\\\.\\(twig|js|php\\)$\")"
     ]
   }
 }

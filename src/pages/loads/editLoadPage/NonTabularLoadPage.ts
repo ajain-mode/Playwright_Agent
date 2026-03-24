@@ -97,36 +97,78 @@ class NonTabularLoadPage {
         }
     }
 
-    async selectMethod(method: string): Promise<void> {
-        await this.distanceMethodDropdown_LOC.waitFor({ state: 'visible' });
-        await this.distanceMethodDropdown_LOC.selectOption({ label: method });
-        console.log(`Selected Distance Method: ${method}`);
+    /**
+     * Selects a value from a Select2-wrapped single-select dropdown.
+     * Clicks the .select2-selection sibling of the hidden <select>, then clicks the matching option.
+     * @param selectId - The original <select> element ID (e.g. "form_carriers_1_mileage_method")
+     * @param value - The option label to select
+     */
+    async selectFromSelect2SingleDropdown(selectId: string, value: string): Promise<void> {
+        const select2Selection = this.page.locator(
+            `#${selectId} ~ .select2-container .select2-selection`
+        );
+        await select2Selection.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        await select2Selection.click();
+        console.log(`Opened Select2 single dropdown for #${selectId}`);
+
+        const option = this.page.locator(".select2-results__option", { hasText: value });
+        await option.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        await option.click();
+        console.log(`Selected "${value}" from #${selectId}`);
     }
 
-    private async selectDropdownOptionFlexibly(dropdown: Locator, searchValue: string): Promise<boolean> {
-        const search = searchValue.trim().toLowerCase();
-        const allOptions = await dropdown.locator('option').evaluateAll(opts =>
-            opts.map(o => ({
-                value: (o as HTMLOptionElement).value,
-                text: (o.textContent || '').trim()
-            }))
-        );
+    async selectMethod(method: string): Promise<void> {
+        await this.selectFromSelect2SingleDropdown("form_carriers_1_mileage_method", method);
+    }
 
-        const validOptions = allOptions.filter(o => o.value !== '' && !o.text.toLowerCase().includes('choose'));
-        console.log(`Available dropdown options (${validOptions.length}): ${validOptions.map(o => `"${o.text}"`).join(', ')}`);
+    /**
+     * Selects a value from a Select2 dropdown by clicking the container, typing in the
+     * search field, and clicking the matching result.
+     * @param select2ContainerId - The Select2 container ID (e.g. "select2-form_shipper_ship_point-container")
+     * @param searchValue - The value to search and select
+     */
+    async selectFromSelect2Dropdown(select2ContainerId: string, searchValue: string): Promise<void> {
+        // Click the Select2 container to open the dropdown
+        const container = this.page.locator(`#${select2ContainerId}`);
+        await container.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        await container.click();
+        console.log(`Clicked Select2 container: #${select2ContainerId}`);
 
-        let match = validOptions.find(o => o.value.toLowerCase() === search);
-        if (!match) match = validOptions.find(o => o.text.toLowerCase() === search);
-        if (!match) match = validOptions.find(o => o.text.toLowerCase().startsWith(search));
-        if (!match) match = validOptions.find(o => o.text.toLowerCase().includes(search));
-        if (!match) match = validOptions.find(o => o.value.toLowerCase().includes(search));
+        // Extract a short search term: first word before any special chars like '(, #
+        // Ship point options are pipe-delimited (isVerified|name|city|state),
+        // so Select2 default matcher searches the full pipe string.
+        // Using a short alphanumeric prefix avoids issues with special characters.
+        const shortSearch = searchValue.split(/[('#|,]/)[0].trim();
+        const searchTerm = shortSearch.length >= 3 ? shortSearch : searchValue.substring(0, Math.min(10, searchValue.length));
 
-        if (match) {
-            await dropdown.selectOption(match.value);
-            console.log(`✅ Selected dropdown option: "${match.text}" (value: "${match.value}")`);
-            return true;
+        // Use pressSequentially to trigger Select2's input event on each keystroke
+        // (.fill() sets the value instantly without firing per-key events that Select2 needs for filtering)
+        const searchInput = this.page.locator("input.select2-search__field");
+        await searchInput.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
+        await searchInput.pressSequentially(searchTerm, { delay: 30 });
+        console.log(`Typed search term: "${searchTerm}" (from: "${searchValue}")`);
+
+        // Wait for filtered results, then find the option that contains the search value name
+        const resultsContainer = this.page.locator(".select2-results__option");
+        await resultsContainer.first().waitFor({ state: 'visible', timeout: WAIT.LARGE });
+
+        // Try to find an exact match by checking option text contains the full name
+        const matchingOption = resultsContainer.filter({ hasText: shortSearch });
+        const matchCount = await matchingOption.count();
+
+        if (matchCount > 0) {
+            await matchingOption.first().click();
+            console.log(`Selected matching option for: "${searchValue}"`);
+        } else {
+            // Fallback: click the highlighted (first) result
+            const highlighted = this.page.locator(".select2-results__option--highlighted").first();
+            await highlighted.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+            await highlighted.click();
+            console.log(`Selected first highlighted option for: "${searchValue}"`);
         }
-        return false;
+
+        // Wait for onShipPointChange AJAX to populate address fields
+        await this.page.waitForLoadState("networkidle");
     }
 
     /**
@@ -170,11 +212,11 @@ class NonTabularLoadPage {
         shipmentCommodityWeight: string;
         equipmentType: string;
         equipmentLength: string;
-        distanceMethod: string;
-        shipperCountry: string;
-        shipperZip: string;
-        shipperAddress: string;
-        shipperNameNew: string;
+        distanceMethod?: string;
+        shipperCountry?: string;
+        shipperZip?: string;
+        shipperAddress?: string;
+        shipperNameNew?: string;
         shipperCity?: string;
         shipperState?: string;
         consigneeCountry?: string;
@@ -187,13 +229,18 @@ class NonTabularLoadPage {
         try {
             console.log("Starting Non-Tabular Load creation process...");
             console.log("Setting shipper information...");
-            await this.shipperDropdown_LOC.waitFor({ state: 'visible' });
-
-            const shipperSelected = await this.selectDropdownOptionFlexibly(
-                this.shipperDropdown_LOC, loadData.shipperValue
+            // Wait for ship point options to be loaded by updateShipPointSelect2 AJAX
+            // (triggered by customer selection — $.get fires asynchronously so networkidle may resolve before options are populated)
+            await this.page.waitForFunction(
+                () => document.querySelectorAll('#form_shipper_ship_point option').length > 1,
+                { timeout: WAIT.LARGE }
             );
-
-            if (!shipperSelected) {
+            // Try selecting shipper from Select2 dropdown — clicks container, types name, clicks result
+            // onShipPointChange auto-populates Name, Address, City, State, Zip, Country
+            try {
+                await this.selectFromSelect2Dropdown("select2-form_shipper_ship_point-container", loadData.shipperValue);
+            } catch {
+                // Fallback: manual fill if dropdown selection fails (e.g. value not in dropdown)
                 const shipperName = loadData.shipperNameNew || loadData.shipperValue;
                 console.log(`Shipper "${loadData.shipperValue}" not in dropdown, filling manually.`);
                 await this.formShipperNameInput_LOC.fill(shipperName);
@@ -208,13 +255,11 @@ class NonTabularLoadPage {
 
             await this.setShipperDatesAndTimes(loadData);
             console.log("Setting consignee information...");
-            await this.consigneeDropdownValue_LOC.waitFor({ state: 'visible' });
-
-            const consigneeSelected = await this.selectDropdownOptionFlexibly(
-                this.consigneeDropdownValue_LOC, loadData.consigneeValue
-            );
-
-            if (!consigneeSelected) {
+            // Try selecting consignee from Select2 dropdown — same pattern
+            try {
+                await this.selectFromSelect2Dropdown("select2-form_consignee_ship_point-container", loadData.consigneeValue);
+            } catch {
+                // Fallback: manual fill if dropdown selection fails
                 const consigneeName = loadData.consigneeNameNew || loadData.consigneeValue;
                 console.log(`Consignee "${loadData.consigneeValue}" not in dropdown, filling manually.`);
                 await this.formConsigneeNameInput_LOC.fill(consigneeName);
@@ -598,7 +643,7 @@ class NonTabularLoadPage {
             {
                 name: "Distance Method",
                 locator: this.distanceMethodDropdown_LOC,
-                fillAction: async () => await this.distanceMethodDropdown_LOC.selectOption(loadData.distanceMethod),
+                fillAction: async () => await this.selectFromSelect2SingleDropdown("form_carriers_1_mileage_method", loadData.distanceMethod),
                 skipCondition: "distanceMethod",
                 validationType: "html5"
             }
@@ -884,11 +929,11 @@ class NonTabularLoadPage {
 
             if (Country === "US") {
                 console.log("Setting shipper information...");
-                await this.shipperDropdown_LOC.waitFor({ state: 'visible' });
+                await this.shipperDropdown_LOC.waitFor({ state: 'attached', timeout: WAIT.LARGE });
                 await this.shipperDropdown_LOC.selectOption(loadData.shipperNameUS);
             } else if (Country === "CA") {
                 console.log("Setting shipper information...");
-                await this.shipperDropdown_LOC.waitFor({ state: 'visible' });
+                await this.shipperDropdown_LOC.waitFor({ state: 'attached', timeout: WAIT.LARGE });
                 await this.shipperDropdown_LOC.selectOption(loadData.shipperNameCA);
             } else if (Country === "MX") {
                 await this.fillShipperInformation("MX", loadData);
@@ -1010,18 +1055,18 @@ class NonTabularLoadPage {
             //  console.log(` Starting validation test for invalid shipper ZIP code: "${shipperZip}"`);
             console.log(` Filling all mandatory fields first...`);
             console.log("Setting shipper information...");
-             await this.shipperDropdown_LOC.waitFor({ state: 'visible' });
+             await this.shipperDropdown_LOC.waitFor({ state: 'attached', timeout: WAIT.LARGE });
              await this.shipperDropdown_LOC.selectOption(loadData.shipperName);
              await this.setShipperDatesAndTimes(loadData);
 
               //await this.fillConsigneeInformation(loadData);    
               if (Country === "US") {
                  console.log("Setting consignee information...");
-                 await this.consigneeDropdownValue_LOC.waitFor({ state: 'visible' });
+                 await this.consigneeDropdownValue_LOC.waitFor({ state: 'attached', timeout: WAIT.LARGE });
                  await this.consigneeDropdownValue_LOC.selectOption(loadData.consigneeNameUS);
              } else if (Country === "CA") {
                  console.log("Setting consignee information...");
-                 await this.consigneeDropdownValue_LOC.waitFor({ state: 'visible' });
+                 await this.consigneeDropdownValue_LOC.waitFor({ state: 'attached', timeout: WAIT.LARGE });
                  await this.consigneeDropdownValue_LOC.selectOption(loadData.consigneeNameCA);
              } else if (Country === "MX") {
                  await this.fillConsigneeInformation("MX", loadData);
@@ -1332,9 +1377,10 @@ class NonTabularLoadPage {
         await this.equipmentLengthInput_LOC.waitFor({ state: 'visible' });
         await this.equipmentLengthInput_LOC.clear();
         await this.equipmentLengthInput_LOC.fill(String(loadData.equipmentLength));
-        // Select Distance Method
-        await this.distanceMethodDropdown_LOC.waitFor({ state: 'visible' });
-        await this.distanceMethodDropdown_LOC.selectOption(loadData.distanceMethod);
+        // Select Distance Method (Select2-wrapped single-select) — skip if not provided
+        if (loadData.distanceMethod) {
+            await this.selectFromSelect2SingleDropdown("form_carriers_1_mileage_method", loadData.distanceMethod);
+        }
     }
 
     /**
@@ -1529,6 +1575,20 @@ class NonTabularLoadPage {
       }
       throw error;
     }
+  }
+  /**
+   * Selects a customer on the Enter New Load form.
+   * Handles both Select2 widget and plain <select> dropdown.
+   * After selection, waits for the shipper dropdown to populate.
+   * @author AI Agent
+   * @created 19-Mar-2026
+   * @param customerName - The customer name to search and select
+   */
+  async selectCustomerViaSelect2(customerName: string): Promise<void> {
+    await this.page.waitForLoadState("networkidle");
+
+    // #form_customer is a single-select Select2 — use the correct interaction pattern
+    await this.selectFromSelect2SingleDropdown("form_customer", customerName);
   }
 }
 export default NonTabularLoadPage;

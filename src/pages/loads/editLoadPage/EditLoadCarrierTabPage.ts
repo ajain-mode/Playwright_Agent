@@ -47,16 +47,9 @@ class EditLoadCarrierTabPage {
   private readonly carrierLinehaulInput_LOC:(carrier: string) => Locator;
    private readonly offerRateInput_LOC: Locator;
 
-  // Customer Select2 widget locators
-  private readonly customerSelect2Container_LOC: Locator;
-  private readonly customerSelect2SearchInput_LOC: Locator;
-
   // Email Notification Select2 locators
   private readonly emailNotificationSelect2Container_LOC: Locator;
   private readonly emailNotificationSelect2SearchInput_LOC: Locator;
-
-  // Shipper ship point dropdown
-  private readonly shipperShipPointDropdown_LOC: Locator;
 
   /**
    * Constructor to initialize page locators for Carrier tab elements
@@ -111,16 +104,9 @@ class EditLoadCarrierTabPage {
     this.carrierLinehaulInput_LOC = (carrier: string) =>  this.page.locator(`#carr_${carrier}_carr_rate`);
     this.offerRateInput_LOC = this.page.locator("//input[@id='carr_1_target_rate']");
 
-    // Customer Select2 widget
-    this.customerSelect2Container_LOC = page.locator("#form_customer_id").locator("..").locator(".select2-container").first();
-    this.customerSelect2SearchInput_LOC = page.locator("input.select2-search__field");
-
     // Email Notification Select2
     this.emailNotificationSelect2Container_LOC = page.locator("#form_notification_email").locator("..").locator(".select2-container").first();
     this.emailNotificationSelect2SearchInput_LOC = page.locator("#form_notification_email").locator("..").locator("input.select2-search__field").first();
-
-    // Shipper ship point
-    this.shipperShipPointDropdown_LOC = page.locator("#form_shipper_ship_point");
   }
   ediOverrideRadioOption(value: "A" | "R" | "D") {
     return this.page.locator(`input[id='edispatch_acdc_${value}']`);
@@ -555,22 +541,6 @@ class EditLoadCarrierTabPage {
     await el.click();
     console.log(`Clicked on ${text}`);
   }
-  /**
-   * Selects a customer via the Select2 widget on the Edit Load / Create Load form.
-   * Uses constructor-declared locators. No hardcoded waits — relies on Playwright auto-waiting.
-   * @author AI Agent
-   * @created 18-Mar-2026
-   */
-  async selectCustomerViaSelect2(customerName: string): Promise<void> {
-    await this.customerSelect2Container_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
-    await this.customerSelect2Container_LOC.click();
-    await this.customerSelect2SearchInput_LOC.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
-    await this.customerSelect2SearchInput_LOC.fill(customerName);
-    const resultItem = this.page.locator("li.select2-results__option").filter({ hasText: customerName }).first();
-    await resultItem.waitFor({ state: "visible", timeout: WAIT.LARGE });
-    await resultItem.click();
-    console.log(`Selected customer via Select2: ${customerName}`);
-  }
 
   /**
    * Selects email notification via the Select2 widget on the Edit Load form.
@@ -589,24 +559,6 @@ class EditLoadCarrierTabPage {
     console.log(`Selected email via Select2: ${emailValue}`);
   }
 
-  /**
-   * Waits for the shipper ship point dropdown to appear and optionally selects a value.
-   * Uses constructor-declared locator.
-   * @author AI Agent
-   * @created 18-Mar-2026
-   */
-  async waitForShipperDropdown(selectValue?: string): Promise<string[]> {
-    await this.shipperShipPointDropdown_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
-    const options = await this.shipperShipPointDropdown_LOC.locator("option").allTextContents();
-    if (selectValue) {
-      const match = options.find((o: string) => o.toLowerCase().includes(selectValue.toLowerCase()));
-      if (match) {
-        await this.shipperShipPointDropdown_LOC.selectOption({ label: match.trim() });
-        console.log(`Selected shipper: ${match.trim()}`);
-      }
-    }
-    return options;
-  }
 }
 
 export default EditLoadCarrierTabPage;

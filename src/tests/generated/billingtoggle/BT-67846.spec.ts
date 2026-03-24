@@ -41,9 +41,6 @@ test.describe.serial(
 
         await test.step("Step 1: Login to BTMS application", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
-          if (await pages.btmsAcceptTermPage.validateOnBTMSAcceptTermPage()) {
-            await pages.btmsAcceptTermPage.acceptTermsAndConditions();
-          }
         });
 
         await test.step("Step 2: Search customer and navigate to CREATE TL *NEW*", async () => {
@@ -63,10 +60,9 @@ test.describe.serial(
           await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           const customerName = testData['Customer Value'];
 
-          await pages.editLoadCarrierTabPage.selectCustomerViaSelect2(customerName);
+          await pages.nonTabularLoadPage.selectCustomerViaSelect2(customerName);
 
           await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-          await pages.editLoadCarrierTabPage.waitForShipperDropdown();
         });
 
         await test.step("Step 4: Fill shipper, consignee, dates, and times", async () => {
@@ -83,7 +79,6 @@ test.describe.serial(
             shipmentCommodityWeight: testData.shipmentCommodityWeight,
             equipmentType: testData.equipmentType,
             equipmentLength: testData.equipmentLength,
-            distanceMethod: testData.Method,
             shipperCountry: testData.shipperCountry,
             shipperZip: testData.shipperZip,
             shipperAddress: testData.shipperAddress,
@@ -103,8 +98,9 @@ test.describe.serial(
         });
 
         await test.step("Step 6: Select Mileage Engine, Method, and enter LH Rate", async () => {
-          await pages.editLoadFormPage.selectMileageEngine(testData.mileageEngine || "Current");
-          await pages.editLoadFormPage.selectMileageMethod(testData.Method || "Practical");
+          await pages.editLoadFormPage.selectMileageEngine(testData.mileageEngine);
+          console.log(`Method: ${testData.Method}`);
+          await pages.editLoadFormPage.selectMileageMethod(testData.Method);
           await pages.editLoadFormPage.enterLinehaulRate(testData.linehaulRate);
         });
 
@@ -118,7 +114,7 @@ test.describe.serial(
 
           await pages.editLoadPage.validateEditLoadHeadingText();
           loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
-          console.log(`Load Number: ${loadNumber}`);
+          pages.logger.info(`Load number: ${loadNumber}`);
         });
 
         await test.step("Step 8: Click Carrier tab and enter Offer Rate", async () => {
@@ -158,7 +154,7 @@ test.describe.serial(
 
         await test.step("Step 15: Choose carrier", async () => {
           await pages.editLoadCarrierTabPage.selectCarrier1(testData.Carrier);
-          console.log(`Selected carrier: ${testData.Carrier}`);
+          pages.logger.info(`Carrier: ${testData.Carrier}`);
         });
 
         await test.step("Step 16: Click Save and accept BOOKED alert", async () => {
@@ -179,7 +175,7 @@ test.describe.serial(
 
           // Validate: Billing Issues toggle should be set to "Agent"
           const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
-          console.log(`Billing Issues toggle value: "${toggleValue}"`);
+          pages.logger.info(`Billing toggle: ${toggleValue}`);
           expect.soft(toggleValue, "Billing Issues toggle should be set to 'Agent'").toBe('Agent');
         });
 
@@ -223,12 +219,12 @@ test.describe.serial(
 
           // Validate: Toggle should still be "Agent" after reload
           const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
-          console.log(`Billing Issues toggle after reload: "${toggleValue}"`);
+          pages.logger.info(`Billing toggle after reload: ${toggleValue}`);
           expect.soft(toggleValue, "Billing Issues toggle should still be 'Agent' after reload").toBe('Agent');
 
           // Validate: "Not Deliv. Final" checkbox should be checked
           const notDelivChecked = await pages.loadBillingPage.isNotDeliveredFinalChecked();
-          console.log(`Not Deliv. Final checked: ${notDelivChecked}`);
+          pages.logger.info(`Not Deliv. Final checked: ${notDelivChecked}`);
           expect.soft(notDelivChecked, "Not Deliv. Final should be checked").toBeTruthy();
         });
 

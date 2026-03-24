@@ -45,6 +45,11 @@ class AdminPage {
     await adminMenu.click();
   }
 
+  /**
+   * Clicks on the Leads Activation link in the Admin menu.
+   * @author AI Agent
+   * @created 17-Mar-2026
+   */
   async clickOnLeadsActivationLink() {
     await this.leadsActivationLink_LOC.waitFor({ state: 'visible' });
     await this.leadsActivationLink_LOC.scrollIntoViewIfNeeded();

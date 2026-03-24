@@ -613,28 +613,31 @@ export class EditLoadFormPage {
   }
 
   /**
-   * Reads the default value from the Linehaul field (when it's a select/dropdown).
+   * Reads the selected value from the Linehaul rate type dropdown.
+   * Note: Prefer using getRateTypeValue() which targets the same element.
    * @author AI Agent
    * @created 17-Mar-2026
    */
   async getLinehaulDefaultValue(): Promise<string> {
-    const linehaulField = this.page.locator("//select[contains(@name,'linehaul') or contains(@id,'linehaul')]").first();
+    const linehaulField = this.page.locator("#form_carriers_1_linehaul_rate_type");
     if (await linehaulField.isVisible({ timeout: 5000 }).catch(() => false)) {
       const value = await linehaulField.inputValue();
-      console.log(`Linehaul default: ${value}`);
+      console.log(`Linehaul rate type: ${value}`);
       return value;
     }
     return '';
   }
 
   /**
-   * Reads the default value from the Fuel Surcharge field.
+   * Reads the selected value from the Fuel Surcharge rate type dropdown.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async getFuelSurchargeDefaultValue(): Promise<string> {
-    const fuelField = this.page.locator("//select[contains(@name,'fuel') or contains(@id,'fuel')]").first();
+    const fuelField = this.page.locator("#form_fuel_surcharges_1_customer_rate_type");
     if (await fuelField.isVisible({ timeout: 5000 }).catch(() => false)) {
       const value = await fuelField.inputValue();
-      console.log(`Fuel Surcharge default: ${value}`);
+      console.log(`Fuel Surcharge rate type: ${value}`);
       return value;
     }
     return '';

@@ -38,17 +38,7 @@ export class DFBGlobalConstants {
     TIMING_5: "00:05",
   } as const;
 
-  static readonly CARRIER_NAME = {
-    CARRIER_1: "ZZOO LOGISTICS LLC",
-    CARRIER_2: "VICTOR LOGISTICS INC",
-    CARRIER_3: "SMART WAY TRANSPORT SYSTEMS LLC",
-    CARRIER_4: "ZONA TRUCKING LLC",
-    CARRIER_5: "ZOOMY TRUCKING INC",
-    CARRIER_6: "ZZOO LOGISTICS LL",
-    CARRIER_7: "GOLDEN WISE LOGISTICS CORPORTATION",
-    CARRIER_8: "SMART WAY TRANSPORT SYSTEMS LLC (158211)",
-    CARRIER_9: "VICTOR LOGISTICS INC (256395)",
-  } as const;
+  
 
   static readonly DFB_FORM_FIELDS = {
     Include_Carriers: "Include Carriers",
@@ -91,6 +81,30 @@ export class DFBGlobalConstants {
    static readonly CARRIER_DISPATCH_EMAIL = {
     EMAIL_1: "deepak.bohra@modeglobal.com",
   } as const;
+
+  /**
+   * Carrier visibility labels on the Mode IQ tab.
+   * @author AI Agent
+   * @created 19-Mar-2026
+   */
+  static readonly CARRIER_VISIBILITY = {
+    AVENGER_LOGISTICS: "Avenger Logistics",
+    MODE_TRANSPORTATION: "Mode Transportation",
+    SUNTECK_TRANSPORT: "Sunteck Transport Co",
+    TTS: "TTS",
+  } as const;
+
+  /**
+   * All required carrier visibility labels as an array for toggle checks.
+   * @author AI Agent
+   * @created 19-Mar-2026
+   */
+  static readonly REQUIRED_CARRIER_VISIBILITY = [
+    DFBGlobalConstants.CARRIER_VISIBILITY.AVENGER_LOGISTICS,
+    DFBGlobalConstants.CARRIER_VISIBILITY.MODE_TRANSPORTATION,
+    DFBGlobalConstants.CARRIER_VISIBILITY.SUNTECK_TRANSPORT,
+    DFBGlobalConstants.CARRIER_VISIBILITY.TTS,
+  ] as const;
 }
 
 /**
@@ -103,7 +117,7 @@ declare global {
   const PRIORITY: typeof DFBGlobalConstants.PRIORITY;
   const CARRIER_TIMING: typeof DFBGlobalConstants.CARRIER_TIMING;
   const LOAD_OFFER_RATES: typeof DFBGlobalConstants.LOAD_OFFER_RATES;
-  const CARRIER_NAME: typeof DFBGlobalConstants.CARRIER_NAME;
+  
   const DFB_FORM_FIELDS: typeof DFBGlobalConstants.DFB_FORM_FIELDS;
   const DFB_BID_HISTORY_FIELDS: typeof DFBGlobalConstants.DFB_BID_HISTORY_FIELDS;
   const TENDER_DETAILS_MODAL_TABS: typeof DFBGlobalConstants.TENDER_DETAILS_MODAL_TABS;
@@ -111,6 +125,8 @@ declare global {
   const CARRIER_DISPATCH_NAME: typeof DFBGlobalConstants.CARRIER_DISPATCH_NAME;
    const CARRIER_CONTACT: typeof DFBGlobalConstants.CARRIER_CONTACT;
    const CARRIER_DISPATCH_EMAIL: typeof DFBGlobalConstants.CARRIER_DISPATCH_EMAIL;
+   const CARRIER_VISIBILITY: typeof DFBGlobalConstants.CARRIER_VISIBILITY;
+   const REQUIRED_CARRIER_VISIBILITY: typeof DFBGlobalConstants.REQUIRED_CARRIER_VISIBILITY;
 }
 
 // Global exports for backward compatibility
@@ -121,7 +137,7 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).PRIORITY = DFBGlobalConstants.PRIORITY;
   (globalThis as any).CARRIER_TIMING = DFBGlobalConstants.CARRIER_TIMING;
   (globalThis as any).LOAD_OFFER_RATES = DFBGlobalConstants.LOAD_OFFER_RATES;
-  (globalThis as any).CARRIER_NAME = DFBGlobalConstants.CARRIER_NAME;
+  
   (globalThis as any).DFB_FORM_FIELDS = DFBGlobalConstants.DFB_FORM_FIELDS;
   (globalThis as any).DFB_BID_HISTORY_FIELDS =
     DFBGlobalConstants.DFB_BID_HISTORY_FIELDS;
@@ -133,4 +149,6 @@ if (typeof globalThis !== "undefined") {
     DFBGlobalConstants.CARRIER_DISPATCH_NAME;
   (globalThis as any).CARRIER_CONTACT = DFBGlobalConstants.CARRIER_CONTACT;
   (globalThis as any).CARRIER_DISPATCH_EMAIL = DFBGlobalConstants.CARRIER_DISPATCH_EMAIL;
+  (globalThis as any).CARRIER_VISIBILITY = DFBGlobalConstants.CARRIER_VISIBILITY;
+  (globalThis as any).REQUIRED_CARRIER_VISIBILITY = DFBGlobalConstants.REQUIRED_CARRIER_VISIBILITY;
 }

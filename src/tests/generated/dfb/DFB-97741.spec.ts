@@ -58,9 +58,6 @@ test.describe.serial(
 
         await test.step("Step 1: Login BTMS", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
-          if (await pages.btmsAcceptTermPage.validateOnBTMSAcceptTermPage()) {
-            await pages.btmsAcceptTermPage.acceptTermsAndConditions();
-          }
           pages.logger.info("Logged in successfully");
         });
 
@@ -72,7 +69,6 @@ test.describe.serial(
           await pages.agentSearchPage.selectAgentByName(testData.salesAgent);
           await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           agentEmail = await pages.agentInfoPage.getAgentEmail();
-          console.log(`Captured agent email from Agent Info: "${agentEmail}"`);
           pages.logger.info(`Agent email captured: ${agentEmail}`);
           await pages.basePage.navigateToBaseUrl();
           await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
@@ -84,12 +80,10 @@ test.describe.serial(
           await pages.officePage.officeCodeSearchField(testData.officeName);
           await pages.officePage.searchButtonClick();
           await pages.officePage.officeSearchRow(testData.officeName);
-          console.log("Precondition Steps 6-10: Navigated to Office profile");
 
-          const toggleSettingsValue = pages.toggleSettings.enabled_TNXBids;
+          const toggleSettingsValue = pages.toggleSettings.enable_DME;
           await pages.officePage.ensureToggleValues(toggleSettingsValue);
           await pages.officePage.ensureTnxValue();
-          console.log("Office toggle configuration complete");
 
           await pages.basePage.navigateToBaseUrl();
           await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
@@ -99,23 +93,19 @@ test.describe.serial(
           await pages.searchCustomerPage.clickOnSearchCustomer();
           await pages.searchCustomerPage.clickOnActiveCustomer();
           await commissionHelper.updateAvailableCreditOnCustomer(sharedPage);
-          console.log("Office Pre-condition set successfully");
 
           await pages.adminPage.hoverAndClickAdminMenu();
           await pages.adminPage.switchUser(testData.salesAgent);
-          console.log("Switched user to agent salesperson");
           await pages.basePage.waitForMultipleLoadStates(["load", "networkidle", "domcontentloaded"]);
 
           await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
           await pages.postAutomationRulePage.verifyCustomerPostAutomationRule(testData.customerName);
-          console.log("Verified no post automation rule for customer");
 
           await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
           await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
           await pages.searchCustomerPage.searchCustomerAndClickDetails(testData.customerName);
           cargoValue = await pages.viewCustomerPage.verifyAndSetCargoValue(CARGO_VALUES.DEFAULT);
           await pages.viewCustomerPage.setPracticalDefaultMethodIfNeeded();
-          console.log("Customer search and load navigation successful");
         });
 
         await test.step("Step 4: Navigate to Carrier Search and search for carrier", async () => {
@@ -136,23 +126,14 @@ test.describe.serial(
 
           const statusText = await pages.viewCarrierPage.getLoadboardStatus();
           if (statusText) {
-            console.log(`Loadboard Status: "${statusText}"`);
             pages.logger.info(`Carrier loadboard status: ${statusText}`);
           }
 
-          const requiredVisibility = [
-            "Avenger Logistics",
-            "Mode Transportation",
-            "Sunteck Transport Co",
-            "TTS",
-          ];
+          const requiredVisibility = [...REQUIRED_CARRIER_VISIBILITY];
 
           const tabClicked = await pages.viewCarrierPage.clickLoadboardTab();
           if (tabClicked) {
             await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-            console.log("Clicked on LoadBoard tab");
-          } else {
-            console.log("LoadBoard tab not found, checking toggles on current page view");
           }
 
           let togglesFound = false;
@@ -164,35 +145,30 @@ test.describe.serial(
           }
 
           if (togglesFound) {
-            console.log("Carrier visibility labels found. Checking toggle states...");
             const toggleStates = await pages.viewCarrierPage.getCarrierVisibilityToggleStates(requiredVisibility);
 
             let togglesNeedUpdate = false;
             const disabledToggles: string[] = [];
             for (const name of requiredVisibility) {
               const state = toggleStates[name];
-              if (state?.enabled) {
-                console.log(`"${name}" is already enabled (${state.debug})`);
-              } else {
+              if (!state?.enabled) {
                 togglesNeedUpdate = true;
                 disabledToggles.push(name);
-                console.log(`"${name}" needs enabling (${state?.debug})`);
               }
             }
 
             if (togglesNeedUpdate) {
-              console.log(`${disabledToggles.length} toggle(s) need updating — clicking Edit...`);
+              console.log(`${disabledToggles.length} toggle(s) need updating`);
               await pages.basePage.clickButtonByText("Edit");
               await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
               await pages.viewCarrierPage.enableCarrierVisibilityToggles(disabledToggles);
               await pages.viewCarrierPage.clickSaveOnCarrierEditPage();
-              console.log("Clicked Save on carrier edit page");
               await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
             } else {
-              console.log("All carrier visibility toggles are already enabled");
+              console.log("All carrier visibility toggles already enabled");
             }
           } else {
-            console.log("Carrier visibility labels not found on this page. Toggle check skipped.");
+            console.log("Carrier visibility labels not found — toggle check skipped");
           }
           pages.logger.info("Carrier visibility step completed");
         });
@@ -203,48 +179,37 @@ test.describe.serial(
           const dmePages = new DMEDashboardPage(dmePage);
 
           await dmePages.clickCarriersLink();
-          console.log("Clicked Carriers link in DME sidebar");
           await dmePage.waitForLoadState("networkidle");
           await dmePages.searchCarrierByName(testData.Carrier);
-          console.log(`Searched for carrier: ${testData.Carrier}`);
 
           const carrierToggleState = await dmePages.getCarrierToggleState(testData.Carrier);
-          console.log(`Carrier toggle is currently ${carrierToggleState ? "ON" : "OFF"}`);
+          pages.logger.info(`DME carrier toggle: ${carrierToggleState ? "ON" : "OFF"}`);
           if (!carrierToggleState) {
             console.log("Carrier toggle was OFF — needs enabling");
-          } else {
-            console.log("Carrier toggle is already ON — no action needed");
           }
 
-          console.log("Precondition Steps 36-40 complete");
           pages.logger.info("DME carrier toggle verified");
 
           await appManager.switchToBTMS();
           await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-          console.log("Switched back to BTMS — preconditions complete, starting test steps");
         });
 
         // ═══════ TEST STEPS (CSV Column F, Steps 1-55) ═══════
 
         await test.step("Step 7 [CSV 1-5]: Search customer and navigate to CREATE TL *NEW*", async () => {
-          console.log("=== TEST STEPS EXECUTION BEGINS ===");
           await pages.basePage.navigateToBaseUrl();
           await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
           await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
           await pages.searchCustomerPage.enterCustomerName(testData.customerName);
-          console.log(`Entered customer name: ${testData.customerName}`);
           await pages.searchCustomerPage.selectActiveOnCustomerPage();
           await pages.searchCustomerPage.clickOnSearchCustomer();
           await pages.searchCustomerPage.selectCustomerByName(testData.customerName);
-          console.log("Clicked on Customer profile");
           await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
-          console.log("Clicked CREATE TL *NEW* hyperlink");
           pages.logger.info("Navigated to Enter New Load page");
         });
 
         await test.step("Step 8 [CSV 6-29]: Fill Enter New Load page details", async () => {
-          console.log("Customer field pre-selected, Salesperson/Dispatcher pre-selected");
           await pages.nonTabularLoadPage.createNonTabularLoad({
             shipperValue: testData.shipperName,
             consigneeValue: testData.consigneeName,
@@ -264,44 +229,33 @@ test.describe.serial(
             shipperAddress: testData.shipperAddress,
             shipperNameNew: testData.shipperNameNew,
           });
-          console.log("Shipper, Consignee, dates/times, commodity, equipment fields filled");
           pages.logger.info("Enter New Load form completed");
         });
 
         await test.step("Step 9 [CSV 30-31]: Click Create Load and select Rate Type", async () => {
           await pages.nonTabularLoadPage.clickCreateLoadButton();
-          console.log("Clicked Create Load button");
           await pages.editLoadLoadTabPage.checkLoadTabDetails(testData.rateType);
-          console.log(`Rate type set to ${testData.rateType}`);
           await pages.editLoadPage.validateEditLoadHeadingText();
           loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
-          console.log(`Load Number captured: ${loadNumber}`);
+          pages.logger.info(`Load number: ${loadNumber}`);
           await pages.editLoadPage.validateCurrentTabValue(TABS.LOAD);
           pages.logger.info("Load created successfully");
         });
 
         await test.step("Step 10 [CSV 32-35]: Carrier tab — enter offer rate, select carrier, check auto accept", async () => {
           await pages.editLoadPage.clickOnTab(TABS.CARRIER);
-          console.log("Clicked Carrier tab");
           await pages.dfbLoadFormPage.enterOfferRate(testData.offerRate);
-          console.log(`Entered Offer Rate: ${testData.offerRate}`);
           await pages.dfbLoadFormPage.selectCarriersInIncludeCarriers([testData.Carrier]);
-          console.log(`Selected carrier: ${testData.Carrier}`);
           await pages.dfbLoadFormPage.clickCarrierAutoAcceptCheckbox();
-          console.log("Checked Carrier Auto Accept checkbox");
-          console.log("Carrier Contact for Rate Confirmation intentionally left empty");
           pages.logger.info("Carrier tab configured for auto accept test");
         });
 
         await test.step("Step 11 [CSV 37-39]: Save without carrier contact — validate error and dismiss", async () => {
           await pages.editLoadFormPage.clickOnSaveBtn();
-          console.log("Clicked Save button");
           await pages.commonReusables.validateAlert(
             sharedPage,
             ALERT_PATTERNS.A_CARRIER_CONTACT_FOR_AUTO_ACCEPT_MUST_BE_SELECTED
           );
-          console.log("Validated alert — A carrier contact for auto accept must be selected");
-          console.log("Clicked OK to dismiss alert");
           pages.logger.info("Validated alert: carrier contact required for auto accept");
         });
 
@@ -309,19 +263,14 @@ test.describe.serial(
           await pages.dfbLoadFormPage.selectCarreirContactForRateConfirmation(
             CARRIER_CONTACT.CONTACT_1
           );
-          console.log("Selected active loadboard user for Carrier Contact");
           await pages.editLoadFormPage.clickOnSaveBtn();
-          console.log("Clicked Save button");
           await pages.viewLoadPage.validateViewLoadHeading();
-          console.log("Load saved and displayed in View mode");
           pages.logger.info("Load saved with carrier contact");
         });
 
         await test.step("Step 13 [CSV 42-43]: Validate view mode — email, DFB fields, non-editable fields, buttons", async () => {
-          console.log(`Validating Email for Notifications matches agent email: "${agentEmail}"`);
           await pages.editLoadPage.clickOnTab(TABS.CARRIER);
           await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-          console.log("Clicked on Carrier tab");
 
           await pages.viewLoadPage.scrollToDFBSection();
 
@@ -332,20 +281,18 @@ test.describe.serial(
             expirationTime: testData.shipperLatestTime,
           };
           await pages.dfbLoadFormPage.validateDFBTextFieldHaveExpectedValues(expectedValues);
-          console.log("Validated: Offer Rate, Expiration Date, Expiration Time");
 
           await pages.dfbLoadFormPage.validateFormFieldsState({
             includeCarriers: [testData.Carrier],
             emailNotification: agentEmail,
           });
-          console.log("Validated: Include Carriers and Email for Notifications matches agent email");
 
           const isAutoAcceptChecked = await pages.viewLoadPage.isAutoAcceptChecked();
-          console.log(`Validated: Carrier Auto Accept checkbox is ${isAutoAcceptChecked ? "checked" : "NOT checked"}`);
+          pages.logger.info(`Carrier Auto Accept: ${isAutoAcceptChecked ? "checked" : "NOT checked"}`);
 
           const carrierContactOptions = await pages.viewLoadPage.getCarrierContactDropdownOptions();
           if (carrierContactOptions) {
-            console.log(`Validated: Carrier Contact for Rate Confirmation = "${carrierContactOptions}"`);
+            pages.logger.info(`Carrier Contact for Rate Confirmation options available`);
           }
 
           await pages.dfbLoadFormPage.validateFieldsAreNotEditable([
@@ -357,40 +304,32 @@ test.describe.serial(
             DFB_FORM_FIELDS.Exclude_Carriers,
             DFB_FORM_FIELDS.Include_Carriers,
           ]);
-          console.log("Validated: All DFB fields are not editable");
 
           await pages.dfbLoadFormPage.validatePostStatus(LOAD_STATUS.NOT_POSTED);
-          console.log("Validated: Post Status is NOT POSTED");
 
           await pages.dfbLoadFormPage.validateMixedButtonStates({
             [DFB_Button.Post]: true,
             [DFB_Button.Clear_Form]: true,
             [DFB_Button.Create_Rule]: true,
           });
-          console.log("Validated: Post, Clear Form, Create Rule buttons are activated");
           pages.logger.info("DFB form view mode validations complete");
         });
 
         await test.step("Step 14 [CSV 44]: Post the load", async () => {
           await pages.dfbLoadFormPage.clickOnPostButton();
-          console.log("Clicked Post button — proceeding to DME immediately");
           pages.logger.info("Load posted, moving to DME verification");
         });
 
         await test.step("Step 15 [CSV 45-47]: Switch to DME — verify load with BTMS CANCELLED and TNX BOOKED statuses", async () => {
-          console.log("Switching to DME application");
           const dmePages = await appManager.switchToDME();
           await dmePages.dmeDashboardPage.clickOnLoadsLink();
-          console.log("Clicked on Loads");
           await dmePages.dmeDashboardPage.searchLoad(loadNumber);
-          console.log(`Searched for load number: ${loadNumber}`);
           await dmePages.dmeLoadPage.validateAndGetStatusTextWithRetry(
             LOAD_STATUS.BTMS_CANCELLED,
             LOAD_STATUS.TNX_BOOKED,
             loadNumber,
             dmePages.dmeDashboardPage
           );
-          console.log("Validated: DME statuses — BTMS CANCELLED, TNX BOOKED");
           await dmePages.dmeLoadPage.validateSingleTableRowPresent();
           await dmePages.dmeLoadPage.validateAndGetSourceIdText(loadNumber);
           await dmePages.dmeLoadPage.clickOnDataDetailsLink();
@@ -403,40 +342,34 @@ test.describe.serial(
         });
 
         await test.step("Step 16 [CSV 48-55]: Switch to TNX — verify load is Matched and execution notes fields", async () => {
-          console.log("Switching to TNX application and logging in");
           const tnxPages = await appManager.switchToTNX();
           await appManager.tnxPage.setViewportSize({ width: 1920, height: 1080 });
 
           const allOptions = await tnxPages.tnxLandingPage.getOrgDropdownOptions();
-          console.log(`TNX org dropdown options: [${allOptions.join(" | ")}]`);
           const carrierUpper = testData.Carrier.toUpperCase();
           const matchedOption = allOptions.find((opt: string) => opt.toUpperCase().includes(carrierUpper));
           if (matchedOption) {
-            console.log(`Found matching TNX org option: "${matchedOption}" for carrier "${testData.Carrier}"`);
+            console.log(`Matched TNX org option: "${matchedOption}"`);
             await tnxLandingPage.selectOrganizationByText(matchedOption.trim());
           } else {
-            console.log(`No matching option found for "${testData.Carrier}" — trying exact name`);
+            console.log(`No matching option for "${testData.Carrier}" — using exact name`);
             await tnxLandingPage.selectOrganizationByText(testData.Carrier);
           }
-          console.log(`Selected carrier from dropdown: ${testData.Carrier}`);
           await tnxPages.tnxLandingPage.handleOptionalSkipButton();
           await tnxPages.tnxLandingPage.handleOptionalNoThanksButton();
           await tnxPages.tnxLandingPage.clickOnTNXHeaderLink(TNX.ACTIVE_JOBS);
-          console.log("Clicked on Active Jobs");
           await tnxPages.tnxLandingPage.clickPlusButton();
           await tnxPages.tnxLandingPage.searchLoadValue(loadNumber);
-          console.log(`Clicked plus icon and searched load: ${loadNumber}`);
           await tnxPages.tnxLandingPage.clickLoadSearchLink();
           await tnxPages.tnxLandingPage.validateBidsTabAvailableLoadsText(
             TNX.SINGLE_JOB_RECORD,
             loadNumber
           );
           await tnxPages.tnxLandingPage.clickLoadLink();
-          console.log("Clicked load — verifying Matched status and offer rate");
           const tnxOfferRate = await tnxPages.tnxLandingPage.getLoadOfferRateValue();
           const tnxRateNumeric = tnxOfferRate.replace(/[\$,]/g, "").split(".")[0];
           const expectedRateNumeric = testData.offerRate.replace(/[\$,]/g, "").split(".")[0];
-          console.log(`TNX Offer Rate: "${tnxOfferRate}" (numeric: ${tnxRateNumeric}) | Expected: "${testData.offerRate}" (numeric: ${expectedRateNumeric})`);
+          pages.logger.info(`TNX offer rate: ${tnxOfferRate} | Expected: ${testData.offerRate}`);
           expect(tnxRateNumeric, `Offer rate mismatch — TNX: ${tnxRateNumeric}, Expected: ${expectedRateNumeric}`).toBe(expectedRateNumeric);
           await tnxPages.tnxLandingPage.clickOnSelectTenderDetailsModalTab(
             TENDER_DETAILS_MODAL_TABS.GENERAL
@@ -444,47 +377,39 @@ test.describe.serial(
           await tnxPages.tnxLandingPage.validateStatusHistoryText(
             TNX_STATUS_HISTORY.STATUS_MATCHED
           );
-          console.log("Validated: Load is Matched in TNX");
           await tnxPages.tnxLandingPage.clickOnSelectTenderDetailsModalTab(
             TENDER_DETAILS_MODAL_TABS.PROGRESS
           );
-          console.log("Clicked Progress tab — checking execution notes fields");
           await tnxPages.tnxExecutionTenderPage.validateExecutionNotesFieldsPresence();
-          console.log("Validated: Execution notes fields are displayed");
           pages.logger.info("TNX validation completed — load Matched, execution notes verified");
         });
 
         await test.step("Step 17: Switch back to BTMS — verify BOOKED status, carrier details, BIDS and Bid History", async () => {
           await appManager.switchToBTMS();
-          console.log("Switched back to BTMS to verify BOOKED status");
           await pages.viewLoadPage.refreshAndValidateLoadStatus(LOAD_STATUS.BOOKED);
-          console.log("Load status is BOOKED");
 
           await pages.viewLoadPage.clickCarrierTab();
           await pages.viewLoadCarrierTabPage.validateCarrierAssignedText(testData.Carrier);
-          console.log(`Carrier ${testData.Carrier} assigned to load`);
 
           await pages.viewLoadCarrierTabPage.validateCarrierDispatchName(
             CARRIER_DISPATCH_NAME.DISPATCH_NAME_1
           );
-          console.log("Carrier Dispatcher Name validated");
 
           await pages.viewLoadCarrierTabPage.validateCarrierDispatchEmail(
             CARRIER_DISPATCH_EMAIL.EMAIL_1
           );
-          console.log("Carrier Dispatcher Email validated");
 
           const bidsReportValue = await pages.viewLoadCarrierTabPage.getBidsReportValue();
-          console.log(`BIDS Reports value = "${bidsReportValue}"`);
+          pages.logger.info(`BIDS Reports value: ${bidsReportValue}`);
           expect.soft(bidsReportValue, "BIDS Reports value should not be empty").toBeTruthy();
 
           const avgRate = await pages.viewLoadPage.getAvgRate();
-          console.log(`Avg Rate = "${avgRate}"`);
+          pages.logger.info(`Avg Rate: ${avgRate}`);
           expect.soft(avgRate, "Avg Rate should be populated after booking").toBeTruthy();
 
           await pages.viewLoadCarrierTabPage.clickViewLoadPageLinks(TNX.BID_HISTORY);
           const bidHistoryDetails = await pages.viewLoadCarrierTabPage.getBidHistoryFirstRowDetails();
-          console.log(`Bid History — Carrier: "${bidHistoryDetails.carrier}", Rate: "${bidHistoryDetails.bidRate}", Source: "${bidHistoryDetails.source}"`);
+          pages.logger.info(`Bid History — Carrier: "${bidHistoryDetails.carrier}", Rate: "${bidHistoryDetails.bidRate}", Source: "${bidHistoryDetails.source}"`);
           expect.soft(bidHistoryDetails.carrier, "Bid History carrier should match assigned carrier").toContain(testData.Carrier);
           expect.soft(bidHistoryDetails.source, "BIDS Source should be populated").toBeTruthy();
           await pages.viewLoadCarrierTabPage.closeBidHistoryModal();
@@ -493,7 +418,6 @@ test.describe.serial(
         });
 
         await appManager.closeAllSecondaryPages();
-        console.log("=== ALL TEST STEPS (CSV 1-55) COMPLETED ===");
       }
     );
   }

@@ -118,9 +118,10 @@ class LoadBillingPage {
         this.billingToggleSliderInput_LOC = this.page.locator("#waiting_on_select");
         this.billingToggleSliderSelection_LOC = this.page.locator("div.slider-selection").last();
 
-        // Payable Toggle (top slider — separate hidden input)
-        this.payableToggleHiddenField_LOC = this.page.locator("#fi_payable_waiting_on");
-        this.payableToggleSliderInput_LOC = this.page.locator("#payable_waiting_on_select");
+        // Payable Toggle — per-carrier slider. Hidden input has dynamic ID: payables_waiting_on-[lscarr_id]
+        // Slider input uses class: .payables_waiting_on_select
+        this.payableToggleHiddenField_LOC = this.page.locator("input[name='payables_waiting_on']").first();
+        this.payableToggleSliderInput_LOC = this.page.locator("input.payables_waiting_on_select").first();
 
         // Not Delivered Final checkbox
         this.notDeliveredFinalCheckbox_LOC = this.page.locator("#Delivs");
@@ -551,30 +552,50 @@ class LoadBillingPage {
     }
 
     /**
-     * Reads the Payable toggle value from the billing page (top slider).
+     * Reads the Payable toggle value from the billing page (carrier-level slider).
      * Returns 'Payables' (1), 'Neutral' (2), or 'Agent' (3).
-     * Primary source: hidden input #fi_payable_waiting_on. Fallback: data-slider-value on #payable_waiting_on_select.
+     * Payable toggle: hidden input name="payables_waiting_on", slider class=".payables_waiting_on_select"
+     * Located inside div[id^="payables_waiting_on_block_"] with labels "Payables" (left) and "Agent" (right).
      * @author AI Agent
      * @created 17-Mar-2026
      */
     async getPayableToggleValue(): Promise<string> {
         const valueMap: Record<string, string> = { '1': 'Payables', '2': 'Neutral', '3': 'Agent' };
 
-        // Primary: hidden input #fi_payable_waiting_on (source of truth)
+        // Primary: hidden input name="payables_waiting_on" (source of truth, updated on slideStop)
         const hiddenVal = await this.payableToggleHiddenField_LOC.inputValue().catch(() => '');
-        if (valueMap[hiddenVal]) {
-            console.log(`Payable toggle from #fi_payable_waiting_on: ${valueMap[hiddenVal]}`);
+        if (hiddenVal && valueMap[hiddenVal]) {
+            console.log(`Payable toggle from hidden input: ${valueMap[hiddenVal]} (raw: ${hiddenVal})`);
             return valueMap[hiddenVal];
         }
 
-        // Fallback: data-slider-value on #payable_waiting_on_select
+        // Fallback 1: data-slider-value attribute on the slider input
         const dataVal = await this.payableToggleSliderInput_LOC.getAttribute('data-slider-value').catch(() => '');
         if (dataVal && valueMap[dataVal]) {
-            console.log(`Payable toggle from data-slider-value: ${valueMap[dataVal]}`);
+            console.log(`Payable toggle from data-slider-value: ${valueMap[dataVal]} (raw: ${dataVal})`);
             return valueMap[dataVal];
         }
 
-        console.log('Payable toggle: could not determine value');
+        // Fallback 2: read value attribute directly from the slider input
+        const valAttr = await this.payableToggleSliderInput_LOC.getAttribute('value').catch(() => '');
+        if (valAttr && valueMap[valAttr]) {
+            console.log(`Payable toggle from value attr: ${valueMap[valAttr]} (raw: ${valAttr})`);
+            return valueMap[valAttr];
+        }
+
+        // Fallback 3: evaluate the slider position via JavaScript on the bootstrap-slider widget
+        const sliderVal = await this.page.evaluate(() => {
+            const el = document.querySelector('input.payables_waiting_on_select') as HTMLInputElement;
+            if (!el) return '';
+            // bootstrap-slider stores value in data-value or via jQuery .slider('getValue')
+            return el.getAttribute('data-slider-value') || el.value || '';
+        }).catch(() => '');
+        if (sliderVal && valueMap[sliderVal]) {
+            console.log(`Payable toggle from JS evaluate: ${valueMap[sliderVal]} (raw: ${sliderVal})`);
+            return valueMap[sliderVal];
+        }
+
+        console.log(`Payable toggle: could not determine value (hidden="${hiddenVal}", data="${dataVal}", val="${valAttr}", js="${sliderVal}")`);
         return 'unknown';
     }
 
