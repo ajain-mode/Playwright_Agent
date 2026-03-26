@@ -120,46 +120,10 @@ test.describe.serial(
         const statusText = await pages.viewCarrierPage.getLoadboardStatus();
         pages.logger.info(`Carrier loadboard status: ${statusText}`);
 
-        const requiredVisibility = [...REQUIRED_CARRIER_VISIBILITY];
-
-        const tabClicked = await pages.viewCarrierPage.clickLoadboardTab();
-        expect.soft(tabClicked, "Mode IQ tab should be visible and clickable on carrier page").toBeTruthy();
-        if (tabClicked) {
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        }
-
-        let togglesFound = false;
-        for (const name of requiredVisibility) {
-        if (await pages.viewCarrierPage.isCarrierVisibilityLabelVisible(name)) {
-        togglesFound = true;
-        break;
-        }
-        }
-
-        if (togglesFound) {
-        const toggleStates = await pages.viewCarrierPage.getCarrierVisibilityToggleStates(requiredVisibility);
-
-        const disabledToggles: string[] = [];
-        for (const name of requiredVisibility) {
-        const state = toggleStates[name];
-        if (!state?.enabled) {
-        disabledToggles.push(name);
-        }
-        }
-
-        if (disabledToggles.length > 0) {
-        console.log(`${disabledToggles.length} toggle(s) need updating`);
-        await pages.basePage.clickButtonByText("Edit");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        await pages.viewCarrierPage.enableCarrierVisibilityToggles(disabledToggles);
-        await pages.viewCarrierPage.clickSaveOnCarrierEditPage();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        } else {
-        console.log("All carrier visibility toggles already enabled");
-        }
-        } else {
-        console.log("Carrier visibility labels not found — toggle check skipped");
-        }
+        await pages.viewCarrierPage.ensureCarrierVisibilityTogglesEnabled(
+          [...REQUIRED_CARRIER_VISIBILITY],
+          pages.basePage
+        );
         pages.logger.info("Carrier visibility step completed");
       });
 
@@ -168,19 +132,7 @@ test.describe.serial(
         const dmePage = appManager.dmePage;
         const dmeDashboard = new DMEDashboardPage(dmePage);
 
-        await dmeDashboard.clickCarriersLink();
-
-        await dmeDashboard.searchCarrierByName(testData.Carrier);
-
-        const toggleState = await dmeDashboard.getCarrierToggleState(testData.Carrier);
-        pages.logger.info(`DME carrier toggle: ${toggleState.enabled ? "ON" : "OFF"}`);
-        if (!toggleState.enabled && toggleState.found) {
-        await dmeDashboard.enableCarrierToggle(testData.Carrier);
-        console.log("Carrier toggle was OFF — enabled");
-        } else if (!toggleState.found) {
-        console.log(`Carrier "${testData.Carrier}" not found in DME — may already be enabled`);
-        }
-
+        await dmeDashboard.ensureCarrierToggleEnabled(testData.Carrier);
         pages.logger.info("Precondition Step 40: DME carrier toggle verified");
 
         await appManager.switchToBTMS();
@@ -291,16 +243,7 @@ test.describe.serial(
         const tnxPages = await appManager.switchToTNX();
         await appManager.tnxPage.setViewportSize({ width: 1920, height: 1080 });
 
-        const allOptions = await tnxPages.tnxLandingPage.getOrgDropdownOptions();
-        const carrierUpper = testData.Carrier.toUpperCase();
-        const matchedOption = allOptions.find((opt: string) => opt.toUpperCase().includes(carrierUpper));
-        if (matchedOption) {
-        console.log(`Matched TNX org option: "${matchedOption}"`);
-        await tnxPages.tnxLandingPage.selectOrganizationByText(matchedOption.trim());
-        } else {
-        console.log(`No matching option for "${testData.Carrier}" — using exact name`);
-        await tnxPages.tnxLandingPage.selectOrganizationByText(testData.Carrier);
-        }
+        await tnxPages.tnxLandingPage.selectOrganizationByCarrierName(testData.Carrier);
         await tnxPages.tnxLandingPage.handleOptionalSkipButton();
         await tnxPages.tnxLandingPage.handleOptionalNoThanksButton();
         await tnxPages.tnxLandingPage.clickOnTNXHeaderLink(TNX.ACTIVE_JOBS);
@@ -312,10 +255,9 @@ test.describe.serial(
         loadNumber
         );
         await tnxPages.tnxLandingPage.clickLoadLink();
-        const tnxOfferRate = await tnxPages.tnxLandingPage.getLoadOfferRateValue();
-        const tnxRateNumeric = tnxOfferRate.replace(/[\$,]/g, "").split(".")[0];
+        const tnxRateNumeric = await tnxPages.tnxLandingPage.getLoadOfferRateNumeric();
         const expectedRateNumeric = testData.offerRate.replace(/[\$,]/g, "").split(".")[0];
-        pages.logger.info(`TNX offer rate: ${tnxOfferRate} | Expected: ${testData.offerRate}`);
+        pages.logger.info(`TNX offer rate (numeric): ${tnxRateNumeric} | Expected: ${expectedRateNumeric}`);
         expect(tnxRateNumeric, `Offer rate mismatch`).toBe(expectedRateNumeric);
         await tnxPages.tnxLandingPage.clickOnSelectTenderDetailsModalTab(
         TENDER_DETAILS_MODAL_TABS.GENERAL

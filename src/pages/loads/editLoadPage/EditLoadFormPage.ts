@@ -25,6 +25,16 @@ export class EditLoadFormPage {
   private readonly shareAgentSearchResultInput_LOC: (
     agentName: string
   ) => Locator;
+  private readonly expirationDate_LOC: Locator;
+  private readonly expirationTime_LOC: Locator;
+  private readonly mileageEngine_LOC: Locator;
+  private readonly mileageMethod_LOC: Locator;
+  private readonly linehaulRateInput_LOC: Locator;
+  private readonly whseInstructionsField_LOC: Locator;
+  private readonly rateTypeDropdown_LOC: Locator;
+  private readonly linehaulRateType_LOC: Locator;
+  private readonly fuelSurchargeRateType_LOC: Locator;
+  private readonly methodDropdown_LOC: Locator;
 
   /**
    * Constructor to initialize page locators for form validation elements
@@ -39,6 +49,16 @@ export class EditLoadFormPage {
     this.viewBillingButton_LOC = page.locator(
       "input[type='button'][value*='View Billing']"
     );
+    this.expirationDate_LOC = page.locator("#form_expiration_date");
+    this.expirationTime_LOC = page.locator("#form_expiration_time");
+    this.mileageEngine_LOC = page.locator("//select[contains(@id,'mileage_engine')]").first();
+    this.mileageMethod_LOC = page.locator("//select[contains(@id,'mileage_method')]").first();
+    this.linehaulRateInput_LOC = page.locator("//input[contains(@id,'linehaul_rate')]").first();
+    this.whseInstructionsField_LOC = page.locator("//textarea[contains(@id,'shipper_whse')] | //input[contains(@id,'shipper_whse')]").first();
+    this.rateTypeDropdown_LOC = page.locator("//select[contains(@id,'rate_type') or contains(@name,'rate_type')]").first();
+    this.linehaulRateType_LOC = page.locator("#form_carriers_1_linehaul_rate_type");
+    this.fuelSurchargeRateType_LOC = page.locator("#form_fuel_surcharges_1_customer_rate_type");
+    this.methodDropdown_LOC = page.locator("//select[contains(@name,'method') or contains(@id,'method')]").first();
 
 
     this.searchAgentCombobox_LOC = page.locator(
@@ -531,71 +551,79 @@ export class EditLoadFormPage {
 
   /**
    * Enters the expiration date on the carrier tab.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async enterExpirationDate(date: string): Promise<void> {
-    const expirationDate = this.page.locator("#form_expiration_date");
-    await expirationDate.waitFor({ state: "visible", timeout: WAIT.LARGE });
-    await expirationDate.fill(date);
+    await this.expirationDate_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await this.expirationDate_LOC.fill(date);
     console.log(`Entered Expiration Date: ${date}`);
   }
 
   /**
    * Enters the expiration time on the carrier tab.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async enterExpirationTime(time: string): Promise<void> {
-    const expirationTime = this.page.locator("#form_expiration_time");
-    await expirationTime.waitFor({ state: "visible", timeout: WAIT.LARGE });
-    await expirationTime.fill(time);
+    await this.expirationTime_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await this.expirationTime_LOC.fill(time);
     console.log(`Entered Expiration Time: ${time}`);
   }
+
   /**
    * Selects a value from the Mileage Engine dropdown.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async selectMileageEngine(value: string): Promise<void> {
-    const mileageEngine = this.page.locator("//select[contains(@id,'mileage_engine')]").first();
-    await mileageEngine.waitFor({ state: "visible", timeout: WAIT.LARGE });
-    await mileageEngine.selectOption({ label: value });
+    await this.mileageEngine_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await this.mileageEngine_LOC.selectOption({ label: value });
     console.log(`Selected Mileage Engine: ${value}`);
   }
 
   /**
    * Selects a value from the Mileage Method dropdown.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async selectMileageMethod(value: string): Promise<void> {
-    const mileageMethod = this.page.locator("//select[contains(@id,'mileage_method')]").first();
-    await mileageMethod.waitFor({ state: "visible", timeout: WAIT.LARGE });
-    await mileageMethod.selectOption({ label: value });
+    await this.mileageMethod_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await this.mileageMethod_LOC.selectOption({ label: value });
     console.log(`Selected Mileage Method: ${value}`);
   }
 
   /**
    * Enters a value in the Linehaul Rate input field.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async enterLinehaulRate(value: string): Promise<void> {
-    const linehaulRate = this.page.locator("//input[contains(@id,'linehaul_rate')]").first();
-    await linehaulRate.waitFor({ state: "visible", timeout: WAIT.LARGE });
-    await linehaulRate.fill(value);
+    await this.linehaulRateInput_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await this.linehaulRateInput_LOC.fill(value);
     console.log(`Entered Linehaul Rate: ${value}`);
   }
 
   /**
    * Fills the Whse Instructions textarea/input field.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async fillWhseInstructions(value: string): Promise<void> {
-    const whseField = this.page.locator("//textarea[contains(@id,'shipper_whse')] | //input[contains(@id,'shipper_whse')]").first();
-    await whseField.waitFor({ state: "visible", timeout: WAIT.LARGE });
-    await whseField.fill(value);
+    await this.whseInstructionsField_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await this.whseInstructionsField_LOC.fill(value);
     console.log(`Filled Whse Instructions: ${value}`);
   }
 
   /**
    * Reads the current value of the Rate Type dropdown.
    * Returns the selected option label or empty string.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async getRateTypeValue(): Promise<string> {
-    const rateType = this.page.locator("//select[contains(@id,'rate_type') or contains(@name,'rate_type')]").first();
-    if (await rateType.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const value = await rateType.inputValue();
+    if (await this.rateTypeDropdown_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+      const value = await this.rateTypeDropdown_LOC.inputValue();
       console.log(`Rate Type value: ${value}`);
       return value;
     }
@@ -608,8 +636,7 @@ export class EditLoadFormPage {
    * @created 17-Mar-2026
    */
   async isRateTypeFieldVisible(): Promise<boolean> {
-    const rateType = this.page.locator("//select[contains(@id,'rate_type') or contains(@name,'rate_type')]").first();
-    return rateType.isVisible({ timeout: 5000 }).catch(() => false);
+    return this.rateTypeDropdown_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false);
   }
 
   /**
@@ -619,9 +646,8 @@ export class EditLoadFormPage {
    * @created 17-Mar-2026
    */
   async getLinehaulDefaultValue(): Promise<string> {
-    const linehaulField = this.page.locator("#form_carriers_1_linehaul_rate_type");
-    if (await linehaulField.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const value = await linehaulField.inputValue();
+    if (await this.linehaulRateType_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+      const value = await this.linehaulRateType_LOC.inputValue();
       console.log(`Linehaul rate type: ${value}`);
       return value;
     }
@@ -634,9 +660,8 @@ export class EditLoadFormPage {
    * @created 17-Mar-2026
    */
   async getFuelSurchargeDefaultValue(): Promise<string> {
-    const fuelField = this.page.locator("#form_fuel_surcharges_1_customer_rate_type");
-    if (await fuelField.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const value = await fuelField.inputValue();
+    if (await this.fuelSurchargeRateType_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+      const value = await this.fuelSurchargeRateType_LOC.inputValue();
       console.log(`Fuel Surcharge rate type: ${value}`);
       return value;
     }
@@ -645,12 +670,33 @@ export class EditLoadFormPage {
 
   /**
    * Selects Method dropdown value (e.g., "Practical").
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async selectMethod(value: string): Promise<void> {
-    const methodDropdown = this.page.locator("//select[contains(@name,'method') or contains(@id,'method')]").first();
-    await methodDropdown.waitFor({ state: "visible", timeout: WAIT.LARGE });
-    await methodDropdown.selectOption({ label: value });
+    await this.methodDropdown_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await this.methodDropdown_LOC.selectOption({ label: value });
     console.log(`Selected Method: ${value}`);
+  }
+
+  /**
+   * Computes a future date (daysAhead from today) and fills both expiration date and time fields.
+   * Encapsulates all date arithmetic and string formatting so specs remain clean.
+   * @param daysAhead - Number of days from today for the expiration date (default: 7)
+   * @param time - Expiration time in HH:mm format (default: '18:00')
+   * @author AI Agent
+   * @created 26-Mar-2026
+   */
+  async enterFutureExpirationDateAndTime(daysAhead: number = 7, time: string = '18:00'): Promise<void> {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + daysAhead);
+    const mm = (futureDate.getMonth() + 1).toString().padStart(2, '0');
+    const dd = futureDate.getDate().toString().padStart(2, '0');
+    const yyyy = futureDate.getFullYear();
+    const formattedDate = `${mm}/${dd}/${yyyy}`;
+    await this.enterExpirationDate(formattedDate);
+    await this.enterExpirationTime(time);
+    console.log(`Entered future expiration: ${formattedDate} ${time} (${daysAhead} days ahead)`);
   }
 }
 

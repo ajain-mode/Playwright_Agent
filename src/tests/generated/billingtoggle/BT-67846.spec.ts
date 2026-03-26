@@ -93,9 +93,9 @@ test.describe.serial(
           });
         });
 
-        await test.step("Step 5: Enter Whse Instructions", async () => {
-          await pages.editLoadFormPage.fillWhseInstructions("TestData");
-        });
+        // await test.step("Step 5: Enter Whse Instructions", async () => {
+        //   await pages.editLoadFormPage.fillWhseInstructions("TestData");
+        // });
 
         await test.step("Step 6: Select Mileage Engine, Method, and enter LH Rate", async () => {
           await pages.editLoadFormPage.selectMileageEngine(testData.mileageEngine);
@@ -107,10 +107,7 @@ test.describe.serial(
         await test.step("Step 7: Click Create Load and select Rate Type", async () => {
           await pages.nonTabularLoadPage.clickCreateLoadButton();
 
-          const rateTypeValue = await pages.editLoadFormPage.getRateTypeValue();
-          if (rateTypeValue) {
-            await pages.editLoadLoadTabPage.checkLoadTabDetails(testData.rateType);
-          }
+          await pages.editLoadLoadTabPage.checkRateTypeIfPresent(testData.rateType, pages.editLoadFormPage);
 
           await pages.editLoadPage.validateEditLoadHeadingText();
           loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
@@ -135,13 +132,7 @@ test.describe.serial(
         });
 
         await test.step("Step 12: Enter Expiration Date and Time", async () => {
-          const futureDate = new Date();
-          futureDate.setDate(futureDate.getDate() + 7);
-          const mm = (futureDate.getMonth() + 1).toString().padStart(2, '0');
-          const dd = futureDate.getDate().toString().padStart(2, '0');
-          const yyyy = futureDate.getFullYear();
-          await pages.editLoadFormPage.enterExpirationDate(`${mm}/${dd}/${yyyy}`);
-          await pages.editLoadFormPage.enterExpirationTime("18:00");
+          await pages.editLoadFormPage.enterFutureExpirationDateAndTime(7, "18:00");
         });
 
         await test.step("Step 13: Enter Email for notification", async () => {
@@ -189,7 +180,7 @@ test.describe.serial(
         });
 
         await test.step("Step 20: Enter invoice details, attach file, and accept alert", async () => {
-          const invoiceNumber = Math.floor(Math.random() * 9000000000 + 1000000000).toString();
+          const invoiceNumber = pages.loadBillingPage.generateRandomInvoiceNumber();
           await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNumber);
           await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
 

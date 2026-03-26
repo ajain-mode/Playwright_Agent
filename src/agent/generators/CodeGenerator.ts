@@ -704,16 +704,22 @@ console.log('Clicked on ${readableName}');`,
     if (lowerName.startsWith('verify') || lowerName.startsWith('validate')) {
       const targetName = methodName.replace(/^verify|^validate/i, '');
       const readableName = targetName.replace(/([A-Z])/g, ' $1').trim();
+      const locatorName = `${targetName.charAt(0).toLowerCase() + targetName.slice(1)}_LOC`;
 
       return {
+        locator: {
+          name: locatorName,
+          selector: `//*[contains(text(),'${readableName}')]`,
+          locatorMethod: 'locator',
+          isDynamic: false,
+          isPrivate: true,
+        },
         method: {
           name: methodName,
           parameters: 'expectedValue?: string',
           returnType: 'Promise<void>',
           isAsync: true,
-          body: `// Verify ${readableName}
-const element = this.page.locator(\`//*[contains(text(),'\${expectedValue || ""}')]\`);
-await expect(element, \`Expected to see: \${expectedValue}\`).toBeVisible({ timeout: 10000 });
+          body: `await expect(this.${locatorName}, \`Expected to see: \${expectedValue}\`).toBeVisible({ timeout: 10000 });
 console.log('Verified: ${readableName}');`,
         },
       };
@@ -750,15 +756,23 @@ console.log(\`Entered \${value} in ${readableName}\`);`,
     if (lowerName.startsWith('get')) {
       const targetName = methodName.replace(/^get/i, '');
       const readableName = targetName.replace(/([A-Z])/g, ' $1').trim();
+      const locatorName = `${targetName.charAt(0).toLowerCase() + targetName.slice(1)}_LOC`;
+      const fieldId = targetName.charAt(0).toLowerCase() + targetName.slice(1);
 
       return {
+        locator: {
+          name: locatorName,
+          selector: `[data-field="${fieldId}"]`,
+          locatorMethod: 'locator',
+          isDynamic: false,
+          isPrivate: true,
+        },
         method: {
           name: methodName,
           parameters: '',
           returnType: 'Promise<string>',
           isAsync: true,
-          body: `const element = this.page.locator('[data-field="${targetName.charAt(0).toLowerCase() + targetName.slice(1)}"]').first();
-const text = await element.textContent() || '';
+          body: `const text = await this.${locatorName}.first().textContent() || '';
 console.log('Got ${readableName}:', text);
 return text.trim();`,
         },
@@ -769,15 +783,23 @@ return text.trim();`,
     if (lowerName.startsWith('select')) {
       const targetName = methodName.replace(/^select/i, '');
       const readableName = targetName.replace(/([A-Z])/g, ' $1').trim();
+      const locatorName = `${targetName.charAt(0).toLowerCase() + targetName.slice(1)}Dropdown_LOC`;
+      const fieldId = targetName.charAt(0).toLowerCase() + targetName.slice(1);
 
       return {
+        locator: {
+          name: locatorName,
+          selector: `[id*="${fieldId}"], [name*="${fieldId}"]`,
+          locatorMethod: 'locator',
+          isDynamic: false,
+          isPrivate: true,
+        },
         method: {
           name: methodName,
           parameters: 'value: string',
           returnType: 'Promise<void>',
           isAsync: true,
-          body: `const dropdown = this.page.locator('[id*="${targetName.charAt(0).toLowerCase() + targetName.slice(1)}"], [name*="${targetName.charAt(0).toLowerCase() + targetName.slice(1)}"]').first();
-await dropdown.click();
+          body: `await this.${locatorName}.first().click();
 const option = this.page.locator(\`//*[contains(text(),'\${value}')]\`);
 await option.click();
 console.log(\`Selected \${value} for ${readableName}\`);`,
@@ -787,15 +809,24 @@ console.log(\`Selected \${value} for ${readableName}\`);`,
 
     // ---- search* patterns ----
     if (lowerName.startsWith('search') || lowerName.includes('search')) {
+      const targetName = methodName.replace(/^search|Search$/i, '') || 'search';
+      const locatorName = `${targetName.charAt(0).toLowerCase() + targetName.slice(1)}SearchInput_LOC`;
+
       return {
+        locator: {
+          name: locatorName,
+          selector: `input[type='search'], input[id*='search'], input[placeholder*='Search']`,
+          locatorMethod: 'locator',
+          isDynamic: false,
+          isPrivate: true,
+        },
         method: {
           name: methodName,
           parameters: 'searchTerm: string',
           returnType: 'Promise<void>',
           isAsync: true,
-          body: `const searchInput = this.page.locator("input[type='search'], input[id*='search'], input[placeholder*='Search']").first();
-await searchInput.waitFor({ state: 'visible', timeout: 10000 });
-await searchInput.fill(searchTerm);
+          body: `await this.${locatorName}.first().waitFor({ state: 'visible', timeout: 10000 });
+await this.${locatorName}.first().fill(searchTerm);
 console.log(\`Searched for: \${searchTerm}\`);`,
         },
       };
@@ -3860,6 +3891,45 @@ ${stepCode}
       if (constantReplacements > 0) {
         warnings.push(
           `🔗 Guardrail: Replaced ${constantReplacements} hardcoded value(s) with global constant references.`
+        );
+      }
+    }
+
+    // ── 21. Detect business logic in spec files (loops, conditionals, array/string ops) ──
+    // Specs must only contain POM calls, expect() assertions, and variable assignments.
+    // All loops, if/else, .find/.filter/.map, regex, .replace, .split belong in POM methods.
+    {
+      // Strip afterAll block (cleanup conditionals are acceptable)
+      const withoutAfterAll = fixed.replace(/test\.afterAll\s*\([\s\S]*?\n\s*\}\);/g, '');
+      // Strip test.step description strings to avoid false positives on text like "if user..."
+      const withoutStepStrings = withoutAfterAll.replace(/test\.step\s*\(\s*["'`][^"'`]*["'`]/g, '');
+      // Strip test() and describe() title strings
+      const withoutTitles = withoutStepStrings
+        .replace(/test\s*\(\s*\n?\s*["'`][^"'`]*["'`]/g, '')
+        .replace(/describe(?:\.serial)?\s*\(\s*\n?\s*["'`][^"'`]*["'`]/g, '');
+      // Strip string literals to avoid false positives on values containing keywords
+      const withoutStrings = withoutTitles.replace(/["'`][^"'`]*["'`]/g, '""');
+      // Strip single-line comments
+      const withoutComments = withoutStrings.replace(/\/\/.*$/gm, '');
+
+      const issues: string[] = [];
+      if (/\b(for|while)\s*\(/.test(withoutComments)) {
+        issues.push('loop (for/while)');
+      }
+      if (/\bif\s*\(/.test(withoutComments)) {
+        issues.push('conditional (if/else)');
+      }
+      if (/\.(find|filter|map|reduce|forEach)\s*\(/.test(withoutComments)) {
+        issues.push('array operation (.find/.filter/.map/.reduce/.forEach)');
+      }
+      if (/\.(replace|split)\s*\(/.test(withoutComments)) {
+        issues.push('string manipulation (.replace/.split)');
+      }
+      if (issues.length > 0) {
+        warnings.push(
+          `⚠️  Guardrail: Business logic detected in spec file: ${issues.join(', ')}. ` +
+          `Move all conditional/iteration/string-manipulation logic into Page Object methods. ` +
+          `Specs should only contain POM calls, expect() assertions, and variable assignments.`
         );
       }
     }

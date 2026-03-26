@@ -247,7 +247,7 @@ class DMELoadPage {
   async clickOnDataDetailsLink(): Promise<void> {
     await this.dataDetailsLink_LOC.waitFor({
       state: "visible",
-      timeout: 10000,
+      timeout: WAIT.SMALL,
     });
     await expect(this.dataDetailsLink_LOC).toBeVisible();
     await this.dataDetailsLink_LOC.click();
@@ -260,7 +260,7 @@ class DMELoadPage {
    * @modified 2025-09-07
    */
   async clickOnShowIconLink(): Promise<void> {
-    await this.showIconLink_LOC.waitFor({ state: "visible", timeout: 10000 });
+    await this.showIconLink_LOC.waitFor({ state: "visible", timeout: WAIT.SMALL });
     await expect(this.showIconLink_LOC).toBeVisible();
     await this.showIconLink_LOC.click();
     await this.page.waitForTimeout(WAIT.SMALL);
@@ -585,7 +585,7 @@ class DMELoadPage {
         try {
           await this.bidsStatusDME.first().waitFor({
             state: "visible",
-            timeout: 5000,
+            timeout: WAIT.DEFAULT,
           });
 
           // Get count of matching elements

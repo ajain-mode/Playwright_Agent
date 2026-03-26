@@ -336,7 +336,12 @@ ${FRAMEWORK_KNOWLEDGE}
     These are DOM-guessing anti-patterns that are fragile and break with CSS/HTML changes.
     Instead, use Playwright built-in methods: isChecked(), inputValue(), getAttribute(), isVisible(), textContent().
 29. Every POM method MUST have a JSDoc block with @author and @created tags. Format:
-    /** Description. @author AI Agent @created YYYY-MM-DD */
+    /** Description. @author AI Agent @created DD-Mon-YYYY */
+    This is MANDATORY for all AI-generated POM methods. Methods without these tags will be rejected.
+29a. ALL locators in POM methods MUST be initialized as private readonly properties in the constructor.
+    NEVER define locators inline inside method bodies (e.g., const btn = this.page.locator("...")).
+    Instead: declare as class property, initialize in constructor, reference via this.<name>_LOC in the method.
+    The ONLY exception is row-relative locators inside iteration loops (e.g., row.locator("td.cell")).
 30. NEVER use waitForTimeout() with hardcoded millisecond values in spec files.
     Use Playwright auto-waiting, waitForLoadState(), element.waitFor(), or POM methods with built-in waits.
 31. NEVER use require() or path.resolve() inline in spec files.
@@ -360,7 +365,16 @@ ${FRAMEWORK_KNOWLEDGE}
 35. Do NOT use console.log() in spec files. All logging must occur inside Page Object classes via this.logger or similar.
     - Narration logs like "Clicked Save button" or "Navigated to page" are redundant — the test.step() name already describes the action.
     - For runtime values that aid debugging (load numbers, captured emails, toggle states), use pages.logger.info() instead.
-    - The ONLY acceptable console.log in a spec is inside conditional branches to log which path was taken (e.g., toggle ON vs OFF).`;
+    - The ONLY acceptable console.log in a spec is inside conditional branches to log which path was taken (e.g., toggle ON vs OFF).
+37. SPEC FILES MUST CONTAIN NO BUSINESS LOGIC. All loops (for, while), conditionals (if/else), array operations (.find, .filter, .map),
+    and string manipulation (regex, .replace, .split) MUST live inside Page Object methods. Spec files should ONLY contain:
+    - await test.step() blocks with sequential POM method calls
+    - expect() assertions on values returned by POM methods
+    - Variable assignments from POM method return values
+    - pages.logger.info() for debugging
+    The ONLY acceptable if/else in a spec is the standard afterAll null-check cleanup pattern.
+    If a step requires conditional logic, create a higher-level POM method (e.g., ensureCarrierToggleEnabled())
+    that encapsulates the decision-making and call that single method from the spec.`;
 }
 
 /**
@@ -402,14 +416,19 @@ export function buildFullSpecPrompt(
 14. NEVER wrap validation code in try/catch that swallows errors with console.log — use expect.soft() instead
 15. NEVER use XPath translate() for case-insensitive matching — use explicit text alternatives instead
 16. NEVER use page.evaluate() with querySelector/closest/getComputedStyle — use Playwright built-in methods (isChecked, inputValue, getAttribute) instead
-17. Every POM method must include JSDoc with @author AI Agent and @created date
+17. Every POM method must include JSDoc with @author AI Agent and @created DD-Mon-YYYY date
+17a. ALL locators in POM methods MUST be constructor-initialized properties (private readonly <name>_LOC: Locator).
+    NEVER define locators inline in method bodies. Exception: row-relative locators in iteration loops.
 18. NEVER use waitForTimeout() with hardcoded delays — use Playwright auto-waiting or waitForLoadState
 19. NEVER use require() or path.resolve() inline — use POM methods like attachCarrierInvoiceFile() or attachPODFile()
 20. NEVER use duplicate locating strategies for the same element. One reliable locator per element. Prefer CSS/getByRole over XPath
 21. NEVER pass hardcoded numeric strings to POM methods for rates, amounts, miles, or invoice numbers.
     Use testData.customerRate, testData.carrierRate, testData.miles, testData.linehaulRate, testData.carrierInvoiceNumber, testData.carrierInvoiceAmount1, testData.carrierInvoiceAmount2
 22. Do NOT use console.log() in spec files. Logging belongs inside Page Object classes.
-    Use pages.logger.info() for runtime values only (load numbers, emails, statuses). Do not log narration like "Clicked button".`;
+    Use pages.logger.info() for runtime values only (load numbers, emails, statuses). Do not log narration like "Clicked button".
+23. SPEC FILES MUST CONTAIN NO BUSINESS LOGIC. No for/while loops, no if/else conditionals, no .find()/.filter()/.map(),
+    no string manipulation (.replace/.split/regex). All such logic belongs inside POM methods.
+    Specs should only have: test.step() blocks, POM calls, expect() assertions, variable assignments, and pages.logger.info().`;
 
   const stepsText = steps.map(s => `  ${s.stepNumber}. ${s.action}${s.expectedResult ? ` → Expected: ${s.expectedResult}` : ''}`).join('\n');
   const expectedText = expectedResults.length > 0

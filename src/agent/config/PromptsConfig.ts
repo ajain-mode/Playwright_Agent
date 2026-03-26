@@ -679,6 +679,24 @@ export const GUARDRAIL_RULES: GuardrailRule[] = [
     },
     errorMessage: 'Excessive console.log() in spec file. Logging should occur inside Page Object classes, not in specs. Use pages.logger.info() for runtime values only.',
   },
+  {
+    name: 'noBusinessLogicInSpecs',
+    description: 'Spec files must not contain loops (for/while), conditionals (if/else), or array/string manipulation — all business logic belongs in POM methods',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      const code = input._generatedCode;
+      // Strip afterAll block (null-check cleanup is acceptable)
+      const withoutAfterAll = code.replace(/test\.afterAll\s*\([\s\S]*?\n\s*\}\);/g, '');
+      // Check for loops
+      const hasLoop = /\b(for|while)\s*\(/.test(withoutAfterAll);
+      // Check for if/else (excluding afterAll cleanup)
+      const hasConditional = /\bif\s*\(/.test(withoutAfterAll);
+      // Check for inline array operations
+      const hasArrayOps = /\.(find|filter|map|reduce|forEach)\s*\(/.test(withoutAfterAll);
+      return !hasLoop && !hasConditional && !hasArrayOps;
+    },
+    errorMessage: 'Business logic (loops, if/else, .find()/.filter()/.map()) detected in spec file. Move all conditional/iteration logic into Page Object methods. Specs should only contain POM calls, expect() assertions, and variable assignments.',
+  },
 ];
 
 /**

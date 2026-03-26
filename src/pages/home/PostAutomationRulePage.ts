@@ -52,6 +52,7 @@ class PostAutomationRulePage {
   private readonly carrierAcceptAsUserDropdown_LOC: Locator;
   private readonly closeIncludeCarrierDetailsModalButton_LOC: Locator;
   private readonly customerSelect2Container_LOC: Locator;
+  private readonly select2SearchInput_LOC: Locator;
   private readonly textElementOnPostAutomationRule_LOC: (
     text: string
   ) => Locator;
@@ -174,6 +175,7 @@ class PostAutomationRulePage {
     this.customerSelect2Container_LOC = page.locator(
       "//select[@id='form_customer_id']//following-sibling::span[contains(@class,'select2')]"
     );
+    this.select2SearchInput_LOC = page.locator("input.select2-search__field");
   }
   /**
    * @author Parth Rastogi
@@ -321,11 +323,8 @@ class PostAutomationRulePage {
         await this.customerSelect2Container_LOC.click();
 
         // Type into the Select2 search input that appears
-        const searchInput = this.page.locator(
-          "input.select2-search__field"
-        );
-        await searchInput.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
-        await searchInput.fill(customerText);
+        await this.select2SearchInput_LOC.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
+        await this.select2SearchInput_LOC.fill(customerText);
 
         // Wait for search results and click the matching item
         const resultItem = this.page.locator(

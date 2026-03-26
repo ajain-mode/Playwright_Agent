@@ -10,6 +10,7 @@ export default class BasePage {
   private readonly templatesButton_LOC: Locator;
   // private readonly customersSiteMenu_LOC: Locator;
   private readonly topMenuLogo_LOC: Locator;
+  private readonly siteMenuContainer_LOC: Locator;
 
 
   constructor(private page: Page) {
@@ -35,6 +36,7 @@ export default class BasePage {
     this.templatesButton_LOC = page.locator("//a[text()='Templates']");
     // this.customersSiteMenu_LOC = page.locator("//a[normalize-space()='Customers']");
     this.topMenuLogo_LOC = page.locator("//img[contains(@src,'logo.png')]/parent::a");
+    this.siteMenuContainer_LOC = page.locator('#c-sitemenu-container');
   }
 
   headerAfterUserSwitch(headerBtnText: string): Locator {
@@ -254,7 +256,7 @@ export default class BasePage {
    */
   async clickButtonByText(buttonText: string): Promise<void> {
     const button = this.page.locator(`//button[contains(text(),'${buttonText}')] | //input[contains(@value,'${buttonText}')]`);
-    await expect(button).toBeVisible({ timeout: 10000 });
+    await expect(button).toBeVisible({ timeout: WAIT.SMALL });
     await button.click();
     console.log(`Clicked button: ${buttonText}`);
   }
@@ -266,7 +268,7 @@ export default class BasePage {
    */
   async clickLinkByText(linkText: string): Promise<void> {
     const link = this.page.locator(`//a[contains(text(),'${linkText}')] | //*[contains(text(),'${linkText}')]`).first();
-    await expect(link).toBeVisible({ timeout: 10000 });
+    await expect(link).toBeVisible({ timeout: WAIT.SMALL });
     await link.click();
     console.log(`Clicked link: ${linkText}`);
   }
@@ -278,7 +280,7 @@ export default class BasePage {
    */
   async clickDropdownById(dropdownId: string): Promise<void> {
     const dropdown = this.page.locator(`#${dropdownId}`);
-    await expect(dropdown).toBeVisible({ timeout: 10000 });
+    await expect(dropdown).toBeVisible({ timeout: WAIT.SMALL });
     await dropdown.click();
     console.log(`Clicked dropdown: ${dropdownId}`);
   }
@@ -289,8 +291,8 @@ export default class BasePage {
    * @created 2026-02-12
    */
   async fillFieldBySelector(fieldIdentifier: string, value: string): Promise<void> {
-    const field = this.page.locator(`[name*='${fieldIdentifier}'], [placeholder*='${fieldIdentifier}'], [id*='${fieldIdentifier}']`).first();
-    await expect(field).toBeVisible({ timeout: 10000 });
+    const field = this.page.locator(`[id='${fieldIdentifier}'], [name='${fieldIdentifier}'], [placeholder='${fieldIdentifier}']`).first();
+    await expect(field).toBeVisible({ timeout: WAIT.SMALL });
     await field.fill(value);
     console.log(`Filled field '${fieldIdentifier}' with value: ${value}`);
   }
@@ -301,8 +303,8 @@ export default class BasePage {
    * @created 2026-02-12
    */
   async selectOptionByField(fieldIdentifier: string, optionLabel: string): Promise<void> {
-    const field = this.page.locator(`[name*='${fieldIdentifier}'], [id*='${fieldIdentifier}']`).first();
-    await expect(field).toBeVisible({ timeout: 10000 });
+    const field = this.page.locator(`[id='${fieldIdentifier}'], [name='${fieldIdentifier}']`).first();
+    await expect(field).toBeVisible({ timeout: WAIT.SMALL });
     await field.selectOption({ label: optionLabel });
     console.log(`Selected '${optionLabel}' from field '${fieldIdentifier}'`);
   }
@@ -317,7 +319,7 @@ export default class BasePage {
     const baseUrl = new URL(this.page.url()).origin;
     await this.page.goto(baseUrl);
     await this.waitForMultipleLoadStates(["load", "networkidle"]);
-    await this.page.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });
+    await this.siteMenuContainer_LOC.waitFor({ state: 'visible', timeout: WAIT.MID });
     console.log('Navigated to BTMS base URL');
   }
 
@@ -329,7 +331,7 @@ export default class BasePage {
    */
   async clickButton(buttonText: string): Promise<void> {
     const btn = this.page.locator(`//button[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'${buttonText.toLowerCase()}')] | //input[contains(translate(@value,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'${buttonText.toLowerCase()}')]`);
-    await btn.waitFor({ state: 'visible', timeout: 10000 });
+    await btn.waitFor({ state: 'visible', timeout: WAIT.SMALL });
     await btn.click();
     console.log(`Clicked on "${buttonText}" button`);
   }

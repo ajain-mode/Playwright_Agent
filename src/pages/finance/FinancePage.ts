@@ -56,6 +56,9 @@ class FinancePage {
     private readonly customerNameInput_LOC: Locator;
     private readonly searchButton_LOC: Locator;
     private readonly customerSearchedNameDropdown_LOC: Locator;
+    private readonly commissionCheckboxById_LOC: Locator;
+    private readonly commissionCheckboxByClass_LOC: Locator;
+    private readonly allVisibleCheckboxes_LOC: Locator;
 
 
 
@@ -113,6 +116,9 @@ class FinancePage {
         this.customerNameInput_LOC = page.locator('#cm_search_name');
         this.customerSearchedNameDropdown_LOC = page.locator("#search_names");
         this.searchButton_LOC = page.locator("//form[@name='custsearch']//input[@value='Search']");
+        this.commissionCheckboxById_LOC = page.locator("#cb1");
+        this.commissionCheckboxByClass_LOC = page.locator('input[type="checkbox"].process_checkbox').first();
+        this.allVisibleCheckboxes_LOC = page.locator('input[type="checkbox"]:visible');
     }
 
     /**
@@ -360,20 +366,18 @@ class FinancePage {
 
     private async trySelectById(): Promise<boolean> {
         try {
-            const checkbox = this.page.locator("#cb1");
+            await this.commissionCheckboxById_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT * 7 });
+            await this.commissionCheckboxById_LOC.waitFor({ state: 'attached', timeout: WAIT.DEFAULT * 2 });
 
-            await checkbox.waitFor({ state: 'visible', timeout: WAIT.DEFAULT * 7 });
-            await checkbox.waitFor({ state: 'attached', timeout: WAIT.DEFAULT * 2 });
-
-            const isChecked = await checkbox.isChecked();
+            const isChecked = await this.commissionCheckboxById_LOC.isChecked();
             if (isChecked) {
                 console.log('Commission already selected');
                 return true;
             }
 
-            await checkbox.scrollIntoViewIfNeeded();
-            await checkbox.check({ force: true });
-            const isNowChecked = await checkbox.isChecked();
+            await this.commissionCheckboxById_LOC.scrollIntoViewIfNeeded();
+            await this.commissionCheckboxById_LOC.check({ force: true });
+            const isNowChecked = await this.commissionCheckboxById_LOC.isChecked();
             return isNowChecked;
         } catch (error) {
             console.log(`ID strategy failed: ${error}`);
@@ -383,16 +387,15 @@ class FinancePage {
 
     private async trySelectByClass(): Promise<boolean> {
         try {
-            const checkbox = this.page.locator('input[type="checkbox"].process_checkbox').first();
-            await checkbox.waitFor({ state: 'visible', timeout: WAIT.DEFAULT * 3 });
-            const isChecked = await checkbox.isChecked();
+            await this.commissionCheckboxByClass_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT * 3 });
+            const isChecked = await this.commissionCheckboxByClass_LOC.isChecked();
             if (isChecked) {
                 console.log('Commission already selected (class selector)');
                 return true;
             }
-            await checkbox.scrollIntoViewIfNeeded();
-            await checkbox.check({ force: true });
-            return await checkbox.isChecked();
+            await this.commissionCheckboxByClass_LOC.scrollIntoViewIfNeeded();
+            await this.commissionCheckboxByClass_LOC.check({ force: true });
+            return await this.commissionCheckboxByClass_LOC.isChecked();
         } catch (error) {
             console.log(`Class strategy failed: ${error}`);
             return false;
@@ -405,7 +408,7 @@ class FinancePage {
                 state: 'visible',
                 timeout: WAIT.DEFAULT * 3
             });
-            const checkboxes = this.page.locator('input[type="checkbox"]:visible');
+            const checkboxes = this.allVisibleCheckboxes_LOC;
             const count = await checkboxes.count();
             if (count === 0) {
                 return false;

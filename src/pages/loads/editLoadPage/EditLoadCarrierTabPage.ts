@@ -482,7 +482,7 @@ class EditLoadCarrierTabPage {
   async validateEditLoadHeadingText(expectedValue?: string): Promise<void> {
     // Verify Edit Load Heading Text
     const element = this.page.locator(`//*[contains(text(),'${expectedValue || ""}')]`);
-    await expect(element, `Expected to see: ${expectedValue}`).toBeVisible({ timeout: 10000 });
+    await expect(element, `Expected to see: ${expectedValue}`).toBeVisible({ timeout: WAIT.SMALL });
     console.log('Verified: Edit Load Heading Text');
   }
 
@@ -494,7 +494,7 @@ class EditLoadCarrierTabPage {
   async validateCurrentTabValue(expectedValue?: string): Promise<void> {
     // Verify Current Tab Value
     const element = this.page.locator(`//*[contains(text(),'${expectedValue || ""}')]`);
-    await expect(element, `Expected to see: ${expectedValue}`).toBeVisible({ timeout: 10000 });
+    await expect(element, `Expected to see: ${expectedValue}`).toBeVisible({ timeout: WAIT.SMALL });
     console.log('Verified: Current Tab Value');
   }
 
@@ -502,6 +502,8 @@ class EditLoadCarrierTabPage {
    * Select email notification address on the Edit Load Carrier tab.
    * Uses select#form_notification_address with fuzzy option matching,
    * falls back to sibling select if primary not found.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async selectEmailNotificationAddress(emailValue: string): Promise<void> {
     const emailSelect = this.page.locator("select#form_notification_address");
@@ -537,7 +539,7 @@ class EditLoadCarrierTabPage {
    */
   async clickOnTab(text: string): Promise<void> {
     const el = this.page.locator(`//button[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'${text.toLowerCase()}')] | //*[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'${text.toLowerCase()}')]`);
-    await el.waitFor({ state: 'visible', timeout: 10000 });
+    await el.waitFor({ state: 'visible', timeout: WAIT.SMALL });
     await el.click();
     console.log(`Clicked on ${text}`);
   }

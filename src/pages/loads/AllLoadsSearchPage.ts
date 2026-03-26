@@ -88,7 +88,7 @@ export default class AllLoadsSearchPage {
    * @created 2026-02-12
    */
   async clickNewLoadDropdown(): Promise<void> {
-    await this.newLoadDropdown_LOC.waitFor({ state: 'visible', timeout: 10000 });
+    await this.newLoadDropdown_LOC.waitFor({ state: 'visible', timeout: WAIT.SMALL });
     await this.newLoadDropdown_LOC.click();
     console.log('Clicked on New Load Dropdown');
   }

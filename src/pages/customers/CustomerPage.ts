@@ -341,7 +341,7 @@ class CustomerPage {
    * @created 2026-02-18
    */
   async enterCustomerName(value: string): Promise<void> {
-    await this.customerNameInput_LOC.waitFor({ state: 'visible', timeout: 10000 });
+    await this.customerNameInput_LOC.waitFor({ state: 'visible', timeout: WAIT.SMALL });
     await this.customerNameInput_LOC.fill(value);
     console.log(`Entered ${value} in Customer Name`);
   }
@@ -352,7 +352,7 @@ class CustomerPage {
    * @created 2026-02-18
    */
   async clickOnSearchCustomer(): Promise<void> {
-    await this.searchCustomer_LOC.waitFor({ state: 'visible', timeout: 10000 });
+    await this.searchCustomer_LOC.waitFor({ state: 'visible', timeout: WAIT.SMALL });
     await this.searchCustomer_LOC.click();
     console.log('Clicked on Search Customer');
   }

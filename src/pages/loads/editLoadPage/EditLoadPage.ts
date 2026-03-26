@@ -111,7 +111,7 @@ class EditLoadPage {
    * @modified : 2025-08-28
    */
   async validateEditLoadHeadingText() {
-    await this.editLoadText_LOC.waitFor({ state: "visible", timeout: 90000 });
+    await this.editLoadText_LOC.waitFor({ state: "visible", timeout: WAIT.XXLARGE });
     await this.page.waitForLoadState("domcontentloaded");
     await expect.soft(this.editLoadText_LOC).toBeVisible();
   }

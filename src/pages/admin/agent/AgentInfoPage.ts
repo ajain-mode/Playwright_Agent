@@ -10,6 +10,7 @@ export default class AgentInfoPage {
   private readonly duplicateButton_LOC: Locator;
   private readonly agentNameView_LOC: Locator;
   private readonly authValue_LOC: Locator;
+  private readonly agentEmail_LOC: Locator;
 
 
   constructor(private page: Page) {
@@ -24,6 +25,9 @@ export default class AgentInfoPage {
     this.authValue_LOC = this.page.locator(
       "//td[@class='fn' and contains(normalize-space(translate(., '\u00A0', ' ')), 'Auth Level')]/following-sibling::td[@class='view' and not (preceding-sibling::td[@class='view'])]"
     );
+    this.agentEmail_LOC = this.page.locator(
+      "//td[contains(text(),'Email')]/following-sibling::td[contains(@class,'view')]"
+    ).first();
 
   }
 
@@ -133,13 +137,12 @@ export default class AgentInfoPage {
   /**
    * Gets the agent email from the Agent Info page.
    * Reads from the Email row in the agent details table.
+   * @author AI Agent
+   * @created 26-Mar-2026
    */
   async getAgentEmail(): Promise<string> {
-    const emailLocator = this.page.locator(
-      "//td[contains(text(),'Email')]/following-sibling::td[contains(@class,'view')]"
-    ).first();
-    await emailLocator.waitFor({ state: "visible", timeout: 10000 });
-    const text = (await emailLocator.textContent())?.trim() || '';
+    await this.agentEmail_LOC.waitFor({ state: "visible", timeout: WAIT.SMALL });
+    const text = (await this.agentEmail_LOC.textContent())?.trim() || '';
     console.log(`Got Agent Email: ${text}`);
     return text;
   }

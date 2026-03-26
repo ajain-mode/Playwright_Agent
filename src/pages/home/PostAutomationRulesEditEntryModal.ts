@@ -31,6 +31,7 @@ class PostAutomationRulePageEditEntryModal {
     private readonly editEntryStop1TypeDropDownText_LOC: Locator;
     private readonly editEntryStop1CityText_LOC: Locator;
     private readonly editEntryStop1ZipText_LOC: Locator;
+    private readonly waterfallOfferRate_LOC: Locator;
 
     constructor(private page: Page) {
         this.editEntryCustomerDropDownText_LOC = (text: string) => {
@@ -107,6 +108,7 @@ class PostAutomationRulePageEditEntryModal {
         this.equipmentDropdown_LOC = page.locator("#form_equipment_code");
         this.loadTypeDropdown_LOC = page.locator("#form_load_method");
         this.offerRateInput_LOC = page.locator("#form_manual_target_rate");
+        this.waterfallOfferRate_LOC = page.locator("#form_waterfall_offer_rate");
     }
 
     /**
@@ -772,16 +774,14 @@ class PostAutomationRulePageEditEntryModal {
     async validateWaterfallOfferRate(expectedOfferRate: string): Promise<boolean> {
         try {
             await this.page.waitForLoadState("networkidle");
-            // Get the waterfall offer rate input field
-            const waterfallOfferRateLocator = this.page.locator("#form_waterfall_offer_rate");
-         // Wait for the element to be visible
-            await waterfallOfferRateLocator.waitFor({
+            // Wait for the element to be visible
+            await this.waterfallOfferRate_LOC.waitFor({
                 state: "visible",
                 timeout: WAIT.DEFAULT,
             });
-            
+
             // Get the actual value from the input field
-            const actualOfferRate = await waterfallOfferRateLocator.inputValue();
+            const actualOfferRate = await this.waterfallOfferRate_LOC.inputValue();
             const trimmedActual = actualOfferRate.trim();
             const trimmedExpected = expectedOfferRate.trim();
             

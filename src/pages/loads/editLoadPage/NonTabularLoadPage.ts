@@ -54,6 +54,7 @@ class NonTabularLoadPage {
     private readonly dayAfterTomorrowDatePicker_LOC: (dayAfterTomorrowDay: number) => Locator;
 
     LoadMenuList: (menuname: string) => Locator;
+    private readonly invalidFieldLocator_LOC: Locator;
 
     constructor(private page: Page) {
         this.shipperDropdown_LOC = page.locator("//select[@id='form_shipper_ship_point']");
@@ -95,6 +96,7 @@ class NonTabularLoadPage {
         this.LoadMenuList = (menuname: string) => {
             return this.page.getByRole('link', { name: menuname })
         }
+        this.invalidFieldLocator_LOC = page.locator('input:invalid, select:invalid, textarea:invalid').first();
     }
 
     /**
@@ -117,6 +119,11 @@ class NonTabularLoadPage {
         console.log(`Selected "${value}" from #${selectId}`);
     }
 
+    /**
+     * Selects the distance method from the Select2-wrapped dropdown.
+     * @author AI Agent
+     * @created 19-Mar-2026
+     */
     async selectMethod(method: string): Promise<void> {
         await this.selectFromSelect2SingleDropdown("form_carriers_1_mileage_method", method);
     }
@@ -764,13 +771,12 @@ class NonTabularLoadPage {
         await this.createLoadButton_LOC.waitFor({ state: 'visible' });
         await this.createLoadButton_LOC.click();
         // Check for HTML5 validation on regular fields
-        const invalidLocator = this.page.locator('input:invalid, select:invalid, textarea:invalid').first();
         try {
-            await invalidLocator.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
-            const validationMessage = await invalidLocator.evaluate(el => {
+            await this.invalidFieldLocator_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
+            const validationMessage = await this.invalidFieldLocator_LOC.evaluate(el => {
                 return (el as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement).validationMessage;
             });
-            const invalidFieldName = await invalidLocator.getAttribute('name') || await invalidLocator.getAttribute('id') || 'Unknown Field';
+            const invalidFieldName = await this.invalidFieldLocator_LOC.getAttribute('name') || await this.invalidFieldLocator_LOC.getAttribute('id') || 'Unknown Field';
             console.log(` Found invalid field: "${invalidFieldName}" with message: "${validationMessage}"`);
             const targetFieldId = await targetField.locator.getAttribute('id');
             const targetFieldName = await targetField.locator.getAttribute('name');
@@ -1377,9 +1383,11 @@ class NonTabularLoadPage {
         await this.equipmentLengthInput_LOC.waitFor({ state: 'visible' });
         await this.equipmentLengthInput_LOC.clear();
         await this.equipmentLengthInput_LOC.fill(String(loadData.equipmentLength));
-        // Select Distance Method (Select2-wrapped single-select) — skip if not provided
+        // Select Distance Method — skip if not provided
         if (loadData.distanceMethod) {
-            await this.selectFromSelect2SingleDropdown("form_carriers_1_mileage_method", loadData.distanceMethod);
+            await this.distanceMethodDropdown_LOC.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+            await this.distanceMethodDropdown_LOC.selectOption({ label: loadData.distanceMethod });
+            console.log(`Selected Distance Method: ${loadData.distanceMethod}`);
         }
     }
 

@@ -699,7 +699,7 @@ class LoadBillingPage {
      * @created 17-Mar-2026
      */
     async isNotDeliveredFinalChecked(): Promise<boolean> {
-        if (!(await this.notDeliveredFinalCheckbox_LOC.isVisible({ timeout: 5000 }).catch(() => false))) {
+        if (!(await this.notDeliveredFinalCheckbox_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false))) {
             console.log('Not Deliv. Final checkbox #Delivs not found');
             return false;
         }
@@ -725,7 +725,7 @@ class LoadBillingPage {
      * @created 17-Mar-2026
      */
     async isNotDeliveredFinalVisible(): Promise<boolean> {
-        return this.notDeliveredFinalLabel_LOC.isVisible({ timeout: 5000 }).catch(() => false);
+        return this.notDeliveredFinalLabel_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false);
     }
     /**
      * Reads and returns the full body text from a popup Page object (e.g. View History popup).
@@ -735,6 +735,102 @@ class LoadBillingPage {
      */
     async getPopupBodyText(popup: import('@playwright/test').Page): Promise<string> {
         return (await popup.locator("body").textContent()) || '';
+    }
+
+    /**
+     * Generates a random 10-digit invoice number string.
+     * Encapsulates Math.random logic so specs remain clean.
+     * @author AI Agent
+     * @created 26-Mar-2026
+     */
+    generateRandomInvoiceNumber(): string {
+        return Math.floor(Math.random() * 9000000000 + 1000000000).toString();
+    }
+
+    /**
+     * Clicks Save, captures all dialog messages, and validates that an INVOICED status alert appeared.
+     * Encapsulates the multi-dialog handler, conditional wait, and array searching so specs remain clean.
+     * @param sharedPage - The Playwright Page to listen for dialogs on
+     * @param saveAction - Async function that triggers the save (e.g., clickOnSaveBtn)
+     * @param waitAction - Async function to wait for load states after save
+     * @param invoicedPattern - The ALERT_PATTERNS regex for INVOICED status
+     * @returns Array of all captured alert messages
+     * @author AI Agent
+     * @created 26-Mar-2026
+     */
+    async saveAndCaptureInvoicedAlert(
+        sharedPage: import('@playwright/test').Page,
+        saveAction: () => Promise<void>,
+        waitAction: () => Promise<void>,
+        invoicedPattern: RegExp
+    ): Promise<{ alertMessages: string[]; hasInvoicedAlert: boolean }> {
+        const alertMessages: string[] = [];
+        const dialogHandler = async (dialog: { message: () => string; accept: () => Promise<void> }) => {
+            const msg = dialog.message();
+            alertMessages.push(msg);
+            console.log(`Dialog captured: "${msg}"`);
+            await dialog.accept();
+        };
+        sharedPage.on("dialog", dialogHandler);
+
+        await saveAction();
+        await waitAction();
+
+        // The INVOICED alert may fire as a second dialog after networkidle settles
+        if (!alertMessages.some(msg => invoicedPattern.test(msg))) {
+            await sharedPage.waitForEvent('dialog', { timeout: WAIT.SMALL }).catch(() => {});
+        }
+
+        sharedPage.off("dialog", dialogHandler);
+
+        const hasInvoicedAlert = alertMessages.some(msg => invoicedPattern.test(msg));
+        console.log(`All alert messages: ${JSON.stringify(alertMessages)}`);
+        return { alertMessages, hasInvoicedAlert };
+    }
+
+    /**
+     * Opens View History popup, reads content, and validates price difference message is present
+     * with correct recalculated amounts based on carrier rate and invoice amounts.
+     * Encapsulates all parseInt arithmetic, regex construction, string matching, and .test() calls.
+     * @param carrierRate - The carrier rate as a string (from testData.carrierRate)
+     * @param invoiceAmounts - Array of invoice amount strings (from testData)
+     * @returns Object with validation results for use in expect() assertions
+     * @author AI Agent
+     * @created 26-Mar-2026
+     */
+    async validateViewHistoryPriceDifference(
+        carrierRate: string,
+        invoiceAmounts: string[]
+    ): Promise<{ historyContent: string; hasPriceDiffMessage: boolean; hasCorrectAmount: boolean; expectedDiffs: number[] }> {
+        const rate = parseInt(carrierRate);
+        const amounts = invoiceAmounts.map(a => parseInt(a));
+        const diffs = amounts.map(a => a - rate);
+        const totalInvoiced = amounts.reduce((sum, a) => sum + a, 0);
+        const totalDiff = totalInvoiced - rate;
+        const allExpectedDiffs = [...diffs, totalDiff];
+
+        console.log(`Price diff validation: carrierRate=${rate}, invoices=${amounts.join(',')}, diffs=${allExpectedDiffs.join(',')}`);
+
+        // Open View History popup
+        const historyPopup = await this.clickViewHistoryAndGetPopup();
+        const historyContent = await this.getPopupBodyText(historyPopup) || '';
+        console.log(`View History content: ${historyContent.substring(0, 500)}`);
+        await historyPopup.close();
+
+        // Check for price difference message
+        const historyLower = historyContent.toLowerCase();
+        const hasPriceDiffMessage = historyLower.includes('price difference') ||
+                                     historyLower.includes('discrepancy');
+
+        // Check for correct amounts in various formats
+        const hasCorrectAmount = allExpectedDiffs.some(amt => {
+            const formatted = amt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const plain = amt.toString();
+            const pattern = new RegExp(`\\$?${plain}(\\.00)?|\\$?${formatted.replace(/[.,]/g, '[,.]?')}`);
+            return pattern.test(historyContent);
+        });
+
+        return { historyContent, hasPriceDiffMessage, hasCorrectAmount, expectedDiffs: allExpectedDiffs };
     }
 }
 export default LoadBillingPage;

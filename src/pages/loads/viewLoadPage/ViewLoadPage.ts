@@ -76,6 +76,16 @@ export default class ViewLoadPage {
   private readonly carrierInvoiceNumber_LOC: Locator;
   private readonly carrierInvoiceAmount_LOC: Locator;
   private readonly submitRemoteButton_LOC: Locator;
+  private readonly bidsAvgRate_LOC: Locator;
+  private readonly confirmDuplicateInvoiceBtn_LOC: Locator;
+  private readonly billingIssuesSection_LOC: Locator;
+  private readonly dfbLoadBoardSection_LOC: Locator;
+  private readonly autoAcceptCheckbox_LOC: Locator;
+  private readonly carrierContactDropdown_LOC: Locator;
+  private readonly commissionsIframe_LOC: string;
+  private readonly commissionsFooterCell_LOC: string;
+  private readonly internalShareRows_LOC: Locator;
+  private readonly trackingIframe_LOC: string;
 
   constructor(private page: Page) {
     this.viewLoadPageHeader_LOC = this.page.locator("//td[contains(text(),'View Load #')]");
@@ -183,6 +193,16 @@ export default class ViewLoadPage {
     this.carrierInvoiceAmount_LOC = this.page.locator("//input[@id='carr_invoice_amount']");
     this.submitRemoteButton_LOC = this.page.locator("#submit_remote");
     this.autoLoadTenderCheckbox_LOC = this.page.locator("//input[@id='loadsh_auto_edi204']");
+    this.bidsAvgRate_LOC = this.page.locator("//span[@id='bids-avg-rate'] | //td[strong[text()='BIDS']]/following-sibling::td[1]");
+    this.confirmDuplicateInvoiceBtn_LOC = this.page.locator("//button[text()='Confirm']").first();
+    this.billingIssuesSection_LOC = this.page.locator("//h4[contains(text(),'Billing Issues')]/parent::*").first();
+    this.dfbLoadBoardSection_LOC = this.page.locator("#tnx_load_board");
+    this.autoAcceptCheckbox_LOC = this.page.locator("//input[@id='form_auto_accept']");
+    this.carrierContactDropdown_LOC = this.page.locator("//select[@id='form_accept_as_user']");
+    this.commissionsIframe_LOC = "#iframe_commissions";
+    this.commissionsFooterCell_LOC = "//table[@id='example']//tfoot/tr/td[10]";
+    this.internalShareRows_LOC = this.page.locator("//table[@id='commissioninternal_']//tr");
+    this.trackingIframe_LOC = "#loadsh_location_map";
   }
 
   private getCarrierNameLocator(carrierName: string): Locator {
@@ -352,11 +372,21 @@ export default class ViewLoadPage {
     await console.log(`Load ID: ${loadID}`);
     return loadID || "";
   }
+  /**
+   * Clicks the Load tab on the View Load page.
+   * @author AI Agent
+   * @created 17-Mar-2026
+   */
   async clickloadTab() {
     await this.page.waitForLoadState("domcontentloaded");
     await this.loadTab_LOC.click();
   }
 
+  /**
+   * Clicks the Commissions tab, optionally reloading the page first.
+   * @author AI Agent
+   * @created 17-Mar-2026
+   */
   async clickCommissionsTab(shouldReload = true): Promise<void> {
     if (shouldReload) {
       await this.page.reload();
@@ -366,11 +396,14 @@ export default class ViewLoadPage {
     await this.commissionsTab_LOC.click({ force: true });
   }
 
+  /**
+   * Gets the total commission value from the commissions iframe footer.
+   * @author AI Agent
+   * @created 17-Mar-2026
+   */
   async getTotalCommissionValue(): Promise<number> {
-    const iframe = this.page.frameLocator("#iframe_commissions");
-    const footerCell = iframe.locator(
-      "//table[@id='example']//tfoot/tr/td[10]"
-    );
+    const iframe = this.page.frameLocator(this.commissionsIframe_LOC);
+    const footerCell = iframe.locator(this.commissionsFooterCell_LOC);
     await footerCell.waitFor({
       state: "visible",
       timeout: WAIT.DEFAULT * 3,
@@ -434,7 +467,7 @@ export default class ViewLoadPage {
     await commonReusables.waitForAllLoadStates(this.page);
     await this.viewLoadPageHeader_LOC.waitFor({
       state: "visible",
-      timeout: 60000,
+      timeout: WAIT.XLARGE,
     });
   }
   /**
@@ -468,15 +501,14 @@ export default class ViewLoadPage {
   async getInternalShareData(): Promise<
     { percentage: string; name: string }[]
   > {
-    const rows = this.page.locator("//table[@id='commissioninternal_']//tr");
-    await rows.scrollIntoViewIfNeeded();
-    const rowCount = await rows.count();
+    await this.internalShareRows_LOC.scrollIntoViewIfNeeded();
+    const rowCount = await this.internalShareRows_LOC.count();
     const internalShares: { percentage: string; name: string }[] = [];
     for (let i = 0; i < rowCount; i++) {
       const percentage = (
-        await rows.nth(i).locator("td").nth(0).innerText()
+        await this.internalShareRows_LOC.nth(i).locator("td").nth(0).innerText()
       ).trim();
-      const name = (await rows.nth(i).locator("td").nth(1).innerText()).trim();
+      const name = (await this.internalShareRows_LOC.nth(i).locator("td").nth(1).innerText()).trim();
       internalShares.push({ percentage, name });
     }
     return internalShares;
@@ -515,6 +547,11 @@ export default class ViewLoadPage {
     return selectedText;
   }
 
+  /**
+   * Gets the Load ID from the page header value.
+   * @author AI Agent
+   * @created 17-Mar-2026
+   */
   async getLoadIDfromHeader(): Promise<string> {
     await this.viewLoadPageHeaderValue_LOC.highlight(); // Highlight for debugging
     const headerText = await this.viewLoadPageHeaderValue_LOC.textContent();
@@ -849,7 +886,7 @@ export default class ViewLoadPage {
     await commonReusables.waitForPageStable(this.page);
 
     // --- Step 1: Access the correct iframe
-    const frame = this.page.frameLocator('#loadsh_location_map');
+    const frame = this.page.frameLocator(this.trackingIframe_LOC);
 
     // --- Step 2: Locate event rows inside iframe
     const rows_LOC = frame.locator(this.trackingEventTable_LOC);
@@ -858,7 +895,7 @@ export default class ViewLoadPage {
     await expect(async () => {
       const count = await rows_LOC.count();
       expect(count).toBeGreaterThan(0);
-    }).toPass({ timeout: 30000 });
+    }).toPass({ timeout: WAIT.XLARGE });
 
     // --- Step 4: Wait for the first row to be visible
     const firstRow = rows_LOC.first();
@@ -1246,7 +1283,9 @@ export default class ViewLoadPage {
   }
 
   /**
-   * Selects Drop1 on Load tab
+   * Selects Drop1 on Load tab.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async selectDrop1OnLoadTab(): Promise<void> {
     await this.drop1Tab_LOC.first().waitFor({ state: 'visible' });
@@ -1255,7 +1294,9 @@ export default class ViewLoadPage {
   }
 
   /**
-   * Checks Auto load tender checkbox on load tab
+   * Checks Auto load tender checkbox on load tab.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async checkAutoLoadTenderCheckbox(): Promise<void> {
     await this.autoLoadTenderCheckbox_LOC.waitFor({ state: 'visible' });
@@ -1326,6 +1367,8 @@ export default class ViewLoadPage {
 
   /**
    * Opens the Document Upload Utility dialog by clicking the upload icon.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async openDocumentUploadDialog(): Promise<void> {
     await this.uploadDocumentIcon_LOC.first().scrollIntoViewIfNeeded();
@@ -1337,13 +1380,13 @@ export default class ViewLoadPage {
 
   /**
    * Closes the Document Upload Utility dialog.
-   * Scoped to the specific jQuery UI dialog wrapper containing #upload_load_document.
+   * Uses the constructor-initialized close button locator scoped to the dialog.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async closeDocumentUploadDialogSafe(): Promise<void> {
-    const uploadDialog = this.page.locator(".ui-dialog").filter({ has: this.page.locator("#upload_load_document") });
-    const closeBtn = uploadDialog.locator(".ui-dialog-titlebar-close");
-    if (await closeBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await closeBtn.click({ force: true });
+    if (await this.closeDocumentUploadDialog_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+      await this.closeDocumentUploadDialog_LOC.click({ force: true });
     } else {
       await this.page.keyboard.press('Escape');
     }
@@ -1353,6 +1396,8 @@ export default class ViewLoadPage {
 
   /**
    * Selects the Customer radio button in the Document Upload Utility.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async selectCustomerRadio(): Promise<void> {
     await this.customerButton_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
@@ -1362,6 +1407,8 @@ export default class ViewLoadPage {
 
   /**
    * Selects the Payables radio button in the Document Upload Utility.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async selectPayablesRadio(): Promise<void> {
     await this.payablesButton_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
@@ -1372,6 +1419,8 @@ export default class ViewLoadPage {
 
   /**
    * Selects the document type from the dropdown in the Document Upload Utility.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async selectDocumentType(label: string): Promise<void> {
     await this.selectDocumentType_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
@@ -1381,6 +1430,8 @@ export default class ViewLoadPage {
 
   /**
    * Fills the carrier invoice number in the Document Upload Utility.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async fillCarrierInvoiceNumber(invoiceNumber: string): Promise<void> {
     await this.carrierInvoiceNumber_LOC.fill(invoiceNumber);
@@ -1389,6 +1440,8 @@ export default class ViewLoadPage {
 
   /**
    * Fills the carrier invoice amount in the Document Upload Utility.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async fillCarrierInvoiceAmount(amount: string): Promise<void> {
     await this.carrierInvoiceAmount_LOC.fill(amount);
@@ -1435,6 +1488,8 @@ export default class ViewLoadPage {
 
   /**
    * Clicks the Submit/Attach button (#submit_remote) in the Document Upload Utility.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async clickSubmitRemote(): Promise<void> {
     await this.submitRemoteButton_LOC.click();
@@ -1443,6 +1498,8 @@ export default class ViewLoadPage {
 
   /**
    * Waits for and validates the success message in the Document Upload Utility.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async waitForUploadSuccess(): Promise<void> {
     await expect(this.successMessage_LOC).toBeVisible({ timeout: WAIT.LARGE });
@@ -1452,33 +1509,36 @@ export default class ViewLoadPage {
 
   /**
    * Clicks the Confirm button on the duplicate invoice dialog.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async clickConfirmDuplicateInvoiceDialog(): Promise<void> {
-    const confirmBtn = this.page.locator("//button[text()='Confirm']").first();
-    if (await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await confirmBtn.click();
+    if (await this.confirmDuplicateInvoiceBtn_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+      await this.confirmDuplicateInvoiceBtn_LOC.click();
       console.log("Clicked Confirm on duplicate invoice dialog");
     }
   }
 
   /**
    * Scrolls to the Billing Issues section on the page.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async scrollToBillingIssuesSection(): Promise<void> {
-    const billingSection = this.page.locator("//h4[contains(text(),'Billing Issues')]/parent::*").first();
-    if (await billingSection.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await billingSection.scrollIntoViewIfNeeded();
+    if (await this.billingIssuesSection_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+      await this.billingIssuesSection_LOC.scrollIntoViewIfNeeded();
       console.log("Scrolled to Billing Issues section");
     }
   }
 
   /**
    * Reads the average rate value from the bids section.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async getAvgRate(): Promise<string> {
-    const avgRateEl = this.page.locator("//span[@id='bids-avg-rate'], //td[contains(text(),'Avg Rate')]/following-sibling::td").first();
-    if (await avgRateEl.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const text = (await avgRateEl.textContent())?.trim() || '';
+    if (await this.bidsAvgRate_LOC.first().isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+      const text = (await this.bidsAvgRate_LOC.first().textContent())?.trim() || '';
       console.log(`Average Rate: ${text}`);
       return text;
     }
@@ -1487,22 +1547,24 @@ export default class ViewLoadPage {
 
   /**
    * Scrolls to the DFB / TNX Load Board section.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async scrollToDFBSection(): Promise<void> {
-    const dfbSection = this.page.locator("#tnx_load_board");
-    if (await dfbSection.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await dfbSection.scrollIntoViewIfNeeded();
+    if (await this.dfbLoadBoardSection_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+      await this.dfbLoadBoardSection_LOC.scrollIntoViewIfNeeded();
       console.log("Scrolled to DFB/TNX Load Board section");
     }
   }
 
   /**
    * Checks the state of the Auto Accept checkbox.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async isAutoAcceptChecked(): Promise<boolean> {
-    const autoAcceptCheckbox = this.page.locator("//input[@id='form_auto_accept']");
-    if (await autoAcceptCheckbox.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const checked = await autoAcceptCheckbox.isChecked();
+    if (await this.autoAcceptCheckbox_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+      const checked = await this.autoAcceptCheckbox_LOC.isChecked();
       console.log(`Auto Accept checkbox is ${checked ? 'checked' : 'unchecked'}`);
       return checked;
     }
@@ -1511,11 +1573,12 @@ export default class ViewLoadPage {
 
   /**
    * Gets the selected value from the Carrier Contact (Accept As User) dropdown.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async getCarrierContactDropdownValue(): Promise<string> {
-    const dropdown = this.page.locator("//select[@id='form_accept_as_user']");
-    if (await dropdown.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const value = await dropdown.inputValue();
+    if (await this.carrierContactDropdown_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+      const value = await this.carrierContactDropdown_LOC.inputValue();
       console.log(`Carrier Contact dropdown value: ${value}`);
       return value;
     }
@@ -1524,12 +1587,13 @@ export default class ViewLoadPage {
 
   /**
    * Gets all options from the Carrier Contact (Accept As User) dropdown.
+   * @author AI Agent
+   * @created 17-Mar-2026
    */
   async getCarrierContactDropdownOptions(): Promise<string[]> {
-    const dropdown = this.page.locator("//select[@id='form_accept_as_user']");
     await this.page.waitForTimeout(2000);
-    if (await dropdown.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const options = await dropdown.locator("option").allTextContents();
+    if (await this.carrierContactDropdown_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+      const options = await this.carrierContactDropdown_LOC.locator("option").allTextContents();
       return options;
     }
     return [];

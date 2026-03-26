@@ -813,8 +813,40 @@ class TNXLandingPage {
    * @created 17-Mar-2026
    */
   async getOrgDropdownOptions(): Promise<string[]> {
-    await this.orgSelectorDropdown_LOC.waitFor({ state: "visible", timeout: 30000 });
+    await this.orgSelectorDropdown_LOC.waitFor({ state: "visible", timeout: WAIT.XLARGE });
     return await this.orgSelectorDropdown_LOC.locator("option").allTextContents();
+  }
+
+  /**
+   * Selects the best-matching organization from the dropdown by carrier name.
+   * Does a case-insensitive match against all options; falls back to exact name if no match.
+   * Encapsulates conditional matching logic so specs remain clean.
+   * @author AI Agent
+   * @created 26-Mar-2026
+   * @param carrierName - The carrier name to match in the org dropdown.
+   */
+  async selectOrganizationByCarrierName(carrierName: string): Promise<void> {
+    const allOptions = await this.getOrgDropdownOptions();
+    const carrierUpper = carrierName.toUpperCase();
+    const matchedOption = allOptions.find((opt: string) => opt.toUpperCase().includes(carrierUpper));
+    if (matchedOption) {
+      console.log(`Matched TNX org option: "${matchedOption}"`);
+      await this.selectOrganizationByText(matchedOption.trim());
+    } else {
+      console.log(`No matching option for "${carrierName}" — using exact name`);
+      await this.selectOrganizationByText(carrierName);
+    }
+  }
+
+  /**
+   * Retrieves the numeric part (dollars, no cents) from the load offer rate.
+   * @author AI Agent
+   * @created 26-Mar-2026
+   * @returns The numeric rate string without dollar signs, commas, or cents.
+   */
+  async getLoadOfferRateNumeric(): Promise<string> {
+    const tnxOfferRate = await this.getLoadOfferRateValue();
+    return tnxOfferRate.replace(/[\$,]/g, '').split('.')[0];
   }
 }
 export default TNXLandingPage;

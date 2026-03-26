@@ -179,7 +179,7 @@ class EditLoadLoadTabPage {
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 console.log(`Load tab click attempt ${attempt}/${maxRetries}`);
-                await this.loadTab_LOC.waitFor({ state: "visible", timeout: 10000 });
+                await this.loadTab_LOC.waitFor({ state: "visible", timeout: WAIT.SMALL });
                 await this.loadTab_LOC.scrollIntoViewIfNeeded();
                 if (attempt === 1) {
                     await this.loadTab_LOC.click();
@@ -536,6 +536,27 @@ class EditLoadLoadTabPage {
         await this.financeNotesTextbox_LOC.waitFor({ state: "visible" });
         await this.financeNotesTextbox_LOC.fill(financeNotes);
         console.log(`Entered Finance Notes: ${financeNotes}`);
+    }
+
+    /**
+     * Conditionally selects the rate type if the Rate Type dropdown is present on the page.
+     * Encapsulates the if-check so specs remain clean.
+     * @param rateType - The rate type value to select (e.g., 'Flat Rate')
+     * @param editLoadFormPage - EditLoadFormPage instance for getRateTypeValue()
+     * @author AI Agent
+     * @created 26-Mar-2026
+     */
+    async checkRateTypeIfPresent(
+        rateType: string,
+        editLoadFormPage: { getRateTypeValue: () => Promise<string> }
+    ): Promise<void> {
+        const rateTypeValue = await editLoadFormPage.getRateTypeValue();
+        if (rateTypeValue) {
+            await this.checkLoadTabDetails(rateType);
+            console.log(`Rate type selected: ${rateType}`);
+        } else {
+            console.log('Rate type dropdown not present — skipped');
+        }
     }
 }
 export default EditLoadLoadTabPage;

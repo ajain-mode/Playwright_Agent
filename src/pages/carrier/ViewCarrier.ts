@@ -24,6 +24,9 @@ export default class ViewCarrier {
     private readonly carrierModeValue_LOC: Locator;
     private readonly bcaSignedSubmittedCell: Locator;
     private readonly brokerAuthorityCell: Locator;
+    private readonly loadboardStatus_LOC: Locator;
+    private readonly modeIQTab_LOC: Locator;
+    private readonly carrierEditSaveBtn_LOC: Locator;
 
     constructor(private page: Page) {
         this.mcNumberDetails_LOC = page.locator("//label[@for='mc_num']/parent::td/following-sibling::td[@class='three-across view'][1]");
@@ -47,6 +50,9 @@ export default class ViewCarrier {
         this.carrierModeValue_LOC = page.locator("//td[@class='view carrier-mode']");
         this.bcaSignedSubmittedCell = page.locator("//td[normalize-space()='BCA: Signed & Submitted']");
         this.brokerAuthorityCell = page.locator("//tr[@id='statusbox2']//td[contains(normalize-space(text()), 'Broker: Active')]");
+        this.loadboardStatus_LOC = page.locator("#carrier_status_label");
+        this.modeIQTab_LOC = page.locator("li[id^='carrform_tab'] a").filter({ hasText: /MODE IQ|LoadBoard/i });
+        this.carrierEditSaveBtn_LOC = page.locator("input[type='button'][value='  Save  ']");
     }
 
     /**
@@ -316,15 +322,12 @@ export default class ViewCarrier {
      * @created 17-Mar-2026
      */
     async getLoadboardStatus(): Promise<string> {
-        const statusEl = this.page.locator(
-            "//td[contains(text(),'Loadboard Status') or contains(text(),'Mode ID Status') or contains(text(),'Mode IQ Status')]/following-sibling::td"
-        ).first();
-        if (await statusEl.isVisible({ timeout: 5000 }).catch(() => false)) {
-            const text = (await statusEl.textContent())?.trim() || '';
+        if (await this.loadboardStatus_LOC.isVisible({ timeout: WAIT.MID }).catch(() => false)) {
+            const text = (await this.loadboardStatus_LOC.textContent())?.trim() || '';
             console.log(`Loadboard/Mode IQ Status: "${text}"`);
             return text;
         }
-        console.log('Loadboard/Mode IQ Status element not found');
+        console.log('Loadboard/Mode IQ Status element not found — tab may need to be clicked first');
         return '';
     }
 
@@ -335,15 +338,15 @@ export default class ViewCarrier {
      * @created 17-Mar-2026
      */
     async clickLoadboardTab(): Promise<boolean> {
-        const tab = this.page.locator(
-            "//a[contains(text(),'Mode IQ') or contains(text(),'mode iq') or contains(text(),'Mode ID') or contains(text(),'mode id') or contains(text(),'LoadBoard') or contains(text(),'Loadboard')] | //li[contains(text(),'Mode IQ') or contains(text(),'mode iq') or contains(text(),'Mode ID') or contains(text(),'mode id') or contains(text(),'LoadBoard') or contains(text(),'Loadboard')]"
-        ).first();
-        if (await tab.isVisible({ timeout: 5000 }).catch(() => false)) {
-            await tab.click();
-            console.log('Clicked Mode IQ tab');
+        if (await this.modeIQTab_LOC.first().isVisible({ timeout: WAIT.SMALL }).catch(() => false)) {
+            const tabLi = this.modeIQTab_LOC.first().locator('xpath=ancestor::li[starts-with(@id,"carrform_tab_")]');
+            const tabId = await tabLi.getAttribute('id') || '';
+            const tabIndex = tabId.replace('carrform_tab_', '');
+            await this.page.evaluate((idx) => (window as any).showMainTab(Number(idx)), tabIndex);
+            console.log(`Clicked Mode IQ tab (index: ${tabIndex})`);
             return true;
         }
-        console.log('Mode IQ / Mode ID / LoadBoard tab not found — verify tab name manually');
+        console.log('Mode IQ tab not found — verify tab name manually');
         return false;
     }
 
@@ -355,7 +358,7 @@ export default class ViewCarrier {
      */
     async isCarrierVisibilityLabelVisible(name: string): Promise<boolean> {
         const label = this.page.locator(`//*[contains(text(),'${name}')]`).first();
-        return label.isVisible({ timeout: 3000 }).catch(() => false);
+        return label.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false);
     }
 
     /**
@@ -414,13 +417,13 @@ export default class ViewCarrier {
             const slider = this.page.locator(
                 `//div[contains(@class,'slider-select')]//label[text()='${name}']/following-sibling::div//div[contains(@class,'slider-selection')]`
             ).first();
-            if (await slider.isVisible({ timeout: 3000 }).catch(() => false)) {
+            if (await slider.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
                 await slider.click({ position: { x: 5, y: 5 } });
                 console.log(`Enabled toggle for "${name}"`);
             } else {
                 const labelEl = this.page.locator(`//label[text()='${name}']`).first();
                 const parentDiv = labelEl.locator("xpath=following-sibling::div").first();
-                if (await parentDiv.isVisible({ timeout: 2000 }).catch(() => false)) {
+                if (await parentDiv.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
                     await parentDiv.click();
                     console.log(`Enabled toggle for "${name}" (via sibling div)`);
                 }
@@ -434,9 +437,61 @@ export default class ViewCarrier {
      * @created 17-Mar-2026
      */
     async clickSaveOnCarrierEditPage(): Promise<void> {
-        const saveBtn = this.page.locator("input[type='button'][value='  Save  ']");
-        await saveBtn.waitFor({ state: "visible", timeout: 10000 });
-        await saveBtn.click();
+        await this.carrierEditSaveBtn_LOC.waitFor({ state: "visible", timeout: WAIT.SMALL });
+        await this.carrierEditSaveBtn_LOC.click();
         console.log('Clicked Save on carrier edit page');
+    }
+
+    /**
+     * High-level method that checks carrier visibility toggles and enables any that are disabled.
+     * Encapsulates all conditional/loop logic so specs remain clean.
+     * @author AI Agent
+     * @created 26-Mar-2026
+     * @param requiredVisibility - Array of carrier visibility label names to ensure are enabled.
+     * @param basePage - BasePage instance for clicking Edit and waiting for load states.
+     */
+    async ensureCarrierVisibilityTogglesEnabled(
+        requiredVisibility: string[],
+        basePage: { clickButtonByText: (text: string) => Promise<void>; waitForMultipleLoadStates: (states: string[]) => Promise<void> }
+    ): Promise<void> {
+        const tabClicked = await this.clickLoadboardTab();
+        if (!tabClicked) {
+            console.log('Mode IQ tab not found — carrier visibility check skipped');
+            return;
+        }
+        await basePage.waitForMultipleLoadStates(['load', 'networkidle']);
+
+        let togglesFound = false;
+        for (const name of requiredVisibility) {
+            if (await this.isCarrierVisibilityLabelVisible(name)) {
+                togglesFound = true;
+                break;
+            }
+        }
+
+        if (!togglesFound) {
+            console.log('Carrier visibility labels not found — toggle check skipped');
+            return;
+        }
+
+        const toggleStates = await this.getCarrierVisibilityToggleStates(requiredVisibility);
+        const disabledToggles: string[] = [];
+        for (const name of requiredVisibility) {
+            const state = toggleStates[name];
+            if (!state?.enabled) {
+                disabledToggles.push(name);
+            }
+        }
+
+        if (disabledToggles.length > 0) {
+            console.log(`${disabledToggles.length} toggle(s) need updating`);
+            await basePage.clickButtonByText('Edit');
+            await basePage.waitForMultipleLoadStates(['load', 'networkidle']);
+            await this.enableCarrierVisibilityToggles(disabledToggles);
+            await this.clickSaveOnCarrierEditPage();
+            await basePage.waitForMultipleLoadStates(['load', 'networkidle']);
+        } else {
+            console.log('All carrier visibility toggles already enabled');
+        }
     }
 }

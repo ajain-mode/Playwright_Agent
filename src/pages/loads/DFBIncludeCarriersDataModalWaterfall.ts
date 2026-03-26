@@ -17,7 +17,8 @@ export class DFBIncludeCarriersDataModalWaterfall {
   private readonly checkboxStatusValue_LOC: Locator;
   private readonly formWaterfallOfferRateInput_LOC: Locator;
   private readonly carrierRowLocator: (carrierName: string) => Locator;
- 
+  private readonly carrierTableRows_LOC: Locator;
+
   /**
    * Constructor to initialize page locators for form validation elements
    * @param page - Playwright Page instance for web interactions
@@ -53,6 +54,7 @@ export class DFBIncludeCarriersDataModalWaterfall {
       "//input[@id='form_waterfall_offer_rate']"
     );
     this.carrierRowLocator = (carrierName: string) => page.locator(`//td[contains(text(),'${carrierName}')]//parent::tr`);
+    this.carrierTableRows_LOC = page.locator("table.table-striped tbody tr");
   }
   private getCarrierPencilIconsLocator(carrierText: string): Locator {
     return this.page.locator(`//td[contains(text(),'${carrierText}')]//parent::tr//td//i[@class='fa fa-pencil']`);
@@ -211,11 +213,10 @@ export class DFBIncludeCarriersDataModalWaterfall {
       console.log(` Getting total carrier count from Include Carriers table...`);
  
       // Wait for the carriers table to be visible
-      await this.page.waitForSelector("table.table-striped tbody tr", { timeout: WAIT.DEFAULT });
- 
+      await this.carrierTableRows_LOC.first().waitFor({ state: "visible", timeout: WAIT.DEFAULT });
+
       // Get all carrier rows and count them
-      const carrierRows = this.page.locator("table.table-striped tbody tr");
-      const totalCarrierCount = await carrierRows.count();
+      const totalCarrierCount = await this.carrierTableRows_LOC.count();
  
       console.log(` Total carrier count available: ${totalCarrierCount}`);
  

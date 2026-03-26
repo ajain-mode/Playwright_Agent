@@ -7,6 +7,7 @@ export default class EditOfficeInfoPage {
     private readonly thirdPartyCredentials_LOC: Locator;
     private readonly transcoreDATSelect_LOC: Locator;
     private readonly datPostMethodSelect_LOC: Locator;
+    private readonly officeSearchInput_LOC: Locator;
 
     constructor(private page: any) {
         this.enableInternalShares_LOC = this.page.locator("#feature_internal_shares");
@@ -14,7 +15,7 @@ export default class EditOfficeInfoPage {
         this.thirdPartyCredentials_LOC = this.page.locator("//a[normalize-space()='3rd Party Credentials']");
         this.transcoreDATSelect_LOC = this.page.locator("//select[@id='use_natl']");
         this.datPostMethodSelect_LOC = this.page.locator("//select[@id='dat_protocol']");
-
+        this.officeSearchInput_LOC = this.page.locator("input[type='search'], input[id*='search'], input[placeholder*='Search']").first();
     }
     /**
      * Handles enabling or disabling internal shares on the office edit page.
@@ -147,7 +148,7 @@ export default class EditOfficeInfoPage {
      */
     async setDatPostMethod(value: 'API' | 'FTP'): Promise<boolean> {
         try {
-            await this.datPostMethodSelect_LOC.waitFor({ state: 'visible', timeout: 3000 });
+            await this.datPostMethodSelect_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
 
             const current = await this.datPostMethodSelect_LOC.inputValue();
             if (current === value)
@@ -185,9 +186,8 @@ export default class EditOfficeInfoPage {
    * @created 2026-02-16
    */
   async officeCodeSearchField(searchTerm: string): Promise<void> {
-    const searchInput = this.page.locator("input[type='search'], input[id*='search'], input[placeholder*='Search']").first();
-    await searchInput.waitFor({ state: 'visible', timeout: 10000 });
-    await searchInput.fill(searchTerm);
+    await this.officeSearchInput_LOC.waitFor({ state: 'visible', timeout: WAIT.SMALL });
+    await this.officeSearchInput_LOC.fill(searchTerm);
     console.log(`Searched for: ${searchTerm}`);
   }
 
@@ -197,9 +197,8 @@ export default class EditOfficeInfoPage {
    * @created 2026-02-16
    */
   async searchButtonClick(searchTerm: string): Promise<void> {
-    const searchInput = this.page.locator("input[type='search'], input[id*='search'], input[placeholder*='Search']").first();
-    await searchInput.waitFor({ state: 'visible', timeout: 10000 });
-    await searchInput.fill(searchTerm);
+    await this.officeSearchInput_LOC.waitFor({ state: 'visible', timeout: WAIT.SMALL });
+    await this.officeSearchInput_LOC.fill(searchTerm);
     console.log(`Searched for: ${searchTerm}`);
   }
 
@@ -209,9 +208,8 @@ export default class EditOfficeInfoPage {
    * @created 2026-02-16
    */
   async officeSearchRow(searchTerm: string): Promise<void> {
-    const searchInput = this.page.locator("input[type='search'], input[id*='search'], input[placeholder*='Search']").first();
-    await searchInput.waitFor({ state: 'visible', timeout: 10000 });
-    await searchInput.fill(searchTerm);
+    await this.officeSearchInput_LOC.waitFor({ state: 'visible', timeout: WAIT.SMALL });
+    await this.officeSearchInput_LOC.fill(searchTerm);
     console.log(`Searched for: ${searchTerm}`);
   }
 

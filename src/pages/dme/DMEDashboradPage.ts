@@ -3,10 +3,16 @@ import { Locator, Page} from "@playwright/test";
 class DMEDashboardPage {
   private readonly loadLink_LOC: Locator;
   private readonly searchButton_LOC: Locator;
+  private readonly carriersLink_LOC: Locator;
+  private readonly carrierSearchInput_LOC: Locator;
+  private readonly carrierTableRows_LOC: Locator;
 
   constructor(private page: Page) {
     this.loadLink_LOC = page.locator("//span[normalize-space()='Loads']");
     this.searchButton_LOC = page.locator("//input[@type='search']");
+    this.carriersLink_LOC = page.locator("//span[normalize-space()='Carriers']").first();
+    this.carrierSearchInput_LOC = page.locator("input[type='search']").first();
+    this.carrierTableRows_LOC = page.locator("table tbody tr");
   }
 
   /**
@@ -85,9 +91,8 @@ class DMEDashboardPage {
    * @created 17-Mar-2026
    */
   async clickCarriersLink(): Promise<void> {
-    const carriersLink = this.page.locator("//span[normalize-space()='Carriers']").first();
-    await carriersLink.waitFor({ state: "visible", timeout: 15000 });
-    await carriersLink.click();
+    await this.carriersLink_LOC.waitFor({ state: "visible", timeout: WAIT.MID });
+    await this.carriersLink_LOC.click();
     console.log("Clicked Carriers link in DME sidebar");
     await this.page.waitForLoadState("networkidle");
     await this.page.waitForTimeout(2000);
@@ -99,10 +104,9 @@ class DMEDashboardPage {
    * @created 17-Mar-2026
    */
   async searchCarrierByName(carrierName: string): Promise<void> {
-    const searchInput = this.page.locator("input[type='search']").first();
-    if (await searchInput.isVisible({ timeout: 10000 }).catch(() => false)) {
-      await searchInput.clear();
-      await searchInput.fill(carrierName);
+    if (await this.carrierSearchInput_LOC.isVisible({ timeout: WAIT.SMALL }).catch(() => false)) {
+      await this.carrierSearchInput_LOC.clear();
+      await this.carrierSearchInput_LOC.fill(carrierName);
       await this.page.waitForTimeout(1000);
       await this.page.keyboard.press("Enter");
       await this.page.waitForLoadState("networkidle");
@@ -119,16 +123,15 @@ class DMEDashboardPage {
    * @returns true if carrier toggle is ON, false if OFF or not found.
    */
   async getCarrierToggleState(carrierName: string): Promise<{found: boolean; enabled: boolean}> {
-    const tableRows = this.page.locator("table tbody tr");
-    await tableRows.first().waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
-    const rowCount = await tableRows.count();
+    await this.carrierTableRows_LOC.first().waitFor({ state: "visible", timeout: WAIT.MID }).catch(() => {});
+    const rowCount = await this.carrierTableRows_LOC.count();
 
     for (let i = 0; i < rowCount; i++) {
-      const row = tableRows.nth(i);
+      const row = this.carrierTableRows_LOC.nth(i);
       const rowText = (await row.textContent()) || '';
       if (rowText.includes(carrierName)) {
         const toggleCell = row.locator("td.has-switch, td.field-boolean").first();
-        if (await toggleCell.isVisible({ timeout: 3000 }).catch(() => false)) {
+        if (await toggleCell.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
           const checkbox = toggleCell.locator("input[type='checkbox']").first();
           if (await checkbox.count() > 0) {
             const isChecked = await checkbox.isChecked();
@@ -169,16 +172,15 @@ class DMEDashboardPage {
       return false;
     }
 
-    const tableRows = this.page.locator("table tbody tr");
-    const rowCount = await tableRows.count();
+    const rowCount = await this.carrierTableRows_LOC.count();
     for (let i = 0; i < rowCount; i++) {
-      const row = tableRows.nth(i);
+      const row = this.carrierTableRows_LOC.nth(i);
       const rowText = (await row.textContent()) || '';
       if (rowText.includes(carrierName)) {
         const toggleCell = row.locator("td.has-switch, td.field-boolean").first();
-        if (await toggleCell.isVisible({ timeout: 5000 }).catch(() => false)) {
+        if (await toggleCell.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
           const switchContainer = toggleCell.locator("div.make-switch, div.bootstrap-switch, div[class*='switch']").first();
-          if (await switchContainer.isVisible({ timeout: 2000 }).catch(() => false)) {
+          if (await switchContainer.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
             await switchContainer.click();
           } else {
             await toggleCell.click();
@@ -192,6 +194,26 @@ class DMEDashboardPage {
       }
     }
     return false;
+  }
+
+  /**
+   * High-level method that ensures a carrier toggle is ON in DME.
+   * Encapsulates all conditional logic so specs remain clean.
+   * @author AI Agent
+   * @created 26-Mar-2026
+   * @param carrierName - The carrier name to ensure is enabled.
+   */
+  async ensureCarrierToggleEnabled(carrierName: string): Promise<void> {
+    await this.clickCarriersLink();
+    await this.searchCarrierByName(carrierName);
+    const toggleState = await this.getCarrierToggleState(carrierName);
+    console.log(`DME carrier toggle: ${toggleState.enabled ? 'ON' : 'OFF'}`);
+    if (!toggleState.enabled && toggleState.found) {
+      await this.enableCarrierToggle(carrierName);
+      console.log('Carrier toggle was OFF — enabled');
+    } else if (!toggleState.found) {
+      console.log(`Carrier "${carrierName}" not found in DME — may already be enabled`);
+    }
   }
 }
 export default DMEDashboardPage;

@@ -149,13 +149,7 @@ test.describe.serial(
       });
 
       await test.step("Step 12 [CSV 37-38]: Enter Expiration Date and Time", async () => {
-        const futureDate = new Date();
-        futureDate.setDate(futureDate.getDate() + 7);
-        const mm = (futureDate.getMonth() + 1).toString().padStart(2, '0');
-        const dd = futureDate.getDate().toString().padStart(2, '0');
-        const yyyy = futureDate.getFullYear();
-        await pages.editLoadFormPage.enterExpirationDate(`${mm}/${dd}/${yyyy}`);
-        await pages.editLoadFormPage.enterExpirationTime("18:00");
+        await pages.editLoadFormPage.enterFutureExpirationDateAndTime(7, "18:00");
       });
 
       await test.step("Step 13 [CSV 39]: Enter Email for notification", async () => {
@@ -189,31 +183,13 @@ test.describe.serial(
       });
 
       await test.step("Step 18 [CSV 44]: Click Save and select Ok on pop up — Expected: INVOICED alert", async () => {
-        const alertMessages: string[] = [];
-        const dialogHandler = async (dialog: { message: () => string; accept: () => Promise<void> }) => {
-          const msg = dialog.message();
-          alertMessages.push(msg);
-          console.log(`Dialog captured: "${msg}"`);
-          await dialog.accept();
-        };
-        sharedPage.on("dialog", dialogHandler);
-
-        await pages.editLoadFormPage.clickOnSaveBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-
-        // The INVOICED alert may fire as a second dialog after networkidle settles;
-        // wait for it if not yet captured
-        if (!alertMessages.some(msg => ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_INVOICED.test(msg))) {
-          await sharedPage.waitForEvent('dialog', { timeout: 10000 }).catch(() => {});
-        }
-
-        sharedPage.off("dialog", dialogHandler);
-
-        const hasInvoicedAlert = alertMessages.some(msg =>
-          ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_INVOICED.test(msg)
+        const result = await pages.loadBillingPage.saveAndCaptureInvoicedAlert(
+          sharedPage,
+          () => pages.editLoadFormPage.clickOnSaveBtn(),
+          () => pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]),
+          ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_INVOICED
         );
-        console.log(`All alert messages: ${JSON.stringify(alertMessages)}`);
-        expect.soft(hasInvoicedAlert, "Expected: Status has been set to INVOICED alert should appear").toBeTruthy();
+        expect.soft(result.hasInvoicedAlert, "Expected: Status has been set to INVOICED alert should appear").toBeTruthy();
       });
 
       await test.step("Step 19 [CSV 45]: Click on View Billing button", async () => {
@@ -228,7 +204,7 @@ test.describe.serial(
       await test.step("Step 20 [CSV 46-47]: Click Add New, enter invoice #1 (amount 1500), save", async () => {
         await pages.loadBillingPage.clickAddNewCarrierInvoice();
 
-        const invoiceNumber1 = Math.floor(Math.random() * 9000000000 + 1000000000).toString();
+        const invoiceNumber1 = pages.loadBillingPage.generateRandomInvoiceNumber();
         await pages.loadBillingPage.enterCarrierInvoiceNumber(invoiceNumber1);
         await pages.loadBillingPage.enterCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
 
@@ -259,7 +235,7 @@ test.describe.serial(
       await test.step("Step 22 [CSV 49-50]: Click Add New, enter invoice #2 (amount 2000), save", async () => {
         await pages.loadBillingPage.clickAddNewCarrierInvoice();
 
-        const invoiceNumber2 = Math.floor(Math.random() * 9000000000 + 1000000000).toString();
+        const invoiceNumber2 = pages.loadBillingPage.generateRandomInvoiceNumber();
         await pages.loadBillingPage.enterCarrierInvoiceNumber(invoiceNumber2);
         await pages.loadBillingPage.enterCarrierInvoiceAmount(testData.carrierInvoiceAmount2);
 
@@ -283,44 +259,15 @@ test.describe.serial(
 
       // ===== Step 52: Click View History, read payable messages, validate price difference =====
       await test.step("Step 24 [CSV 52]: Click View History and check price difference message", async () => {
-        // Calculate expected price differences from CSV data
-        const carrierRate = parseInt(testData.carrierRate);
-        const invoice1Amount = parseInt(testData.carrierInvoiceAmount1);
-        const invoice2Amount = parseInt(testData.carrierInvoiceAmount2);
-        const priceDiff1 = invoice1Amount - carrierRate;
-        const priceDiff2 = invoice2Amount - carrierRate;
-        const totalInvoiced = invoice1Amount + invoice2Amount;
-        const totalDiff = totalInvoiced - carrierRate;
-        pages.logger.info(`Expected: carrierRate=${carrierRate}, inv1=${invoice1Amount}, inv2=${invoice2Amount}`);
-        pages.logger.info(`Expected diffs: inv1-carrier=${priceDiff1}, inv2-carrier=${priceDiff2}, total-carrier=${totalDiff}`);
-
-        // Click View History — opens popup with payable messages
-        const historyPopup = await pages.loadBillingPage.clickViewHistoryAndGetPopup();
-        const historyContent = await pages.loadBillingPage.getPopupBodyText(historyPopup) || '';
-        pages.logger.info(`View History content: ${historyContent.substring(0, 500)}`);
-        await historyPopup.close();
-
-        // Validate: price difference message exists in View History
-        const historyLower = historyContent.toLowerCase();
-        const hasPriceDiffMessage = historyLower.includes('price difference') ||
-                                     historyLower.includes('discrepancy');
-        expect.soft(hasPriceDiffMessage,
+        const result = await pages.loadBillingPage.validateViewHistoryPriceDifference(
+          testData.carrierRate,
+          [testData.carrierInvoiceAmount1, testData.carrierInvoiceAmount2]
+        );
+        expect.soft(result.hasPriceDiffMessage,
           "Expected [CSV 52]: View History should contain a price difference message"
         ).toBeTruthy();
-
-        // Validate: correct recalculated price difference amount is shown
-        // Match amounts in various formats: 900, $900, $900.00, $1,400.00, $2,900.00
-        const amountPattern = (amt: number) => {
-          const formatted = amt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          const plain = amt.toString();
-          return new RegExp(`\\$?${plain}(\\.00)?|\\$?${formatted.replace(/[.,]/g, '[,.]?')}`);
-        };
-
-        const hasCorrectAmount = amountPattern(priceDiff1).test(historyContent) ||
-                                  amountPattern(priceDiff2).test(historyContent) ||
-                                  amountPattern(totalDiff).test(historyContent);
-        expect.soft(hasCorrectAmount,
-          `Expected [CSV 52]: View History should show recalculated price difference (${priceDiff1}, ${priceDiff2}, or ${totalDiff})`
+        expect.soft(result.hasCorrectAmount,
+          `Expected [CSV 52]: View History should show recalculated price difference (${result.expectedDiffs.join(', ')})`
         ).toBeTruthy();
       });
 
