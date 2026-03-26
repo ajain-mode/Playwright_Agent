@@ -311,6 +311,45 @@ await pages.loadsPage.selectTabularTL();`,
     requiresData: true,
   },
 
+  // DFB View-Mode Validation (after save)
+  {
+    keywords: ['validate view mode', 'verify view mode', 'view mode fields', 'validate dfb fields after save', 'ensure after save'],
+    pageObject: 'dfbLoadFormPage',
+    method: 'validateDFBTextFieldHaveExpectedValues',
+    codeTemplate: `await pages.editLoadPage.clickOnTab(TABS.CARRIER);
+        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await pages.viewLoadPage.scrollToDFBSection();
+        const formattedOfferRate = parseFloat(testData.offerRate).toFixed(2);
+        await pages.dfbLoadFormPage.validateDFBTextFieldHaveExpectedValues({
+          offerRate: formattedOfferRate,
+          expirationDate: pages.commonReusables.getNextTwoDatesFormatted().tomorrow,
+          expirationTime: testData.shipperLatestTime.padStart(5, "0"),
+        });
+        await pages.dfbLoadFormPage.validateFormFieldsState({
+          includeCarriers: [testData.Carrier],
+          emailNotification: agentEmail,
+        });
+        const isAutoAcceptChecked = await pages.viewLoadPage.isAutoAcceptChecked();
+        pages.logger.info(\`Carrier Auto Accept: \${isAutoAcceptChecked ? "checked" : "NOT checked"}\`);
+        const carrierContactValue = await pages.viewLoadPage.getCarrierContactDropdownValue();
+        pages.logger.info(\`Carrier Contact for Rate Confirmation: \${carrierContactValue}\`);
+        await pages.dfbLoadFormPage.validateFieldsAreNotEditable([
+          DFB_FORM_FIELDS.Email_Notification, DFB_FORM_FIELDS.Expiration_Date,
+          DFB_FORM_FIELDS.Expiration_Time, DFB_FORM_FIELDS.Commodity,
+          DFB_FORM_FIELDS.NOTES, DFB_FORM_FIELDS.Exclude_Carriers,
+          DFB_FORM_FIELDS.Include_Carriers,
+        ]);`,
+  },
+  {
+    keywords: ['validate not posted', 'post status not posted', 'not posted status', 'validate dfb buttons'],
+    pageObject: 'dfbLoadFormPage',
+    method: 'validatePostStatus',
+    codeTemplate: `await pages.dfbLoadFormPage.validatePostStatus(LOAD_STATUS.NOT_POSTED);
+        await pages.dfbLoadFormPage.validateMultipleButtonActivation(
+          [DFB_Button.Post, DFB_Button.Create_Rule, DFB_Button.Clear_Form], true
+        );`,
+  },
+
   // Validation Actions
   {
     keywords: ['verify post status', 'check post status', 'validate post status'],

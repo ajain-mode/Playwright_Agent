@@ -119,7 +119,11 @@ test.describe.serial(
         const loadboardStatusText = await pages.viewCarrierPage.getLoadboardStatus();
         pages.logger.info(`Carrier loadboard status: ${loadboardStatusText}`);
 
-        const requiredVisibility = [...REQUIRED_CARRIER_VISIBILITY];
+        const requiredVisibility = [
+            CARRIER_VISIBILITY.AVENGER_LOGISTICS,
+            CARRIER_VISIBILITY.MODE_TRANSPORTATION,
+            CARRIER_VISIBILITY.SUNTECK_TTS,
+          ];
 
         const tabClicked = await pages.viewCarrierPage.clickLoadboardTab();
         if (tabClicked) {

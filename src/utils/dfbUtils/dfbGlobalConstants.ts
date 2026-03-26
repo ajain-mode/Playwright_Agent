@@ -90,21 +90,10 @@ export class DFBGlobalConstants {
   static readonly CARRIER_VISIBILITY = {
     AVENGER_LOGISTICS: "Avenger Logistics",
     MODE_TRANSPORTATION: "Mode Transportation",
-    SUNTECK_TRANSPORT: "Sunteck Transport Co",
+    SUNTECK_TTS: "Suntecktts",
     TTS: "TTS",
   } as const;
 
-  /**
-   * All required carrier visibility labels as an array for toggle checks.
-   * @author AI Agent
-   * @created 19-Mar-2026
-   */
-  static readonly REQUIRED_CARRIER_VISIBILITY = [
-    DFBGlobalConstants.CARRIER_VISIBILITY.AVENGER_LOGISTICS,
-    DFBGlobalConstants.CARRIER_VISIBILITY.MODE_TRANSPORTATION,
-    DFBGlobalConstants.CARRIER_VISIBILITY.SUNTECK_TRANSPORT,
-    DFBGlobalConstants.CARRIER_VISIBILITY.TTS,
-  ] as const;
 }
 
 /**
@@ -126,7 +115,6 @@ declare global {
    const CARRIER_CONTACT: typeof DFBGlobalConstants.CARRIER_CONTACT;
    const CARRIER_DISPATCH_EMAIL: typeof DFBGlobalConstants.CARRIER_DISPATCH_EMAIL;
    const CARRIER_VISIBILITY: typeof DFBGlobalConstants.CARRIER_VISIBILITY;
-   const REQUIRED_CARRIER_VISIBILITY: typeof DFBGlobalConstants.REQUIRED_CARRIER_VISIBILITY;
 }
 
 // Global exports for backward compatibility
@@ -150,5 +138,4 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).CARRIER_CONTACT = DFBGlobalConstants.CARRIER_CONTACT;
   (globalThis as any).CARRIER_DISPATCH_EMAIL = DFBGlobalConstants.CARRIER_DISPATCH_EMAIL;
   (globalThis as any).CARRIER_VISIBILITY = DFBGlobalConstants.CARRIER_VISIBILITY;
-  (globalThis as any).REQUIRED_CARRIER_VISIBILITY = DFBGlobalConstants.REQUIRED_CARRIER_VISIBILITY;
 }

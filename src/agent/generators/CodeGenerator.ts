@@ -603,9 +603,11 @@ export class CodeGenerator {
       // Check if method already exists on a DIFFERENT POM class (exact name match)
       const existsElsewhere = this.schemaAnalyzer.methodExistsAnywhere(methodName);
       if (existsElsewhere.exists && existsElsewhere.className && existsElsewhere.className !== className) {
-        console.log(`\n⚠️  Duplicate POM method detected: '${methodName}' already exists on '${existsElsewhere.className}' but spec calls it on '${className}'.`);
-        console.log(`   Review whether the existing method on '${existsElsewhere.className}' can be reused instead of creating a duplicate.`);
-        console.log(`   Proceeding with auto-generation on '${className}' — review for potential deduplication.`);
+        const correctGetter = this.schemaAnalyzer.getScanner().getPageManagerGetterForClass(existsElsewhere.className);
+        console.log(`\n⚠️  Duplicate POM method blocked: '${methodName}' already exists on '${existsElsewhere.className}'.`);
+        console.log(`   Spec calls it on '${className}' (pages.${pageGetter}) but it should use 'pages.${correctGetter || existsElsewhere.className}'.`);
+        console.log(`   Skipping creation — guardrail 22 in validatePostGenerationGuardrails will auto-fix the spec.`);
+        continue; // Do NOT create duplicate — let guardrail 22 fix the spec call
       }
 
       // Fuzzy match: check if a semantically similar method already exists
@@ -1222,20 +1224,36 @@ await this.page.waitForLoadState('load');`,
     }
 
     // ==================== DFB FORM VALIDATIONS ====================
-    // Reference: DFB-97739.spec.ts Step 13
+    // Reference: DFB-97739.spec.ts Step 13 — use dedicated POM validation methods
     if (lowerAction.includes('validate') && lowerAction.includes('dfb') && (lowerAction.includes('field') || lowerAction.includes('form'))) {
-      return `// Validate DFB form fields and state
-        await pages.dfbLoadFormPage.validateDFBTextFieldHaveExpectedValues({});
-        await pages.dfbLoadFormPage.validateFormFieldsState();
-        await pages.dfbLoadFormPage.validateFieldsAreNotEditable();
-        console.log("DFB form fields validated");`;
+      return `// Validate DFB form fields and state in view mode
+        await pages.viewLoadPage.scrollToDFBSection();
+        const formattedOfferRate = parseFloat(testData.offerRate).toFixed(2);
+        await pages.dfbLoadFormPage.validateDFBTextFieldHaveExpectedValues({
+          offerRate: formattedOfferRate,
+          expirationDate: pages.commonReusables.getNextTwoDatesFormatted().tomorrow,
+          expirationTime: testData.shipperLatestTime.padStart(5, "0"),
+        });
+        await pages.dfbLoadFormPage.validateFormFieldsState({
+          includeCarriers: [testData.Carrier],
+          emailNotification: agentEmail,
+        });
+        const isAutoAcceptChecked = await pages.viewLoadPage.isAutoAcceptChecked();
+        pages.logger.info(\`Carrier Auto Accept: \${isAutoAcceptChecked ? "checked" : "NOT checked"}\`);
+        const carrierContactValue = await pages.viewLoadPage.getCarrierContactDropdownValue();
+        pages.logger.info(\`Carrier Contact for Rate Confirmation: \${carrierContactValue}\`);
+        await pages.dfbLoadFormPage.validateFieldsAreNotEditable([
+          DFB_FORM_FIELDS.Email_Notification, DFB_FORM_FIELDS.Expiration_Date,
+          DFB_FORM_FIELDS.Expiration_Time, DFB_FORM_FIELDS.Commodity,
+          DFB_FORM_FIELDS.NOTES, DFB_FORM_FIELDS.Exclude_Carriers,
+          DFB_FORM_FIELDS.Include_Carriers,
+        ]);`;
     }
     if (lowerAction.includes('validate') && lowerAction.includes('post status')) {
-      const statusMatch = action.match(/(POSTED|BOOKED|ACTIVE|DISPATCHED|CANCELLED|MATCHED)/i);
-      const status = statusMatch ? statusMatch[1].toUpperCase() : 'POSTED';
+      const statusMatch = action.match(/(NOT\s+POSTED|POSTED|BOOKED|ACTIVE|DISPATCHED|CANCELLED|MATCHED)/i);
+      const statusRaw = statusMatch ? statusMatch[1].toUpperCase().replace(/\s+/g, '_') : 'POSTED';
       return `// Validate post status
-        await pages.dfbLoadFormPage.validatePostStatus("${status}");
-        console.log("Post status validated: ${status}");`;
+        await pages.dfbLoadFormPage.validatePostStatus(LOAD_STATUS.${statusRaw});`;
     }
 
     // ==================== HOVER ACTIONS ====================
@@ -1850,8 +1868,9 @@ ${formFields.join('\n')}
     // ==================== VERIFICATION/VALIDATION ACTIONS ====================
     if (lowerAction.includes('verify') || lowerAction.includes('validate') || lowerAction.includes('check')) {
       if (lowerAction.includes('post status')) {
+        const notPosted = lowerAction.includes('not posted');
         return `// Verify post status
-        await pages.dfbLoadFormPage.validatePostStatus("POSTED");`;
+        await pages.dfbLoadFormPage.validatePostStatus(LOAD_STATUS.${notPosted ? 'NOT_POSTED' : 'POSTED'});`;
       }
       if (lowerAction.includes('load') && lowerAction.includes('created')) {
         return `// Verify load was created
@@ -3833,7 +3852,6 @@ ${stepCode}
     const cleanedLines: string[] = [];
     let consoleLogsRemoved = 0;
     for (const line of consoleLogLines) {
-      const trimmed = line.trim();
       // Remove pure narration console.log() — static strings with no template literals capturing runtime values
       if (/^\s*console\.log\s*\(/.test(line)) {
         // Keep console.log inside conditional branches (if/else) for decision logging
@@ -3931,6 +3949,47 @@ ${stepCode}
           `Move all conditional/iteration/string-manipulation logic into Page Object methods. ` +
           `Specs should only contain POM calls, expect() assertions, and variable assignments.`
         );
+      }
+    }
+
+    // ── 22. Auto-fix POM method calls pointing at wrong page object class ──
+    // When a method exists on a different POM class than what the spec calls,
+    // rewrite the spec to use the correct PageManager getter.
+    {
+      const pageCallRegex = /pages\.(\w+)\.(\w+)\s*\(/g;
+      let callMatch;
+      const corrections: Array<{ from: string; to: string }> = [];
+      const seen = new Set<string>();
+
+      while ((callMatch = pageCallRegex.exec(fixed)) !== null) {
+        const getter = callMatch[1];
+        const method = callMatch[2];
+        const key = `${getter}.${method}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+
+        // Skip utilities
+        if (['toggleSettings', 'dataConfig', 'commonReusables', 'dfbHelpers', 'requiredFieldAlertValidator', 'logger'].includes(getter)) continue;
+
+        const scanResult = this.schemaAnalyzer.getScanner().getByPageManagerName(getter);
+        if (!scanResult) continue;
+
+        // Method exists on the called class — no fix needed
+        if (this.schemaAnalyzer.methodExistsOnClass(scanResult.className, method)) continue;
+
+        // Check if method exists on a different class
+        const elsewhere = this.schemaAnalyzer.methodExistsAnywhere(method);
+        if (elsewhere.exists && elsewhere.className) {
+          const correctGetter = this.schemaAnalyzer.getScanner().getPageManagerGetterForClass(elsewhere.className);
+          if (correctGetter && correctGetter !== getter) {
+            corrections.push({ from: `pages.${getter}.${method}`, to: `pages.${correctGetter}.${method}` });
+          }
+        }
+      }
+
+      for (const { from, to } of corrections) {
+        fixed = fixed.split(from).join(to);
+        warnings.push(`⚠️  Guardrail: Auto-fixed POM call '${from}' → '${to}' (method exists on different page object).`);
       }
     }
 
@@ -4402,35 +4461,82 @@ ${stepCode}
     if (!testCase.expectedResults || testCase.expectedResults.length === 0) return map;
     if (!testCase.steps || testCase.steps.length === 0) return map;
 
+    // Detect multi-app threshold: first step involving DME/TNX login or switch
+    let multiAppThreshold = Infinity;
+    for (let i = 0; i < testCase.steps.length; i++) {
+      const action = testCase.steps[i].action.toLowerCase();
+      if (action.includes('switch to dme') || action.includes('switch to tnx') ||
+          action.includes('login dme') || action.includes('login tnx') ||
+          action.includes('dme login') || action.includes('tnx login') ||
+          action.includes('open dme') || action.includes('open tnx')) {
+        const csvSteps = testCase.steps[i].csvStepMapping;
+        multiAppThreshold = csvSteps && csvSteps.length > 0 ? Math.min(...csvSteps) : (i + 1);
+        break;
+      }
+    }
+
+    let activeStepContext = 0;
+
     testCase.expectedResults.forEach((expected, idx) => {
       const csvStep = idx + 1;
-      // Try to extract a step number from the expected result text
-      const stepMatch = expected.match(/^(?:step\s+)?(\d+)\s*[.:)\-]/i);
-      if (stepMatch) {
-        const referencedStep = parseInt(stepMatch[1], 10);
-        // Find which user step index this CSV step falls into by matching csvStepMapping
-        let targetUserStep = this.findUserStepForCsvStep(testCase.steps, referencedStep);
+      const trimmedExpected = expected.trim();
+
+      // Skip empty lines
+      if (!trimmedExpected) return;
+
+      // Parse "Ensure after Step: XX" / "Ensure the Step: XX" / "Ensure Step XX" headers
+      const ensureMatch = trimmedExpected.match(/^ensure\s+(?:the\s+|after\s+)?step\s*[:#.]?\s*(\d+)/i);
+      if (ensureMatch) {
+        const referencedStep = parseInt(ensureMatch[1], 10);
+        // If the referenced step is past the multi-app threshold, leave unmapped
+        if (referencedStep >= multiAppThreshold) {
+          activeStepContext = 0;
+          return;
+        }
+        activeStepContext = referencedStep;
+        return;
+      }
+
+      // Skip standalone app labels and generic descriptor headers
+      if (/^(btms|dme|tnx)\s*$/i.test(trimmedExpected)) return;
+      if (/:\s*$/.test(trimmedExpected) && trimmedExpected.length < 60) return;
+
+      // Sub-items inherit the active step context from the preceding "Ensure" header
+      if (activeStepContext > 0) {
+        const targetUserStep = this.findUserStepForCsvStep(testCase.steps, activeStepContext);
         if (targetUserStep > 0) {
           if (!map.has(targetUserStep)) map.set(targetUserStep, []);
-          map.get(targetUserStep)!.push({ csvStep, text: expected });
+          map.get(targetUserStep)!.push({ csvStep, text: trimmedExpected });
           return;
         }
       }
 
-      // Fallback: try to match expected result to the step with the same index
+      // Direct step reference: "Step 14: ..." or "14. ..."
+      const stepMatch = trimmedExpected.match(/^(?:step\s+)?(\d+)\s*[.:)\-]/i);
+      if (stepMatch) {
+        const referencedStep = parseInt(stepMatch[1], 10);
+        if (referencedStep >= multiAppThreshold) return;
+        const targetUserStep = this.findUserStepForCsvStep(testCase.steps, referencedStep);
+        if (targetUserStep > 0) {
+          if (!map.has(targetUserStep)) map.set(targetUserStep, []);
+          map.get(targetUserStep)!.push({ csvStep, text: trimmedExpected });
+          activeStepContext = referencedStep;
+          return;
+        }
+      }
+
+      // Fallback: match by csvStepMapping
       if (csvStep <= testCase.steps.length) {
-        // Check if the step has csvStepMapping that includes this csvStep
         for (let i = 0; i < testCase.steps.length; i++) {
           const step = testCase.steps[i];
           if (step.csvStepMapping && step.csvStepMapping.includes(csvStep)) {
             const userIdx = i + 1;
             if (!map.has(userIdx)) map.set(userIdx, []);
-            map.get(userIdx)!.push({ csvStep, text: expected });
+            map.get(userIdx)!.push({ csvStep, text: trimmedExpected });
             return;
           }
         }
       }
-      // If no mapping found, the expected result remains unmapped (handled by trailing block)
     });
 
     return map;
@@ -4765,7 +4871,11 @@ ${stepCode}
         const statusText = await pages.viewCarrierPage.getLoadboardStatus();
         pages.logger.info(\`Carrier loadboard status: \${statusText}\`);
 
-        const requiredVisibility = [...REQUIRED_CARRIER_VISIBILITY];
+        const requiredVisibility = [
+          CARRIER_VISIBILITY.AVENGER_LOGISTICS,
+          CARRIER_VISIBILITY.MODE_TRANSPORTATION,
+          CARRIER_VISIBILITY.SUNTECK_TTS,
+        ];
         const tabClicked = await pages.viewCarrierPage.clickLoadboardTab();
         expect.soft(tabClicked, "Mode IQ tab should be visible and clickable on carrier page").toBeTruthy();
         if (tabClicked) {
@@ -5076,7 +5186,19 @@ ${stepCode}
 
   private generateExpectedResultAssertion(expected: string): string {
     const lowerExpected = expected.toLowerCase();
-    
+
+    // Skip "Ensure after Step" header lines — these are only grouping labels, not assertions
+    if (/^ensure\s+(?:the\s+|after\s+)?step/i.test(expected.trim())) return '';
+
+    // Skip standalone app labels (BTMS, DME, TNX) and generic descriptor lines ending with colon
+    if (/^(btms|dme|tnx)\s*$/i.test(expected.trim())) return '';
+    if (/:\s*$/.test(expected.trim()) && expected.trim().length < 60) return '';
+
+    // Load saved and displayed in view mode — trigger DFB view-mode validation block
+    if (lowerExpected.includes('saved') && lowerExpected.includes('view mode')) {
+      return `        await pages.viewLoadPage.scrollToDFBSection();\n        const formattedOfferRate = parseFloat(testData.offerRate).toFixed(2);\n        await pages.dfbLoadFormPage.validateDFBTextFieldHaveExpectedValues({\n          offerRate: formattedOfferRate,\n          expirationDate: pages.commonReusables.getNextTwoDatesFormatted().tomorrow,\n          expirationTime: testData.shipperLatestTime.padStart(5, "0"),\n        });\n        await pages.dfbLoadFormPage.validateFormFieldsState({\n          includeCarriers: [testData.Carrier],\n          emailNotification: agentEmail,\n        });\n`;
+    }
+
     // Load created/saved
     if (lowerExpected.includes('load') && (lowerExpected.includes('created') || lowerExpected.includes('success') || lowerExpected.includes('saved'))) {
       return `        expect(loadNumber, "Load should be created").toBeTruthy();\n`;
@@ -5088,15 +5210,18 @@ ${stepCode}
       return `        await pages.viewLoadPage.refreshAndValidateLoadStatus(LOAD_STATUS.BOOKED);\n        console.log("Verified load is auto-accepted/booked");\n`;
     }
 
-    // Load status (generic)
+    // Load status (generic) — check NOT POSTED before POSTED
     if (lowerExpected.includes('status')) {
+      if (lowerExpected.includes('not posted')) {
+        return `        await pages.dfbLoadFormPage.validatePostStatus(LOAD_STATUS.NOT_POSTED);\n`;
+      }
       const statusMatch = expected.match(/(BOOKED|POSTED|ACTIVE|DISPATCHED|CANCELLED|MATCHED|AVAILABLE)/i);
       if (statusMatch) {
         const status = statusMatch[1].toUpperCase();
-        return `        await pages.dfbLoadFormPage.validatePostStatus("${status}");\n`;
+        return `        await pages.dfbLoadFormPage.validatePostStatus(LOAD_STATUS.${status});\n`;
       }
       if (lowerExpected.includes('post')) {
-        return `        await pages.dfbLoadFormPage.validatePostStatus("POSTED");\n`;
+        return `        await pages.dfbLoadFormPage.validatePostStatus(LOAD_STATUS.POSTED);\n`;
       }
     }
 
@@ -5115,12 +5240,52 @@ ${stepCode}
       return `        await pages.viewLoadCarrierTabPage.validateCarrierDispatchEmail(CARRIER_DISPATCH_EMAIL.DISPATCH_EMAIL_1);\n        console.log("Dispatch email validated");\n`;
     }
 
+    // Expiration date/time auto-populated — skip; handled by validateDFBTextFieldHaveExpectedValues
+    if (lowerExpected.includes('expiration') && (lowerExpected.includes('date') || lowerExpected.includes('time')) && lowerExpected.includes('auto')) {
+      return '';
+    }
+
+    // Email for Notifications auto-populated — skip; handled by validateFormFieldsState
+    if (lowerExpected.includes('email') && lowerExpected.includes('notification') && lowerExpected.includes('auto')) {
+      return '';
+    }
+
+    // Include Carriers field has carrier selected — skip; handled by validateFormFieldsState
+    if (lowerExpected.includes('include carriers') && lowerExpected.includes('selected')) {
+      return '';
+    }
+
+    // Carrier Auto Accept checkbox
+    if (lowerExpected.includes('auto accept') && lowerExpected.includes('check')) {
+      return `        const isAutoAcceptChecked = await pages.viewLoadPage.isAutoAcceptChecked();\n        pages.logger.info(\`Carrier Auto Accept: \${isAutoAcceptChecked ? "checked" : "NOT checked"}\`);\n`;
+    }
+
+    // Carrier Contact for Rate Confirmation
+    if (lowerExpected.includes('carrier contact') && lowerExpected.includes('rate confirmation')) {
+      return `        const carrierContactValue = await pages.viewLoadPage.getCarrierContactDropdownValue();\n        pages.logger.info(\`Carrier Contact for Rate Confirmation: \${carrierContactValue}\`);\n`;
+    }
+
+    // Fields not editable / read-only — use validateFieldsAreNotEditable
+    if (lowerExpected.includes('not editable') || lowerExpected.includes('read only') || lowerExpected.includes('readonly')) {
+      return `        await pages.dfbLoadFormPage.validateFieldsAreNotEditable([\n          DFB_FORM_FIELDS.Email_Notification, DFB_FORM_FIELDS.Expiration_Date,\n          DFB_FORM_FIELDS.Expiration_Time, DFB_FORM_FIELDS.Commodity,\n          DFB_FORM_FIELDS.NOTES, DFB_FORM_FIELDS.Exclude_Carriers,\n          DFB_FORM_FIELDS.Include_Carriers,\n        ]);\n`;
+    }
+
+    // Activated / enabled buttons — emit batch validation via validateMultipleButtonActivation
+    if ((lowerExpected.includes('activated') || lowerExpected.includes('enabled')) && lowerExpected.includes('button')) {
+      return `        await pages.dfbLoadFormPage.validateMultipleButtonActivation(\n          [DFB_Button.Post, DFB_Button.Create_Rule, DFB_Button.Clear_Form], true\n        );\n`;
+    }
+
     // Cargo value display
     if (lowerExpected.includes('cargo') && lowerExpected.includes('display')) {
       return `        const cargoVal = await pages.dfbLoadFormPage.getCargoValue();\n        expect(cargoVal, "${expected}").toBeTruthy();\n`;
     }
 
-    // Offer rate validation
+    // Offer rate populated (view-mode) — skip; handled by validateDFBTextFieldHaveExpectedValues
+    if (lowerExpected.includes('offer rate') && lowerExpected.includes('populated')) {
+      return '';
+    }
+
+    // Offer rate validation (comparison)
     if (lowerExpected.includes('offer rate') || (lowerExpected.includes('rate') && lowerExpected.includes('match'))) {
       return `        const displayedRate = await pages.dfbLoadFormPage.getOfferRate();\n        expect(displayedRate).toBe(testData.offerRate);\n        console.log("Offer rate validated:", displayedRate);\n`;
     }

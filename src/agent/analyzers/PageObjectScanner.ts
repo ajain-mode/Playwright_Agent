@@ -65,6 +65,7 @@ export class PageObjectScanner {
   private pagesDir: string;
   private excludedDirs: string[];
   private cache: Map<string, PageObjectScanResult> = new Map();
+  private _getterCache: Map<string, string> | null = null;
 
   constructor(pagesDir: string, excludedDirs?: string[]) {
     this.pagesDir = pagesDir;
@@ -167,6 +168,31 @@ export class PageObjectScanner {
       summary.set(className, result.methods.filter(m => !m.isPrivate).map(m => m.name));
     }
     return summary;
+  }
+
+  /**
+   * Reverse-lookup: given a class name (e.g. 'ViewLoadPage'), returns the PageManager
+   * getter name (e.g. 'viewLoadPage'). Parses PageManager.ts to build the mapping.
+   * Returns null if no getter is found for the class.
+   * @author AI Agent
+   * @created 26-Mar-2026
+   */
+  getPageManagerGetterForClass(className: string): string | null {
+    if (!this._getterCache) {
+      this._getterCache = new Map<string, string>();
+      // PageManager lives alongside the pagesDir (../utils/PageManager.ts)
+      const pageManagerPath = path.resolve(this.pagesDir, '..', 'utils', 'PageManager.ts');
+      if (fs.existsSync(pageManagerPath)) {
+        const content = fs.readFileSync(pageManagerPath, 'utf-8');
+        // Match getter pattern: get <getterName>(): <ClassName> {
+        const getterRegex = /get\s+(\w+)\s*\(\s*\)\s*:\s*(\w+)\s*\{/g;
+        let match;
+        while ((match = getterRegex.exec(content)) !== null) {
+          this._getterCache.set(match[2], match[1]); // className → getterName
+        }
+      }
+    }
+    return this._getterCache.get(className) || null;
   }
 
   // ======================== PRIVATE HELPERS ========================

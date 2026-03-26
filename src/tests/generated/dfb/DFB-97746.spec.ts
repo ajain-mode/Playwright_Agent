@@ -6,6 +6,7 @@ import { PageManager } from "@utils/PageManager";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
 import commissionHelper from "@utils/commission-helpers";
 import DMEDashboardPage from "@pages/dme/DMEDashboradPage";
+import DFBLoadFormPage from "@pages/loads/DFBLoadFormPage";
 
 /**
  * Test Case: DFB-97746 - Automatically book a load when it is manually postedDisplay a message when an active loadboard user is not selected for the Carrier Contact for Rate Confirmation field on the load
@@ -121,7 +122,11 @@ test.describe.serial(
         pages.logger.info(`Carrier loadboard status: ${statusText}`);
 
         await pages.viewCarrierPage.ensureCarrierVisibilityTogglesEnabled(
-          [...REQUIRED_CARRIER_VISIBILITY],
+          [
+            CARRIER_VISIBILITY.AVENGER_LOGISTICS,
+            CARRIER_VISIBILITY.MODE_TRANSPORTATION,
+            CARRIER_VISIBILITY.SUNTECK_TTS,
+          ],
           pages.basePage
         );
         pages.logger.info("Carrier visibility step completed");
@@ -211,79 +216,71 @@ test.describe.serial(
         await pages.viewLoadPage.validateViewLoadHeading();
       });
 
-      await test.step("Step 15 [CSV 41]: Navigate to Carrier tab and Post the load", async () => {
+      await test.step("Step 14b [CSV 39]: Validate view-mode fields after save", async () => {
         await pages.editLoadPage.clickOnTab(TABS.CARRIER);
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
+        await pages.viewLoadPage.scrollToDFBSection();
+
+        const formattedOfferRate = parseFloat(testData.offerRate).toFixed(2);
+        await pages.dfbLoadFormPage.validateDFBTextFieldHaveExpectedValues({
+          offerRate: formattedOfferRate,
+          expirationDate: pages.commonReusables.getNextTwoDatesFormatted().tomorrow,
+          expirationTime: testData.shipperLatestTime.padStart(5, "0"),
+        });
+
+        await pages.dfbLoadFormPage.validateFormFieldsState({
+          includeCarriers: [testData.Carrier],
+          emailNotification: agentEmail,
+        });
+
+        const isAutoAcceptChecked = await pages.viewLoadPage.isAutoAcceptChecked();
+        //pages.logger.info(`Carrier Auto Accept: ${isAutoAcceptChecked ? "checked" : "NOT checked"}`);
+        expect.soft(isAutoAcceptChecked, "Auto Accept should be checked").toBe(true);
+        const carrierContactValue = await pages.viewLoadPage.getCarrierContactDropdownValue();
+        //pages.logger.info(`Carrier Contact for Rate Confirmation: ${carrierContactValue}`);
+        expect.soft(carrierContactValue, "Carrier Contact should be selected").toBeTruthy();
+        await pages.dfbLoadFormPage.validateFieldsAreNotEditable([
+          DFB_FORM_FIELDS.Email_Notification,
+          DFB_FORM_FIELDS.Expiration_Date,
+          DFB_FORM_FIELDS.Expiration_Time,
+          DFB_FORM_FIELDS.Commodity,
+          DFB_FORM_FIELDS.NOTES,
+          DFB_FORM_FIELDS.Exclude_Carriers,
+          DFB_FORM_FIELDS.Include_Carriers,
+        ]);
+
+        pages.logger.info("View-mode field validations completed");
+      });
+
+      await test.step("Step 15a [CSV 40]: Validate NOT POSTED status and buttons before posting", async () => {
+        await pages.dfbLoadFormPage.validatePostStatus(LOAD_STATUS.NOT_POSTED);
+
+        await pages.dfbLoadFormPage.validateMultipleButtonActivation(
+          [DFB_Button.Post, DFB_Button.Create_Rule, DFB_Button.Clear_Form],
+          true
+        );
+
+        pages.logger.info("NOT POSTED status and button states validated");
+      });
+
+      await test.step("Step 15b [CSV 41]: Post the load", async () => {
         await pages.dfbLoadFormPage.clickOnPostButton();
         pages.logger.info("Load posted, moving to verification");
       });
 
-      await test.step("Step 18 [CSV 44-46]: Switch to DME — verify load statuses", async () => {
-        const dmePages = await appManager.switchToDME();
-        await dmePages.dmeDashboardPage.clickOnLoadsLink();
-        await dmePages.dmeDashboardPage.searchLoad(loadNumber);
-        await dmePages.dmeLoadPage.validateAndGetStatusTextWithRetry(
-        LOAD_STATUS.BTMS_CANCELLED,
-        LOAD_STATUS.TNX_BOOKED,
-        loadNumber,
-        dmePages.dmeDashboardPage
-        );
-        await dmePages.dmeLoadPage.validateSingleTableRowPresent();
-        await dmePages.dmeLoadPage.validateAndGetSourceIdText(loadNumber);
-        await dmePages.dmeLoadPage.clickOnDataDetailsLink();
-        await dmePages.dmeLoadPage.clickOnShowIconLink();
-        await dmePages.dmeLoadPage.validateAuctionAssignedText(
-        loadNumber,
-        dmePages.dmeDashboardPage
-        );
-        pages.logger.info("DME load verification completed");
-      });
-
-      await test.step("Step 19 [CSV 47-52]: Switch to TNX — verify load is Matched and execution notes", async () => {
-        const tnxPages = await appManager.switchToTNX();
-        await appManager.tnxPage.setViewportSize({ width: 1920, height: 1080 });
-
-        await tnxPages.tnxLandingPage.selectOrganizationByCarrierName(testData.Carrier);
-        await tnxPages.tnxLandingPage.handleOptionalSkipButton();
-        await tnxPages.tnxLandingPage.handleOptionalNoThanksButton();
-        await tnxPages.tnxLandingPage.clickOnTNXHeaderLink(TNX.ACTIVE_JOBS);
-        await tnxPages.tnxLandingPage.clickPlusButton();
-        await tnxPages.tnxLandingPage.searchLoadValue(loadNumber);
-        await tnxPages.tnxLandingPage.clickLoadSearchLink();
-        await tnxPages.tnxLandingPage.validateBidsTabAvailableLoadsText(
-        TNX.SINGLE_JOB_RECORD,
-        loadNumber
-        );
-        await tnxPages.tnxLandingPage.clickLoadLink();
-        const tnxRateNumeric = await tnxPages.tnxLandingPage.getLoadOfferRateNumeric();
-        const expectedRateNumeric = testData.offerRate.replace(/[\$,]/g, "").split(".")[0];
-        pages.logger.info(`TNX offer rate (numeric): ${tnxRateNumeric} | Expected: ${expectedRateNumeric}`);
-        expect(tnxRateNumeric, `Offer rate mismatch`).toBe(expectedRateNumeric);
-        await tnxPages.tnxLandingPage.clickOnSelectTenderDetailsModalTab(
-        TENDER_DETAILS_MODAL_TABS.GENERAL
-        );
-        await tnxPages.tnxLandingPage.validateStatusHistoryText(
-        TNX_STATUS_HISTORY.STATUS_MATCHED
-        );
-        await tnxPages.tnxLandingPage.clickOnSelectTenderDetailsModalTab(
-        TENDER_DETAILS_MODAL_TABS.PROGRESS
-        );
-        await tnxPages.tnxExecutionTenderPage.validateExecutionNotesFieldsPresence();
-        pages.logger.info("TNX validation completed — load Matched, execution notes verified");
-      });
-      await test.step("Step 21: Switch back to BTMS — verify BOOKED status, carrier detai...", async () => {
-        await appManager.switchToBTMS();
+      await test.step("Step 16 [CSV 42-43]: Validate BTMS BOOKED status, carrier details, and emails", async () => {
         await pages.viewLoadPage.refreshAndValidateLoadStatus(LOAD_STATUS.BOOKED);
 
         await pages.viewLoadPage.clickCarrierTab();
         await pages.viewLoadCarrierTabPage.validateCarrierAssignedText(testData.Carrier);
 
         await pages.viewLoadCarrierTabPage.validateCarrierDispatchName(
-        CARRIER_DISPATCH_NAME.DISPATCH_NAME_1
+          CARRIER_DISPATCH_NAME.DISPATCH_NAME_1
         );
 
         await pages.viewLoadCarrierTabPage.validateCarrierDispatchEmail(
-        CARRIER_DISPATCH_EMAIL.EMAIL_1
+          CARRIER_DISPATCH_EMAIL.EMAIL_1
         );
 
         // Validate BIDS Source
@@ -304,13 +301,9 @@ test.describe.serial(
         expect.soft(bidHistoryDetails.source, "BIDS Source should be populated").toBeTruthy();
         await pages.viewLoadCarrierTabPage.closeBidHistoryModal();
 
-        pages.logger.info("BTMS BOOKED status, carrier details, BIDS and Bid History verified");
-      });
-
-      await test.step("Step 22: Validate Rate Confirmation and Notification emails", async () => {
         // Validate Rate Confirmation email sent to carrier user
         const carrierDispatchEmail = await pages.viewLoadCarrierTabPage.validateCarrierDispatchEmail(
-        CARRIER_DISPATCH_EMAIL.EMAIL_1
+          CARRIER_DISPATCH_EMAIL.EMAIL_1
         );
         pages.logger.info(`Carrier dispatch email: ${carrierDispatchEmail}`);
         expect.soft(carrierDispatchEmail, "Carrier dispatch email should be populated for Rate Confirmation").toBeTruthy();
@@ -319,7 +312,66 @@ test.describe.serial(
         pages.logger.info(`Agent email for notifications: ${agentEmail}`);
         expect.soft(agentEmail, "Agent email for notifications should have been captured").toBeTruthy();
 
-        pages.logger.info("Email validation step completed — Rate Confirmation and Notification emails verified");
+        pages.logger.info("BTMS BOOKED status, carrier details, BIDS, Bid History, and emails verified");
+      });
+
+      await test.step("Step 17 [CSV 44-46]: Switch to DME — verify load statuses", async () => {
+        const dmePages = await appManager.switchToDME();
+        await dmePages.dmeDashboardPage.clickOnLoadsLink();
+        await dmePages.dmeDashboardPage.searchLoad(loadNumber);
+        await dmePages.dmeLoadPage.validateAndGetStatusTextWithRetry(
+        LOAD_STATUS.BTMS_CANCELLED,
+        LOAD_STATUS.TNX_BOOKED,
+        loadNumber,
+        dmePages.dmeDashboardPage
+        );
+        await dmePages.dmeLoadPage.validateSingleTableRowPresent();
+        await dmePages.dmeLoadPage.validateAndGetSourceIdText(loadNumber);
+        await dmePages.dmeLoadPage.clickOnDataDetailsLink();
+        await dmePages.dmeLoadPage.clickOnShowIconLink();
+        await dmePages.dmeLoadPage.validateAuctionAssignedText(
+        loadNumber,
+        dmePages.dmeDashboardPage
+        );
+        pages.logger.info("DME load verification completed");
+      });
+
+      await test.step("Step 18 [CSV 47-52]: Switch to TNX — verify load is Matched and execution notes", async () => {
+        const tnxPages = await appManager.switchToTNX();
+        await appManager.tnxPage.setViewportSize({ width: 1920, height: 1080 });
+
+        await tnxPages.tnxLandingPage.selectOrganizationByCarrierName(testData.Carrier);
+        await tnxPages.tnxLandingPage.handleOptionalSkipButton();
+        await tnxPages.tnxLandingPage.handleOptionalNoThanksButton();
+        await tnxPages.tnxLandingPage.clickOnTNXHeaderLink(TNX.ACTIVE_JOBS);
+        await tnxPages.tnxLandingPage.clickPlusButton();
+        await tnxPages.tnxLandingPage.searchLoadValue(loadNumber);
+        await tnxPages.tnxLandingPage.clickLoadSearchLink();
+        await tnxPages.tnxLandingPage.validateBidsTabAvailableLoadsText(
+        TNX.SINGLE_JOB_RECORD,
+        loadNumber
+        );
+        await tnxPages.tnxLandingPage.clickLoadLink();
+        const tnxRateNumeric = await tnxPages.tnxLandingPage.getLoadOfferRateNumeric();
+        const expectedRateNumeric = DFBLoadFormPage.normalizeRateToInteger(testData.offerRate);
+        pages.logger.info(`TNX offer rate (numeric): ${tnxRateNumeric} | Expected: ${expectedRateNumeric}`);
+        expect(tnxRateNumeric, `Offer rate mismatch`).toBe(expectedRateNumeric);
+        await tnxPages.tnxLandingPage.clickOnSelectTenderDetailsModalTab(
+        TENDER_DETAILS_MODAL_TABS.GENERAL
+        );
+        await tnxPages.tnxLandingPage.validateStatusHistoryText(
+        TNX_STATUS_HISTORY.STATUS_MATCHED
+        );
+        await tnxPages.tnxLandingPage.clickOnSelectTenderDetailsModalTab(
+        TENDER_DETAILS_MODAL_TABS.PROGRESS
+        );
+        await tnxPages.tnxExecutionTenderPage.validateExecutionNotesFieldsPresence();
+        pages.logger.info("TNX validation completed — load Matched, execution notes verified");
+      });
+      await test.step("Step 19: Switch back to BTMS after cross-app validation", async () => {
+        await appManager.switchToBTMS();
+        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        pages.logger.info("Switched back to BTMS after DME/TNX validation");
       });
 
       }

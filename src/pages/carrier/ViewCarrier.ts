@@ -371,35 +371,22 @@ export default class ViewCarrier {
     async getCarrierVisibilityToggleStates(carriers: string[]): Promise<Record<string, { enabled: boolean; debug: string }>> {
         return this.page.evaluate((carrierNames: string[]) => {
             const results: Record<string, { enabled: boolean; debug: string }> = {};
+            const listItems = document.querySelectorAll("#carrier_visibility_brands_list .list_item");
+
             for (const name of carrierNames) {
-                results[name] = { enabled: false, debug: "label not found" };
-                const labels = document.querySelectorAll("label");
-                for (const label of labels) {
-                    if (label.textContent?.trim() === name) {
-                        const container = label.closest(".slider-select") || label.parentElement;
-                        if (!container) { results[name].debug = "no container"; break; }
-                        const sel = container.querySelector(".slider-selection");
-                        if (sel) {
-                            const rect = sel.getBoundingClientRect();
-                            const style = window.getComputedStyle(sel);
-                            if (rect.width > 2 && style.display !== "none" && style.visibility !== "hidden") {
-                                results[name] = { enabled: true, debug: `slider-selection width=${rect.width.toFixed(0)}` };
-                                break;
-                            }
-                            results[name].debug = `slider-selection width=${rect.width.toFixed(0)}, display=${style.display}`;
-                        }
-                        const cb = container.querySelector("input[type='checkbox']") as HTMLInputElement | null;
-                        if (cb?.checked) { results[name] = { enabled: true, debug: "checkbox checked" }; break; }
-                        const allEls = container.querySelectorAll("*");
-                        for (const el of allEls) {
-                            const cls = typeof el.className === "string" ? el.className : "";
-                            if (cls.includes("slider-on") || cls.includes("-on") || cls.includes("active")) {
-                                results[name] = { enabled: true, debug: `class="${cls}"` }; break;
-                            }
-                        }
-                        if (!results[name].enabled) results[name].debug += " | no enabled indicator";
-                        break;
+                results[name] = { enabled: false, debug: "list_item not found" };
+
+                for (const item of listItems) {
+                    const nameSpan = item.querySelector(":scope > span");
+                    if (!nameSpan || !nameSpan.textContent?.trim().includes(name)) continue;
+
+                    const checkbox = item.querySelector("input.carrier_visibility_slider_input") as HTMLInputElement | null;
+                    if (checkbox) {
+                        results[name] = { enabled: checkbox.checked, debug: `checkbox.checked=${checkbox.checked}` };
+                    } else {
+                        results[name].debug = "checkbox not found in list_item";
                     }
+                    break;
                 }
             }
             return results;
@@ -414,18 +401,19 @@ export default class ViewCarrier {
      */
     async enableCarrierVisibilityToggles(disabledCarriers: string[]): Promise<void> {
         for (const name of disabledCarriers) {
-            const slider = this.page.locator(
-                `//div[contains(@class,'slider-select')]//label[text()='${name}']/following-sibling::div//div[contains(@class,'slider-selection')]`
-            ).first();
-            if (await slider.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
-                await slider.click({ position: { x: 5, y: 5 } });
-                console.log(`Enabled toggle for "${name}"`);
+            const listItem = this.page.locator(`#carrier_visibility_brands_list .list_item`).filter({ hasText: name }).first();
+            const checkbox = listItem.locator("input.carrier_visibility_slider_input");
+            if (await checkbox.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+                const isChecked = await checkbox.isChecked();
+                if (!isChecked) {
+                    await checkbox.check();
+                    console.log(`Enabled toggle for "${name}"`);
+                }
             } else {
-                const labelEl = this.page.locator(`//label[text()='${name}']`).first();
-                const parentDiv = labelEl.locator("xpath=following-sibling::div").first();
-                if (await parentDiv.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
-                    await parentDiv.click();
-                    console.log(`Enabled toggle for "${name}" (via sibling div)`);
+                const sliderLabel = listItem.locator("label.carrier_visibility_switch");
+                if (await sliderLabel.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+                    await sliderLabel.click();
+                    console.log(`Enabled toggle for "${name}" (via label click)`);
                 }
             }
         }
@@ -461,6 +449,10 @@ export default class ViewCarrier {
         }
         await basePage.waitForMultipleLoadStates(['load', 'networkidle']);
 
+        // Wait for the carrier visibility brands list to be dynamically populated (loaded via AJAX)
+        const brandsList = this.page.locator('#carrier_visibility_brands_list .list_item').first();
+        await brandsList.waitFor({ state: 'visible', timeout: WAIT.MID }).catch(() => null);
+
         let togglesFound = false;
         for (const name of requiredVisibility) {
             if (await this.isCarrierVisibilityLabelVisible(name)) {
@@ -478,20 +470,21 @@ export default class ViewCarrier {
         const disabledToggles: string[] = [];
         for (const name of requiredVisibility) {
             const state = toggleStates[name];
+            console.log(`Toggle "${name}": enabled=${state?.enabled}, debug=${state?.debug}`);
             if (!state?.enabled) {
                 disabledToggles.push(name);
             }
         }
 
         if (disabledToggles.length > 0) {
-            console.log(`${disabledToggles.length} toggle(s) need updating`);
+            console.log(`${disabledToggles.length} toggle(s) need updating: ${disabledToggles.join(', ')}`);
             await basePage.clickButtonByText('Edit');
             await basePage.waitForMultipleLoadStates(['load', 'networkidle']);
             await this.enableCarrierVisibilityToggles(disabledToggles);
             await this.clickSaveOnCarrierEditPage();
             await basePage.waitForMultipleLoadStates(['load', 'networkidle']);
         } else {
-            console.log('All carrier visibility toggles already enabled');
+            console.log('All carrier visibility toggles already enabled — skipping Edit/Save (steps 33-35)');
         }
     }
 }

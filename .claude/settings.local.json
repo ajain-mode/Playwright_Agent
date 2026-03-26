@@ -32,7 +32,11 @@
       "Read(//c/Users/Aman.Jain/Monotrans/**)",
       "Bash(git -C \"c:/Users/Aman.Jain/OneDrive/Mode Global/Test cases/QA AI Agent/Playwright_Agent\" status src/data/dfb/dfbdata.csv)",
       "Bash(grep -E \"\\\\.\\(twig|js|php\\)$\")",
-      "Bash(grep -v \"constructor\\\\|//.*this\\\\.page\")"
+      "Bash(grep -v \"constructor\\\\|//.*this\\\\.page\")",
+      "Bash(sed 's/async //')",
+      "Bash(sed 's/\\($//')",
+      "Bash(python3 -c \"print\\(''hello''\\)\")",
+      "Bash(python -c \"print\\(''hello''\\)\")"
     ]
   }
 }

@@ -137,6 +137,35 @@ test.describe.serial('Case ID: <TEST_ID>', () => {
 - Click DFB Clear: await pages.editLoadFormPage.clickDFBButton(DFB_Button.Clear_Form)
 - Set offer rate: use DFB form page or direct locator #carr_1_target_rate
 
+## DFB View-Mode Validation (after save — "Ensure after Step" pattern)
+After clicking Save, the load enters view mode. Validate DFB fields using dedicated POM methods, NOT getDFBFormFieldValues():
+- Scroll to DFB: await pages.viewLoadPage.scrollToDFBSection()
+- Text fields (offerRate, expirationDate, expirationTime):
+  await pages.dfbLoadFormPage.validateDFBTextFieldHaveExpectedValues({
+    offerRate: parseFloat(testData.offerRate).toFixed(2),
+    expirationDate: pages.commonReusables.getNextTwoDatesFormatted().tomorrow,
+    expirationTime: testData.shipperLatestTime.padStart(5, "0"),
+  })
+  IMPORTANT: Time values from CSV may lack leading zeros (e.g., "9:00"). Always use .padStart(5, "0") to normalize to "09:00".
+- Select/dropdown fields (includeCarriers, emailNotification, commodity):
+  await pages.dfbLoadFormPage.validateFormFieldsState({
+    includeCarriers: [testData.Carrier],
+    emailNotification: agentEmail,
+  })
+- Auto Accept checkbox: const isAutoAcceptChecked = await pages.viewLoadPage.isAutoAcceptChecked()
+- Carrier Contact: const carrierContactValue = await pages.viewLoadPage.getCarrierContactDropdownValue()
+- Non-editable fields: await pages.dfbLoadFormPage.validateFieldsAreNotEditable([
+    DFB_FORM_FIELDS.Email_Notification, DFB_FORM_FIELDS.Expiration_Date,
+    DFB_FORM_FIELDS.Expiration_Time, DFB_FORM_FIELDS.Commodity,
+    DFB_FORM_FIELDS.NOTES, DFB_FORM_FIELDS.Exclude_Carriers,
+    DFB_FORM_FIELDS.Include_Carriers,
+  ])
+- Post status: await pages.dfbLoadFormPage.validatePostStatus(LOAD_STATUS.NOT_POSTED)
+- Button states: await pages.dfbLoadFormPage.validateMultipleButtonActivation(
+    [DFB_Button.Post, DFB_Button.Create_Rule, DFB_Button.Clear_Form], true
+  )
+NEVER use getDFBFormFieldValues() for validation — it returns raw values without assertions. Always use the validate* POM methods above.
+
 ## Load Status Constants
 - LOAD_STATUS.ACTIVE, LOAD_STATUS.BOOKED, LOAD_STATUS.DISPATCHED, LOAD_STATUS.POSTED, LOAD_STATUS.MATCHED, etc.
 
@@ -306,6 +335,11 @@ ${FRAMEWORK_KNOWLEDGE}
     console.log is for progress tracking ONLY (e.g., "Step completed", "Load number captured").
 22. When a test step says "Validate X is Y" or "Verify X shows Y", ALWAYS produce an expect() or expect.soft() assertion.
     Pattern: const value = await <get_value>; expect.soft(value).toBe/toContain/toMatch(expected);
+23b. For DFB view-mode validation (after save), ALWAYS use the dedicated POM validation methods:
+    validateDFBTextFieldHaveExpectedValues(), validateFormFieldsState(), validateFieldsAreNotEditable().
+    NEVER use getDFBFormFieldValues() for assertions — it is a raw getter with no assertions.
+24b. Time values from CSV data may lack leading zeros (e.g., "9:00" instead of "09:00").
+    When comparing times with HTML input values, always normalize with .padStart(5, "0").
 23. NEVER hardcode string values that exist in the Constants Reference above. Always use the constant reference.
     Examples of what NOT to do vs what TO do:
     - BAD: "ACTIVE" → GOOD: LOAD_STATUS.ACTIVE or CARRIER_STATUS.ACTIVE (pick the right group)
