@@ -67,20 +67,17 @@ test.describe.serial("Verify that a message is displayed when a value is not ent
         // Navigate to Post Automation page, search customer, cleanup existing rules
         await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
         await pages.postAutomationRulePage.verifyCustomerPostAutomationRule(testData.customerName);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Step 4: Navigate to DAT", async () => {
         // Navigate to DAT
         await pages.basePage.hoverOverHeaderByText(HEADERS.LOAD);
         await pages.basePage.clickSubHeaderByText(LOAD_SUB_MENU.SEARCH);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Step 5: Click the New button to open the CREATE NEW ENTRY form", async () => {
         // Click New button to open CREATE NEW ENTRY form
         await pages.postAutomationRulePage.clickElementByText(POST_AUTOMATION_RULE.NEW_BUTTON);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Step 6: On CREATE NEW ENTRY pop up , enter all mandatory field ex...", async () => {
@@ -103,18 +100,15 @@ test.describe.serial("Verify that a message is displayed when a value is not ent
 
       await test.step("Step 7: Type:Drop", async () => {
         // Type:Drop
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Step 8: LoadMethod/TYPE: TL", async () => {
         // LoadMethod/TYPE: TL
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Step 9: Click the Create button", async () => {
         // Click Create button
         await pages.postAutomationRulePage.clickElementByText(BUTTONS.CREATE);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Verify Expected Results", async () => {

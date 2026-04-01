@@ -59,9 +59,7 @@ test.describe.serial("Case ID: BT-74418 - Validate updated price difference mess
         await pages.searchCustomerPage.enterCustomerName(testData.customerName);
         await pages.searchCustomerPage.selectActiveOnCustomerPage();
         await pages.searchCustomerPage.clickOnSearchCustomer();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.searchCustomerPage.clickOnActiveCustomer();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         pages.logger.info("Navigated to Enter New Load page");
       });
@@ -154,19 +152,15 @@ test.describe.serial("Case ID: BT-74418 - Validate updated price difference mess
 
       await test.step("Step 13: On Carrier tab click on CHOOSE CARRIER and select any ACTIVE carrier", async () => {
         await pages.editLoadPage.clickOnTab(TABS.CARRIER);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Step 14: Click on Save button", async () => {
         await pages.editLoadFormPage.clickOnSaveBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Step 15: Navigate to Load tab and click on View Billing button", async () => {
         await pages.editLoadPage.clickOnTab(TABS.LOAD);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.editLoadFormPage.clickOnViewBillingBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
         const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
         pages.logger.info(`Billing toggle: ${toggleValue}`);
@@ -180,9 +174,7 @@ test.describe.serial("Case ID: BT-74418 - Validate updated price difference mess
         await pages.searchCustomerPage.enterCustomerName(testData.customerName);
         await pages.searchCustomerPage.selectActiveOnCustomerPage();
         await pages.searchCustomerPage.clickOnSearchCustomer();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.searchCustomerPage.clickOnActiveCustomer();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         pages.logger.info("Navigated to Enter New Load page");
       });
@@ -198,9 +190,7 @@ test.describe.serial("Case ID: BT-74418 - Validate updated price difference mess
         await pages.searchCustomerPage.enterCustomerName(testData.customerName);
         await pages.searchCustomerPage.selectActiveOnCustomerPage();
         await pages.searchCustomerPage.clickOnSearchCustomer();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.searchCustomerPage.clickOnActiveCustomer();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         pages.logger.info("Navigated to Enter New Load page");
       });
@@ -226,7 +216,6 @@ test.describe.serial("Case ID: BT-74418 - Validate updated price difference mess
       });
 
       await test.step("Step 23: Validate if payable toggle is set to Agent", async () => {
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
         const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
         pages.logger.info(`Payable toggle: ${toggleValue}`);
@@ -237,7 +226,6 @@ test.describe.serial("Case ID: BT-74418 - Validate updated price difference mess
 
       await test.step("Step 24: Click on Add New button against Carrier Invoice", async () => {
         await pages.loadBillingPage.clickAddNewCarrierInvoice();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
         const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
         expect.soft(toggleValue, "Billing toggle should be at Agent after Add New").toBe('Agent');
@@ -250,13 +238,10 @@ test.describe.serial("Case ID: BT-74418 - Validate updated price difference mess
 
       await test.step("Step 26: Save invoice and refresh the page", async () => {
         await pages.loadBillingPage.clickSaveCarrierInvoice();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await sharedPage.reload();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Step 27: Click on View history and check payable messages", async () => {
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
         await pages.loadBillingPage.clickViewHistoryAndGetPopup();
 

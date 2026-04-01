@@ -72,13 +72,13 @@ test.describe.serial(
         // Navigate to Post Automation page, search customer, cleanup existing rules
         await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
         await pages.postAutomationRulePage.verifyCustomerPostAutomationRule(testData.customerName);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
       });
 
       await test.step("Step 4: Click the New button to open the CREATE NEW ENTRY form", async () => {
         // Click New button to open CREATE NEW ENTRY form
         await pages.postAutomationRulePage.clickElementByText(POST_AUTOMATION_RULE.NEW_BUTTON);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
       });
 
       await test.step("Step 5: On CREATE NEW ENTRY pop up , enter all mandatory field ex...", async () => {

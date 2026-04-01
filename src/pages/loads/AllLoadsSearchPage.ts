@@ -1,5 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 import { PageManager } from "@utils/PageManager";
+import commonReusables from "@utils/commonReusables";
 
 /**
  * This class provides utility functions for All Loads Search Page.
@@ -15,6 +16,7 @@ export default class AllLoadsSearchPage {
     private readonly searchLoads_LOC: Locator;
   // Auto-generated locators by AI Agent
   private readonly newLoadDropdown_LOC: Locator;
+  private readonly nonTabularTLDropdown_LOC: Locator;
 
     
     constructor(private page: Page) {
@@ -24,6 +26,7 @@ export default class AllLoadsSearchPage {
         this.searchLoads_LOC = this.page.locator("//input[@id='search_loadsh_ids']");
     // Auto-generated locator assignments by AI Agent
     this.newLoadDropdown_LOC = page.locator("//*[contains(text(),'New Load Dropdown')] | //button[contains(text(),'New Load Dropdown')] | //input[contains(@value,'New Load Dropdown')]");
+    this.nonTabularTLDropdown_LOC = page.locator('[id*="nonTabularTL"], [name*="nonTabularTL"]');
     }   
 
     /**
@@ -90,6 +93,7 @@ export default class AllLoadsSearchPage {
   async clickNewLoadDropdown(): Promise<void> {
     await this.newLoadDropdown_LOC.waitFor({ state: 'visible', timeout: WAIT.SMALL });
     await this.newLoadDropdown_LOC.click();
+    await commonReusables.waitForPageStable(this.page);
     console.log('Clicked on New Load Dropdown');
   }
 
@@ -99,10 +103,10 @@ export default class AllLoadsSearchPage {
    * @created 2026-02-12
    */
   async selectNonTabularTL(value: string): Promise<void> {
-    const dropdown = this.page.locator('[id*="nonTabularTL"], [name*="nonTabularTL"]').first();
-    await dropdown.click();
+    await this.nonTabularTLDropdown_LOC.first().click();
     const option = this.page.locator(`//*[contains(text(),'${value}')]`);
     await option.click();
+    await commonReusables.waitForPageStable(this.page);
     console.log(`Selected ${value} for Non Tabular T L`);
   }
 }

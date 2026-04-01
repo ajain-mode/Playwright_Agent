@@ -67,19 +67,15 @@ test.describe.serial(
         await pages.searchCustomerPage.enterCustomerName(testData.customerName);
         await pages.searchCustomerPage.selectActiveOnCustomerPage();
         await pages.searchCustomerPage.clickOnSearchCustomer();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.searchCustomerPage.clickOnActiveCustomer();
         await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         pages.logger.info("Navigated to Enter New Load page");
       });
 
       await test.step("Step 3: Select customer value on Enter New Load form", async () => {
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         const customerName = testData['Customer Value'];
 
         await pages.nonTabularLoadPage.selectCustomerViaSelect2(customerName);
-
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Step 4 [CSV 8-26]: Fill Enter New Load page details", async () => {
@@ -173,12 +169,10 @@ test.describe.serial(
         );
         await pages.editLoadFormPage.clickOnSaveBtn();
         await alertPromise;
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Step 17 [CSV 43]: Click EDIT and select DELIVERED FINAL from status dropdown", async () => {
         await pages.viewLoadPage.clickEditButton();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
       });
 
@@ -195,9 +189,7 @@ test.describe.serial(
       await test.step("Step 19 [CSV 45]: Click on View Billing button", async () => {
         // After save, page may be in view mode — navigate to Load tab then View Billing
         await pages.editLoadPage.clickOnTab(TABS.LOAD);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.editLoadFormPage.clickOnViewBillingBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       // ===== Steps 46-47: Add New Carrier Invoice #1 (amount: 1500) =====
@@ -209,7 +201,6 @@ test.describe.serial(
         await pages.loadBillingPage.enterCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
 
         await pages.loadBillingPage.clickSaveCarrierInvoice();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       // ===== Step 48: Reload and validate payable toggle =====
@@ -221,7 +212,6 @@ test.describe.serial(
         sharedPage.on("dialog", reloadDialogHandler);
 
         await sharedPage.reload();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
         sharedPage.off("dialog", reloadDialogHandler);
 
@@ -240,7 +230,6 @@ test.describe.serial(
         await pages.loadBillingPage.enterCarrierInvoiceAmount(testData.carrierInvoiceAmount2);
 
         await pages.loadBillingPage.clickSaveCarrierInvoice();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       // ===== Step 51: Reload =====
@@ -252,7 +241,6 @@ test.describe.serial(
         sharedPage.on("dialog", reloadDialogHandler2);
 
         await sharedPage.reload();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
         sharedPage.off("dialog", reloadDialogHandler2);
       });

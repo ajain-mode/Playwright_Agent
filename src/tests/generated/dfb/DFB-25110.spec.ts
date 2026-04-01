@@ -62,7 +62,7 @@ test.describe.serial(
         await pages.agentSearchPage.nameInputOnAgentPage(testData.salesAgent);
         await pages.agentSearchPage.clickOnSearchButton();
         await pages.agentSearchPage.selectAgentByName(testData.salesAgent);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
         agentEmail = await pages.agentInfoPage.getAgentEmail();
         pages.logger.info(`Agent email captured: ${agentEmail}`);
         await pages.basePage.navigateToBaseUrl();
@@ -89,7 +89,7 @@ test.describe.serial(
 
         await pages.adminPage.hoverAndClickAdminMenu();
         await pages.adminPage.switchUser(testData.salesAgent);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle", "domcontentloaded"]);
+
 
         await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
         await pages.postAutomationRulePage.verifyCustomerPostAutomationRule(testData.customerName);
@@ -114,7 +114,7 @@ test.describe.serial(
 
       await test.step("Step 5: Click on carrier, verify loadboard status and carrier vis...", async () => {
         await pages.carrierSearchPage.selectCarrierByName(testData.Carrier);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
 
         const loadboardStatusText = await pages.viewCarrierPage.getLoadboardStatus();
         pages.logger.info(`Carrier loadboard status: ${loadboardStatusText}`);
@@ -157,10 +157,10 @@ test.describe.serial(
         if (disabledToggles.length > 0) {
         pages.logger.info(`${disabledToggles.length} toggle(s) need updating`);
         await pages.basePage.clickButtonByText("Edit");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
         await pages.viewCarrierPage.enableCarrierVisibilityToggles(disabledToggles);
         await pages.viewCarrierPage.clickSaveOnCarrierEditPage();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
         } else {
         pages.logger.info("All carrier visibility toggles already enabled");
         }
@@ -184,13 +184,13 @@ test.describe.serial(
         pages.logger.info("DME carrier toggle verified");
 
         await appManager.switchToBTMS();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
       });
 
       await test.step("Step 7: Click the New button to open the CREATE NEW ENTRY form", async () => {
         // Click New button to open CREATE NEW ENTRY form
         await pages.postAutomationRulePage.clickElementByText(POST_AUTOMATION_RULE.NEW_BUTTON);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
       });
 
       await test.step("Step 8: Select/Enter valid values for all of the fields on the CR...", async () => {

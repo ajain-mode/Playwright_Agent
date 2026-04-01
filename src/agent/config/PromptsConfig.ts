@@ -736,6 +736,59 @@ export const GUARDRAIL_RULES: GuardrailRule[] = [
     },
     errorMessage: 'Business logic (loops, if/else, .find()/.filter()/.map()) detected in spec file. Move all conditional/iteration logic into Page Object methods. Specs should only contain POM calls, expect() assertions, and variable assignments.',
   },
+  {
+    name: 'noForceTrueInGeneratedPOM',
+    description: 'Generated POM methods must never use force: true — it bypasses Playwright actionability checks and hides real issues',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      return !/force:\s*true/.test(input._generatedCode);
+    },
+    errorMessage: 'force: true detected in generated code. Never use force: true — it bypasses Playwright actionability checks (visibility, enabled, stable). Fix the root cause instead (wait for element, scroll into view, dismiss overlay).',
+  },
+  {
+    name: 'noHardcodedTimeouts',
+    description: 'Generated code must not contain hardcoded numeric timeout values — use WAIT constants',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      // Check for test.setTimeout(number) or waitForTimeout(number)
+      return !/test\.setTimeout\(\s*\d{4,}\s*\)/.test(input._generatedCode) &&
+             !/waitForTimeout\(\s*\d+\s*\)/.test(input._generatedCode);
+    },
+    errorMessage: 'Hardcoded timeout value detected. Use WAIT.SPEC_TIMEOUT, WAIT.SPEC_TIMEOUT_LARGE for test.setTimeout(). Use waitForLoadState() or element.waitFor() instead of waitForTimeout(number).',
+  },
+  {
+    name: 'noSilentCatchInGeneratedPOM',
+    description: 'Generated POM methods must never use silent .catch(() => false/\'\'/{}). Always log errors via console.warn before returning fallback values.',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      // Detect .catch(() => false), .catch(() => ''), .catch(() => {})
+      return !/\.catch\s*\(\s*\(\s*\)\s*=>\s*(false|true|''|""|``|\{\s*\})\s*\)/.test(input._generatedCode);
+    },
+    errorMessage: 'Silent .catch(() => false/\'\') detected. Use .catch((err) => { console.warn(`methodName: ${err.message}`); return fallbackValue; }) to log errors before returning fallback.',
+  },
+  {
+    name: 'noXPathTextMatchingForButtonsLinks',
+    description: 'Generated code must not use XPath contains(text()) or translate(text()) for buttons/links — use getByRole instead',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      // Detect XPath text-matching anti-patterns for buttons/links
+      return !/\/\/button\[contains\(text\(\)/.test(input._generatedCode) &&
+             !/\/\/input\[contains\(@value/.test(input._generatedCode) &&
+             !/\/\/a\[contains\(text\(\)/.test(input._generatedCode) &&
+             !/translate\(text\(\)/.test(input._generatedCode) &&
+             !/\/\/\*\[contains\(text\(\)/.test(input._generatedCode);
+    },
+    errorMessage: 'XPath text-matching locator detected for buttons/links. Use page.getByRole(\'button\', { name: text }) or page.getByRole(\'link\', { name: text }) instead.',
+  },
+  {
+    name: 'noWaitForMultipleLoadStatesInSpecs',
+    description: 'Generated spec files must not call waitForMultipleLoadStates — POM methods handle page stability internally via waitForPageStable()',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      return !/waitForMultipleLoadStates/.test(input._generatedCode);
+    },
+    errorMessage: 'waitForMultipleLoadStates() detected in spec file. Remove it — POM methods handle page stability internally via commonReusables.waitForPageStable().',
+  },
 ];
 
 /**
@@ -909,9 +962,9 @@ export const GENERATION_RULES = {
       reason: 'Method does not exist on any page object',
     },
     {
-      pattern: 'dfbHelpers.setupOfficePreConditions',
-      replacement: 'Inline office config matching DFB-97739 Step 3',
-      reason: 'Helper does not match reference multi-app pattern',
+      pattern: 'inline office config (officeCodeSearchField + searchButtonClick + officeSearchRow + ensureToggleValues)',
+      replacement: 'dfbHelpers.setupOfficePreConditions(pages, testData.officeName, toggleSettingsValue, pages.toggleSettings.verifyAutoPost)',
+      reason: 'Always use dfbHelpers.setupOfficePreConditions for office setup — it handles search, configure, toggle verification and AutoPost check in one call',
     },
     {
       pattern: 'basePage.verifyMessageDisplayed',
@@ -964,7 +1017,7 @@ export const GENERATION_RULES = {
   // 15. METHOD ALIASES — Common misgenerated method → correct method mapping.
   //     selfCheckAndFix uses these to auto-correct bad POM calls.
   METHOD_ALIASES: {
-    'basePage.clickButton': 'basePage.clickButtonByText',
+    // 'basePage.clickButton': removed — clickButton now delegates to clickButtonByText
     'basePage.navigateToHeader': 'basePage.hoverOverHeaderByText',
     'basePage.verifyMessageDisplayed': 'commonReusables.validateAlert',
     'basePage.verifyAlertMessage': 'commonReusables.validateAlert',

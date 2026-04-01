@@ -56,6 +56,13 @@ class NonTabularLoadPage {
     LoadMenuList: (menuname: string) => Locator;
     private readonly invalidFieldLocator_LOC: Locator;
 
+    // Select2 shared locators (AI Agent)
+    private readonly select2SearchField_LOC: Locator;
+    private readonly select2ResultsOption_LOC: Locator;
+    private readonly select2HighlightedOption_LOC: Locator;
+    private readonly select2SelectionBySelectId_LOC: (selectId: string) => Locator;
+    private readonly select2ContainerById_LOC: (containerId: string) => Locator;
+
     constructor(private page: Page) {
         this.shipperDropdown_LOC = page.locator("//select[@id='form_shipper_ship_point']");
         this.consigneeDropdownValue_LOC = page.locator("//select[@id='form_consignee_ship_point']");
@@ -97,6 +104,13 @@ class NonTabularLoadPage {
             return this.page.getByRole('link', { name: menuname })
         }
         this.invalidFieldLocator_LOC = page.locator('input:invalid, select:invalid, textarea:invalid').first();
+
+        // Select2 shared locators
+        this.select2SearchField_LOC = page.locator("input.select2-search__field");
+        this.select2ResultsOption_LOC = page.locator(".select2-results__option");
+        this.select2HighlightedOption_LOC = page.locator(".select2-results__option--highlighted");
+        this.select2SelectionBySelectId_LOC = (selectId: string) => page.locator(`#${selectId} ~ .select2-container .select2-selection`);
+        this.select2ContainerById_LOC = (containerId: string) => page.locator(`#${containerId}`);
     }
 
     /**
@@ -104,16 +118,16 @@ class NonTabularLoadPage {
      * Clicks the .select2-selection sibling of the hidden <select>, then clicks the matching option.
      * @param selectId - The original <select> element ID (e.g. "form_carriers_1_mileage_method")
      * @param value - The option label to select
+     * @author AI Agent
+     * @created 19-Mar-2026
      */
     async selectFromSelect2SingleDropdown(selectId: string, value: string): Promise<void> {
-        const select2Selection = this.page.locator(
-            `#${selectId} ~ .select2-container .select2-selection`
-        );
+        const select2Selection = this.select2SelectionBySelectId_LOC(selectId);
         await select2Selection.waitFor({ state: 'visible', timeout: WAIT.LARGE });
         await select2Selection.click();
         console.log(`Opened Select2 single dropdown for #${selectId}`);
 
-        const option = this.page.locator(".select2-results__option", { hasText: value });
+        const option = this.select2ResultsOption_LOC.filter({ hasText: value });
         await option.waitFor({ state: 'visible', timeout: WAIT.LARGE });
         await option.click();
         console.log(`Selected "${value}" from #${selectId}`);
@@ -133,10 +147,12 @@ class NonTabularLoadPage {
      * search field, and clicking the matching result.
      * @param select2ContainerId - The Select2 container ID (e.g. "select2-form_shipper_ship_point-container")
      * @param searchValue - The value to search and select
+     * @author AI Agent
+     * @created 19-Mar-2026
      */
     async selectFromSelect2Dropdown(select2ContainerId: string, searchValue: string): Promise<void> {
         // Click the Select2 container to open the dropdown
-        const container = this.page.locator(`#${select2ContainerId}`);
+        const container = this.select2ContainerById_LOC(select2ContainerId);
         await container.waitFor({ state: 'visible', timeout: WAIT.LARGE });
         await container.click();
         console.log(`Clicked Select2 container: #${select2ContainerId}`);
@@ -150,17 +166,15 @@ class NonTabularLoadPage {
 
         // Use pressSequentially to trigger Select2's input event on each keystroke
         // (.fill() sets the value instantly without firing per-key events that Select2 needs for filtering)
-        const searchInput = this.page.locator("input.select2-search__field");
-        await searchInput.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
-        await searchInput.pressSequentially(searchTerm, { delay: 30 });
+        await this.select2SearchField_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
+        await this.select2SearchField_LOC.pressSequentially(searchTerm, { delay: 30 });
         console.log(`Typed search term: "${searchTerm}" (from: "${searchValue}")`);
 
         // Wait for filtered results, then find the option that contains the search value name
-        const resultsContainer = this.page.locator(".select2-results__option");
-        await resultsContainer.first().waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        await this.select2ResultsOption_LOC.first().waitFor({ state: 'visible', timeout: WAIT.LARGE });
 
         // Try to find an exact match by checking option text contains the full name
-        const matchingOption = resultsContainer.filter({ hasText: shortSearch });
+        const matchingOption = this.select2ResultsOption_LOC.filter({ hasText: shortSearch });
         const matchCount = await matchingOption.count();
 
         if (matchCount > 0) {
@@ -168,9 +182,8 @@ class NonTabularLoadPage {
             console.log(`Selected matching option for: "${searchValue}"`);
         } else {
             // Fallback: click the highlighted (first) result
-            const highlighted = this.page.locator(".select2-results__option--highlighted").first();
-            await highlighted.waitFor({ state: 'visible', timeout: WAIT.LARGE });
-            await highlighted.click();
+            await this.select2HighlightedOption_LOC.first().waitFor({ state: 'visible', timeout: WAIT.LARGE });
+            await this.select2HighlightedOption_LOC.first().click();
             console.log(`Selected first highlighted option for: "${searchValue}"`);
         }
 

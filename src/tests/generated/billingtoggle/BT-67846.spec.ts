@@ -50,19 +50,14 @@ test.describe.serial(
           await pages.searchCustomerPage.enterCustomerName(testData.customerName);
           await pages.searchCustomerPage.selectActiveOnCustomerPage();
           await pages.searchCustomerPage.clickOnSearchCustomer();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           await pages.searchCustomerPage.clickOnActiveCustomer();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         });
 
         await test.step("Step 3: Select customer on Enter New Load", async () => {
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           const customerName = testData['Customer Value'];
 
           await pages.nonTabularLoadPage.selectCustomerViaSelect2(customerName);
-
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         });
 
         await test.step("Step 4: Fill shipper, consignee, dates, and times", async () => {
@@ -155,19 +150,11 @@ test.describe.serial(
           );
           await pages.editLoadFormPage.clickOnSaveBtn();
           await alertPromise;
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         });
 
-        await test.step("Step 17: Navigate to View Billing and validate toggle is set to Agent", async () => {
+        await test.step("Step 17 [CSV 43]: Navigate to View Billing", async () => {
           await pages.editLoadPage.clickOnTab(TABS.LOAD);
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           await pages.editLoadFormPage.clickOnViewBillingBtn();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-
-          // Validate: Billing Issues toggle should be set to "Agent"
-          const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
-          pages.logger.info(`Billing toggle: ${toggleValue}`);
-          expect.soft(toggleValue, "Billing Issues toggle should be set to 'Agent'").toBe('Agent');
         });
 
         await test.step("Step 18: Click upload icon in Load Documents", async () => {

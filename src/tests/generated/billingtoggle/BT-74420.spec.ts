@@ -66,19 +66,15 @@ test.describe.serial(
         await pages.searchCustomerPage.enterCustomerName(testData.customerName);
         await pages.searchCustomerPage.selectActiveOnCustomerPage();
         await pages.searchCustomerPage.clickOnSearchCustomer();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.searchCustomerPage.clickOnActiveCustomer();
         await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         pages.logger.info("Navigated to Enter New Load page");
       });
 
       await test.step("Step 3: Select customer value on Enter New Load form", async () => {
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         const customerName = testData['Customer Value'];
 
         await pages.nonTabularLoadPage.selectCustomerViaSelect2(customerName);
-
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Step 4 [CSV 6-26]: Fill Enter New Load page details (CSV 6-26)", async () => {
@@ -176,15 +172,12 @@ test.describe.serial(
         );
         await pages.editLoadFormPage.clickOnSaveBtn();
         await alertPromise;
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       // ===== Step 17: Navigate to View Billing and validate toggle =====
       await test.step("Step 17: Navigate to View Billing and validate toggle is set to Agent", async () => {
         await pages.editLoadPage.clickOnTab(TABS.LOAD);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.editLoadFormPage.clickOnViewBillingBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
         const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
         pages.logger.info(`Billing toggle: ${toggleValue}`);
@@ -205,7 +198,6 @@ test.describe.serial(
         await pages.viewLoadPage.waitForUploadSuccess();
 
         await pages.viewLoadPage.closeDocumentUploadDialogSafe();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       // ===== Steps 47-50: Upload Carrier Invoice under Payables =====
@@ -235,13 +227,11 @@ test.describe.serial(
         await alertPromise;
 
         await pages.viewLoadPage.closeDocumentUploadDialogSafe();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       // ===== Step 51: Validate payable toggle (Expected: Billing toggle is at the Agent) =====
       await test.step("Step 22: Refresh and validate billing toggle is set to Agent (Step 51)", async () => {
         await sharedPage.reload();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
         const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
         pages.logger.info(`Billing toggle: ${toggleValue}`);
@@ -260,10 +250,8 @@ test.describe.serial(
       // ===== Step 54: Save invoice and refresh (Expected: Billing should get moved to the Agent) =====
       await test.step("Step 24: Save invoice and refresh the page (Step 54)", async () => {
         await pages.loadBillingPage.clickSaveCarrierInvoice();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
         await sharedPage.reload();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
         const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
         pages.logger.info(`Billing toggle after save: ${toggleValue}`);
@@ -314,12 +302,10 @@ test.describe.serial(
         await alertPromise;
 
         await pages.viewLoadPage.closeDocumentUploadDialogSafe();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Step 28: Check price difference message for secondary invoice (Step 56)", async () => {
         await sharedPage.reload();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
         // Check finance messages on the billing page
         const messages = await pages.loadBillingPage.getFinanceMessages();

@@ -67,11 +67,9 @@ test.describe.serial(
           await pages.agentSearchPage.nameInputOnAgentPage(testData.salesAgent);
           await pages.agentSearchPage.clickOnSearchButton();
           await pages.agentSearchPage.selectAgentByName(testData.salesAgent);
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           agentEmail = await pages.agentInfoPage.getAgentEmail();
           pages.logger.info(`Agent email captured: ${agentEmail}`);
           await pages.basePage.navigateToBaseUrl();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         });
 
         await test.step("Step 3: Pre-Conditions setup — office config with DME/TNX validation (Steps 6-26)", async () => {
@@ -86,7 +84,6 @@ test.describe.serial(
           await pages.officePage.ensureTnxValue();
 
           await pages.basePage.navigateToBaseUrl();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
           await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
           await pages.searchCustomerPage.enterCustomerName(testData.customerName);
@@ -96,7 +93,6 @@ test.describe.serial(
 
           await pages.adminPage.hoverAndClickAdminMenu();
           await pages.adminPage.switchUser(testData.salesAgent);
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle", "domcontentloaded"]);
 
           await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
           await pages.postAutomationRulePage.verifyCustomerPostAutomationRule(testData.customerName);
@@ -110,7 +106,6 @@ test.describe.serial(
 
         await test.step("Step 4: Navigate to Carrier Search and search for carrier", async () => {
           await pages.basePage.navigateToBaseUrl();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           await pages.basePage.hoverOverHeaderByText(HEADERS.CARRIER);
           await pages.basePage.clickSubHeaderByText(CARRIER_SUB_MENU.SEARCH);
           await pages.carrierSearchPage.nameInputOnCarrierPage(testData.Carrier);
@@ -122,7 +117,6 @@ test.describe.serial(
 
         await test.step("Step 5: Click on carrier, verify loadboard status and carrier visibility toggles", async () => {
           await pages.carrierSearchPage.selectCarrierByName(testData.Carrier);
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
           const statusText = await pages.viewCarrierPage.getLoadboardStatus();
           if (statusText) {
@@ -137,7 +131,6 @@ test.describe.serial(
 
           const tabClicked = await pages.viewCarrierPage.clickLoadboardTab();
           if (tabClicked) {
-            await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           }
 
           let togglesFound = false;
@@ -164,10 +157,8 @@ test.describe.serial(
             if (togglesNeedUpdate) {
               console.log(`${disabledToggles.length} toggle(s) need updating`);
               await pages.basePage.clickButtonByText("Edit");
-              await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
               await pages.viewCarrierPage.enableCarrierVisibilityToggles(disabledToggles);
               await pages.viewCarrierPage.clickSaveOnCarrierEditPage();
-              await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
             } else {
               console.log("All carrier visibility toggles already enabled");
             }
@@ -195,14 +186,12 @@ test.describe.serial(
           pages.logger.info("DME carrier toggle verified");
 
           await appManager.switchToBTMS();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         });
 
         // ═══════ TEST STEPS (CSV Column F, Steps 1-55) ═══════
 
         await test.step("Step 7 [CSV 1-5]: Search customer and navigate to CREATE TL *NEW*", async () => {
           await pages.basePage.navigateToBaseUrl();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
           await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
           await pages.searchCustomerPage.enterCustomerName(testData.customerName);
@@ -274,7 +263,6 @@ test.describe.serial(
 
         await test.step("Step 13 [CSV 42-43]: Validate view mode — email, DFB fields, non-editable fields, buttons", async () => {
           await pages.editLoadPage.clickOnTab(TABS.CARRIER);
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
           await pages.viewLoadPage.scrollToDFBSection();
 

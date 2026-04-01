@@ -1,5 +1,6 @@
 import ViewLoadPage from "@pages/loads/viewLoadPage/ViewLoadPage";
 import { Locator, Page, expect } from "@playwright/test";
+import commonReusables from "@utils/commonReusables";
 
 export default class BasePage {
   private readonly mainSearchButton_LOC: Locator;
@@ -206,9 +207,9 @@ export default class BasePage {
    * @created 17-Mar-2026
    */
   async clickOnTemplateSubMenu() {
-    await this.page.waitForLoadState("networkidle");
+    await commonReusables.waitForPageStable(this.page);
     await this.templatesButton_LOC.click();
-    await this.page.waitForLoadState("networkidle");
+    await commonReusables.waitForPageStable(this.page);
   }
 
   // /**
@@ -250,26 +251,32 @@ export default class BasePage {
   // from src/utils/commonReusables.ts. Do NOT add duplicate methods here.
 
   /**
-   * clickButtonByText - Reusable method to click a button by its visible text
-   * @author AI Agent Generator
+   * clickButtonByText - Reusable method to click a button by its visible text.
+   * Uses Playwright's getByRole('button') which matches <button>, <input type="button|submit|reset">
+   * and uses accessible name (text content or value attribute) — case-insensitive by default.
+   * @author AI Agent
    * @created 2026-02-12
    */
   async clickButtonByText(buttonText: string): Promise<void> {
-    const button = this.page.locator(`//button[contains(text(),'${buttonText}')] | //input[contains(@value,'${buttonText}')]`);
-    await expect(button).toBeVisible({ timeout: WAIT.SMALL });
+    const button = this.page.getByRole('button', { name: buttonText });
+    await button.waitFor({ state: 'visible', timeout: WAIT.SMALL });
     await button.click();
+    await commonReusables.waitForPageStable(this.page);
     console.log(`Clicked button: ${buttonText}`);
   }
 
   /**
-   * clickLinkByText - Reusable method to click a link or element by its text
-   * @author AI Agent Generator
+   * clickLinkByText - Reusable method to click a link by its visible text.
+   * Uses Playwright's getByRole('link') which matches <a> elements
+   * and uses accessible name — case-insensitive by default.
+   * @author AI Agent
    * @created 2026-02-12
    */
   async clickLinkByText(linkText: string): Promise<void> {
-    const link = this.page.locator(`//a[contains(text(),'${linkText}')] | //*[contains(text(),'${linkText}')]`).first();
-    await expect(link).toBeVisible({ timeout: WAIT.SMALL });
+    const link = this.page.getByRole('link', { name: linkText }).first();
+    await link.waitFor({ state: 'visible', timeout: WAIT.SMALL });
     await link.click();
+    await commonReusables.waitForPageStable(this.page);
     console.log(`Clicked link: ${linkText}`);
   }
 
@@ -282,6 +289,7 @@ export default class BasePage {
     const dropdown = this.page.locator(`#${dropdownId}`);
     await expect(dropdown).toBeVisible({ timeout: WAIT.SMALL });
     await dropdown.click();
+    await commonReusables.waitForPageStable(this.page);
     console.log(`Clicked dropdown: ${dropdownId}`);
   }
 
@@ -306,6 +314,7 @@ export default class BasePage {
     const field = this.page.locator(`[id='${fieldIdentifier}'], [name='${fieldIdentifier}']`).first();
     await expect(field).toBeVisible({ timeout: WAIT.SMALL });
     await field.selectOption({ label: optionLabel });
+    await commonReusables.waitForPageStable(this.page);
     console.log(`Selected '${optionLabel}' from field '${fieldIdentifier}'`);
   }
 
@@ -318,22 +327,20 @@ export default class BasePage {
   async navigateToBaseUrl(): Promise<void> {
     const baseUrl = new URL(this.page.url()).origin;
     await this.page.goto(baseUrl);
-    await this.waitForMultipleLoadStates(["load", "networkidle"]);
+    await commonReusables.waitForPageStable(this.page);
     await this.siteMenuContainer_LOC.waitFor({ state: 'visible', timeout: WAIT.MID });
     console.log('Navigated to BTMS base URL');
   }
 
   /**
    * Clicks a button by its visible text label.
+   * Delegates to clickButtonByText — kept as alias for backward compatibility with generated specs.
    * @author AI Agent
    * @created 17-Mar-2026
    * @param buttonText - The button text to match.
    */
   async clickButton(buttonText: string): Promise<void> {
-    const btn = this.page.locator(`//button[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'${buttonText.toLowerCase()}')] | //input[contains(translate(@value,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'${buttonText.toLowerCase()}')]`);
-    await btn.waitFor({ state: 'visible', timeout: WAIT.SMALL });
-    await btn.click();
-    console.log(`Clicked on "${buttonText}" button`);
+    await this.clickButtonByText(buttonText);
   }
 
 }

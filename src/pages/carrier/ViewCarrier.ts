@@ -27,6 +27,10 @@ export default class ViewCarrier {
     private readonly loadboardStatus_LOC: Locator;
     private readonly modeIQTab_LOC: Locator;
     private readonly carrierEditSaveBtn_LOC: Locator;
+    private readonly carrierVisibilityListItems_LOC: Locator;
+    private readonly carrierVisibilitySliderInput_LOC: Locator;
+    private readonly carrierVisibilitySliderLabel_LOC: Locator;
+    private readonly elementByTextContains_LOC: (text: string) => Locator;
 
     constructor(private page: Page) {
         this.mcNumberDetails_LOC = page.locator("//label[@for='mc_num']/parent::td/following-sibling::td[@class='three-across view'][1]");
@@ -51,8 +55,12 @@ export default class ViewCarrier {
         this.bcaSignedSubmittedCell = page.locator("//td[normalize-space()='BCA: Signed & Submitted']");
         this.brokerAuthorityCell = page.locator("//tr[@id='statusbox2']//td[contains(normalize-space(text()), 'Broker: Active')]");
         this.loadboardStatus_LOC = page.locator("#carrier_status_label");
-        this.modeIQTab_LOC = page.locator("li[id^='carrform_tab'] a").filter({ hasText: /MODE IQ|LoadBoard/i });
+        this.modeIQTab_LOC = page.locator("#carrform_tab_8 a");
         this.carrierEditSaveBtn_LOC = page.locator("input[type='button'][value='  Save  ']");
+        this.carrierVisibilityListItems_LOC = page.locator("#carrier_visibility_brands_list .list_item");
+        this.carrierVisibilitySliderInput_LOC = page.locator("input.carrier_visibility_slider_input");
+        this.carrierVisibilitySliderLabel_LOC = page.locator("label.carrier_visibility_switch");
+        this.elementByTextContains_LOC = (text: string) => page.locator(`//*[contains(text(),'${text}')]`);
     }
 
     /**
@@ -322,43 +330,22 @@ export default class ViewCarrier {
      * @created 17-Mar-2026
      */
     async getLoadboardStatus(): Promise<string> {
-        if (await this.loadboardStatus_LOC.isVisible({ timeout: WAIT.MID }).catch(() => false)) {
-            const text = (await this.loadboardStatus_LOC.textContent())?.trim() || '';
-            console.log(`Loadboard/Mode IQ Status: "${text}"`);
-            return text;
-        }
-        console.log('Loadboard/Mode IQ Status element not found — tab may need to be clicked first');
-        return '';
+        await this.loadboardStatus_LOC.waitFor({ state: 'visible', timeout: WAIT.MID });
+        const text = (await this.loadboardStatus_LOC.textContent())?.trim() || '';
+        console.log(`Loadboard/Mode IQ Status: "${text}"`);
+        return text;
     }
 
     /**
-     * Clicks the Mode IQ tab (formerly LoadBoard / Mode ID) on the carrier page.
-     * Matches all known tab name variants: "Mode IQ", "Mode ID", "LoadBoard".
+     * Clicks the Mode IQ tab (#carrform_tab_8) on the carrier page.
      * @author AI Agent
      * @created 17-Mar-2026
      */
-    async clickLoadboardTab(): Promise<boolean> {
-        if (await this.modeIQTab_LOC.first().isVisible({ timeout: WAIT.SMALL }).catch(() => false)) {
-            const tabLi = this.modeIQTab_LOC.first().locator('xpath=ancestor::li[starts-with(@id,"carrform_tab_")]');
-            const tabId = await tabLi.getAttribute('id') || '';
-            const tabIndex = tabId.replace('carrform_tab_', '');
-            await this.page.evaluate((idx) => (window as any).showMainTab(Number(idx)), tabIndex);
-            console.log(`Clicked Mode IQ tab (index: ${tabIndex})`);
-            return true;
-        }
-        console.log('Mode IQ tab not found — verify tab name manually');
-        return false;
-    }
-
-    /**
-     * Checks if a carrier visibility label is visible on the page.
-     * @author AI Agent
-     * @created 17-Mar-2026
-     * @param name - The carrier visibility label name to check.
-     */
-    async isCarrierVisibilityLabelVisible(name: string): Promise<boolean> {
-        const label = this.page.locator(`//*[contains(text(),'${name}')]`).first();
-        return label.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false);
+    async clickLoadboardTab(): Promise<void> {
+        await this.modeIQTab_LOC.waitFor({ state: 'visible', timeout: WAIT.SMALL });
+        await this.modeIQTab_LOC.click();
+        await commonReusables.waitForPageStable(this.page);
+        console.log('Clicked Mode IQ tab');
     }
 
     /**
@@ -369,28 +356,26 @@ export default class ViewCarrier {
      * @returns Record mapping each carrier name to its enabled state and debug info.
      */
     async getCarrierVisibilityToggleStates(carriers: string[]): Promise<Record<string, { enabled: boolean; debug: string }>> {
-        return this.page.evaluate((carrierNames: string[]) => {
-            const results: Record<string, { enabled: boolean; debug: string }> = {};
-            const listItems = document.querySelectorAll("#carrier_visibility_brands_list .list_item");
+        const results: Record<string, { enabled: boolean; debug: string }> = {};
 
-            for (const name of carrierNames) {
+        for (const name of carriers) {
+            try {
                 results[name] = { enabled: false, debug: "list_item not found" };
-
-                for (const item of listItems) {
-                    const nameSpan = item.querySelector(":scope > span");
-                    if (!nameSpan || !nameSpan.textContent?.trim().includes(name)) continue;
-
-                    const checkbox = item.querySelector("input.carrier_visibility_slider_input") as HTMLInputElement | null;
-                    if (checkbox) {
-                        results[name] = { enabled: checkbox.checked, debug: `checkbox.checked=${checkbox.checked}` };
-                    } else {
-                        results[name].debug = "checkbox not found in list_item";
-                    }
-                    break;
+                const listItem = this.carrierVisibilityListItems_LOC.filter({ hasText: name }).first();
+                await listItem.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
+                const checkbox = listItem.locator(this.carrierVisibilitySliderInput_LOC);
+                if (await checkbox.count() > 0) {
+                    const isChecked = await checkbox.isChecked();
+                    results[name] = { enabled: isChecked, debug: `checkbox.checked=${isChecked}` };
+                } else {
+                    results[name].debug = "checkbox not found in list_item";
                 }
+            } catch (err) {
+                console.error(`getCarrierVisibilityToggleStates("${name}"): ${(err as Error).message}`);
+                throw err;
             }
-            return results;
-        }, carriers);
+        }
+        return results;
     }
 
     /**
@@ -401,20 +386,24 @@ export default class ViewCarrier {
      */
     async enableCarrierVisibilityToggles(disabledCarriers: string[]): Promise<void> {
         for (const name of disabledCarriers) {
-            const listItem = this.page.locator(`#carrier_visibility_brands_list .list_item`).filter({ hasText: name }).first();
-            const checkbox = listItem.locator("input.carrier_visibility_slider_input");
-            if (await checkbox.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
-                const isChecked = await checkbox.isChecked();
-                if (!isChecked) {
-                    await checkbox.check();
-                    console.log(`Enabled toggle for "${name}"`);
-                }
-            } else {
-                const sliderLabel = listItem.locator("label.carrier_visibility_switch");
-                if (await sliderLabel.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+            try {
+                const listItem = this.carrierVisibilityListItems_LOC.filter({ hasText: name }).first();
+                const checkbox = listItem.locator(this.carrierVisibilitySliderInput_LOC);
+                if (await checkbox.count() > 0 && await checkbox.isVisible({ timeout: WAIT.DEFAULT })) {
+                    const isChecked = await checkbox.isChecked();
+                    if (!isChecked) {
+                        await checkbox.check();
+                        console.log(`Enabled toggle for "${name}"`);
+                    }
+                } else {
+                    const sliderLabel = listItem.locator(this.carrierVisibilitySliderLabel_LOC);
+                    await sliderLabel.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
                     await sliderLabel.click();
                     console.log(`Enabled toggle for "${name}" (via label click)`);
                 }
+            } catch (err) {
+                console.error(`enableCarrierVisibilityToggles("${name}"): ${(err as Error).message}`);
+                throw err;
             }
         }
     }
@@ -427,6 +416,7 @@ export default class ViewCarrier {
     async clickSaveOnCarrierEditPage(): Promise<void> {
         await this.carrierEditSaveBtn_LOC.waitFor({ state: "visible", timeout: WAIT.SMALL });
         await this.carrierEditSaveBtn_LOC.click();
+        await commonReusables.waitForPageStable(this.page);
         console.log('Clicked Save on carrier edit page');
     }
 
@@ -436,35 +426,14 @@ export default class ViewCarrier {
      * @author AI Agent
      * @created 26-Mar-2026
      * @param requiredVisibility - Array of carrier visibility label names to ensure are enabled.
-     * @param basePage - BasePage instance for clicking Edit and waiting for load states.
      */
     async ensureCarrierVisibilityTogglesEnabled(
-        requiredVisibility: string[],
-        basePage: { clickButtonByText: (text: string) => Promise<void>; waitForMultipleLoadStates: (states: string[]) => Promise<void> }
+        requiredVisibility: string[]
     ): Promise<void> {
-        const tabClicked = await this.clickLoadboardTab();
-        if (!tabClicked) {
-            console.log('Mode IQ tab not found — carrier visibility check skipped');
-            return;
-        }
-        await basePage.waitForMultipleLoadStates(['load', 'networkidle']);
+        await this.clickLoadboardTab();
 
         // Wait for the carrier visibility brands list to be dynamically populated (loaded via AJAX)
-        const brandsList = this.page.locator('#carrier_visibility_brands_list .list_item').first();
-        await brandsList.waitFor({ state: 'visible', timeout: WAIT.MID }).catch(() => null);
-
-        let togglesFound = false;
-        for (const name of requiredVisibility) {
-            if (await this.isCarrierVisibilityLabelVisible(name)) {
-                togglesFound = true;
-                break;
-            }
-        }
-
-        if (!togglesFound) {
-            console.log('Carrier visibility labels not found — toggle check skipped');
-            return;
-        }
+        await this.carrierVisibilityListItems_LOC.first().waitFor({ state: 'visible', timeout: WAIT.MID });
 
         const toggleStates = await this.getCarrierVisibilityToggleStates(requiredVisibility);
         const disabledToggles: string[] = [];
@@ -478,11 +447,10 @@ export default class ViewCarrier {
 
         if (disabledToggles.length > 0) {
             console.log(`${disabledToggles.length} toggle(s) need updating: ${disabledToggles.join(', ')}`);
-            await basePage.clickButtonByText('Edit');
-            await basePage.waitForMultipleLoadStates(['load', 'networkidle']);
+            await this.page.getByRole('button', { name: 'Edit' }).click();
+            await commonReusables.waitForPageStable(this.page);
             await this.enableCarrierVisibilityToggles(disabledToggles);
             await this.clickSaveOnCarrierEditPage();
-            await basePage.waitForMultipleLoadStates(['load', 'networkidle']);
         } else {
             console.log('All carrier visibility toggles already enabled — skipping Edit/Save (steps 33-35)');
         }

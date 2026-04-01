@@ -77,7 +77,6 @@ test.describe.serial(
 
         await pages.adminPage.hoverAndClickAdminMenu();
         await pages.adminPage.switchUser(testData.salesAgent);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle", "domcontentloaded"]);
 
         await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
         await pages.postAutomationRulePage.verifyCustomerPostAutomationRule(testData.customerName);
@@ -110,7 +109,6 @@ test.describe.serial(
         pages.logger.info("Precondition Step 40: DME carrier toggle verified");
 
         await appManager.switchToBTMS();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Step 4 [CSV 1-3]: Carrier tab — enter offer rate, select carrier, check auto accept", async () => {
@@ -182,10 +180,7 @@ test.describe.serial(
         const avgRate = await pages.viewLoadPage.getAvgRate();
         pages.logger.info(`Avg Rate: ${avgRate}`);
         expect.soft(avgRate, "Avg Rate should be populated after booking").toBeTruthy();
-
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
-
 
       }
     );

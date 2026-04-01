@@ -220,7 +220,7 @@ export default class EditOfficeInfoPage {
    */
   async ensureTnxValue(): Promise<void> {
     // TODO: Implement ensureTnxValue - auto-generated placeholder
-    await this.page.waitForLoadState('load');
+    await commonReusables.waitForPageStable(this.page);
   }
 
   /**
@@ -230,7 +230,7 @@ export default class EditOfficeInfoPage {
    */
   async ensureToggleValues(): Promise<void> {
     // TODO: Implement ensureToggleValues - auto-generated placeholder
-    await this.page.waitForLoadState('load');
+    await commonReusables.waitForPageStable(this.page);
   }
 
   /**
@@ -240,6 +240,6 @@ export default class EditOfficeInfoPage {
    */
   async configureOfficePreConditions(): Promise<void> {
     // TODO: Implement configureOfficePreConditions - auto-generated placeholder
-    await this.page.waitForLoadState('load');
+    await commonReusables.waitForPageStable(this.page);
   }
 }

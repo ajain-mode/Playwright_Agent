@@ -1151,7 +1151,7 @@ export class PlaywrightAgent {
     // Fix 12: POM method validation — detect calls to non-existent or misnamed methods
     {
       const METHOD_ALIASES: Record<string, string> = {
-        'basePage.clickButton': 'basePage.clickButtonByText',
+        // 'basePage.clickButton': 'basePage.clickButtonByText', — clickButton now delegates to clickButtonByText
         'basePage.navigateToHeader': 'basePage.hoverOverHeaderByText',
         'basePage.verifyMessageDisplayed': 'commonReusables.validateAlert',
         'basePage.verifyAlertMessage': 'commonReusables.validateAlert',

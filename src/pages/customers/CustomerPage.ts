@@ -1,4 +1,5 @@
 import { Locator, Page } from "@playwright/test";
+import commonReusables from "@utils/commonReusables";
 
 /**
  * CustomerPage handles customer search, cargo value management, and load navigation operations
@@ -354,6 +355,7 @@ class CustomerPage {
   async clickOnSearchCustomer(): Promise<void> {
     await this.searchCustomer_LOC.waitFor({ state: 'visible', timeout: WAIT.SMALL });
     await this.searchCustomer_LOC.click();
+    await commonReusables.waitForPageStable(this.page);
     console.log('Clicked on Search Customer');
   }
 }

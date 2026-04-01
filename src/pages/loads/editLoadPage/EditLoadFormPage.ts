@@ -579,6 +579,7 @@ export class EditLoadFormPage {
   async selectMileageEngine(value: string): Promise<void> {
     await this.mileageEngine_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
     await this.mileageEngine_LOC.selectOption({ label: value });
+    await commonReusables.waitForPageStable(this.page);
     console.log(`Selected Mileage Engine: ${value}`);
   }
 
@@ -590,6 +591,7 @@ export class EditLoadFormPage {
   async selectMileageMethod(value: string): Promise<void> {
     await this.mileageMethod_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
     await this.mileageMethod_LOC.selectOption({ label: value });
+    await commonReusables.waitForPageStable(this.page);
     console.log(`Selected Mileage Method: ${value}`);
   }
 
@@ -622,12 +624,15 @@ export class EditLoadFormPage {
    * @created 17-Mar-2026
    */
   async getRateTypeValue(): Promise<string> {
-    if (await this.rateTypeDropdown_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+    try {
+      await this.rateTypeDropdown_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
       const value = await this.rateTypeDropdown_LOC.inputValue();
       console.log(`Rate Type value: ${value}`);
       return value;
+    } catch (err) {
+      console.error(`getRateTypeValue: ${(err as Error).message}`);
+      throw err;
     }
-    return '';
   }
 
   /**
@@ -636,7 +641,12 @@ export class EditLoadFormPage {
    * @created 17-Mar-2026
    */
   async isRateTypeFieldVisible(): Promise<boolean> {
-    return this.rateTypeDropdown_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false);
+    try {
+      return await this.rateTypeDropdown_LOC.isVisible({ timeout: WAIT.DEFAULT });
+    } catch (err) {
+      console.error(`isRateTypeFieldVisible: ${(err as Error).message}`);
+      throw err;
+    }
   }
 
   /**
@@ -646,12 +656,15 @@ export class EditLoadFormPage {
    * @created 17-Mar-2026
    */
   async getLinehaulDefaultValue(): Promise<string> {
-    if (await this.linehaulRateType_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+    try {
+      await this.linehaulRateType_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
       const value = await this.linehaulRateType_LOC.inputValue();
       console.log(`Linehaul rate type: ${value}`);
       return value;
+    } catch (err) {
+      console.error(`getLinehaulDefaultValue: ${(err as Error).message}`);
+      throw err;
     }
-    return '';
   }
 
   /**
@@ -660,12 +673,15 @@ export class EditLoadFormPage {
    * @created 17-Mar-2026
    */
   async getFuelSurchargeDefaultValue(): Promise<string> {
-    if (await this.fuelSurchargeRateType_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+    try {
+      await this.fuelSurchargeRateType_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
       const value = await this.fuelSurchargeRateType_LOC.inputValue();
       console.log(`Fuel Surcharge rate type: ${value}`);
       return value;
+    } catch (err) {
+      console.error(`getFuelSurchargeDefaultValue: ${(err as Error).message}`);
+      throw err;
     }
-    return '';
   }
 
   /**
@@ -676,6 +692,7 @@ export class EditLoadFormPage {
   async selectMethod(value: string): Promise<void> {
     await this.methodDropdown_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
     await this.methodDropdown_LOC.selectOption({ label: value });
+    await commonReusables.waitForPageStable(this.page);
     console.log(`Selected Method: ${value}`);
   }
 

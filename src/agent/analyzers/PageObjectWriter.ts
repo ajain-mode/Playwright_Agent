@@ -390,6 +390,10 @@ export class PageObjectWriter {
   private validateNoInlineLocators(methodName: string, body: string): string[] {
     const warnings: string[] = [];
     const inlineLocatorPattern = /this\.page\.locator\s*\(/g;
+    const forcePattern = /force:\s*true/g;
+    const silentCatchPattern = /\.catch\s*\(\s*\(\s*\)\s*=>\s*(false|true|''|""|``|\{\s*\})\s*\)/g;
+    const xpathTextPattern = /\/\/button\[contains\(text\(\)|\/\/input\[contains\(@value|\/\/a\[contains\(text\(\)|translate\(text\(\)|\/\/\*\[contains\(text\(\)/g;
+    const waitForMultiplePattern = /waitForMultipleLoadStates/g;
     const lines = body.split('\n');
     for (let i = 0; i < lines.length; i++) {
       if (inlineLocatorPattern.test(lines[i])) {
@@ -399,6 +403,34 @@ export class PageObjectWriter {
         );
       }
       inlineLocatorPattern.lastIndex = 0;
+      if (forcePattern.test(lines[i])) {
+        warnings.push(
+          `   ⚠️ POM Standard Violation: Method '${methodName}' uses force: true at body line ${i + 1}. ` +
+          `Never use force: true — fix the root cause instead.`
+        );
+      }
+      forcePattern.lastIndex = 0;
+      if (silentCatchPattern.test(lines[i])) {
+        warnings.push(
+          `   ⚠️ POM Standard Violation: Method '${methodName}' has silent .catch() at body line ${i + 1}. ` +
+          `Use .catch((err) => { console.warn(\`...: \${err.message}\`); return fallback; }) instead.`
+        );
+      }
+      silentCatchPattern.lastIndex = 0;
+      if (xpathTextPattern.test(lines[i])) {
+        warnings.push(
+          `   ⚠️ POM Standard Violation: Method '${methodName}' uses XPath text-matching at body line ${i + 1}. ` +
+          `Use page.getByRole('button', { name }) or page.getByRole('link', { name }) instead.`
+        );
+      }
+      xpathTextPattern.lastIndex = 0;
+      if (waitForMultiplePattern.test(lines[i])) {
+        warnings.push(
+          `   ⚠️ POM Standard Violation: Method '${methodName}' uses waitForMultipleLoadStates at body line ${i + 1}. ` +
+          `Use commonReusables.waitForPageStable(this.page) instead.`
+        );
+      }
+      waitForMultiplePattern.lastIndex = 0;
     }
     return warnings;
   }

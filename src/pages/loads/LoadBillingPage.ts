@@ -534,14 +534,14 @@ class LoadBillingPage {
         const valueMap: Record<string, string> = { '1': 'Billing', '2': 'Neutral', '3': 'Agent' };
 
         // Primary: hidden input #fi_waiting_on (source of truth)
-        const hiddenVal = await this.billingToggleHiddenField_LOC.inputValue().catch(() => '');
+        const hiddenVal = await this.billingToggleHiddenField_LOC.inputValue().catch((err) => { console.warn(`getBillingToggleValue hiddenField: ${err.message}`); return ''; });
         if (valueMap[hiddenVal]) {
             console.log(`Billing toggle from #fi_waiting_on: ${valueMap[hiddenVal]}`);
             return valueMap[hiddenVal];
         }
 
         // Fallback: data-slider-value on #waiting_on_select
-        const dataVal = await this.billingToggleSliderInput_LOC.getAttribute('data-slider-value').catch(() => '');
+        const dataVal = await this.billingToggleSliderInput_LOC.getAttribute('data-slider-value').catch((err) => { console.warn(`getBillingToggleValue sliderAttr: ${err.message}`); return ''; });
         if (dataVal && valueMap[dataVal]) {
             console.log(`Billing toggle from data-slider-value: ${valueMap[dataVal]}`);
             return valueMap[dataVal];
@@ -563,33 +563,30 @@ class LoadBillingPage {
         const valueMap: Record<string, string> = { '1': 'Payables', '2': 'Neutral', '3': 'Agent' };
 
         // Primary: hidden input name="payables_waiting_on" (source of truth, updated on slideStop)
-        const hiddenVal = await this.payableToggleHiddenField_LOC.inputValue().catch(() => '');
+        const hiddenVal = await this.payableToggleHiddenField_LOC.inputValue().catch((err) => { console.warn(`getPayableToggleValue hiddenField: ${err.message}`); return ''; });
         if (hiddenVal && valueMap[hiddenVal]) {
             console.log(`Payable toggle from hidden input: ${valueMap[hiddenVal]} (raw: ${hiddenVal})`);
             return valueMap[hiddenVal];
         }
 
         // Fallback 1: data-slider-value attribute on the slider input
-        const dataVal = await this.payableToggleSliderInput_LOC.getAttribute('data-slider-value').catch(() => '');
+        const dataVal = await this.payableToggleSliderInput_LOC.getAttribute('data-slider-value').catch((err) => { console.warn(`getPayableToggleValue data-slider-value: ${err.message}`); return ''; });
         if (dataVal && valueMap[dataVal]) {
             console.log(`Payable toggle from data-slider-value: ${valueMap[dataVal]} (raw: ${dataVal})`);
             return valueMap[dataVal];
         }
 
         // Fallback 2: read value attribute directly from the slider input
-        const valAttr = await this.payableToggleSliderInput_LOC.getAttribute('value').catch(() => '');
+        const valAttr = await this.payableToggleSliderInput_LOC.getAttribute('value').catch((err) => { console.warn(`getPayableToggleValue value attr: ${err.message}`); return ''; });
         if (valAttr && valueMap[valAttr]) {
             console.log(`Payable toggle from value attr: ${valueMap[valAttr]} (raw: ${valAttr})`);
             return valueMap[valAttr];
         }
 
-        // Fallback 3: evaluate the slider position via JavaScript on the bootstrap-slider widget
-        const sliderVal = await this.page.evaluate(() => {
-            const el = document.querySelector('input.payables_waiting_on_select') as HTMLInputElement;
-            if (!el) return '';
-            // bootstrap-slider stores value in data-value or via jQuery .slider('getValue')
-            return el.getAttribute('data-slider-value') || el.value || '';
-        }).catch(() => '');
+        // Fallback 3: evaluate the slider position via the constructor locator
+        const sliderVal = await this.payableToggleSliderInput_LOC.evaluate((el) => {
+            return el.getAttribute('data-slider-value') || (el as HTMLInputElement).value || '';
+        }).catch((err) => { console.warn(`getPayableToggleValue evaluate: ${err.message}`); return ''; });
         if (sliderVal && valueMap[sliderVal]) {
             console.log(`Payable toggle from JS evaluate: ${valueMap[sliderVal]} (raw: ${sliderVal})`);
             return valueMap[sliderVal];
@@ -608,6 +605,7 @@ class LoadBillingPage {
         await this.addNewCarrierInvoiceBtn_LOC.scrollIntoViewIfNeeded();
         await this.addNewCarrierInvoiceBtn_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
         await this.addNewCarrierInvoiceBtn_LOC.click();
+        await commonReusables.waitForPageStable(this.page);
         await this.carrierInvoiceDialogForm_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
         console.log("Opened Add Carrier Invoice dialog");
     }
@@ -642,6 +640,7 @@ class LoadBillingPage {
     async clickSaveCarrierInvoice(): Promise<void> {
         await this.saveCarrierInvoiceBtn_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
         await this.saveCarrierInvoiceBtn_LOC.click();
+        await commonReusables.waitForPageStable(this.page);
         console.log("Clicked Save Invoice button");
     }
 
@@ -687,8 +686,7 @@ class LoadBillingPage {
             this.page.context().waitForEvent('page'),
             this.viewHistoryLink_LOC.click(),
         ]);
-        await historyPopup.waitForLoadState("load");
-        await historyPopup.waitForLoadState("networkidle");
+        await commonReusables.waitForPageStable(historyPopup);
         console.log("View History popup window opened");
         return historyPopup;
     }
@@ -699,13 +697,15 @@ class LoadBillingPage {
      * @created 17-Mar-2026
      */
     async isNotDeliveredFinalChecked(): Promise<boolean> {
-        if (!(await this.notDeliveredFinalCheckbox_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false))) {
-            console.log('Not Deliv. Final checkbox #Delivs not found');
-            return false;
+        try {
+            await this.notDeliveredFinalCheckbox_LOC.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
+            const checked = await this.notDeliveredFinalCheckbox_LOC.isChecked();
+            console.log(`Not Deliv. Final checkbox is ${checked ? 'checked' : 'unchecked'}`);
+            return checked;
+        } catch (err) {
+            console.error(`isNotDeliveredFinalChecked: ${(err as Error).message}`);
+            throw err;
         }
-        const checked = await this.notDeliveredFinalCheckbox_LOC.isChecked();
-        console.log(`Not Deliv. Final checkbox is ${checked ? 'checked' : 'unchecked'}`);
-        return checked;
     }
 
     /**
@@ -716,6 +716,7 @@ class LoadBillingPage {
     async toggleNotDeliveredFinal(): Promise<void> {
         await this.notDeliveredFinalLabel_LOC.scrollIntoViewIfNeeded();
         await this.notDeliveredFinalLabel_LOC.click();
+        await commonReusables.waitForPageStable(this.page);
         console.log('Toggled Not Delivered Final checkbox');
     }
 
@@ -725,7 +726,13 @@ class LoadBillingPage {
      * @created 17-Mar-2026
      */
     async isNotDeliveredFinalVisible(): Promise<boolean> {
-        return this.notDeliveredFinalLabel_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false);
+        try {
+            await this.notDeliveredFinalLabel_LOC.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
+            return true;
+        } catch (err) {
+            console.error(`isNotDeliveredFinalVisible: ${(err as Error).message}`);
+            throw err;
+        }
     }
     /**
      * Reads and returns the full body text from a popup Page object (e.g. View History popup).
@@ -734,7 +741,7 @@ class LoadBillingPage {
      * @param popup - The popup Page returned by clickViewHistoryAndGetPopup()
      */
     async getPopupBodyText(popup: import('@playwright/test').Page): Promise<string> {
-        return (await popup.locator("body").textContent()) || '';
+        return (await popup.textContent("body")) || '';
     }
 
     /**
@@ -778,7 +785,7 @@ class LoadBillingPage {
 
         // The INVOICED alert may fire as a second dialog after networkidle settles
         if (!alertMessages.some(msg => invoicedPattern.test(msg))) {
-            await sharedPage.waitForEvent('dialog', { timeout: WAIT.SMALL }).catch(() => {});
+            await sharedPage.waitForEvent('dialog', { timeout: WAIT.SMALL }).catch((err) => { console.warn(`saveAndCaptureInvoicedAlert optional dialog: ${err.message}`); });
         }
 
         sharedPage.off("dialog", dialogHandler);

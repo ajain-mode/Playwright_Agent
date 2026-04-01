@@ -82,6 +82,7 @@ export default class ViewLoadPage {
   private readonly dfbLoadBoardSection_LOC: Locator;
   private readonly autoAcceptCheckbox_LOC: Locator;
   private readonly carrierContactDropdown_LOC: Locator;
+  private readonly optionElements_LOC: Locator;
   private readonly commissionsIframe_LOC: string;
   private readonly commissionsFooterCell_LOC: string;
   private readonly internalShareRows_LOC: Locator;
@@ -199,6 +200,7 @@ export default class ViewLoadPage {
     this.dfbLoadBoardSection_LOC = this.page.locator("#tnx_load_board");
     this.autoAcceptCheckbox_LOC = this.page.locator("//input[@id='form_auto_accept']");
     this.carrierContactDropdown_LOC = this.page.locator("//select[@id='form_accept_as_user']");
+    this.optionElements_LOC = this.page.locator("option");
     this.commissionsIframe_LOC = "#iframe_commissions";
     this.commissionsFooterCell_LOC = "//table[@id='example']//tfoot/tr/td[10]";
     this.internalShareRows_LOC = this.page.locator("//table[@id='commissioninternal_']//tr");
@@ -378,8 +380,9 @@ export default class ViewLoadPage {
    * @created 17-Mar-2026
    */
   async clickloadTab() {
-    await this.page.waitForLoadState("domcontentloaded");
+    await commonReusables.waitForPageStable(this.page);
     await this.loadTab_LOC.click();
+    await commonReusables.waitForPageStable(this.page);
   }
 
   /**
@@ -390,10 +393,11 @@ export default class ViewLoadPage {
   async clickCommissionsTab(shouldReload = true): Promise<void> {
     if (shouldReload) {
       await this.page.reload();
-      await this.page.waitForLoadState("load");
+      await commonReusables.waitForPageStable(this.page);
     }
     await this.commissionsTab_LOC.waitFor({ state: "visible" });
-    await this.commissionsTab_LOC.click({ force: true });
+    await this.commissionsTab_LOC.click();
+    await commonReusables.waitForPageStable(this.page);
   }
 
   /**
@@ -1290,6 +1294,7 @@ export default class ViewLoadPage {
   async selectDrop1OnLoadTab(): Promise<void> {
     await this.drop1Tab_LOC.first().waitFor({ state: 'visible' });
     await this.drop1Tab_LOC.first().click();
+    await commonReusables.waitForPageStable(this.page);
     console.log('Clicked on Drop 1 link on Load tab');
   }
 
@@ -1303,6 +1308,7 @@ export default class ViewLoadPage {
     const isChecked = await this.autoLoadTenderCheckbox_LOC.isChecked();
     if (!isChecked) {
       await this.autoLoadTenderCheckbox_LOC.check();
+      await commonReusables.waitForPageStable(this.page);
       console.log('Auto Load Tender checkbox checked');
     }
   }
@@ -1374,7 +1380,7 @@ export default class ViewLoadPage {
     await this.uploadDocumentIcon_LOC.first().scrollIntoViewIfNeeded();
     await this.uploadDocumentIcon_LOC.first().waitFor({ state: "visible", timeout: WAIT.LARGE });
     await this.uploadDocumentIcon_LOC.first().click();
-    await this.page.waitForTimeout(2000);
+    await commonReusables.waitForPageStable(this.page);
     console.log("Opened Document Upload Utility");
   }
 
@@ -1385,13 +1391,18 @@ export default class ViewLoadPage {
    * @created 17-Mar-2026
    */
   async closeDocumentUploadDialogSafe(): Promise<void> {
-    if (await this.closeDocumentUploadDialog_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
-      await this.closeDocumentUploadDialog_LOC.click({ force: true });
-    } else {
-      await this.page.keyboard.press('Escape');
+    try {
+      if (await this.closeDocumentUploadDialog_LOC.isVisible({ timeout: WAIT.DEFAULT })) {
+        await this.closeDocumentUploadDialog_LOC.click();
+      } else {
+        await this.page.keyboard.press('Escape');
+      }
+      await commonReusables.waitForPageStable(this.page);
+      console.log("Closed Document Upload Utility dialog");
+    } catch (err) {
+      console.error(`closeDocumentUploadDialogSafe: ${(err as Error).message}`);
+      throw err;
     }
-    await commonReusables.waitForPageStable(this.page);
-    console.log("Closed Document Upload Utility dialog");
   }
 
   /**
@@ -1402,6 +1413,7 @@ export default class ViewLoadPage {
   async selectCustomerRadio(): Promise<void> {
     await this.customerButton_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
     await this.customerButton_LOC.check();
+    await commonReusables.waitForPageStable(this.page);
     console.log("Selected Customer radio button");
   }
 
@@ -1414,6 +1426,7 @@ export default class ViewLoadPage {
     await this.payablesButton_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
     await expect(this.payablesButton_LOC).toBeEnabled({ timeout: WAIT.LARGE });
     await this.payablesButton_LOC.check();
+    await commonReusables.waitForPageStable(this.page);
     console.log("Selected Payables radio button");
   }
 
@@ -1425,6 +1438,7 @@ export default class ViewLoadPage {
   async selectDocumentType(label: string): Promise<void> {
     await this.selectDocumentType_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
     await this.selectDocumentType_LOC.selectOption({ label });
+    await commonReusables.waitForPageStable(this.page);
     console.log(`Selected Document Type: ${label}`);
   }
 
@@ -1493,6 +1507,7 @@ export default class ViewLoadPage {
    */
   async clickSubmitRemote(): Promise<void> {
     await this.submitRemoteButton_LOC.click();
+    await commonReusables.waitForPageStable(this.page);
     console.log("Clicked Submit/Attach button");
   }
 
@@ -1513,9 +1528,13 @@ export default class ViewLoadPage {
    * @created 17-Mar-2026
    */
   async clickConfirmDuplicateInvoiceDialog(): Promise<void> {
-    if (await this.confirmDuplicateInvoiceBtn_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+    try {
+      await this.confirmDuplicateInvoiceBtn_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
       await this.confirmDuplicateInvoiceBtn_LOC.click();
       console.log("Clicked Confirm on duplicate invoice dialog");
+    } catch (err) {
+      console.error(`clickConfirmDuplicateInvoiceDialog: ${(err as Error).message}`);
+      throw err;
     }
   }
 
@@ -1525,9 +1544,13 @@ export default class ViewLoadPage {
    * @created 17-Mar-2026
    */
   async scrollToBillingIssuesSection(): Promise<void> {
-    if (await this.billingIssuesSection_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+    try {
+      await this.billingIssuesSection_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
       await this.billingIssuesSection_LOC.scrollIntoViewIfNeeded();
       console.log("Scrolled to Billing Issues section");
+    } catch (err) {
+      console.error(`scrollToBillingIssuesSection: ${(err as Error).message}`);
+      throw err;
     }
   }
 
@@ -1537,12 +1560,15 @@ export default class ViewLoadPage {
    * @created 17-Mar-2026
    */
   async getAvgRate(): Promise<string> {
-    if (await this.bidsAvgRate_LOC.first().isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+    try {
+      await this.bidsAvgRate_LOC.first().waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
       const text = (await this.bidsAvgRate_LOC.first().textContent())?.trim() || '';
       console.log(`Average Rate: ${text}`);
       return text;
+    } catch (err) {
+      console.error(`getAvgRate: ${(err as Error).message}`);
+      throw err;
     }
-    return '';
   }
 
   /**
@@ -1551,9 +1577,13 @@ export default class ViewLoadPage {
    * @created 17-Mar-2026
    */
   async scrollToDFBSection(): Promise<void> {
-    if (await this.dfbLoadBoardSection_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+    try {
+      await this.dfbLoadBoardSection_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
       await this.dfbLoadBoardSection_LOC.scrollIntoViewIfNeeded();
       console.log("Scrolled to DFB/TNX Load Board section");
+    } catch (err) {
+      console.error(`scrollToDFBSection: ${(err as Error).message}`);
+      throw err;
     }
   }
 
@@ -1563,12 +1593,15 @@ export default class ViewLoadPage {
    * @created 17-Mar-2026
    */
   async isAutoAcceptChecked(): Promise<boolean> {
-    if (await this.autoAcceptCheckbox_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+    try {
+      await this.autoAcceptCheckbox_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
       const checked = await this.autoAcceptCheckbox_LOC.isChecked();
       console.log(`Auto Accept checkbox is ${checked ? 'checked' : 'unchecked'}`);
       return checked;
+    } catch (err) {
+      console.error(`isAutoAcceptChecked: ${(err as Error).message}`);
+      throw err;
     }
-    return false;
   }
 
   /**
@@ -1577,12 +1610,15 @@ export default class ViewLoadPage {
    * @created 17-Mar-2026
    */
   async getCarrierContactDropdownValue(): Promise<string> {
-    if (await this.carrierContactDropdown_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
+    try {
+      await this.carrierContactDropdown_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
       const value = await this.carrierContactDropdown_LOC.inputValue();
       console.log(`Carrier Contact dropdown value: ${value}`);
       return value;
+    } catch (err) {
+      console.error(`getCarrierContactDropdownValue: ${(err as Error).message}`);
+      throw err;
     }
-    return '';
   }
 
   /**
@@ -1591,12 +1627,15 @@ export default class ViewLoadPage {
    * @created 17-Mar-2026
    */
   async getCarrierContactDropdownOptions(): Promise<string[]> {
-    await this.page.waitForTimeout(2000);
-    if (await this.carrierContactDropdown_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false)) {
-      const options = await this.carrierContactDropdown_LOC.locator("option").allTextContents();
+    try {
+      await this.page.waitForLoadState("domcontentloaded");
+      await this.carrierContactDropdown_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
+      const options = await this.carrierContactDropdown_LOC.locator(this.optionElements_LOC).allTextContents();
       return options;
+    } catch (err) {
+      console.error(`getCarrierContactDropdownOptions: ${(err as Error).message}`);
+      throw err;
     }
-    return [];
   }
 
 }

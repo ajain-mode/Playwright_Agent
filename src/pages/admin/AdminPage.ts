@@ -54,7 +54,7 @@ class AdminPage {
     await this.leadsActivationLink_LOC.waitFor({ state: 'visible' });
     await this.leadsActivationLink_LOC.scrollIntoViewIfNeeded();
     await this.leadsActivationLink_LOC.click();
-    await this.page.waitForLoadState('load');
+    await commonReusables.waitForPageStable(this.page);
   }
 
   /**

@@ -376,8 +376,9 @@ ${FRAMEWORK_KNOWLEDGE}
     NEVER define locators inline inside method bodies (e.g., const btn = this.page.locator("...")).
     Instead: declare as class property, initialize in constructor, reference via this.<name>_LOC in the method.
     The ONLY exception is row-relative locators inside iteration loops (e.g., row.locator("td.cell")).
-30. NEVER use waitForTimeout() with hardcoded millisecond values in spec files.
+30. NEVER use waitForTimeout() with hardcoded millisecond values in spec or POM files.
     Use Playwright auto-waiting, waitForLoadState(), element.waitFor(), or POM methods with built-in waits.
+    For test.setTimeout(), ALWAYS use WAIT.SPEC_TIMEOUT or WAIT.SPEC_TIMEOUT_LARGE — NEVER hardcode numeric values like 300000.
 31. NEVER use require() or path.resolve() inline in spec files.
     For file attachments, use POM methods: pages.viewLoadPage.attachCarrierInvoiceFile() or pages.viewLoadPage.attachPODFile().
 32. NEVER use duplicate locating strategies for the same element. Pick one reliable locator per element.
@@ -408,7 +409,23 @@ ${FRAMEWORK_KNOWLEDGE}
     - pages.logger.info() for debugging
     The ONLY acceptable if/else in a spec is the standard afterAll null-check cleanup pattern.
     If a step requires conditional logic, create a higher-level POM method (e.g., ensureCarrierToggleEnabled())
-    that encapsulates the decision-making and call that single method from the spec.`;
+    that encapsulates the decision-making and call that single method from the spec.
+38. NEVER use { force: true } on any Playwright action (click, fill, check, selectOption, hover, etc.).
+    force: true bypasses Playwright's actionability checks (visibility, enabled, stable) and hides real issues.
+    Fix the root cause: wait for the element, scroll into view, dismiss overlays, or use proper POM waits.
+39. NEVER use silent .catch(() => false), .catch(() => ''), or .catch(() => {}) in POM methods.
+    Always log the error before returning the fallback: .catch((err) => { console.warn(\`methodName: \${err.message}\`); return false; }).
+    Silent catches mask real failures (stale frames, detached nodes, page crashes) and make debugging impossible.
+40. NEVER use XPath locators with contains(text()), translate(text()), or //*[contains(text(),...)] for buttons or links.
+    Use Playwright built-in role locators: page.getByRole('button', { name: text }) for buttons,
+    page.getByRole('link', { name: text }) for links. These are case-insensitive, match accessible names,
+    and work with <button>, <input type="button|submit|reset">, and <a> elements automatically.
+41. NEVER call waitForMultipleLoadStates() in spec files. Page stability is handled INSIDE POM methods
+    via commonReusables.waitForPageStable(this.page). Specs should only call POM methods — the POM methods
+    internally wait for page stability after actions (clicks, selects, navigation).
+42. For DFB office precondition setup, ALWAYS use dfbHelpers.setupOfficePreConditions(pages, testData.officeName, toggleSettingsValue, pages.toggleSettings.verifyAutoPost).
+    NEVER inline manual office search code (officeCodeSearchField + searchButtonClick + officeSearchRow + ensureToggleValues + ensureTnxValue).
+    The helper handles office search, configureOfficePreConditions, toggle verification, AND AutoPost verification in one call.`;
 }
 
 /**
@@ -453,7 +470,8 @@ export function buildFullSpecPrompt(
 17. Every POM method must include JSDoc with @author AI Agent and @created DD-Mon-YYYY date
 17a. ALL locators in POM methods MUST be constructor-initialized properties (private readonly <name>_LOC: Locator).
     NEVER define locators inline in method bodies. Exception: row-relative locators in iteration loops.
-18. NEVER use waitForTimeout() with hardcoded delays — use Playwright auto-waiting or waitForLoadState
+18. NEVER use waitForTimeout() with hardcoded delays — use Playwright auto-waiting or waitForLoadState.
+    For test.setTimeout(), use WAIT.SPEC_TIMEOUT or WAIT.SPEC_TIMEOUT_LARGE — NEVER hardcode numbers like 300000
 19. NEVER use require() or path.resolve() inline — use POM methods like attachCarrierInvoiceFile() or attachPODFile()
 20. NEVER use duplicate locating strategies for the same element. One reliable locator per element. Prefer CSS/getByRole over XPath
 21. NEVER pass hardcoded numeric strings to POM methods for rates, amounts, miles, or invoice numbers.
@@ -462,7 +480,15 @@ export function buildFullSpecPrompt(
     Use pages.logger.info() for runtime values only (load numbers, emails, statuses). Do not log narration like "Clicked button".
 23. SPEC FILES MUST CONTAIN NO BUSINESS LOGIC. No for/while loops, no if/else conditionals, no .find()/.filter()/.map(),
     no string manipulation (.replace/.split/regex). All such logic belongs inside POM methods.
-    Specs should only have: test.step() blocks, POM calls, expect() assertions, variable assignments, and pages.logger.info().`;
+    Specs should only have: test.step() blocks, POM calls, expect() assertions, variable assignments, and pages.logger.info().
+24. NEVER use { force: true } on any Playwright action (click, fill, check, selectOption, hover, etc.).
+    force: true bypasses Playwright's actionability checks (visibility, enabled, stable) and hides real issues.
+    Fix the root cause instead: wait for the element, scroll into view, dismiss overlays, or use proper POM waits.
+25. NEVER use silent .catch(() => false) or .catch(() => '') in POM methods.
+    Always log errors: .catch((err) => { console.warn(\`methodName: \${err.message}\`); return false; }).
+26. NEVER use XPath contains(text()), translate(text()), or //*[contains(text(),...)] for buttons or links.
+    Use page.getByRole('button', { name: text }) for buttons, page.getByRole('link', { name: text }) for links.
+27. NEVER call waitForMultipleLoadStates() in spec files. POM methods handle stability internally via waitForPageStable().`;
 
   const stepsText = steps.map(s => `  ${s.stepNumber}. ${s.action}${s.expectedResult ? ` → Expected: ${s.expectedResult}` : ''}`).join('\n');
   const expectedText = expectedResults.length > 0

@@ -881,7 +881,7 @@ await this.page.waitForLoadState('load');`,
       testCategory: testCase.category,
       testType,
       retryCount: DEFAULTS.retryCount,
-      timeout: testType === 'multi-app' ? DEFAULTS.multiAppTimeout : categoryConfig.timeout,
+      timeout: testType === 'multi-app' ? 'WAIT.SPEC_TIMEOUT_LARGE' : 'WAIT.SPEC_TIMEOUT',
       tags: testCase.tags || categoryConfig.defaultTags
     };
   }
@@ -1622,12 +1622,12 @@ ${formFields.join('\n')}
           }
           if (/^(delete|remove)$/i.test(buttonName)) {
             return `// Click ${buttonName} button
-        await pages.basePage.clickButton("${buttonName.toLowerCase()}");
+        await pages.basePage.clickButtonByText("${buttonName}");
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
           }
           if (/^(search|find)$/i.test(buttonName)) {
             return `// Click ${buttonName} button
-        await pages.basePage.clickButton("${buttonName.toLowerCase()}");
+        await pages.basePage.clickButtonByText("${buttonName}");
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
           }
           if (/^post$/i.test(buttonName)) {
@@ -1680,7 +1680,7 @@ ${formFields.join('\n')}
       // Generic click with "Search" keyword
       if (lowerAction.includes('search')) {
         return `// Click Search
-        await pages.basePage.clickButton("search");
+        await pages.basePage.clickButtonByText("Search");
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
       }
       // Generic click
@@ -2087,10 +2087,14 @@ ${formFields.join('\n')}
 
     // ==================== OFFICE CONFIGURATION ACTIONS ====================
     if (lowerAction.includes('office') && (lowerAction.includes('configure') || lowerAction.includes('config') || lowerAction.includes('setting'))) {
-      return `// Configure office settings
-        await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
-        await pages.basePage.clickSubHeaderByText(ADMIN_SUB_MENU.OFFICE_SEARCH);
-        await pages.officePage.configureOfficePreConditions(testData.officeName, pages.toggleSettings.enable_DME);`;
+      return `// Configure office settings via dfbHelpers
+        const toggleSettingsValue = pages.toggleSettings.enable_DME;
+        await pages.dfbHelpers.setupOfficePreConditions(
+          pages,
+          testData.officeName,
+          toggleSettingsValue,
+          pages.toggleSettings.verifyAutoPost
+        );`;
     }
 
     // ==================== INVOICE/BILLING ACTIONS ====================
@@ -3993,6 +3997,73 @@ ${stepCode}
       }
     }
 
+    // ── 23. Remove force: true from generated code ──
+    // force: true bypasses Playwright's actionability checks (visibility, enabled, stable).
+    // It hides real issues and must never appear in generated POM methods or spec code.
+    {
+      const forcePattern = /,?\s*force:\s*true\s*,?/g;
+      const forceMatches = fixed.match(forcePattern);
+      if (forceMatches && forceMatches.length > 0) {
+        fixed = fixed.replace(/\(\s*\{\s*force:\s*true\s*\}\s*\)/g, '()');
+        fixed = fixed.replace(/,\s*force:\s*true\s*([,}])/g, '$1');
+        fixed = fixed.replace(/\{\s*force:\s*true\s*,\s*/g, '{ ');
+        warnings.push(
+          `⚠️  Guardrail: Removed ${forceMatches.length} force: true usage(s). Never use force: true — fix the root cause instead (wait for element, scroll into view, dismiss overlay).`
+        );
+      }
+    }
+
+    // ── 24. Replace hardcoded test.setTimeout(number) with WAIT constants ──
+    {
+      const hardcodedTimeoutPattern = /test\.setTimeout\(\s*(\d{4,})\s*\)/g;
+      let timeoutMatch;
+      while ((timeoutMatch = hardcodedTimeoutPattern.exec(fixed)) !== null) {
+        const ms = parseInt(timeoutMatch[1], 10);
+        const constant = ms >= 600000 ? 'WAIT.SPEC_TIMEOUT_LARGE' : 'WAIT.SPEC_TIMEOUT';
+        fixed = fixed.replace(timeoutMatch[0], `test.setTimeout(${constant})`);
+        warnings.push(`⚠️  Guardrail: Replaced hardcoded test.setTimeout(${ms}) → test.setTimeout(${constant})`);
+      }
+    }
+
+    // ── 25. Replace hardcoded waitForTimeout(number) with WAIT constants or proper waits ──
+    {
+      const hardcodedWaitPattern = /await\s+(?:sharedPage|this\.page|dmePage|tnxPage)\.waitForTimeout\s*\(\s*(\d+)\s*\)/g;
+      let waitMatch;
+      while ((waitMatch = hardcodedWaitPattern.exec(fixed)) !== null) {
+        fixed = fixed.replace(waitMatch[0], `await ${waitMatch[0].match(/(?:sharedPage|this\.page|dmePage|tnxPage)/)?.[0] || 'sharedPage'}.waitForLoadState("domcontentloaded")`);
+        warnings.push(`⚠️  Guardrail: Replaced hardcoded waitForTimeout(${waitMatch[1]}) → waitForLoadState("domcontentloaded")`);
+      }
+    }
+
+    // ── 26. Warn on silent .catch(() => false/''/{}) in generated POM code ──
+    {
+      const silentCatchPattern = /\.catch\s*\(\s*\(\s*\)\s*=>\s*(false|true|''|""|``|\{\s*\})\s*\)/g;
+      const silentMatches = fixed.match(silentCatchPattern);
+      if (silentMatches && silentMatches.length > 0) {
+        warnings.push(`⚠️  Guardrail: Found ${silentMatches.length} silent .catch() pattern(s). Use .catch((err) => { console.warn(...); return fallback; }) instead.`);
+      }
+    }
+
+    // ── 27. Remove waitForMultipleLoadStates from spec code — POM methods handle stability ──
+    {
+      const waitPattern = /^\s*await\s+(?:pages|tnxPages|dmePages|tnxRepPages)\.\w+\.waitForMultipleLoadStates\s*\([^)]*\)\s*;?\s*$/gm;
+      const waitMatches = fixed.match(waitPattern);
+      if (waitMatches && waitMatches.length > 0) {
+        fixed = fixed.replace(waitPattern, '');
+        // Clean up resulting double blank lines
+        fixed = fixed.replace(/\n{3,}/g, '\n\n');
+        warnings.push(`⚠️  Guardrail: Removed ${waitMatches.length} waitForMultipleLoadStates() call(s) from spec — POM methods handle page stability via waitForPageStable().`);
+      }
+    }
+
+    // ── 28. Detect inline office setup that should use dfbHelpers.setupOfficePreConditions ──
+    {
+      const inlineOfficePattern = /officePage\.officeCodeSearchField\(.*?\)[\s\S]*?officePage\.searchButtonClick\(\)[\s\S]*?officePage\.officeSearchRow\(/;
+      if (inlineOfficePattern.test(fixed)) {
+        warnings.push(`⚠️  Guardrail: Detected inline office setup code (officeCodeSearchField + searchButtonClick + officeSearchRow). Use dfbHelpers.setupOfficePreConditions() instead — it handles office search, configure, toggle verification, and AutoPost check.`);
+      }
+    }
+
     // Log all warnings
     if (warnings.length > 0) {
       console.log('\n📋 Post-Generation Guardrail Results:');
@@ -4727,35 +4798,27 @@ ${stepCode}
         console.log("Office preconditions set and switched to sales agent");`;
 
         if (needsCustomerCargo) {
-          officeCode = `// Configure Office Settings — full setup with customer/cargo
-        await pages.basePage.hoverOverHeaderByText(HEADERS.ADMIN);
-        await pages.basePage.clickSubHeaderByText(ADMIN_SUB_MENU.OFFICE_SEARCH);
-        await pages.officePage.officeCodeSearchField(testData.officeName);
-        await pages.officePage.searchButtonClick();
-        await pages.officePage.officeSearchRow(testData.officeName);
-        console.log("Navigated to Office profile");
-
+          officeCode = `// Configure Office Settings — full setup with customer/cargo via dfbHelpers
         const toggleSettingsValue = ${toggleConfig};
-        await pages.officePage.ensureToggleValues(toggleSettingsValue);
-        await pages.officePage.ensureTnxValue();
-        console.log("Office toggle configuration complete");
+        await pages.dfbHelpers.setupOfficePreConditions(
+          pages,
+          testData.officeName,
+          toggleSettingsValue,
+          pages.toggleSettings.verifyAutoPost
+        );
+        console.log("Office preconditions set successfully");
 
-        const btmsHome = new URL(sharedPage.url()).origin;
-        await sharedPage.goto(btmsHome);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        await sharedPage.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });
+        await pages.basePage.navigateToBaseUrl();
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
         await pages.searchCustomerPage.enterCustomerName(testData.customerName);
         await pages.searchCustomerPage.clickOnSearchCustomer();
         await pages.searchCustomerPage.clickOnActiveCustomer();
         await commissionHelper.updateAvailableCreditOnCustomer(sharedPage);
-        console.log("Office Pre-condition set successfully");
 
         await pages.adminPage.hoverAndClickAdminMenu();
         await pages.adminPage.switchUser(testData.salesAgent);
         console.log("Switched user to agent salesperson");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle", "domcontentloaded"]);
 
         await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
         await pages.postAutomationRulePage.verifyCustomerPostAutomationRule(testData.customerName);

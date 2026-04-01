@@ -63,7 +63,6 @@ test.describe.serial(
         await pages.agentSearchPage.nameInputOnAgentPage(testData.salesAgent);
         await pages.agentSearchPage.clickOnSearchButton();
         await pages.agentSearchPage.selectAgentByName(testData.salesAgent);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         agentEmail = await pages.agentInfoPage.getAgentEmail();
         pages.logger.info(`Agent email captured: ${agentEmail}`);
         await pages.basePage.navigateToBaseUrl();
@@ -90,7 +89,6 @@ test.describe.serial(
 
         await pages.adminPage.hoverAndClickAdminMenu();
         await pages.adminPage.switchUser(testData.salesAgent);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle", "domcontentloaded"]);
 
         await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
         await pages.postAutomationRulePage.verifyCustomerPostAutomationRule(testData.customerName);
@@ -115,7 +113,6 @@ test.describe.serial(
 
       await test.step("Step 5: Click on carrier, verify loadboard status and carrier vis...", async () => {
         await pages.carrierSearchPage.selectCarrierByName(testData.Carrier);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
         const statusText = await pages.viewCarrierPage.getLoadboardStatus();
         pages.logger.info(`Carrier loadboard status: ${statusText}`);
@@ -128,7 +125,6 @@ test.describe.serial(
 
         const tabClicked = await pages.viewCarrierPage.clickLoadboardTab();
         if (tabClicked) {
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         }
 
         let togglesFound = false;
@@ -152,10 +148,8 @@ test.describe.serial(
 
         if (disabledToggles.length > 0) {
         await pages.basePage.clickButtonByText("Edit");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.viewCarrierPage.enableCarrierVisibilityToggles(disabledToggles);
         await pages.viewCarrierPage.clickSaveOnCarrierEditPage();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         }
         }
         pages.logger.info("Carrier visibility step completed");
@@ -178,7 +172,6 @@ test.describe.serial(
         pages.logger.info("DME carrier toggle verified");
 
         await appManager.switchToBTMS();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Step 7 [CSV 1-5]: Search customer and navigate to CREATE TL *NEW*", async () => {
@@ -270,7 +263,6 @@ test.describe.serial(
       await test.step("Step 14 [CSV 41-43]: Verify View mode, click Carrier tab, and Post the load", async () => {
         await pages.viewLoadPage.viewLoadPageVisible();
         await pages.viewLoadPage.clickCarrierTab();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.dfbLoadFormPage.clickOnPostButton();
         pages.logger.info("Load posted, moving to verification");
       });

@@ -42,7 +42,7 @@ test.describe.serial(
         tag: "@aiteam,@dfb,@nontabular,@postautomationrules,@rulefieldvalidation",
       },
       async () => {
-        test.setTimeout(300000);
+        test.setTimeout(WAIT.SPEC_TIMEOUT);
 
         await test.step("Step 1: Login BTMS", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
@@ -76,10 +76,6 @@ test.describe.serial(
             await pages.postAutomationRulePage.verifyCustomerPostAutomationRule(
               testData.customerName
             );
-            await pages.basePage.waitForMultipleLoadStates([
-              "load",
-              "networkidle",
-            ]);
           }
         );
 
@@ -89,10 +85,6 @@ test.describe.serial(
             await pages.postAutomationRulePage.clickElementByText(
               POST_AUTOMATION_RULE.NEW_BUTTON
             );
-            await pages.basePage.waitForMultipleLoadStates([
-              "load",
-              "networkidle",
-            ]);
           }
         );
 

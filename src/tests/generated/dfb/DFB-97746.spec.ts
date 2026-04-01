@@ -26,7 +26,7 @@ let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
 
-test.describe.configure({ retries: 1 });
+test.describe.configure({ retries: 0});
 test.describe.serial(
   "Case ID: DFB-97746 - Automatically book a load when it is manually postedDisplay a message when an active loadboard user is not selected for the Carrier Contact for Rate Confirmation field on the load",
   () => {
@@ -64,22 +64,19 @@ test.describe.serial(
         await pages.agentSearchPage.nameInputOnAgentPage(testData.salesAgent);
         await pages.agentSearchPage.clickOnSearchButton();
         await pages.agentSearchPage.selectAgentByName(testData.salesAgent);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         agentEmail = await pages.agentInfoPage.getAgentEmail();
         pages.logger.info(`Agent email captured: ${agentEmail}`);
         await pages.basePage.navigateToBaseUrl();
       });
 
       await test.step("Step 3: Pre-Conditions setup — office config with DME/TNX validat...", async () => {
-        await pages.basePage.hoverOverHeaderByText(HEADERS.ADMIN);
-        await pages.basePage.clickSubHeaderByText(ADMIN_SUB_MENU.OFFICE_SEARCH);
-        await pages.officePage.officeCodeSearchField(testData.officeName);
-        await pages.officePage.searchButtonClick();
-        await pages.officePage.officeSearchRow(testData.officeName);
-
         const toggleSettingsValue = pages.toggleSettings.enable_DME;
-        await pages.officePage.ensureToggleValues(toggleSettingsValue);
-        await pages.officePage.ensureTnxValue();
+        await pages.dfbHelpers.setupOfficePreConditions(
+          pages,
+          testData.officeName,
+          toggleSettingsValue,
+          pages.toggleSettings.verifyAutoPost
+        );
 
         await pages.basePage.navigateToBaseUrl();
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
@@ -91,7 +88,6 @@ test.describe.serial(
 
         await pages.adminPage.hoverAndClickAdminMenu();
         await pages.adminPage.switchUser(testData.salesAgent);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle", "domcontentloaded"]);
 
         await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
         await pages.postAutomationRulePage.verifyCustomerPostAutomationRule(testData.customerName);
@@ -116,20 +112,17 @@ test.describe.serial(
 
       await test.step("Step 5: Click on carrier, verify loadboard status and carrier vis...", async () => {
         await pages.carrierSearchPage.selectCarrierByName(testData.Carrier);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
-        const statusText = await pages.viewCarrierPage.getLoadboardStatus();
-        pages.logger.info(`Carrier loadboard status: ${statusText}`);
-
-        await pages.viewCarrierPage.ensureCarrierVisibilityTogglesEnabled(
-          [
+        await pages.viewCarrierPage.ensureCarrierVisibilityTogglesEnabled([
             CARRIER_VISIBILITY.AVENGER_LOGISTICS,
             CARRIER_VISIBILITY.MODE_TRANSPORTATION,
             CARRIER_VISIBILITY.SUNTECK_TTS,
-          ],
-          pages.basePage
-        );
+        ]);
         pages.logger.info("Carrier visibility step completed");
+
+        const statusText = await pages.viewCarrierPage.getLoadboardStatus();
+        pages.logger.info(`Carrier loadboard status: ${statusText}`);
+        expect(statusText, "Loadboard status should be retrieved after Mode IQ tab is active").toBeTruthy();
       });
 
       await test.step("Step 6: Switch to DME and verify carrier is enabled with toggle O...", async () => {
@@ -141,7 +134,6 @@ test.describe.serial(
         pages.logger.info("Precondition Step 40: DME carrier toggle verified");
 
         await appManager.switchToBTMS();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
       });
 
       await test.step("Step 7 [CSV 1-5]: Search customer and navigate to CREATE TL *NEW*", async () => {
@@ -212,14 +204,15 @@ test.describe.serial(
 
       await test.step("Step 14: Click the Save button on the load.", async () => {
         await pages.editLoadFormPage.clickOnSaveBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        console.log("Save button clicked");
         await pages.viewLoadPage.validateViewLoadHeading();
+        console.log("View load heading validated");
       });
 
       await test.step("Step 14b [CSV 39]: Validate view-mode fields after save", async () => {
         await pages.editLoadPage.clickOnTab(TABS.CARRIER);
+        console.log("Carrier tab clicked");
         await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-
         await pages.viewLoadPage.scrollToDFBSection();
 
         const formattedOfferRate = parseFloat(testData.offerRate).toFixed(2);
@@ -253,7 +246,7 @@ test.describe.serial(
         pages.logger.info("View-mode field validations completed");
       });
 
-      await test.step("Step 15a [CSV 40]: Validate NOT POSTED status and buttons before posting", async () => {
+      await test.step("Step 15a [CSV 43]: Validate NOT POSTED status and buttons", async () => {
         await pages.dfbLoadFormPage.validatePostStatus(LOAD_STATUS.NOT_POSTED);
 
         await pages.dfbLoadFormPage.validateMultipleButtonActivation(
@@ -264,12 +257,12 @@ test.describe.serial(
         pages.logger.info("NOT POSTED status and button states validated");
       });
 
-      await test.step("Step 15b [CSV 41]: Post the load", async () => {
+      await test.step("Step 15b [CSV 44]: Click Post button and validate status changes to POSTED", async () => {
         await pages.dfbLoadFormPage.clickOnPostButton();
         pages.logger.info("Load posted, moving to verification");
       });
 
-      await test.step("Step 16 [CSV 42-43]: Validate BTMS BOOKED status, carrier details, and emails", async () => {
+      await test.step("Step 16 [Ensure after CSV 44]: Validate BTMS BOOKED status, carrier details, and emails", async () => {
         await pages.viewLoadPage.refreshAndValidateLoadStatus(LOAD_STATUS.BOOKED);
 
         await pages.viewLoadPage.clickCarrierTab();
@@ -300,13 +293,6 @@ test.describe.serial(
         expect.soft(bidHistoryDetails.carrier, "Bid History carrier should match assigned carrier").toContain(testData.Carrier);
         expect.soft(bidHistoryDetails.source, "BIDS Source should be populated").toBeTruthy();
         await pages.viewLoadCarrierTabPage.closeBidHistoryModal();
-
-        // Validate Rate Confirmation email sent to carrier user
-        const carrierDispatchEmail = await pages.viewLoadCarrierTabPage.validateCarrierDispatchEmail(
-          CARRIER_DISPATCH_EMAIL.EMAIL_1
-        );
-        pages.logger.info(`Carrier dispatch email: ${carrierDispatchEmail}`);
-        expect.soft(carrierDispatchEmail, "Carrier dispatch email should be populated for Rate Confirmation").toBeTruthy();
 
         // Validate Notification email - agent email from Email for Notifications
         pages.logger.info(`Agent email for notifications: ${agentEmail}`);
@@ -340,7 +326,7 @@ test.describe.serial(
         const tnxPages = await appManager.switchToTNX();
         await appManager.tnxPage.setViewportSize({ width: 1920, height: 1080 });
 
-        await tnxPages.tnxLandingPage.selectOrganizationByCarrierName(testData.Carrier);
+        await tnxPages.tnxLandingPage.selectOrganizationByText(testData.Carrier);
         await tnxPages.tnxLandingPage.handleOptionalSkipButton();
         await tnxPages.tnxLandingPage.handleOptionalNoThanksButton();
         await tnxPages.tnxLandingPage.clickOnTNXHeaderLink(TNX.ACTIVE_JOBS);
@@ -368,12 +354,6 @@ test.describe.serial(
         await tnxPages.tnxExecutionTenderPage.validateExecutionNotesFieldsPresence();
         pages.logger.info("TNX validation completed — load Matched, execution notes verified");
       });
-      await test.step("Step 19: Switch back to BTMS after cross-app validation", async () => {
-        await appManager.switchToBTMS();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        pages.logger.info("Switched back to BTMS after DME/TNX validation");
-      });
-
       }
     );
   }

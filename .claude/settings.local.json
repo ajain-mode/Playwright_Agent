@@ -36,7 +36,18 @@
       "Bash(sed 's/async //')",
       "Bash(sed 's/\\($//')",
       "Bash(python3 -c \"print\\(''hello''\\)\")",
-      "Bash(python -c \"print\\(''hello''\\)\")"
+      "Bash(python -c \"print\\(''hello''\\)\")",
+      "Bash(git -C \"c:/Users/Aman.Jain/OneDrive/Mode Global/Test cases/QA AI Agent/Playwright_Agent\" log --oneline -5 -- \"src/pages/loads/editLoadPage/NonTabularLoadPage.ts\")",
+      "Bash(for f in DFB-25103.spec.ts DFB-25104.spec.ts DFB-25105.spec.ts DFB-25109.spec.ts DFB-25110.spec.ts DFB-25111.spec.ts DFB-25115.spec.ts DFB-25117.spec.ts)",
+      "Bash(do echo \"=== $f ===\")",
+      "Read(//c/Users/Aman.Jain/OneDrive/Mode Global/Test cases/QA AI Agent/Playwright_Agent/**)",
+      "Bash(done)",
+      "Bash(git --version)",
+      "Bash(for f in BT-67846.spec.ts BT-67847.spec.ts BT-67850.spec.ts BT-74418.spec.ts BT-74420.spec.ts BT-74421.spec.ts)",
+      "Bash(for f in DFB-97739.spec.ts DFB-97740.spec.ts DFB-97741.spec.ts DFB-97742.spec.ts DFB-97744.spec.ts DFB-97746.spec.ts DFB-97747.spec.ts DFB-97748.spec.ts)",
+      "Bash(do sed -i '/waitForMultipleLoadStates/d' \"$f\")",
+      "Bash(sed -i '/^$/{ N; /^\\\\n$/{ N; s/^\\\\n\\\\n$/\\\\n/; t; }; }' \"$f\")",
+      "Bash(echo \"Processed $f\")"
     ]
   }
 }

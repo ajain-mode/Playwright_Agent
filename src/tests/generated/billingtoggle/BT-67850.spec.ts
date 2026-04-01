@@ -62,20 +62,15 @@ test.describe.serial(
           await pages.searchCustomerPage.enterCustomerName(testData.customerName);
           await pages.searchCustomerPage.selectActiveOnCustomerPage();
           await pages.searchCustomerPage.clickOnSearchCustomer();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           await pages.searchCustomerPage.clickOnActiveCustomer();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
           pages.logger.info("Navigated to Enter New Load page");
         });
 
         await test.step("Step 3 [CSV 6]: Select customer CORP RECONCILIATION on Enter New Load", async () => {
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           const customerName = testData['Customer Value'];
 
           await pages.nonTabularLoadPage.selectCustomerViaSelect2(customerName);
-
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           pages.logger.info(`Customer set to ${customerName}, shipper/consignee dropdowns repopulated`);
         });
 
@@ -180,15 +175,12 @@ test.describe.serial(
           );
           await pages.editLoadFormPage.clickOnSaveBtn();
           await alertPromise;
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           pages.logger.info("Load saved — BOOKED alert accepted");
         });
 
         await test.step("Step 17 [CSV 43]: Navigate to Load tab and click on View Billing", async () => {
           await pages.editLoadPage.clickOnTab(TABS.LOAD);
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           await pages.editLoadFormPage.clickOnViewBillingBtn();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
           const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
           pages.logger.info(`Billing toggle: ${toggleValue}`);
@@ -198,7 +190,6 @@ test.describe.serial(
 
         await test.step("Step 18 [CSV 44]: Navigate back to View Load and open document upload", async () => {
           await pages.basePage.clickLinkByText('View Load');
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
           await pages.viewLoadPage.openDocumentUploadDialog();
         });
@@ -232,12 +223,9 @@ test.describe.serial(
 
         await test.step("Step 21 [CSV 48]: Reload the page and validate toggle and Not Deliv Final", async () => {
           await sharedPage.reload();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
           await pages.editLoadPage.clickOnTab(TABS.LOAD);
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
           await pages.editLoadFormPage.clickOnViewBillingBtn();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
           const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
           pages.logger.info(`Billing toggle after reload: ${toggleValue}`);

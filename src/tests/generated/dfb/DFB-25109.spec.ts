@@ -62,11 +62,11 @@ test.describe.serial(
         await pages.agentSearchPage.nameInputOnAgentPage(testData.salesAgent);
         await pages.agentSearchPage.clickOnSearchButton();
         await pages.agentSearchPage.selectAgentByName(testData.salesAgent);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
         agentEmail = await pages.agentInfoPage.getAgentEmail();
         pages.logger.info(`Agent email captured: ${agentEmail}`);
         await pages.basePage.navigateToBaseUrl();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
       });
 
       await test.step("Step 3: Pre-Conditions setup — office config with DME/TNX validat...", async () => {
@@ -81,7 +81,7 @@ test.describe.serial(
         await pages.officePage.ensureTnxValue();
 
         await pages.basePage.navigateToBaseUrl();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
         await pages.searchCustomerPage.enterCustomerName(testData.customerName);
@@ -91,7 +91,7 @@ test.describe.serial(
 
         await pages.adminPage.hoverAndClickAdminMenu();
         await pages.adminPage.switchUser(testData.salesAgent);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle", "domcontentloaded"]);
+
 
         await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
         await pages.postAutomationRulePage.verifyCustomerPostAutomationRule(testData.customerName);
@@ -105,7 +105,7 @@ test.describe.serial(
 
       await test.step("Step 4: Navigate to Carrier Search and search for carrier", async () => {
         await pages.basePage.navigateToBaseUrl();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
         await pages.basePage.hoverOverHeaderByText(HEADERS.CARRIER);
         await pages.basePage.clickSubHeaderByText(CARRIER_SUB_MENU.SEARCH);
         await pages.carrierSearchPage.nameInputOnCarrierPage(testData.Carrier);
@@ -117,7 +117,7 @@ test.describe.serial(
 
       await test.step("Step 5: Click on carrier, verify loadboard status and carrier vis...", async () => {
         await pages.carrierSearchPage.selectCarrierByName(testData.Carrier);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
 
         const statusText = await pages.viewCarrierPage.getLoadboardStatus();
         if (statusText) {
@@ -132,7 +132,7 @@ test.describe.serial(
 
         const tabClicked = await pages.viewCarrierPage.clickLoadboardTab();
         if (tabClicked) {
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
         pages.logger.info("LoadBoard tab clicked");
         } else {
         pages.logger.info("LoadBoard tab not found, checking current view");
@@ -165,10 +165,10 @@ test.describe.serial(
         if (togglesNeedUpdate) {
         pages.logger.info(`${disabledToggles.length} toggle(s) need updating`);
         await pages.basePage.clickButtonByText("Edit");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
         await pages.viewCarrierPage.enableCarrierVisibilityToggles(disabledToggles);
         await pages.viewCarrierPage.clickSaveOnCarrierEditPage();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
         } else {
         pages.logger.info("All carrier visibility toggles already enabled");
         }
@@ -197,13 +197,13 @@ test.describe.serial(
         pages.logger.info("DME carrier toggle verified");
 
         await appManager.switchToBTMS();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
       });
 
       await test.step("Step 7: Click the New button to open the CREATE NEW ENTRY form", async () => {
         // Click New button to open CREATE NEW ENTRY form
         await pages.postAutomationRulePage.clickElementByText(POST_AUTOMATION_RULE.NEW_BUTTON);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
       });
 
       await test.step("Step 8: Select/Enter valid values for all of the fields on the CR...", async () => {
@@ -227,7 +227,7 @@ test.describe.serial(
       await test.step("Step 9: Click the Create button", async () => {
         // Click Create button
         await pages.postAutomationRulePage.clickElementByText(BUTTONS.CREATE);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+
       });
 
       await test.step("Step 10: Switch back to BTMS — verify BOOKED status, carrier detai...", async () => {
