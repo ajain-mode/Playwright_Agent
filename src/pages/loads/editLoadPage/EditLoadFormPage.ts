@@ -35,6 +35,7 @@ export class EditLoadFormPage {
   private readonly linehaulRateType_LOC: Locator;
   private readonly fuelSurchargeRateType_LOC: Locator;
   private readonly methodDropdown_LOC: Locator;
+  private readonly overrideBTFCheckbox_LOC: Locator;
 
   /**
    * Constructor to initialize page locators for form validation elements
@@ -59,7 +60,7 @@ export class EditLoadFormPage {
     this.linehaulRateType_LOC = page.locator("#form_carriers_1_linehaul_rate_type");
     this.fuelSurchargeRateType_LOC = page.locator("#form_fuel_surcharges_1_customer_rate_type");
     this.methodDropdown_LOC = page.locator("//select[contains(@name,'method') or contains(@id,'method')]").first();
-
+    this.overrideBTFCheckbox_LOC = page.locator("#btf_override");
 
     this.searchAgentCombobox_LOC = page.locator(
       "//tbody[@id='share_frame_internal']//span[contains(@class,'select2-selection') and @role='combobox']"
@@ -130,6 +131,26 @@ export class EditLoadFormPage {
     }
   }
 
+  /**
+   * Checks the "Override BTF" checkbox on the Edit Load page.
+   * Required before changing status to DELIVERED FINAL when BTF Status is Pending/Error.
+   * @author AI Agent
+   * @created 03-Apr-2026
+   */
+  async checkOverrideBTF(): Promise<void> {
+    try {
+      await this.overrideBTFCheckbox_LOC.waitFor({ state: "attached", timeout: WAIT.DEFAULT });
+      if (!(await this.overrideBTFCheckbox_LOC.isChecked())) {
+        await this.overrideBTFCheckbox_LOC.check({ force: true });
+        console.log("Checked Override BTF checkbox");
+      } else {
+        console.log("Override BTF checkbox already checked");
+      }
+    } catch (err) {
+      console.error(`checkOverrideBTF: ${(err as Error).message}`);
+      throw err;
+    }
+  }
 
   /**
    * Click on Save Button

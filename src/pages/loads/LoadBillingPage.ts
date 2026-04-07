@@ -119,8 +119,9 @@ class LoadBillingPage {
         this.billingToggleSliderSelection_LOC = this.page.locator("div.slider-selection").last();
 
         // Payable Toggle — per-carrier slider. Hidden input has dynamic ID: payables_waiting_on-[lscarr_id]
-        // Slider input uses class: .payables_waiting_on_select
-        this.payableToggleHiddenField_LOC = this.page.locator("input[name='payables_waiting_on']").first();
+        // Both the text slider input and hidden input share name="payables_waiting_on"
+        // Target the hidden input specifically for reading the value
+        this.payableToggleHiddenField_LOC = this.page.locator("input[type='hidden'][name='payables_waiting_on']").first();
         this.payableToggleSliderInput_LOC = this.page.locator("input.payables_waiting_on_select").first();
 
         // Not Delivered Final checkbox
@@ -526,74 +527,43 @@ class LoadBillingPage {
     /**
      * Reads the Billing Issues "Waiting On" toggle value.
      * Returns 'Billing' (1), 'Neutral' (2), or 'Agent' (3).
-     * Primary source: hidden input #fi_waiting_on. Fallback: data-slider-value on #waiting_on_select.
+     * Reads from hidden input #fi_waiting_on which is the source of truth.
      * @author AI Agent
      * @created 17-Mar-2026
      */
     async getBillingToggleValue(): Promise<string> {
-        const valueMap: Record<string, string> = { '1': 'Billing', '2': 'Neutral', '3': 'Agent' };
-
-        // Primary: hidden input #fi_waiting_on (source of truth)
-        const hiddenVal = await this.billingToggleHiddenField_LOC.inputValue().catch((err) => { console.warn(`getBillingToggleValue hiddenField: ${err.message}`); return ''; });
-        if (valueMap[hiddenVal]) {
-            console.log(`Billing toggle from #fi_waiting_on: ${valueMap[hiddenVal]}`);
-            return valueMap[hiddenVal];
+        try {
+            const valueMap: Record<string, string> = { '1': 'Billing', '2': 'Neutral', '3': 'Agent' };
+            await this.billingToggleHiddenField_LOC.waitFor({ state: "attached", timeout: WAIT.DEFAULT });
+            const hiddenVal = await this.billingToggleHiddenField_LOC.inputValue();
+            const toggleValue = valueMap[hiddenVal] || 'unknown';
+            console.log(`Billing toggle value: ${toggleValue} (raw: ${hiddenVal})`);
+            return toggleValue;
+        } catch (err) {
+            console.error(`getBillingToggleValue: ${(err as Error).message}`);
+            throw err;
         }
-
-        // Fallback: data-slider-value on #waiting_on_select
-        const dataVal = await this.billingToggleSliderInput_LOC.getAttribute('data-slider-value').catch((err) => { console.warn(`getBillingToggleValue sliderAttr: ${err.message}`); return ''; });
-        if (dataVal && valueMap[dataVal]) {
-            console.log(`Billing toggle from data-slider-value: ${valueMap[dataVal]}`);
-            return valueMap[dataVal];
-        }
-
-        console.log('Billing toggle: could not determine value');
-        return 'unknown';
     }
 
     /**
      * Reads the Payable toggle value from the billing page (carrier-level slider).
      * Returns 'Payables' (1), 'Neutral' (2), or 'Agent' (3).
-     * Payable toggle: hidden input name="payables_waiting_on", slider class=".payables_waiting_on_select"
-     * Located inside div[id^="payables_waiting_on_block_"] with labels "Payables" (left) and "Agent" (right).
+     * Reads from hidden input name="payables_waiting_on" which is the source of truth.
      * @author AI Agent
      * @created 17-Mar-2026
      */
     async getPayableToggleValue(): Promise<string> {
-        const valueMap: Record<string, string> = { '1': 'Payables', '2': 'Neutral', '3': 'Agent' };
-
-        // Primary: hidden input name="payables_waiting_on" (source of truth, updated on slideStop)
-        const hiddenVal = await this.payableToggleHiddenField_LOC.inputValue().catch((err) => { console.warn(`getPayableToggleValue hiddenField: ${err.message}`); return ''; });
-        if (hiddenVal && valueMap[hiddenVal]) {
-            console.log(`Payable toggle from hidden input: ${valueMap[hiddenVal]} (raw: ${hiddenVal})`);
-            return valueMap[hiddenVal];
+        try {
+            const valueMap: Record<string, string> = { '1': 'Payables', '2': 'Neutral', '3': 'Agent' };
+            await this.payableToggleHiddenField_LOC.waitFor({ state: "attached", timeout: WAIT.LARGE });
+            const hiddenVal = await this.payableToggleHiddenField_LOC.inputValue();
+            const toggleValue = valueMap[hiddenVal] || 'unknown';
+            console.log(`Payable toggle value: ${toggleValue} (raw: ${hiddenVal})`);
+            return toggleValue;
+        } catch (err) {
+            console.error(`getPayableToggleValue: ${(err as Error).message}`);
+            throw err;
         }
-
-        // Fallback 1: data-slider-value attribute on the slider input
-        const dataVal = await this.payableToggleSliderInput_LOC.getAttribute('data-slider-value').catch((err) => { console.warn(`getPayableToggleValue data-slider-value: ${err.message}`); return ''; });
-        if (dataVal && valueMap[dataVal]) {
-            console.log(`Payable toggle from data-slider-value: ${valueMap[dataVal]} (raw: ${dataVal})`);
-            return valueMap[dataVal];
-        }
-
-        // Fallback 2: read value attribute directly from the slider input
-        const valAttr = await this.payableToggleSliderInput_LOC.getAttribute('value').catch((err) => { console.warn(`getPayableToggleValue value attr: ${err.message}`); return ''; });
-        if (valAttr && valueMap[valAttr]) {
-            console.log(`Payable toggle from value attr: ${valueMap[valAttr]} (raw: ${valAttr})`);
-            return valueMap[valAttr];
-        }
-
-        // Fallback 3: evaluate the slider position via the constructor locator
-        const sliderVal = await this.payableToggleSliderInput_LOC.evaluate((el) => {
-            return el.getAttribute('data-slider-value') || (el as HTMLInputElement).value || '';
-        }).catch((err) => { console.warn(`getPayableToggleValue evaluate: ${err.message}`); return ''; });
-        if (sliderVal && valueMap[sliderVal]) {
-            console.log(`Payable toggle from JS evaluate: ${valueMap[sliderVal]} (raw: ${sliderVal})`);
-            return valueMap[sliderVal];
-        }
-
-        console.log(`Payable toggle: could not determine value (hidden="${hiddenVal}", data="${dataVal}", val="${valAttr}", js="${sliderVal}")`);
-        return 'unknown';
     }
 
     /**
@@ -698,7 +668,8 @@ class LoadBillingPage {
      */
     async isNotDeliveredFinalChecked(): Promise<boolean> {
         try {
-            await this.notDeliveredFinalCheckbox_LOC.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
+            // #Delivs is a hidden input (class hide-ck) — wait for attached, not visible
+            await this.notDeliveredFinalCheckbox_LOC.waitFor({ state: "attached", timeout: WAIT.DEFAULT });
             const checked = await this.notDeliveredFinalCheckbox_LOC.isChecked();
             console.log(`Not Deliv. Final checkbox is ${checked ? 'checked' : 'unchecked'}`);
             return checked;
@@ -783,9 +754,12 @@ class LoadBillingPage {
         await saveAction();
         await waitAction();
 
-        // The INVOICED alert may fire as a second dialog after networkidle settles
+        // Hold 5s for the INVOICED dialog to arrive after page reload settles
+        await sharedPage.waitForTimeout(5000);
+
+        // If the INVOICED alert still hasn't fired, wait up to 30s more for it
         if (!alertMessages.some(msg => invoicedPattern.test(msg))) {
-            await sharedPage.waitForEvent('dialog', { timeout: WAIT.SMALL }).catch((err) => { console.warn(`saveAndCaptureInvoicedAlert optional dialog: ${err.message}`); });
+            await sharedPage.waitForEvent('dialog', { timeout: WAIT.XLARGE }).catch((err) => { console.warn(`saveAndCaptureInvoicedAlert optional dialog: ${err.message}`); });
         }
 
         sharedPage.off("dialog", dialogHandler);
@@ -796,48 +770,58 @@ class LoadBillingPage {
     }
 
     /**
-     * Opens View History popup, reads content, and validates price difference message is present
-     * with correct recalculated amounts based on carrier rate and invoice amounts.
-     * Encapsulates all parseInt arithmetic, regex construction, string matching, and .test() calls.
-     * @param carrierRate - The carrier rate as a string (from testData.carrierRate)
-     * @param invoiceAmounts - Array of invoice amount strings (from testData)
-     * @returns Object with validation results for use in expect() assertions
+     * Extracts a dollar value from a string. Matches patterns like $1,500.00, $900, $2,000.00, etc.
+     * Returns the numeric value or null if no dollar amount found.
+     * @param text - The text to extract the dollar value from
+     * @returns The extracted numeric dollar value, or null
      * @author AI Agent
-     * @created 26-Mar-2026
+     * @created 07-Apr-2026
+     */
+    extractDollarValue(text: string): number | null {
+        const match = text.match(/\$\s*([\d,]+(?:\.\d{1,2})?)/);
+        if (!match) return null;
+        const value = parseFloat(match[1].replace(/,/g, ''));
+        return isNaN(value) ? null : value;
+    }
+
+    /**
+     * Opens View History popup, fetches the last row of messages, extracts the dollar
+     * value from it, and verifies it matches the expected price difference.
+     *
+     * Expected price difference = Total Invoices - MODE Global Total Charges (carrier rate)
+     *
+     * @param totalCharges - The total charges on the load (carrier rate from testData)
+     * @param invoiceAmounts - Array of invoice amount strings (from testData)
+     * @returns Object with lastMessage, extracted priceDifference, and expectedPriceDiff
+     * @author AI Agent
+     * @created 07-Apr-2026
      */
     async validateViewHistoryPriceDifference(
-        carrierRate: string,
+        totalCharges: string,
         invoiceAmounts: string[]
-    ): Promise<{ historyContent: string; hasPriceDiffMessage: boolean; hasCorrectAmount: boolean; expectedDiffs: number[] }> {
-        const rate = parseInt(carrierRate);
-        const amounts = invoiceAmounts.map(a => parseInt(a));
-        const diffs = amounts.map(a => a - rate);
-        const totalInvoiced = amounts.reduce((sum, a) => sum + a, 0);
-        const totalDiff = totalInvoiced - rate;
-        const allExpectedDiffs = [...diffs, totalDiff];
+    ): Promise<{ lastMessage: string; priceDifference: number | null; expectedPriceDiff: number }> {
+        // Compute expected: Total Invoices - Total Charges = Price Difference
+        const charges = parseFloat(totalCharges.replace(/,/g, ''));
+        const totalInvoiced = invoiceAmounts.reduce((sum, a) => sum + parseFloat(a.replace(/,/g, '')), 0);
+        const expectedPriceDiff = Math.abs(totalInvoiced - charges);
+        console.log(`Expected price diff: Total Invoices(${totalInvoiced}) - Total Charges(${charges}) = ${expectedPriceDiff}`);
 
-        console.log(`Price diff validation: carrierRate=${rate}, invoices=${amounts.join(',')}, diffs=${allExpectedDiffs.join(',')}`);
-
-        // Open View History popup
+        // Open View History popup and fetch last row
         const historyPopup = await this.clickViewHistoryAndGetPopup();
-        const historyContent = await this.getPopupBodyText(historyPopup) || '';
-        console.log(`View History content: ${historyContent.substring(0, 500)}`);
+        const rows = historyPopup.locator('table tr').or(historyPopup.locator('li')).or(historyPopup.locator('p'));
+        const rowCount = await rows.count();
+        const lastMessage = rowCount > 0
+            ? ((await rows.nth(rowCount - 1).textContent()) || '').trim()
+            : ((await this.getPopupBodyText(historyPopup)) || '').trim();
+
+        console.log(`View History last message: "${lastMessage}"`);
         await historyPopup.close();
 
-        // Check for price difference message
-        const historyLower = historyContent.toLowerCase();
-        const hasPriceDiffMessage = historyLower.includes('price difference') ||
-                                     historyLower.includes('discrepancy');
+        // Extract dollar value from the last message
+        const priceDifference = this.extractDollarValue(lastMessage);
+        console.log(`Extracted price difference: ${priceDifference}, expected: ${expectedPriceDiff}`);
 
-        // Check for correct amounts in various formats
-        const hasCorrectAmount = allExpectedDiffs.some(amt => {
-            const formatted = amt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            const plain = amt.toString();
-            const pattern = new RegExp(`\\$?${plain}(\\.00)?|\\$?${formatted.replace(/[.,]/g, '[,.]?')}`);
-            return pattern.test(historyContent);
-        });
-
-        return { historyContent, hasPriceDiffMessage, hasCorrectAmount, expectedDiffs: allExpectedDiffs };
+        return { lastMessage, priceDifference, expectedPriceDiff };
     }
 }
 export default LoadBillingPage;

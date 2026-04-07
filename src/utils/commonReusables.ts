@@ -213,6 +213,62 @@ class CommonReusables {
     });
   }
 
+  /**
+   * Accepts all dialogs that appear on the page during an action and captures their messages.
+   * Registers a blanket dialog handler before executing the action, waits for dialogs to fire,
+   * then removes the handler and returns all captured messages.
+   * @param page - The Playwright Page to listen on
+   * @param action - An async function that triggers the dialog(s) (e.g. clicking Save)
+   * @param waitTime - Time in ms to wait for dialogs after the action (default: WAIT.DEFAULT via caller)
+   * @returns Array of captured dialog message strings
+   * @author AI Agent
+   * @created 07-Apr-2026
+   */
+  public async acceptAllDialogsDuringAction(
+    page: Page,
+    action: () => Promise<void>,
+    waitTime: number = 3000
+  ): Promise<string[]> {
+    const capturedMessages: string[] = [];
+    const dialogHandler = async (dialog: { message: () => string; accept: () => Promise<void> }) => {
+      const msg = dialog.message();
+      capturedMessages.push(msg);
+      console.log(`Dialog accepted: "${msg}"`);
+      await dialog.accept();
+    };
+    page.on("dialog", dialogHandler);
+    await action();
+    await page.waitForTimeout(waitTime);
+    page.off("dialog", dialogHandler);
+    console.log(`Total dialogs accepted: ${capturedMessages.length}`);
+    return capturedMessages;
+  }
+
+  /**
+   * Registers a blanket dialog handler that accepts all dialogs during a page reload.
+   * Handles any alerts/confirms that may fire during the reload (e.g. unsaved changes).
+   * @param page - The Playwright Page to reload
+   * @param waitTime - Time in ms to wait before reloading (e.g. for backend processing)
+   * @returns void
+   * @author AI Agent
+   * @created 07-Apr-2026
+   */
+  public async reloadAndAcceptDialogs(
+    page: Page,
+    waitTime: number = 0
+  ): Promise<void> {
+    if (waitTime > 0) {
+      await page.waitForTimeout(waitTime);
+    }
+    const dialogHandler = async (dialog: { accept: () => Promise<void> }) => { await dialog.accept(); };
+    page.on("dialog", dialogHandler);
+    await page.reload();
+    await page.waitForLoadState("load");
+    await page.waitForLoadState("networkidle");
+    page.off("dialog", dialogHandler);
+    await this.waitForPageStable(page);
+  }
+
   async getElementText(element: Locator): Promise<string> {
     try {
       const actText = await element.textContent();

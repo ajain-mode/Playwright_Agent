@@ -548,12 +548,15 @@ class EditLoadLoadTabPage {
      */
     async checkRateTypeIfPresent(
         rateType: string,
-        editLoadFormPage: { getRateTypeValue: () => Promise<string> }
+        editLoadFormPage: { isRateTypeFieldVisible: () => Promise<boolean>; getRateTypeValue: () => Promise<string> }
     ): Promise<void> {
-        const rateTypeValue = await editLoadFormPage.getRateTypeValue();
-        if (rateTypeValue) {
-            await this.checkLoadTabDetails(rateType);
-            console.log(`Rate type selected: ${rateType}`);
+        const isVisible = await editLoadFormPage.isRateTypeFieldVisible();
+        if (isVisible) {
+            const rateTypeValue = await editLoadFormPage.getRateTypeValue();
+            if (rateTypeValue) {
+                await this.checkLoadTabDetails(rateType);
+                console.log(`Rate type selected: ${rateType}`);
+            }
         } else {
             console.log('Rate type dropdown not present — skipped');
         }

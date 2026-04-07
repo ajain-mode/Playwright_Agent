@@ -680,6 +680,15 @@ export const GUARDRAIL_RULES: GuardrailRule[] = [
     errorMessage: 'Hardcoded waitForTimeout() detected. Use waitForLoadState(), element.waitFor(), or Playwright auto-waiting instead of arbitrary delays.',
   },
   {
+    name: 'noInlineDialogHandlersInSpecs',
+    description: 'Spec files must not define inline dialog handlers — use commonReusables.acceptAllDialogsDuringAction() or reloadAndAcceptDialogs()',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      return !/sharedPage\.on\s*\(\s*["']dialog["']/g.test(input._generatedCode);
+    },
+    errorMessage: 'Inline dialog handler detected in spec file (sharedPage.on("dialog", ...)). Use pages.commonReusables.acceptAllDialogsDuringAction(sharedPage, action, waitTime) for actions that trigger dialogs, or pages.commonReusables.reloadAndAcceptDialogs(sharedPage, waitTime) for reloads.',
+  },
+  {
     name: 'noInlineRequireInSpecs',
     description: 'Generated spec files must not use inline require() calls — use ES module imports or POM methods',
     validate: (input) => {
@@ -829,6 +838,8 @@ export const GENERATION_RULES = {
     verifyCustomerPA: 'pages.postAutomationRulePage.verifyCustomerPostAutomationRule(testData.customerName)',
     fillPAForm:       'dfbHelpers.fillPostAutomationRuleForm(pages, { ... }, true)',
     validateAlert:    'pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.XYZ)',
+    acceptAllDialogs: 'pages.commonReusables.acceptAllDialogsDuringAction(sharedPage, () => action(), WAIT.DEFAULT)',
+    reloadAndAccept:  'pages.commonReusables.reloadAndAcceptDialogs(sharedPage, WAIT.SMALL)',
   },
 
   // 3. Alert/dialog verification MUST use pages.commonReusables.validateAlert()
@@ -837,6 +848,11 @@ export const GENERATION_RULES = {
   //    (those were agent-created duplicates and have been removed).
   //    Alert messages MUST come from ALERT_PATTERNS (import from @utils/alertPatterns).
   //    NEVER hardcode alert strings in spec files.
+  //
+  // 3b. When multiple dialogs may fire in rapid succession (e.g. confirm + status alert),
+  //     use pages.commonReusables.acceptAllDialogsDuringAction(sharedPage, action, waitTime)
+  //     which captures ALL dialog messages and returns them for validation.
+  //     For reloads that may trigger dialogs, use pages.commonReusables.reloadAndAcceptDialogs(sharedPage, waitTime).
   ALERT_FROM_PATTERNS: true,
 
   // 4. Form filling MUST use dfbHelpers.fillPostAutomationRuleForm() with testData.*

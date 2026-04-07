@@ -47,7 +47,15 @@
       "Bash(for f in DFB-97739.spec.ts DFB-97740.spec.ts DFB-97741.spec.ts DFB-97742.spec.ts DFB-97744.spec.ts DFB-97746.spec.ts DFB-97747.spec.ts DFB-97748.spec.ts)",
       "Bash(do sed -i '/waitForMultipleLoadStates/d' \"$f\")",
       "Bash(sed -i '/^$/{ N; /^\\\\n$/{ N; s/^\\\\n\\\\n$/\\\\n/; t; }; }' \"$f\")",
-      "Bash(echo \"Processed $f\")"
+      "Bash(echo \"Processed $f\")",
+      "Bash(git checkout HEAD -- src/pages/loads/editLoadPage/EditLoadFormPage.ts src/tests/generated/billingtoggle/BT-74421.spec.ts)",
+      "Bash(git restore src/pages/loads/editLoadPage/EditLoadFormPage.ts src/tests/generated/billingtoggle/BT-74421.spec.ts)",
+      "Bash(ls -lt *-result.json)",
+      "Bash(powershell -Command \"node ''c:\\\\Users\\\\Aman.Jain\\\\OneDrive\\\\Mode Global\\\\Test cases\\\\QA AI Agent\\\\Playwright_Agent\\\\find_74421.js''\")",
+      "Bash(python -m json.tool)",
+      "Bash(node parse-allure.js)",
+      "Bash(dir \"c:\\\\Users\\\\Aman.Jain\\\\Monotrans\")",
+      "Bash(grep -l \"clickAddNewCarrierInvoice.*failed\\\\|clickAddNewCarrierInvoice.*error\" \"/c/Users/Aman.Jain/OneDrive/Mode Global/Test cases/QA AI Agent/Playwright_Agent/src/reporting/allure-results\"/*.json)"
     ]
   }
 }

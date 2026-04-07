@@ -1279,18 +1279,18 @@ Pending carrier invoice with price difference
 40. Enter total miles  eg 100
 41. On Carrier tab click on CHOOSE CARRIER and select any ACTIVE carrier by typing in XPO TRANS INC.
 42.Click on Save button[Status has been set to booked alert will appear on the screen.] Accept the alert.
-43.  Click on EDIT button and select value as DELIVERED FINAL from status dropDown.
-44. Click on Save button and select Ok button on the pop up. 
-45. Click on View Billing button. 
-46. Click on ADD NEW button present adjacent to text CARRIER INVOICES.
-47. Enter Invoice Number, Enter Amount as 1500 and click on SAVE INVOICE.
-48. Reload the page.
-49.Again Click on ADD NEW button present adjacent to text CARRIER INVOICES.
-50. Enter Invoice Number, Enter Amount as 2000 and click on SAVE INVOICE.
-51.Reload the page. 
-52. Click on View history to see payable messages and Check for the price difference message ","44. Status has been set to INVOICED ALERT should appear on the screen.
-48. Payable Toggle should get moved to the Agent.
-52.The system should recalculate the discrepancy to show the correct price difference in the new message",,"aiteam,payabletoggle"
+43.  Click on EDIT button and select value as DELIVERED FINAL from status dropDown and select override BTF checkbox and click on save button   .
+44. Click on View Billing button. 
+45. Click on ADD NEW button present adjacent to text CARRIER INVOICES.
+46. Enter Invoice Number, Enter Amount as 1500 and click on SAVE INVOICE.
+47. Reload the page.
+48.Again Click on ADD NEW button present adjacent to text CARRIER INVOICES.
+49. Enter Invoice Number, Enter Amount as 2000 and click on SAVE INVOICE.
+50.Reload the page. 
+51. Click on View history to see payable messages and fetch the last row of message and check if price difference computed is present in the message.","43. A pop up window with message ""Are you sure you want to change this load to Delivered Final?"" will appear on the screen.
+43.  Status will be set to INVOICED.
+50. Payable Toggle should get moved to the Agent.
+51. Below View History ""XPO TRANS INC invoiced $1,700.00 over the total charge"" kind of message containing dynamic price difference should appear on the screen. The system should display the price difference accurately via the formula Total Invoices$2,400.00 -MODE Global Total Charges$700.00 = Price Difference which is $1700.",,"aiteam,payabletoggle"
 97740,,,Automatically book a load when it is manually postedDisplay a message when a carrier having a status of CAUTION is selected,"Agent has logged into the BTMS
 Agent's Office Info has the following field settings:
 - Match vendors is set to TNX

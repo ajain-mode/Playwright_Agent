@@ -97,11 +97,11 @@ test.describe.serial(
       });
 
       await test.step("Step 5 [CSV 27]: Select Mileage Engine as Current", async () => {
-        await pages.editLoadFormPage.selectMileageEngine(testData.mileageEngine || "Current");
+        await pages.editLoadFormPage.selectMileageEngine(testData.mileageEngine || MILEAGE_ENGINE.CURRENT);
       });
 
       await test.step("Step 6 [CSV 28]: Select Method as Practical", async () => {
-        await pages.editLoadFormPage.selectMileageMethod("Practical");
+        await pages.editLoadFormPage.selectMileageMethod(MILEAGE_METHOD.PRACTICAL);
       });
 
       await test.step("Step 7 [CSV 29]: Verify Linehaul and Fuel Surcharge defaults", async () => {
@@ -110,14 +110,14 @@ test.describe.serial(
         expect.soft(
           linehaulDefault?.toLowerCase(),
           "Linehaul should default to 'Flat Rate'"
-        ).toContain("flat");
+        ).toContain(RATE_TYPE.FLAT.toLowerCase());
 
         const fuelSurchargeDefault = await pages.editLoadFormPage.getFuelSurchargeDefaultValue();
         pages.logger.info(`Fuel Surcharge default: ${fuelSurchargeDefault}`);
         expect.soft(
           fuelSurchargeDefault?.toLowerCase(),
           "Fuel Surcharge should default to 'Flat Rate'"
-        ).toContain("flat");
+        ).toContain(RATE_TYPE.FLAT.toLowerCase());
       });
 
       await test.step("Step 8 [CSV 30-31]: Click Create Load and select Rate Type", async () => {
@@ -171,92 +171,95 @@ test.describe.serial(
         await alertPromise;
       });
 
-      await test.step("Step 17 [CSV 43]: Click EDIT and select DELIVERED FINAL from status dropdown", async () => {
+      await test.step("Step 17 [CSV 43]: Click EDIT, select DELIVERED FINAL, check Override BTF, click Save", async () => {
         await pages.viewLoadPage.clickEditButton();
         await pages.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
-      });
+        await pages.editLoadFormPage.checkOverrideBTF();
 
-      await test.step("Step 18 [CSV 44]: Click Save and select Ok on pop up — Expected: INVOICED alert", async () => {
-        const result = await pages.loadBillingPage.saveAndCaptureInvoicedAlert(
+        // After Save, dialogs may fire (e.g. "Are you sure you want to change this load to Delivered Final?")
+        const capturedDialogs = await pages.commonReusables.acceptAllDialogsDuringAction(
           sharedPage,
           () => pages.editLoadFormPage.clickOnSaveBtn(),
-          () => pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]),
-          ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_INVOICED
+          WAIT.DEFAULT
         );
-        expect.soft(result.hasInvoicedAlert, "Expected: Status has been set to INVOICED alert should appear").toBeTruthy();
+        pages.logger.info(`Total dialogs captured: ${capturedDialogs.length}`);
+
+        // Expected 43: "Are you sure you want to change this load to Delivered Final?" popup
+        const hasConfirmDialog = capturedDialogs.some(msg =>
+          msg.includes(ALERT_PATTERNS.CONFIRM_CHANGE_TO_DELIVERED_FINAL)
+        );
+        expect(hasConfirmDialog,
+          "Expected [CSV 43]: 'Are you sure you want to change this load to Delivered Final?' popup should appear"
+        ).toBeTruthy();
+
+        await pages.commonReusables.waitForPageStable(sharedPage);
+
+        // Expected 43: Status will be set to INVOICED — read from the load status locator on the page
+        const loadStatus = await pages.viewLoadPage.getLoadStatus();
+        pages.logger.info(`Load status after save: ${loadStatus}`);
+        expect(loadStatus.toUpperCase(),
+          "Expected [CSV 43]: Status should be set to INVOICED"
+        ).toContain(LOAD_STATUS.INVOICED);
       });
 
-      await test.step("Step 19 [CSV 45]: Click on View Billing button", async () => {
-        // After save, page may be in view mode — navigate to Load tab then View Billing
+      await test.step("Step 18 [CSV 44]: Click on View Billing button", async () => {
         await pages.editLoadPage.clickOnTab(TABS.LOAD);
         await pages.editLoadFormPage.clickOnViewBillingBtn();
+        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await pages.commonReusables.waitForPageStable(sharedPage);
       });
 
-      // ===== Steps 46-47: Add New Carrier Invoice #1 (amount: 1500) =====
-      await test.step("Step 20 [CSV 46-47]: Click Add New, enter invoice #1 (amount 1500), save", async () => {
+      await test.step("Step 19 [CSV 45]: Click ADD NEW button adjacent to CARRIER INVOICES", async () => {
         await pages.loadBillingPage.clickAddNewCarrierInvoice();
+      });
 
+      await test.step("Step 20 [CSV 46]: Enter Invoice Number, Amount as 1500, click SAVE INVOICE", async () => {
         const invoiceNumber1 = pages.loadBillingPage.generateRandomInvoiceNumber();
         await pages.loadBillingPage.enterCarrierInvoiceNumber(invoiceNumber1);
         await pages.loadBillingPage.enterCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
-
         await pages.loadBillingPage.clickSaveCarrierInvoice();
       });
 
-      // ===== Step 48: Reload and validate payable toggle =====
-      await test.step("Step 21 [CSV 48]: Reload page — Expected: Payable Toggle should get moved to the Agent", async () => {
-        // Wait for backend to process the invoice and update payable toggle before reloading
-        await sharedPage.waitForTimeout(WAIT.SMALL);
-
-        const reloadDialogHandler = async (dialog: { accept: () => Promise<void> }) => { await dialog.accept(); };
-        sharedPage.on("dialog", reloadDialogHandler);
-
-        await sharedPage.reload();
-
-        sharedPage.off("dialog", reloadDialogHandler);
-
-        // Page reloads on billing — validate payable toggle directly
-        const toggleValue = await pages.loadBillingPage.getPayableToggleValue();
-        pages.logger.info(`Payable toggle after first invoice: ${toggleValue}`);
-        expect.soft(toggleValue, "Expected [CSV 48]: Payable Toggle should get moved to the Agent").toBe('Agent');
+      await test.step("Step 21 [CSV 47]: Reload the page", async () => {
+        await pages.commonReusables.reloadAndAcceptDialogs(sharedPage, WAIT.SMALL);
       });
 
-      // ===== Steps 49-50: Add New Carrier Invoice #2 (amount: 2000) =====
-      await test.step("Step 22 [CSV 49-50]: Click Add New, enter invoice #2 (amount 2000), save", async () => {
+      await test.step("Step 22 [CSV 48]: Click ADD NEW button adjacent to CARRIER INVOICES", async () => {
         await pages.loadBillingPage.clickAddNewCarrierInvoice();
+      });
 
+      await test.step("Step 23 [CSV 49]: Enter Invoice Number, Amount as 2000, click SAVE INVOICE", async () => {
         const invoiceNumber2 = pages.loadBillingPage.generateRandomInvoiceNumber();
         await pages.loadBillingPage.enterCarrierInvoiceNumber(invoiceNumber2);
         await pages.loadBillingPage.enterCarrierInvoiceAmount(testData.carrierInvoiceAmount2);
-
         await pages.loadBillingPage.clickSaveCarrierInvoice();
       });
 
-      // ===== Step 51: Reload =====
-      await test.step("Step 23 [CSV 51]: Reload page", async () => {
-        // Wait for backend to process the second invoice before reloading
-        await sharedPage.waitForTimeout(WAIT.SMALL);
+      await test.step("Step 24 [CSV 50]: Reload page — Expected: Payable Toggle should get moved to Agent", async () => {
+        await pages.commonReusables.reloadAndAcceptDialogs(sharedPage, WAIT.SMALL);
 
-        const reloadDialogHandler2 = async (dialog: { accept: () => Promise<void> }) => { await dialog.accept(); };
-        sharedPage.on("dialog", reloadDialogHandler2);
-
-        await sharedPage.reload();
-
-        sharedPage.off("dialog", reloadDialogHandler2);
+        // Expected 50: Payable Toggle should get moved to the Agent
+        const toggleValue = await pages.loadBillingPage.getPayableToggleValue();
+        pages.logger.info(`Payable toggle after second invoice: ${toggleValue}`);
+        expect(toggleValue, "Expected [CSV 50]: Payable Toggle should get moved to the Agent").toBe(PAYABLE_TOGGLE_VALUE.AGENT);
       });
 
-      // ===== Step 52: Click View History, read payable messages, validate price difference =====
-      await test.step("Step 24 [CSV 52]: Click View History and check price difference message", async () => {
+      await test.step("Step 25 [CSV 51]: Click View History and verify price difference in last message", async () => {
+        // Expected 51: Fetch last row of View History, extract dollar value,
+        // verify it equals: Total Invoices - MODE Global Total Charges (carrier rate)
         const result = await pages.loadBillingPage.validateViewHistoryPriceDifference(
           testData.carrierRate,
           [testData.carrierInvoiceAmount1, testData.carrierInvoiceAmount2]
         );
-        expect.soft(result.hasPriceDiffMessage,
-          "Expected [CSV 52]: View History should contain a price difference message"
-        ).toBeTruthy();
-        expect.soft(result.hasCorrectAmount,
-          `Expected [CSV 52]: View History should show recalculated price difference (${result.expectedDiffs.join(', ')})`
-        ).toBeTruthy();
+        pages.logger.info(`Last View History message: "${result.lastMessage}"`);
+        pages.logger.info(`Extracted: $${result.priceDifference}, Expected: $${result.expectedPriceDiff}`);
+
+        expect(result.priceDifference,
+          `Expected [CSV 51]: Last message should contain a price difference. Got: "${result.lastMessage}"`
+        ).not.toBeNull();
+        expect(result.priceDifference,
+          `Expected [CSV 51]: Price difference should be $${result.expectedPriceDiff} (Total Invoices - Total Charges)`
+        ).toBe(result.expectedPriceDiff);
       });
 
       }

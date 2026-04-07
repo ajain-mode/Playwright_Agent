@@ -79,9 +79,12 @@ test.describe.serial('Case ID: <TEST_ID>', () => {
 - TNX Rep: const tnxRepPages = await appManager.switchToTNXRep()
 - Switch user: await pages.adminPage.hoverAndClickAdminMenu(); await pages.adminPage.switchUser(testData.salesAgent)
 
-## Alert/Dialog Handling (MUST use these patterns)
-- Validate alert: await pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.<PATTERN_NAME>)
-- Accept alert: await pages.commonReusables.dialogHandler(sharedPage)
+## Alert/Dialog Handling (MUST use these patterns — NEVER write inline dialog handlers in spec files)
+- Validate single alert: await pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.<PATTERN_NAME>)
+- Accept all dialogs during an action (e.g. save that triggers multiple popups):
+  const capturedDialogs = await pages.commonReusables.acceptAllDialogsDuringAction(sharedPage, () => pages.editLoadFormPage.clickOnSaveBtn(), WAIT.DEFAULT);
+- Reload page with dialog handling:
+  await pages.commonReusables.reloadAndAcceptDialogs(sharedPage, WAIT.SMALL);
 - Alert patterns available: ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_BOOKED, ALERT_PATTERNS.POST_AUTOMATION_RULE_MATCHED,
   ALERT_PATTERNS.CARRIER_NOT_INCLUDED_ERROR, ALERT_PATTERNS.OFFER_RATE_SET_BY_GREENSCREENS,
   ALERT_PATTERNS.IN_VIEW_MODE, ALERT_PATTERNS.PAYABLE_STATUS_INVOICE_RECEIVED, etc.

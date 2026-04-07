@@ -1502,6 +1502,7 @@ export default class ViewLoadPage {
 
   /**
    * Clicks the Submit/Attach button (#submit_remote) in the Document Upload Utility.
+   * Waits for page stability after clicking.
    * @author AI Agent
    * @created 17-Mar-2026
    */
@@ -1509,6 +1510,18 @@ export default class ViewLoadPage {
     await this.submitRemoteButton_LOC.click();
     await commonReusables.waitForPageStable(this.page);
     console.log("Clicked Submit/Attach button");
+  }
+
+  /**
+   * Clicks the Submit/Attach button without waiting for page stability.
+   * Use this when the caller expects a browser alert to fire during page navigation
+   * triggered by the submit — waitForPageStable would block past the alert timeout.
+   * @author AI Agent
+   * @created 02-Apr-2026
+   */
+  async clickSubmitRemoteAndAwaitAlert(): Promise<void> {
+    await this.submitRemoteButton_LOC.click();
+    console.log("Clicked Submit/Attach button (awaiting alert)");
   }
 
   /**
@@ -1523,18 +1536,21 @@ export default class ViewLoadPage {
   }
 
   /**
-   * Clicks the Confirm button on the duplicate invoice dialog.
+   * Clicks the Confirm button on the duplicate invoice dialog if it appears.
+   * This is a conditional action — the dialog only appears for duplicate invoices.
+   * Returns true if the dialog was found and clicked, false if it did not appear.
    * @author AI Agent
    * @created 17-Mar-2026
    */
-  async clickConfirmDuplicateInvoiceDialog(): Promise<void> {
+  async clickConfirmDuplicateInvoiceDialog(): Promise<boolean> {
     try {
       await this.confirmDuplicateInvoiceBtn_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
       await this.confirmDuplicateInvoiceBtn_LOC.click();
       console.log("Clicked Confirm on duplicate invoice dialog");
-    } catch (err) {
-      console.error(`clickConfirmDuplicateInvoiceDialog: ${(err as Error).message}`);
-      throw err;
+      return true;
+    } catch {
+      console.log("No duplicate invoice dialog appeared — continuing");
+      return false;
     }
   }
 

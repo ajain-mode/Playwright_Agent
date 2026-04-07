@@ -157,39 +157,37 @@ test.describe.serial(
           await pages.editLoadFormPage.clickOnViewBillingBtn();
         });
 
-        await test.step("Step 18: Click upload icon in Load Documents", async () => {
+        await test.step("Step 18 [CSV 44]: Click upload icon against Customer in Load Documents", async () => {
           await pages.viewLoadPage.openDocumentUploadDialog();
         });
 
-        await test.step("Step 19: Select Payables and Document Type as Carrier Invoice", async () => {
+        await test.step("Step 19 [CSV 45]: Upload the carrier invoice document", async () => {
+          await pages.viewLoadPage.attachCarrierInvoiceFile();
+        });
+
+        await test.step("Step 20 [CSV 46]: Select Payables and Document Type as Carrier Invoice", async () => {
           await pages.viewLoadPage.selectPayablesRadio();
           await pages.viewLoadPage.selectDocumentType('Carrier Invoice');
         });
 
-        await test.step("Step 20: Enter invoice details, attach file, and accept alert", async () => {
+        await test.step("Step 21 [CSV 47]: Enter invoice details, click attach, accept alert, and close pop up", async () => {
           const invoiceNumber = pages.loadBillingPage.generateRandomInvoiceNumber();
           await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNumber);
           await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
 
-          await pages.viewLoadPage.attachCarrierInvoiceFile();
-
           const alertPromise = pages.commonReusables.validateAlert(
             sharedPage,
-            ALERT_PATTERNS.PAYABLE_STATUS_INVOICE_RECEIVED
+            ALERT_PATTERNS.PAYABLE_STATUS_INVOICE_RECEIVED,
+            30
           );
           await pages.viewLoadPage.clickSubmitRemote();
-
-          // Handle duplicate invoice confirmation if it appears
-          await pages.viewLoadPage.clickConfirmDuplicateInvoiceDialog();
-
           await alertPromise;
 
-          // Close the Document Upload Utility dialog
-          await pages.viewLoadPage.closeDocumentUploadDialogSafe();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+          // Page navigates to billing.php after submit — dialog is already closed
+          await pages.commonReusables.waitForPageStable(sharedPage);
         });
 
-        await test.step("Step 21: Reload and validate toggle and Not Deliv. Final checkbox", async () => {
+        await test.step("Step 22 [CSV 48]: Reload and validate toggle and Not Deliv. Final checkbox", async () => {
           await sharedPage.reload();
           await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
 
@@ -198,12 +196,12 @@ test.describe.serial(
           // Validate: Toggle should still be "Agent" after reload
           const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
           pages.logger.info(`Billing toggle after reload: ${toggleValue}`);
-          expect.soft(toggleValue, "Billing Issues toggle should still be 'Agent' after reload").toBe('Agent');
+          expect(toggleValue, "Billing Issues toggle should still be 'Agent' after reload").toBe('Agent');
 
           // Validate: "Not Deliv. Final" checkbox should be checked
           const notDelivChecked = await pages.loadBillingPage.isNotDeliveredFinalChecked();
           pages.logger.info(`Not Deliv. Final checked: ${notDelivChecked}`);
-          expect.soft(notDelivChecked, "Not Deliv. Final should be checked").toBeTruthy();
+          expect(notDelivChecked, "Not Deliv. Final should be checked").toBeTruthy();
         });
 
       }

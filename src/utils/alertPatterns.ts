@@ -52,6 +52,8 @@ export const ALERT_PATTERNS = {
 
   CAUTION_CARRIER_HAS_A_CAUTIONARY_SAFETY_RATING: "CAUTION: Carrier has a cautionary safety rating",
 
+  CONFIRM_CHANGE_TO_DELIVERED_FINAL: "Are you sure you want to change this load to Delivered Final",
+
 };
 
 

@@ -577,6 +577,20 @@ export class GlobalConstants {
     dateLastUpdated: 15,
   }as const;
 
+  static readonly PAYABLE_TOGGLE_VALUE = {
+    AGENT: "Agent",
+    BILLING: "Billing",
+    NEUTRAL: "Neutral",
+  } as const;
+
+  static readonly MILEAGE_ENGINE = {
+    CURRENT: "Current",
+  } as const;
+
+  static readonly MILEAGE_METHOD = {
+    PRACTICAL: "Practical",
+  } as const;
+
   static readonly CARRIER_NAME = {
     CARRIER_1: "ZZOO LOGISTICS LLC",
     CARRIER_2: "VICTOR LOGISTICS INC",
@@ -649,6 +663,9 @@ declare global {
   const POST_AUTOMATION_COLUMNS: typeof GlobalConstants.POST_AUTOMATION_COLUMNS;
   const CARRIER_NAME: typeof GlobalConstants.CARRIER_NAME;
   const RATE_TYPE: typeof GlobalConstants.RATE_TYPE;
+  const PAYABLE_TOGGLE_VALUE: typeof GlobalConstants.PAYABLE_TOGGLE_VALUE;
+  const MILEAGE_ENGINE: typeof GlobalConstants.MILEAGE_ENGINE;
+  const MILEAGE_METHOD: typeof GlobalConstants.MILEAGE_METHOD;
 }
 /**
  * @author Deepak Bohra
@@ -714,4 +731,7 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).POST_AUTOMATION_COLUMNS = GlobalConstants.POST_AUTOMATION_COLUMNS;
   (globalThis as any).CARRIER_NAME = GlobalConstants.CARRIER_NAME;
   (globalThis as any).RATE_TYPE = GlobalConstants.RATE_TYPE;
+  (globalThis as any).PAYABLE_TOGGLE_VALUE = GlobalConstants.PAYABLE_TOGGLE_VALUE;
+  (globalThis as any).MILEAGE_ENGINE = GlobalConstants.MILEAGE_ENGINE;
+  (globalThis as any).MILEAGE_METHOD = GlobalConstants.MILEAGE_METHOD;
 }
