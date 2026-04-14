@@ -105,7 +105,7 @@ test.describe("Case ID: 97745 - Automatically book a load when it is automatical
           CARRIER_NAME.CARRIER_1
         ]);
         await pages.dfbLoadFormPage.clickCarrierAutoAcceptCheckbox();
-        await pages.dfbLoadFormPage.selectCarreirContactForRateConfirmation(CARRIER_CONTACT.CONTACT_1);
+        await pages.dfbLoadFormPage.selectCarrierContactForRateConfirmation(CARRIER_CONTACT.CONTACT_1);
         await pages.editLoadFormPage.clickOnSaveBtn();
 
         await pages.viewLoadPage.validateLoadStatus(LOAD_STATUS.BOOKED);

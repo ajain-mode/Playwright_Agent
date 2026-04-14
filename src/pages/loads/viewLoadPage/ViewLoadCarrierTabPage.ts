@@ -38,6 +38,11 @@ class ViewLoadCarrierTabPage {
   private readonly bidHistoryFirstRowSource_LOC: Locator;
   private readonly cargoValue_LOC: Locator;
   private readonly closeBidHistoryModalButton_LOC: Locator;
+  private readonly bidHistoryTable_LOC: Locator;
+  private readonly bidHistoryNextButton_LOC: Locator;
+  private readonly bidHistoryInfo_LOC: Locator;
+  private readonly bidHistoryAllRows_LOC: Locator;
+  private readonly bidHistoryAllBidRateCells_LOC: Locator;
   private readonly carrierAssignedText_LOC: (expectedCarrierText: string) => Locator;
 
   private readonly sendConfirmationButton_LOC: (carrierNumber: string) => Locator;
@@ -47,6 +52,7 @@ class ViewLoadCarrierTabPage {
   private readonly carrierDispatchEmailValue_LOC: (carrierNumber: string) => Locator;
   private readonly driverNameValue_LOC: (carrierNumber: string) => Locator;
   private readonly driverNumberValue_LOC: (carrierNumber: string) => Locator;
+  private readonly cancelText_LOC: Locator;
 
   constructor(private page: Page) {
     this.sendEDITenderButton_LOC = (carrierNumber: string) =>
@@ -135,6 +141,21 @@ class ViewLoadCarrierTabPage {
     this.closeBidHistoryModalButton_LOC = this.page.locator(
       "//h5[contains(text(),'Bid History')]//parent::div//button[@class='close']"
     );
+    this.bidHistoryTable_LOC = this.page.locator(
+      "#carrier_bids_show_history"
+    );
+    this.bidHistoryNextButton_LOC = this.page.locator(
+      "#carrier_bids_show_history_paginate li.next > a"
+    );
+    this.bidHistoryInfo_LOC = this.page.locator(
+      "#carrier_bids_show_history_info"
+    );
+    this.bidHistoryAllRows_LOC = this.page.locator(
+      "//table[@id='carrier_bids_show_history']//tbody//tr"
+    );
+    this.bidHistoryAllBidRateCells_LOC = this.page.locator(
+      "//table[@id='carrier_bids_show_history']//tbody//tr/td[8]"
+    );
     this.carrierAssignedText_LOC = (expectedCarrierText: string) =>
       page.locator(
         `//a[@class='quick_link'][contains(text(),'${expectedCarrierText}')]`
@@ -148,6 +169,7 @@ class ViewLoadCarrierTabPage {
     this.carrierDispatchNumberValue_LOC = (carrierNumber: string) => this.page.locator(`#carr_${carrierNumber}_booked_with_phone`);
     this.driverNameValue_LOC = (carrierNumber: string) => this.page.locator(`#carrier_${carrierNumber}_tab`).getByRole('cell', { name: 'Driver', exact: true }).locator('xpath=following-sibling::td').first();
     this.driverNumberValue_LOC = (carrierNumber: string) => this.page.locator(`#carrier_${carrierNumber}_tab`).getByRole('cell', { name: 'Driver Cell', exact: true }).locator('xpath=following-sibling::td').first();
+    this.cancelText_LOC = this.page.getByText("[cancel]");
 
   }
   //____________________Consolidated Methods____________________
@@ -542,18 +564,18 @@ class ViewLoadCarrierTabPage {
         // Handle actual format: "10/27/2025 14:55:14" - extract "14:55"
         const actualTimeParts = actualValue.split(" ");
         const expectedTimeParts = expectedValue.split(" ");
-
+ 
         if (actualTimeParts.length > 1 && expectedTimeParts.length > 1) {
           // Extract hour:minute (HH:MM) from time part "14:55:14" -> "14:55"
           // Use regex to extract HH:MM pattern and remove any trailing colons or characters
           const actualTimeMatch = actualTimeParts[1].match(/^\d{1,2}:\d{2}/);
           const expectedTimeMatch =
             expectedTimeParts[1].match(/^\d{1,2}:\d{2}/);
-
+ 
           if (actualTimeMatch && expectedTimeMatch) {
             const actualHM = actualTimeMatch[0]; // This will be clean "HH:MM" format
             const expectedHM = expectedTimeMatch[0]; // This will be clean "HH:MM" format
-
+ 
             // Parse time strings to minutes for comparison with tolerance
             const parseTimeToMinutes = (timeStr: string): number => {
               const [hours, minutes] = timeStr
@@ -561,13 +583,13 @@ class ViewLoadCarrierTabPage {
                 .map((num) => parseInt(num, 10));
               return hours * 60 + minutes;
             };
-
+ 
             const actualMinutes = parseTimeToMinutes(actualHM);
             const expectedMinutes = parseTimeToMinutes(expectedHM);
             const timeDifferenceMinutes = Math.abs(
               actualMinutes - expectedMinutes
             );
-
+ 
             // Allow up to 1 minute difference
             if (timeDifferenceMinutes > 1) {
               validationPassed = false;
@@ -629,7 +651,7 @@ class ViewLoadCarrierTabPage {
       else if (field === "shipDate" && expectedValue !== undefined) {
         const actualDate = actualValue.trim();
         const expectedDate = String(expectedValue).trim();
-
+ 
         // Extract only the date part (before space) from actual value if it contains time
         const actualDateOnly = actualDate.includes(" ")
           ? actualDate.split(" ")[0]
@@ -637,7 +659,7 @@ class ViewLoadCarrierTabPage {
         const expectedDateOnly = expectedDate.includes(" ")
           ? expectedDate.split(" ")[0]
           : expectedDate;
-
+ 
         if (actualDateOnly !== expectedDateOnly) {
           validationPassed = false;
           validationResults.push(
@@ -653,7 +675,7 @@ class ViewLoadCarrierTabPage {
       else if (field === "equipment" && expectedValue !== undefined) {
         const actualEquipment = actualValue.trim().toUpperCase();
         const expectedEquipment = String(expectedValue).trim().toUpperCase();
-
+ 
         if (actualEquipment !== expectedEquipment) {
           validationPassed = false;
           validationResults.push(
@@ -669,7 +691,7 @@ class ViewLoadCarrierTabPage {
       else if (field === "source" && expectedValue !== undefined) {
         const actualSource = actualValue.trim();
         const expectedSource = String(expectedValue).trim();
-
+ 
         if (actualSource !== expectedSource) {
           validationPassed = false;
           validationResults.push(
@@ -685,7 +707,7 @@ class ViewLoadCarrierTabPage {
       else if (field === "shipDate" && expectedValue !== undefined) {
         const actualDate = actualValue.trim();
         const expectedDate = String(expectedValue).trim();
-
+ 
         // Extract only the date part (before space) from actual value if it contains time
         const actualDateOnly = actualDate.includes(" ")
           ? actualDate.split(" ")[0]
@@ -693,7 +715,7 @@ class ViewLoadCarrierTabPage {
         const expectedDateOnly = expectedDate.includes(" ")
           ? expectedDate.split(" ")[0]
           : expectedDate;
-
+ 
         if (actualDateOnly !== expectedDateOnly) {
           validationPassed = false;
           validationResults.push(
@@ -709,7 +731,7 @@ class ViewLoadCarrierTabPage {
       else if (field === "equipment" && expectedValue !== undefined) {
         const actualEquipment = actualValue.trim().toUpperCase();
         const expectedEquipment = String(expectedValue).trim().toUpperCase();
-
+ 
         if (actualEquipment !== expectedEquipment) {
           validationPassed = false;
           validationResults.push(
@@ -725,7 +747,7 @@ class ViewLoadCarrierTabPage {
       else if (field === "source" && expectedValue !== undefined) {
         const actualSource = actualValue.trim();
         const expectedSource = String(expectedValue).trim();
-
+ 
         if (actualSource !== expectedSource) {
           validationPassed = false;
           validationResults.push(
@@ -734,6 +756,39 @@ class ViewLoadCarrierTabPage {
         } else {
           validationResults.push(
             `✅ ${field}: "${actualSource}" matches expected source`
+          );
+        }
+      }
+      // Special handling for bidRate - remove non-numeric characters and validate with includes
+      else if (field === "bidRate" && expectedValue !== undefined) {
+        // Remove any non-numeric characters from both actual and expected values
+        const actualBidRateClean = actualValue.trim().replace(/[^\d.]/g, "");
+        const expectedBidRateClean = String(expectedValue).trim().replace(/[^\d.]/g, "");
+ 
+        if (!actualBidRateClean.includes(expectedBidRateClean)) {
+          validationPassed = false;
+          validationResults.push(
+            `❌ ${field}: Expected "${expectedBidRateClean}" to be included in "${actualBidRateClean}" (actual: "${actualValue}", expected: "${expectedValue}")`
+          );
+        } else {
+          validationResults.push(
+            `✅ ${field}: "${actualBidRateClean}" contains expected bid rate "${expectedBidRateClean}" (actual: "${actualValue}", expected: "${expectedValue}")`
+          );
+        }
+      }
+      // Special handling for carrier - normalize spaces and validate with includes
+      else if (field === "carrier" && expectedValue !== undefined) {
+        const actualCarrier = actualValue.trim().replace(/\s+/g, ' ');
+        const expectedCarrier = String(expectedValue).trim().replace(/\s+/g, ' ');
+ 
+        if (!actualCarrier.includes(expectedCarrier)) {
+          validationPassed = false;
+          validationResults.push(
+            `❌ ${field}: Expected "${expectedCarrier}" to be included in "${actualCarrier}"`
+          );
+        } else {
+          validationResults.push(
+            `✅ ${field}: "${actualCarrier}" contains expected carrier "${expectedCarrier}"`
           );
         }
       }
@@ -789,7 +844,7 @@ class ViewLoadCarrierTabPage {
     await this.page.waitForLoadState("networkidle");
     await this.page.waitForLoadState("domcontentloaded");
     await expect
-      .soft(this.page.getByText("[cancel]"))
+      .soft(this.cancelText_LOC)
       .not.toBeVisible({ timeout: WAIT.SPEC_TIMEOUT });
   }
 
@@ -1151,6 +1206,162 @@ class ViewLoadCarrierTabPage {
       console.error(`❌ Failed to close bid history modal: ${error}`);
       throw error;
     }
+  }
+
+  /**
+   * Returns the TOTAL count of entries across all pages in the bid history popup.
+   * Parses the DataTables info text (e.g. "Showing 1 to 10 of 25 entries") to get the total.
+   * Falls back to counting visible rows if the info element is not present.
+   * @author AI Agent
+   * @created 14-Apr-2026
+   */
+  async getBidHistoryEntryCount(): Promise<number> {
+    await this.bidHistoryTable_LOC.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
+    await this.page.waitForLoadState("networkidle");
+
+    // DataTables info element: #carrier_bids_show_history_info shows "Showing 1 to 10 of 25 entries"
+    const infoVisible = await this.bidHistoryInfo_LOC.isVisible().catch(() => false);
+    if (infoVisible) {
+      const infoText = (await this.bidHistoryInfo_LOC.textContent())?.trim() || '';
+      // Parse "Showing 1 to 10 of 25 entries" → 25
+      const totalMatch = infoText.match(/of\s+(\d+)\s+entries/i);
+      if (totalMatch) {
+        const total = parseInt(totalMatch[1], 10);
+        console.log(`Bid History total entry count from info: ${total} (${infoText})`);
+        return total;
+      }
+      console.log(`Bid History info element found but could not parse total: "${infoText}"`);
+    } else {
+      console.log("Bid History info element not found — falling back to visible row count");
+    }
+
+    // Fallback: count visible rows (single page only)
+    const count = await this.bidHistoryAllRows_LOC.count();
+    console.log(`Bid History entry count (visible rows fallback): ${count}`);
+    return count;
+  }
+
+  /**
+   * Returns an array of ALL bid rate values (as numbers) from every page of the bid history popup.
+   * Paginates through all pages by clicking the Next button until the last page is reached.
+   * Column index 8 (td[8]) is the Bid Rate column.
+   * @author AI Agent
+   * @created 14-Apr-2026
+   */
+  async getAllBidRates(): Promise<number[]> {
+    await this.bidHistoryTable_LOC.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
+    await this.page.waitForLoadState("networkidle");
+
+    const rates: number[] = [];
+    let pageNum = 1;
+
+    // Collect bid rates from the current visible page
+    const collectCurrentPageRates = async (): Promise<void> => {
+      await commonReusables.waitForPageStable(this.page);
+      const count = await this.bidHistoryAllBidRateCells_LOC.count();
+      for (let i = 0; i < count; i++) {
+        const text = (await this.bidHistoryAllBidRateCells_LOC.nth(i).textContent())?.trim().replace(/[,$]/g, '') || '0';
+        const value = parseFloat(text);
+        if (!isNaN(value)) {
+          rates.push(value);
+        }
+      }
+      console.log(`Page ${pageNum}: collected ${count} bid rate cells`);
+    };
+
+    // Collect from first page
+    await collectCurrentPageRates();
+
+    // Check if Next button is present at all
+    const nextButtonVisible = await this.bidHistoryNextButton_LOC.isVisible().catch(() => false);
+    if (!nextButtonVisible) {
+      console.log("Next button not found in bid history modal — single page, no pagination needed");
+      return rates;
+    }
+    console.log("Next button found — starting pagination through bid history pages");
+
+    // Paginate through remaining pages using the Next button
+    const MAX_PAGES = 100;
+    while (pageNum < MAX_PAGES) {
+      // DataTables Bootstrap adds class 'disabled' to the parent <li>, not the <a>
+      const isDisabled = await this.bidHistoryNextButton_LOC.evaluate((el) => {
+        const parentLi = el.closest('li');
+        return parentLi ? parentLi.classList.contains('disabled') : true;
+      }).catch((err) => {
+        console.warn(`getAllBidRates: Next button evaluate failed: ${(err as Error).message}`);
+        return true;
+      });
+
+      if (isDisabled) {
+        console.log(`Next button disabled on page ${pageNum} — reached last page`);
+        break;
+      }
+
+      await this.bidHistoryNextButton_LOC.click();
+      await this.page.waitForLoadState("networkidle");
+      pageNum++;
+      await collectCurrentPageRates();
+    }
+
+    console.log(`Collected ${rates.length} total bid rates across ${pageNum} page(s)`);
+    return rates;
+  }
+
+  /**
+   * Paginates through ALL pages of the bid history popup, collects every bid rate,
+   * validates total entry count against the expected BIDS value, calculates the
+   * average rate, and validates it against the displayed Avg Rate from the Carrier tab.
+   * Must be called while the BID HISTORY popup is open.
+   * @author AI Agent
+   * @created 14-Apr-2026
+   * @param displayedAvgRateText - The raw Avg Rate text from the Carrier tab (e.g. "$2,026.67" or "2026.67").
+   * @param expectedBidsCount - The expected total number of bid entries (BIDS report value).
+   * @returns Object with sum, entryCount, and calculatedAvg for logging.
+   */
+  async calculateAndValidateAvgRate(
+    displayedAvgRateText: string,
+    expectedBidsCount?: number
+  ): Promise<{ sum: number; entryCount: number; calculatedAvg: number }> {
+    const allBidRates = await this.getAllBidRates();
+    const entryCount = allBidRates.length;
+    const sum = allBidRates.reduce((acc, rate) => acc + rate, 0);
+    const calculatedAvg = entryCount > 0 ? Math.round((sum / entryCount) * 100) / 100 : 0;
+
+    // Validate total bid entries against BIDS report count
+    if (expectedBidsCount !== undefined) {
+      console.log(`Total bid entries collected: ${entryCount}, expected BIDS count: ${expectedBidsCount}`);
+      expect.soft(
+        entryCount,
+        `Total bid entries (${entryCount}) should match BIDS report count (${expectedBidsCount})`
+      ).toBe(expectedBidsCount);
+    }
+
+    const displayedAvg = Math.round((parseFloat(displayedAvgRateText.replace(/[,$]/g, '')) || 0) * 100) / 100;
+
+    console.log(`Avg Rate calculation — sum: ${sum}, entries: ${entryCount}, calculated: ${calculatedAvg}, displayed: ${displayedAvg}`);
+    expect.soft(
+      calculatedAvg,
+      `Calculated Avg Rate (${calculatedAvg}) should match displayed Avg Rate (${displayedAvg})`
+    ).toBeCloseTo(displayedAvg, 0);
+
+    return { sum, entryCount, calculatedAvg };
+  }
+
+  /**
+   * Validates that the bid history popup entry count matches the expected BIDS report count.
+   * Must be called while the BID HISTORY popup is open.
+   * @author AI Agent
+   * @created 13-Apr-2026
+   * @param expectedCount - The expected number of entries (usually baselineCount + 1).
+   */
+  async validateBidHistoryEntryCount(expectedCount: number): Promise<number> {
+    const entryCount = await this.getBidHistoryEntryCount();
+    console.log(`BID HISTORY popup entries: ${entryCount}, expected: ${expectedCount}`);
+    expect.soft(
+      entryCount,
+      `BID HISTORY entry count should match BIDS report count (${expectedCount})`
+    ).toBe(expectedCount);
+    return entryCount;
   }
 }
 

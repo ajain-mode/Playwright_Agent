@@ -32,6 +32,9 @@ export default class LTLQuoteRequestPage {
     private readonly noRatesMessage_LOC: Locator;
     private readonly linearFeetInput_LOC: Locator;
     private readonly sub1ClassLink_LOC: Locator;
+    private readonly errorRetrievingResults_LOC: Locator;
+    private readonly noResultsFound_LOC: Locator;
+    private readonly cancelText_LOC: Locator;
 
     /**
  * Constructor to initialize page locators for form validation elements
@@ -61,6 +64,9 @@ export default class LTLQuoteRequestPage {
         this.noRatesMessage_LOC = page.locator("#rating_error_text");
         this.linearFeetInput_LOC = page.locator("#linear_feet_usr");
         this.sub1ClassLink_LOC = page.locator("//a[normalize-space()='Sub 1']");
+        this.errorRetrievingResults_LOC = page.getByText('Error retrieving results');
+        this.noResultsFound_LOC = page.getByText('No results found');
+        this.cancelText_LOC = page.getByText('[cancel]');
     }
 
     private accessorialCheckbox(value: string): Locator {
@@ -103,24 +109,24 @@ export default class LTLQuoteRequestPage {
         try {
             await Promise.race([
                 this.NMFC_LOC.first().waitFor({ state: 'visible', timeout: WAIT.XXLARGE }),
-                this.page.getByText('Error retrieving results').waitFor({ state: 'visible', timeout: WAIT.XXLARGE }),
-                this.page.getByText('No results found').waitFor({ state: 'visible', timeout: WAIT.XXLARGE }),
+                this.errorRetrievingResults_LOC.waitFor({ state: 'visible', timeout: WAIT.XXLARGE }),
+                this.noResultsFound_LOC.waitFor({ state: 'visible', timeout: WAIT.XXLARGE }),
             ]);
         } catch (error) {
             console.log('Timeout waiting for NMFC or result messages');
         }
 
-        if (await this.page.getByText('No results found').isVisible()) {
+        if (await this.noResultsFound_LOC.isVisible()) {
             console.log('No results found — refilling description...');
-        } else if (await this.page.getByText('Error retrieving results').isVisible()) {
+        } else if (await this.errorRetrievingResults_LOC.isVisible()) {
             console.log('Error retrieving results — refilling description...');
         } else if (!(await this.NMFC_LOC.first().isVisible())) {
             console.log('NMFC not visible — refilling description...');
         }
 
         if (
-            (await this.page.getByText('No results found').isVisible()) ||
-            (await this.page.getByText('Error retrieving results').isVisible()) ||
+            (await this.noResultsFound_LOC.isVisible()) ||
+            (await this.errorRetrievingResults_LOC.isVisible()) ||
             !(await this.NMFC_LOC.first().isVisible())
         ) {
             await this.closeIconBtn.click();
@@ -190,7 +196,7 @@ export default class LTLQuoteRequestPage {
         * @modified 10-Nov-25
         */
         if (verifyCancelHidden) {
-            await expect.soft(this.page.getByText('[cancel]')).not.toBeVisible({ timeout: WAIT.SPEC_TIMEOUT });
+            await expect.soft(this.cancelText_LOC).not.toBeVisible({ timeout: WAIT.SPEC_TIMEOUT });
         }
     }
 

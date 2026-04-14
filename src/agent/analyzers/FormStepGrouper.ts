@@ -393,7 +393,7 @@ function generateCustomerToCreateCode(): string {
   const lines = [
     'const btmsBaseUrl = new URL(sharedPage.url()).origin;',
     'await sharedPage.goto(btmsBaseUrl);',
-    'await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);',
+    'await commonReusables.waitForAllLoadStates(sharedPage);',
     'await sharedPage.locator(\'#c-sitemenu-container\').waitFor({ state: \'visible\', timeout: 15000 });',
     'console.log("Navigated to BTMS Home");',
     'await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);',
@@ -491,7 +491,7 @@ function generateBTMSSwitchCode(): string {
     'await appManager.switchToBTMS();',
     'const btmsBaseUrl = new URL(sharedPage.url()).origin;',
     'await sharedPage.goto(btmsBaseUrl);',
-    'await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);',
+    'await commonReusables.waitForAllLoadStates(sharedPage);',
     'await sharedPage.locator(\'#c-sitemenu-container\').waitFor({ state: \'visible\', timeout: 15000 });',
     'console.log("Switched back to BTMS via URL-based navigation");',
   ];
@@ -519,7 +519,7 @@ function generatePostLoadCode(steps: TestStep[]): string {
   if (hasCarrierTab) {
     lines.push(
       'await pages.viewLoadPage.clickCarrierTab();',
-      'await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);',
+      'await commonReusables.waitForAllLoadStates(sharedPage);',
       'console.log("Clicked Carrier tab");',
     );
   }

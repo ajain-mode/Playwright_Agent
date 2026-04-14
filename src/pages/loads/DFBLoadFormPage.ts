@@ -153,6 +153,15 @@ export class DFBLoadFormPage {
   }
 
   /**
+   * Formats a raw rate string to a display value with 2 decimal places (e.g. "2000" → "2000.00").
+   * @author AI Agent
+   * @created 13-Apr-2026
+   */
+  static formatRateForDisplay(rate: string): string {
+    return parseFloat(rate).toFixed(2);
+  }
+
+  /**
    *
    * @author Deepak Bohra
    * @description Enter value into the Offer Rate
@@ -1225,7 +1234,7 @@ export class DFBLoadFormPage {
     return value;
   }
 
-  async selectCarreirContactForRateConfirmation(contactName:string){
+  async selectCarrierContactForRateConfirmation(contactName:string){
     //await commonReusables.waitForAllLoadStates(this.page);
     await this.page.waitForTimeout(WAIT.SMALL);
     await this.carrierContactForRateConfirmationDropdown_LOC.waitFor({state:'visible'});

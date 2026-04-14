@@ -37,6 +37,10 @@ export default class LCPQuoteLTL {
     private readonly searchLoadInput_LOC: Locator;
     private readonly linkText: (label: string) => Locator;
     private readonly sub1ClassLink_LOC: Locator;
+    private readonly errorRetrievingResults_LOC: Locator;
+    private readonly noResultsFound_LOC: Locator;
+    private readonly cancelText_LOC: Locator;
+    private readonly todayButton_LOC: Locator;
 
     constructor(private page: Page) {
 
@@ -72,6 +76,10 @@ export default class LCPQuoteLTL {
         this.searchLoadInput_LOC = page.locator("#form_load_number");
         this.linkText = (label: string) => this.page.locator(`//a[normalize-space()='${label}']`);
         this.sub1ClassLink_LOC = page.locator("//a[normalize-space()='Sub 1']");
+        this.errorRetrievingResults_LOC = page.getByText('Error retrieving results');
+        this.noResultsFound_LOC = page.getByText('No results found');
+        this.cancelText_LOC = page.getByText('[cancel]');
+        this.todayButton_LOC = page.getByRole("button", { name: /today/i });
     }
 
     /**
@@ -122,24 +130,24 @@ export default class LCPQuoteLTL {
         try {
             await Promise.race([
                 this.NMFC_LOC.first().waitFor({ state: 'visible', timeout: WAIT.XXLARGE }),
-                this.page.getByText('Error retrieving results').waitFor({ state: 'visible', timeout: WAIT.XXLARGE }),
-                this.page.getByText('No results found').waitFor({ state: 'visible', timeout: WAIT.XXLARGE }),
+                this.errorRetrievingResults_LOC.waitFor({ state: 'visible', timeout: WAIT.XXLARGE }),
+                this.noResultsFound_LOC.waitFor({ state: 'visible', timeout: WAIT.XXLARGE }),
             ]);
         } catch (error) {
             console.log('Timeout waiting for NMFC or result messages');
         }
 
-        if (await this.page.getByText('No results found').isVisible()) {
+        if (await this.noResultsFound_LOC.isVisible()) {
             console.log('No results found — refilling description...');
-        } else if (await this.page.getByText('Error retrieving results').isVisible()) {
+        } else if (await this.errorRetrievingResults_LOC.isVisible()) {
             console.log('Error retrieving results — refilling description...');
         } else if (!(await this.NMFC_LOC.first().isVisible())) {
             console.log('NMFC not visible — refilling description...');
         }
 
         if (
-            (await this.page.getByText('No results found').isVisible()) ||
-            (await this.page.getByText('Error retrieving results').isVisible()) ||
+            (await this.noResultsFound_LOC.isVisible()) ||
+            (await this.errorRetrievingResults_LOC.isVisible()) ||
             !(await this.NMFC_LOC.first().isVisible())
         ) {
             await this.closeIconBtn.click();
@@ -200,7 +208,7 @@ export default class LCPQuoteLTL {
 */
 
     async waitForQuoteResults() {
-        await expect.soft(this.page.getByText('[cancel]')).not.toBeVisible({ timeout: WAIT.SPEC_TIMEOUT });
+        await expect.soft(this.cancelText_LOC).not.toBeVisible({ timeout: WAIT.SPEC_TIMEOUT });
     }
 
     /**
@@ -275,9 +283,8 @@ export default class LCPQuoteLTL {
 
     async selectTodayFromDatePicker() {
         // Case 1: There is a "Today" button
-        const todayBtn = this.page.getByRole("button", { name: /today/i });
-        if (await todayBtn.isVisible().catch(() => false)) {
-            await todayBtn.click();
+        if (await this.todayButton_LOC.isVisible().catch(() => false)) {
+            await this.todayButton_LOC.click();
             return;
         }
 

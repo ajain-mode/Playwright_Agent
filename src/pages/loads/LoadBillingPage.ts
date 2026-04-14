@@ -58,6 +58,10 @@ class LoadBillingPage {
     // View History link
     private readonly viewHistoryLink_LOC: Locator;
 
+    // View History popup selectors (used on the popup Page, not main page — cannot be Locator since popup doesn't exist at construction)
+    private readonly HISTORY_TABLE_DATA_ROWS_SELECTOR = 'table.hist tr:not(:first-child)';
+    private readonly HISTORY_MESSAGE_COLUMN_SELECTOR = 'td:nth-child(3)';
+
     // locators copied from View Billing Page
     private readonly viewLoadButton_LOC: Locator;
     private readonly createInvoiceButton_LOC: Locator;
@@ -138,8 +142,8 @@ class LoadBillingPage {
         // Finance Messages
         this.financeMessagesList_LOC = this.page.locator(".finance-messages .message");
 
-        // View History
-        this.viewHistoryLink_LOC = this.page.locator("//a[contains(.,'View History') or contains(.,'View history')]").first();
+        // View History — scoped to the payables note container
+        this.viewHistoryLink_LOC = this.page.locator("div[id^='payables-note-container_'] a:has(small)");
 
     }
     /**
@@ -726,50 +730,6 @@ class LoadBillingPage {
     }
 
     /**
-     * Clicks Save, captures all dialog messages, and validates that an INVOICED status alert appeared.
-     * Encapsulates the multi-dialog handler, conditional wait, and array searching so specs remain clean.
-     * @param sharedPage - The Playwright Page to listen for dialogs on
-     * @param saveAction - Async function that triggers the save (e.g., clickOnSaveBtn)
-     * @param waitAction - Async function to wait for load states after save
-     * @param invoicedPattern - The ALERT_PATTERNS regex for INVOICED status
-     * @returns Array of all captured alert messages
-     * @author AI Agent
-     * @created 26-Mar-2026
-     */
-    async saveAndCaptureInvoicedAlert(
-        sharedPage: import('@playwright/test').Page,
-        saveAction: () => Promise<void>,
-        waitAction: () => Promise<void>,
-        invoicedPattern: RegExp
-    ): Promise<{ alertMessages: string[]; hasInvoicedAlert: boolean }> {
-        const alertMessages: string[] = [];
-        const dialogHandler = async (dialog: { message: () => string; accept: () => Promise<void> }) => {
-            const msg = dialog.message();
-            alertMessages.push(msg);
-            console.log(`Dialog captured: "${msg}"`);
-            await dialog.accept();
-        };
-        sharedPage.on("dialog", dialogHandler);
-
-        await saveAction();
-        await waitAction();
-
-        // Hold 5s for the INVOICED dialog to arrive after page reload settles
-        await sharedPage.waitForTimeout(5000);
-
-        // If the INVOICED alert still hasn't fired, wait up to 30s more for it
-        if (!alertMessages.some(msg => invoicedPattern.test(msg))) {
-            await sharedPage.waitForEvent('dialog', { timeout: WAIT.XLARGE }).catch((err) => { console.warn(`saveAndCaptureInvoicedAlert optional dialog: ${err.message}`); });
-        }
-
-        sharedPage.off("dialog", dialogHandler);
-
-        const hasInvoicedAlert = alertMessages.some(msg => invoicedPattern.test(msg));
-        console.log(`All alert messages: ${JSON.stringify(alertMessages)}`);
-        return { alertMessages, hasInvoicedAlert };
-    }
-
-    /**
      * Extracts a dollar value from a string. Matches patterns like $1,500.00, $900, $2,000.00, etc.
      * Returns the numeric value or null if no dollar amount found.
      * @param text - The text to extract the dollar value from
@@ -806,13 +766,15 @@ class LoadBillingPage {
         const expectedPriceDiff = Math.abs(totalInvoiced - charges);
         console.log(`Expected price diff: Total Invoices(${totalInvoiced}) - Total Charges(${charges}) = ${expectedPriceDiff}`);
 
-        // Open View History popup and fetch last row
+        // Open View History popup and fetch last data row's Message column
+        // Table structure (from billing.php): Time | User | Message | Inactive Date
+        // So td:nth-child(3) = Message column
         const historyPopup = await this.clickViewHistoryAndGetPopup();
-        const rows = historyPopup.locator('table tr').or(historyPopup.locator('li')).or(historyPopup.locator('p'));
-        const rowCount = await rows.count();
+        const dataRows = historyPopup.locator(this.HISTORY_TABLE_DATA_ROWS_SELECTOR);
+        const rowCount = await dataRows.count();
         const lastMessage = rowCount > 0
-            ? ((await rows.nth(rowCount - 1).textContent()) || '').trim()
-            : ((await this.getPopupBodyText(historyPopup)) || '').trim();
+            ? ((await dataRows.nth(rowCount - 1).locator(this.HISTORY_MESSAGE_COLUMN_SELECTOR).textContent()) || '').trim()
+            : '';
 
         console.log(`View History last message: "${lastMessage}"`);
         await historyPopup.close();

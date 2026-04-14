@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { PageManager } from "@utils/PageManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
+import commonReusables from "@utils/commonReusables";
 
 /**
  * Test Case: TC-MLG8LP93-8A0H - Untitled Test Case
@@ -54,7 +55,7 @@ test.describe.serial("Untitled Test Case", () => {
       await test.step("Step 3: Click the Save button", async () => {
         // Save
         await pages.editLoadFormPage.clickOnSaveBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Verify Expected Results", async () => {

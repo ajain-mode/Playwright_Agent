@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { PageManager } from "@utils/PageManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
+import commonReusables from "@utils/commonReusables";
 
 /**
  * Test Case: SL-001 - Create New Sales Lead
@@ -50,7 +51,7 @@ test.describe.serial("Create New Sales Lead", () => {
         // Navigate to Customers
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 3: Click New Sales Lead", async () => {
@@ -63,18 +64,18 @@ test.describe.serial("Create New Sales Lead", () => {
 
       await test.step("Step 4: Enter lead information", async () => {
         // Enter lead information
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 5: Save lead", async () => {
         // Save
         await pages.editLoadFormPage.clickOnSaveBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 6: Verify lead created", async () => {
         // Verify: Verify lead created
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         expect.soft(true, "Verify lead created").toBeTruthy();
       });
 

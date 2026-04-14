@@ -4,6 +4,7 @@ import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
 import { PageManager } from "@utils/PageManager";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
+import commonReusables from "@utils/commonReusables";
 
 const testcaseID = "BT-67846";
 const testData = dataConfig.getTestDataFromCsv(dataConfig.billingtoggleData, testcaseID);
@@ -94,7 +95,6 @@ test.describe.serial(
 
         await test.step("Step 6: Select Mileage Engine, Method, and enter LH Rate", async () => {
           await pages.editLoadFormPage.selectMileageEngine(testData.mileageEngine);
-          console.log(`Method: ${testData.Method}`);
           await pages.editLoadFormPage.selectMileageMethod(testData.Method);
           await pages.editLoadFormPage.enterLinehaulRate(testData.linehaulRate);
         });
@@ -139,8 +139,8 @@ test.describe.serial(
         });
 
         await test.step("Step 15: Choose carrier", async () => {
-          await pages.editLoadCarrierTabPage.selectCarrier1(testData.Carrier);
-          pages.logger.info(`Carrier: ${testData.Carrier}`);
+          await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_NAME.CARRIER_XPO_TRANS);
+          pages.logger.info(`Carrier: ${CARRIER_NAME.CARRIER_XPO_TRANS}`);
         });
 
         await test.step("Step 16: Click Save and accept BOOKED alert", async () => {
@@ -189,7 +189,7 @@ test.describe.serial(
 
         await test.step("Step 22 [CSV 48]: Reload and validate toggle and Not Deliv. Final checkbox", async () => {
           await sharedPage.reload();
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+          await commonReusables.waitForAllLoadStates(sharedPage);
 
           await pages.viewLoadPage.scrollToBillingIssuesSection();
 

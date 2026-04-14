@@ -105,7 +105,7 @@ test.describe("Case ID: 97738 - Automatically book a load when it is manually po
           CARRIER_NAME.CARRIER_1,
         ]);
         await pages.dfbLoadFormPage.clickCarrierAutoAcceptCheckbox();
-        await pages.dfbLoadFormPage.selectCarreirContactForRateConfirmation(
+        await pages.dfbLoadFormPage.selectCarrierContactForRateConfirmation(
           CARRIER_CONTACT.CONTACT_1
         );
         await pages.editLoadFormPage.clickOnSaveBtn();

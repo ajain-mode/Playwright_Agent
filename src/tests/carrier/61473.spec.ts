@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { PageManager } from "@utils/PageManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
+import commonReusables from "@utils/commonReusables";
 
 /**
  * Test Case: 61473 - Untitled Test Case
@@ -49,55 +50,55 @@ test.describe.serial("Untitled Test Case", () => {
       await test.step("Step 2: Navigate to the Carrier Search Page.", async () => {
         // Action: Navigate to the Carrier Search Page.
         // TODO: Implement this step based on your page objects
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 3: Observe the filter section layout.", async () => {
         // Action: Observe the filter section layout.
         // TODO: Implement this step based on your page objects
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 4: Click on the Contact Department dropdown and select a value.", async () => {
         // Action: Click on the Contact Department dropdown and select a value.
         // TODO: Implement this step based on your page objects
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 5: Enter a Contact Name.", async () => {
         // Action: Enter a Contact Name.
         // TODO: Implement this step based on your page objects
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 6: Enter a Contact email.", async () => {
         // Action: Enter a Contact email.
         // TODO: Implement this step based on your page objects
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 7: Enter an insurance agent name (e.g., 'Jane Smith').", async () => {
         // Action: Enter an insurance agent name (e.g., 'Jane Smith').
         // TODO: Implement this step based on your page objects
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 8: Click Search and review the results.", async () => {
         // Action: Click Search and review the results.
         // TODO: Implement this step based on your page objects
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 9: Check visible columns and verify the following columns sh...", async () => {
         // Verify: Check visible columns and verify the following columns should be hidden by default:- Contact Department- Contact Name- Contact Email- Insurance Agent Name
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         expect.soft(true, "Check visible columns and verify the following columns should be hidden by default:- Contact Department- Contact Name- Contact Email- Insurance Agent Name").toBeTruthy();
       });
 
       await test.step("Step 10: Unhide the columns from the filtered results page and obs...", async () => {
         // Action: Unhide the columns from the filtered results page and observe.
         // TODO: Implement this step based on your page objects
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Verify Expected Results", async () => {

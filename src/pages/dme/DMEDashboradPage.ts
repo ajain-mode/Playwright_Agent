@@ -9,7 +9,6 @@ class DMEDashboardPage {
   private readonly carrierTableRows_LOC: Locator;
   private readonly toggleCell_LOC: Locator;
   private readonly checkboxInput_LOC: Locator;
-  private readonly switchContainer_LOC: Locator;
 
   constructor(private page: Page) {
     this.loadLink_LOC = page.locator("//span[normalize-space()='Loads']");
@@ -17,9 +16,8 @@ class DMEDashboardPage {
     this.carriersLink_LOC = page.locator("//span[normalize-space()='Carriers']").first();
     this.carrierSearchInput_LOC = page.locator("input[type='search']").first();
     this.carrierTableRows_LOC = page.locator("table tbody tr");
-    this.toggleCell_LOC = page.locator("td.has-switch, td.field-boolean");
+    this.toggleCell_LOC = page.locator("td.field-boolean");
     this.checkboxInput_LOC = page.locator("input[type='checkbox']");
-    this.switchContainer_LOC = page.locator("div.make-switch, div.bootstrap-switch, div[class*='switch']");
   }
 
   /**
@@ -147,14 +145,7 @@ class DMEDashboardPage {
             console.log(`DME carrier "${carrierName}" toggle is ${isChecked ? 'ON' : 'OFF'}`);
             return { found: true, enabled: isChecked };
           }
-          const switchContainer = toggleCell.locator(this.switchContainer_LOC).first();
-          if (await switchContainer.count() > 0) {
-            const classes = await switchContainer.getAttribute("class") || '';
-            const isOn = classes.includes('switch-on') || classes.includes('bootstrap-switch-on');
-            console.log(`DME carrier "${carrierName}" switch is ${isOn ? 'ON' : 'OFF'} (class: ${classes})`);
-            return { found: true, enabled: isOn };
-          }
-          console.log(`DME carrier "${carrierName}" found but toggle state unclear`);
+          console.log(`DME carrier "${carrierName}" found but no checkbox in toggle cell`);
           return { found: true, enabled: false };
         }
       }
@@ -192,9 +183,9 @@ class DMEDashboardPage {
         if (rowText.includes(carrierName)) {
           const toggleCell = row.locator(this.toggleCell_LOC).first();
           await toggleCell.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
-          const switchContainer = toggleCell.locator(this.switchContainer_LOC).first();
-          if (await switchContainer.count() > 0 && await switchContainer.isVisible()) {
-            await switchContainer.click();
+          const checkbox = toggleCell.locator(this.checkboxInput_LOC).first();
+          if (await checkbox.count() > 0 && await checkbox.isVisible()) {
+            await checkbox.click();
           } else {
             await toggleCell.click();
           }

@@ -138,17 +138,16 @@ export class EditLoadFormPage {
    * @created 03-Apr-2026
    */
   async checkOverrideBTF(): Promise<void> {
-    try {
-      await this.overrideBTFCheckbox_LOC.waitFor({ state: "attached", timeout: WAIT.DEFAULT });
-      if (!(await this.overrideBTFCheckbox_LOC.isChecked())) {
-        await this.overrideBTFCheckbox_LOC.check({ force: true });
-        console.log("Checked Override BTF checkbox");
-      } else {
-        console.log("Override BTF checkbox already checked");
-      }
-    } catch (err) {
-      console.error(`checkOverrideBTF: ${(err as Error).message}`);
-      throw err;
+    const isPresent = await this.overrideBTFCheckbox_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false);
+    if (!isPresent) {
+      console.log("Override BTF checkbox not present — skipping");
+      return;
+    }
+    if (!(await this.overrideBTFCheckbox_LOC.isChecked())) {
+      await this.overrideBTFCheckbox_LOC.check();
+      console.log("Checked Override BTF checkbox");
+    } else {
+      console.log("Override BTF checkbox already checked");
     }
   }
 

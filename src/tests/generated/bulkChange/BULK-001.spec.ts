@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { PageManager } from "@utils/PageManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
+import commonReusables from "@utils/commonReusables";
 
 /**
  * Test Case: BULK-001 - Bulk Update Load Status
@@ -49,17 +50,17 @@ test.describe.serial("Bulk Update Load Status", () => {
       await test.step("Step 2: Navigate to Loads", async () => {
         // Navigate to Loads
         await pages.homePage.navigateToHeader(HEADERS.LOAD);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 3: Select multiple loads", async () => {
         // Select multiple loads
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 4: Click Bulk Change", async () => {
         // Bulk change operation
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         // TODO: Implement bulk change step
         expect.soft(true, "Click Bulk Change").toBeTruthy();
       });
@@ -67,12 +68,12 @@ test.describe.serial("Bulk Update Load Status", () => {
       await test.step("Step 5: Update status", async () => {
         // Action: Update status
         // TODO: Implement this step based on your page objects
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 6: Verify changes applied", async () => {
         // Verify: Verify changes applied
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         expect.soft(true, "Verify changes applied").toBeTruthy();
       });
 

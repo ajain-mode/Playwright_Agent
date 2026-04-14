@@ -48,6 +48,8 @@ export default class QuoteLTL {
     private readonly bolPDFLink: Locator;
     private readonly shippingLabelPDFLink: Locator;
     private readonly loadingSpinner_LOC: Locator;
+    private readonly nmfcSearchErrorText_LOC: Locator;
+    private readonly nmfcSearchIconButton_LOC: Locator;
 
     /**
 * Constructor to initialize page locators for form validation elements
@@ -92,6 +94,8 @@ export default class QuoteLTL {
         this.bolPDFLink = page.locator('//a[normalize-space()="Bill of Lading"]//img[@alt="table-pdf-icon"]');
         this.shippingLabelPDFLink = page.locator('//a[normalize-space()="Shipping label"]//img[@alt="table-pdf-icon"]');
         this.loadingSpinner_LOC = page.locator('//div[@role="status"]');
+        this.nmfcSearchErrorText_LOC = page.getByText("Try revising your search, entering fewer words for more results");
+        this.nmfcSearchIconButton_LOC = page.locator("//div[@id='nmfc-search-popup']//img[contains(@alt,'search icon')]");
     }
 
     /**
@@ -185,15 +189,14 @@ export default class QuoteLTL {
         await this.page.waitForLoadState('domcontentloaded');
         await this.page.waitForTimeout(WAIT.DEFAULT);
         try {
-            const errorText = "Try revising your search, entering fewer words for more results";
-            const isErrorVisible = await this.page.getByText(errorText).isVisible();
+            const isErrorVisible = await this.nmfcSearchErrorText_LOC.isVisible();
 
             if (isErrorVisible) {
-                throw new Error(`${errorText}`);
+                throw new Error("Try revising your search, entering fewer words for more results");
             }
         } catch (error) {
             try {
-                await this.page.locator("//div[@id='nmfc-search-popup']//img[contains(@alt,'search icon')]").click();
+                await this.nmfcSearchIconButton_LOC.click();
             } catch (clickError) {
                 console.log("Failed to click search icon:", clickError);
             }

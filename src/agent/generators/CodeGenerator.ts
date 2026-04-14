@@ -31,6 +31,7 @@ import { LLMService } from '../services/LLMService';
 import { SchemaContext } from '../services/LLMPrompts';
 import fs from 'fs';
 import path from 'path';
+import { GlobalConstants } from '@utils/globalConstants';
 
 /**
  * Known mapping of alert message text to ALERT_PATTERNS constant names.
@@ -351,7 +352,7 @@ export class CodeGenerator {
       );
       if (clonedContent) {
         let content = this.cleanUnusedImports(clonedContent);
-        content = this.validatePostGenerationGuardrails(content, testCase);
+        content = this.validatePostGenerationGuardrails(content, testCase, testData);
         this.ensurePageObjectMethodsExist(content, testCase);
 
         const metadata = this.generateMetadata(testCase, testType);
@@ -409,7 +410,7 @@ export class CodeGenerator {
 
         if (fullSpecCode) {
           let content = this.cleanUnusedImports(fullSpecCode);
-          content = this.validatePostGenerationGuardrails(content, testCase);
+          content = this.validatePostGenerationGuardrails(content, testCase, testData);
           this.ensurePageObjectMethodsExist(content, testCase);
 
           const metadata = this.generateMetadata(testCase, testType);
@@ -491,7 +492,7 @@ export class CodeGenerator {
     content = this.cleanUnusedImports(content);
 
     // Post-generation guardrails: detect and auto-fix common LLM errors
-    content = this.validatePostGenerationGuardrails(content, testCase);
+    content = this.validatePostGenerationGuardrails(content, testCase, testData);
 
     // Ensure all referenced page object methods exist in the page files
     // If any are missing, generate reusable locator functions in the respective page files
@@ -536,6 +537,23 @@ export class CodeGenerator {
     const existingMethods = this.schemaAnalyzer.getClassMethods(className);
     const newTokens = new Set(this.tokenizeMethodName(methodName));
     let bestMatch: { existingMethod: string; similarity: number } | null = null;
+    let bestCreatedDate = '';
+
+    // Helper: parse @created date strings into comparable values.
+    // Handles formats like "2025-12-23", "26-Mar-2026", "19-Mar-2026".
+    const parseCreatedDate = (dateStr: string): number => {
+      if (!dateStr) return 0;
+      const d = new Date(dateStr);
+      return isNaN(d.getTime()) ? 0 : d.getTime();
+    };
+
+    // Helper: get the @created date for a method from the scanner
+    const getMethodCreatedDate = (cls: string, method: string): string => {
+      const scan = this.schemaAnalyzer.getScanner().getByClassName(cls);
+      if (!scan) return '';
+      const info = scan.methods.find(m => m.name === method);
+      return info?.createdDate || '';
+    };
 
     for (const existing of existingMethods) {
       const existTokens = new Set(this.tokenizeMethodName(existing));
@@ -543,8 +561,14 @@ export class CodeGenerator {
       const union = new Set([...newTokens, ...existTokens]).size;
       const similarity = union > 0 ? intersection / union : 0;
 
-      if (similarity >= threshold && (!bestMatch || similarity > bestMatch.similarity)) {
-        bestMatch = { existingMethod: existing, similarity };
+      if (similarity >= threshold) {
+        const createdDate = getMethodCreatedDate(className, existing);
+        // Prefer higher similarity; on tie, prefer latest @created date
+        if (!bestMatch || similarity > bestMatch.similarity ||
+            (similarity === bestMatch.similarity && parseCreatedDate(createdDate) > parseCreatedDate(bestCreatedDate))) {
+          bestMatch = { existingMethod: existing, similarity };
+          bestCreatedDate = createdDate;
+        }
       }
     }
 
@@ -559,12 +583,21 @@ export class CodeGenerator {
           const union = new Set([...newTokens, ...existTokens]).size;
           const similarity = union > 0 ? intersection / union : 0;
 
-          if (similarity >= threshold && (!bestMatch || similarity > bestMatch.similarity)) {
-            bestMatch = { existingMethod: existing, similarity };
-            console.log(`   ℹ️  Similar method '${existing}' found on '${cls}' (similarity: ${(similarity * 100).toFixed(0)}%)`);
+          if (similarity >= threshold) {
+            const createdDate = getMethodCreatedDate(cls, existing);
+            if (!bestMatch || similarity > bestMatch.similarity ||
+                (similarity === bestMatch.similarity && parseCreatedDate(createdDate) > parseCreatedDate(bestCreatedDate))) {
+              bestMatch = { existingMethod: existing, similarity };
+              bestCreatedDate = createdDate;
+              console.log(`   ℹ️  Similar method '${existing}' found on '${cls}' (similarity: ${(similarity * 100).toFixed(0)}%${createdDate ? `, @created ${createdDate}` : ''})`);
+            }
           }
         }
       }
+    }
+
+    if (bestMatch && bestCreatedDate) {
+      console.log(`   ✅ Selected '${bestMatch.existingMethod}' (@created ${bestCreatedDate}) as best match`);
     }
 
     return bestMatch;
@@ -881,7 +914,10 @@ await this.page.waitForLoadState('load');`,
       testCategory: testCase.category,
       testType,
       retryCount: DEFAULTS.retryCount,
-      timeout: testType === 'multi-app' ? 'WAIT.SPEC_TIMEOUT_LARGE' : 'WAIT.SPEC_TIMEOUT',
+      timeout:
+        testType === 'multi-app'
+          ? GlobalConstants.WAIT.SPEC_TIMEOUT_LARGE
+          : GlobalConstants.WAIT.SPEC_TIMEOUT,
       tags: testCase.tags || categoryConfig.defaultTags
     };
   }
@@ -1110,22 +1146,22 @@ await this.page.waitForLoadState('load');`,
     if (lowerAction.includes('switch to dme') || lowerAction.includes('switchtodme')) {
       return `// Switch to DME application
         await appManager.switchToDME();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         console.log("Switched to DME");`;
     }
     if (lowerAction.includes('switch to tnx') || lowerAction.includes('switchtotnx')) {
       return `// Switch to TNX application
         const tnxPages = await appManager.switchToTNX();
-        await tnxPages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(appManager.tnxPage);
         console.log("Switched to TNX");`;
     }
     if (lowerAction.includes('switch to btms') || lowerAction.includes('switchtobtms') || lowerAction.includes('switch back to btms')) {
       return `// Switch back to BTMS with absolute URL navigation
         await appManager.switchToBTMS();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         const btmsBaseUrl = new URL(sharedPage.url()).origin;
         await sharedPage.goto(btmsBaseUrl);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         await sharedPage.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });
         console.log("Switched back to BTMS");`;
     }
@@ -1136,16 +1172,16 @@ await this.page.waitForLoadState('load');`,
       return `// Switch to DME and check carrier toggle
         await appManager.switchToDME();
         const dmePages = appManager.dmePageManager!;
-        await dmePages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(appManager.dmePage);
         await dmePages.basePage.hoverOverHeaderByText("Carriers");
-        await dmePages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(appManager.dmePage);
         const dmeSearchInput = appManager.dmePage!.locator("input[type='search'], input[placeholder*='Search']").first();
         await dmeSearchInput.fill(testData.Carrier || testData.carrierName || "");
         await appManager.dmePage!.keyboard.press("Enter");
-        await dmePages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(appManager.dmePage);
         console.log("DME: Verified carrier toggle status");
         await appManager.switchToBTMS();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
 
     // ==================== TNX NAVIGATION ACTIONS ====================
@@ -1153,7 +1189,7 @@ await this.page.waitForLoadState('load');`,
     if (lowerAction.includes('tnx') && (lowerAction.includes('organization') || lowerAction.includes('org'))) {
       return `// Switch to TNX and select organization
         const tnxPages = await appManager.switchToTNX();
-        await tnxPages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(appManager.tnxPage);
         await tnxPages.tnxLandingPage.selectOrganization(testData.customerName);
         console.log("TNX: Selected organization");`;
     }
@@ -1161,7 +1197,7 @@ await this.page.waitForLoadState('load');`,
       return `// Navigate to Active Jobs in TNX
         const tnxPages = await appManager.switchToTNX();
         await tnxPages.tnxLandingPage.clickActiveJobs();
-        await tnxPages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(appManager.tnxPage);
         console.log("TNX: Navigated to Active Jobs");`;
     }
 
@@ -1199,7 +1235,7 @@ await this.page.waitForLoadState('load');`,
     if (lowerAction.includes('carrier tab') && (lowerAction.includes('dispatch') || lowerAction.includes('name'))) {
       return `// Validate carrier dispatch details on carrier tab
         await pages.viewLoadPage.clickCarrierTab();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         await pages.viewLoadCarrierTabPage.validateCarrierAssignedText();
         await pages.viewLoadCarrierTabPage.validateCarrierDispatchName(testData.dispatchName || "");
         await pages.viewLoadCarrierTabPage.validateCarrierDispatchEmail(testData.dispatchEmail || "");
@@ -1214,7 +1250,7 @@ await this.page.waitForLoadState('load');`,
           const bidsReportValue = await pages.viewLoadCarrierTabPage.getBidsReportValue();
           console.log(\`BIDS Reports value = "\${bidsReportValue}"\`);
           await pages.viewLoadCarrierTabPage.clickViewLoadPageLinks("Bid History");
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+          await commonReusables.waitForAllLoadStates(sharedPage);
           const bidDetails = await pages.viewLoadCarrierTabPage.getBidHistoryFirstRowDetails();
           console.log("Bid History details:", JSON.stringify(bidDetails));
           await pages.viewLoadCarrierTabPage.closeBidHistoryModal();
@@ -1261,32 +1297,32 @@ await this.page.waitForLoadState('load');`,
     if (lowerAction.match(/\bhover\b/) && !lowerAction.includes('click')) {
       if (lowerAction.includes('admin')) {
         return `await pages.basePage.hoverOverHeaderByText(HEADERS.ADMIN);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('load')) {
         return `await pages.basePage.hoverOverHeaderByText(HEADERS.LOAD);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('customer')) {
         return `await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('carrier')) {
         return `await pages.basePage.hoverOverHeaderByText(HEADERS.CARRIER);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('finance')) {
         return `await pages.basePage.hoverOverHeaderByText(HEADERS.FINANCE);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('home')) {
         return `await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       const hoverTarget = action.match(/hover\s+(?:to|over|on)\s+(?:the\s+)?(.+?)\.?\s*$/i);
       if (hoverTarget) {
         return `await pages.basePage.hoverOverHeaderByText("${hoverTarget[1].trim()}");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
     }
 
@@ -1294,14 +1330,14 @@ await this.page.waitForLoadState('load');`,
     if (lowerAction.includes('office profile') || lowerAction.includes('office info')) {
       if (lowerAction.includes('click')) {
         return `await pages.editOfficeInfoPage.clickOnOfficeProfile();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       return `await pages.editOfficeInfoPage.clickOnOfficeProfile();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
     if (lowerAction.includes('agent profile') || (lowerAction.includes('click') && lowerAction.includes('agent') && !lowerAction.includes('search') && !lowerAction.includes('field'))) {
       return `await pages.agentSearchPage.selectAgentByName(testData.salesAgent);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
 
     // ==================== ENTER VALUE INTO FIELD ====================
@@ -1313,19 +1349,19 @@ await this.page.waitForLoadState('load');`,
         const fieldValue = fieldValueMatch[2].trim();
         if (fieldName.includes('agent')) {
           return `await pages.editOfficeInfoPage.fillAgentField("${fieldValue}");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
         }
         if (fieldName.includes('office') || fieldName.includes('code')) {
           return `await pages.editOfficeInfoPage.fillOfficeCode("${fieldValue}");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
         }
         if (fieldName.includes('customer')) {
           return `await pages.searchCustomerPage.enterCustomerName("${fieldValue}");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
         }
         if (fieldName.includes('carrier')) {
           return `await pages.carrierSearchPage.nameInputOnCarrierPage("${fieldValue}");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
         }
         const fid = fieldName.replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
         return `// Enter ${fieldName}: ${fieldValue}
@@ -1382,18 +1418,18 @@ await this.page.waitForLoadState('load');`,
     if (lowerAction.includes('edit button') || (lowerAction.includes('click') && lowerAction.includes('edit') && !lowerAction.includes('load'))) {
       if (lowerAction.includes('office') || lowerAction.includes('profile') || lowerAction.includes('setting')) {
         return `await pages.editOfficeInfoPage.clickEditButton();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
     }
     if (lowerAction.includes('save changes') || (lowerAction.includes('save') && (lowerAction.includes('office') || lowerAction.includes('setting') || lowerAction.includes('profile')))) {
       return `await pages.editOfficeInfoPage.clickSaveButton();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
 
     // ==================== INCLUDE CARRIERS / SELECT CARRIERS ====================
     if (lowerAction.includes('include carrier') || (lowerAction.includes('select') && lowerAction.includes('carrier') && lowerAction.includes('include'))) {
       return `await pages.dfbLoadFormPage.selectCarriersInIncludeCarriers([testData.Carrier || testData.carrierName]);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         console.log("Selected carrier in Include Carriers");`;
     }
 
@@ -1433,7 +1469,7 @@ await this.page.waitForLoadState('load');`,
     // ==================== REFRESH PAGE / RELOAD ====================
     if (lowerAction.includes('refresh') && !lowerAction.includes('status')) {
       return `await sharedPage.reload();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
 
     // ==================== VALIDATE LOAD STATUS ====================
@@ -1447,14 +1483,14 @@ await this.page.waitForLoadState('load');`,
     // ==================== SEARCH LOAD ====================
     if (lowerAction.includes('search') && lowerAction.includes('load') && !lowerAction.includes('create')) {
       return `await pages.allLoadsSearchPage.searchByLoadNumber(loadNumber);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         console.log("Searched for load:", loadNumber);`;
     }
 
     // ==================== CARRIER TAB ACTIONS ====================
     if (lowerAction.includes('carrier tab')) {
       return `await pages.editLoadPage.clickOnTab(TABS.CARRIER);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
 
     // ==================== VALIDATE CARRIER ASSIGNED / DISPATCH ====================
@@ -1476,7 +1512,7 @@ await this.page.waitForLoadState('load');`,
         console.log("Alert validated");`;
       }
       return `// Validate alert/message
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         console.log("Alert message step — review and add specific ALERT_PATTERNS constant");`;
     }
 
@@ -1487,7 +1523,7 @@ await this.page.waitForLoadState('load');`,
       if (lowerAction.includes('new') && (lowerAction.includes('button') || lowerAction.includes('click'))) {
         return `// Click New button to open CREATE NEW ENTRY form
         await pages.postAutomationRulePage.clickElementByText(POST_AUTOMATION_RULE.NEW_BUTTON);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('fill') || lowerAction.includes('enter') || lowerAction.includes('select') || lowerAction.includes('valid values')) {
         // Detect "except" clause — which fields to EXCLUDE from the form fill
@@ -1544,7 +1580,7 @@ ${formFields.join('\n')}
       if (lowerAction.includes('create') && lowerAction.includes('button')) {
         return `// Click Create button on post automation rule form
         await pages.postAutomationRulePage.clickElementByText(BUTTONS.CREATE);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('verify') || lowerAction.includes('validate') || lowerAction.includes('check')) {
         return `// Verify post automation rule
@@ -1579,7 +1615,7 @@ ${formFields.join('\n')}
       return `// Post automation rule action: ${action}
         await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
         await pages.postAutomationRulePage.clickPostAutomationButton();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
     
     // ==================== CLICK ACTIONS ====================
@@ -1601,44 +1637,44 @@ ${formFields.join('\n')}
           if (/^(new|add)$/i.test(buttonName)) {
             return `// Click ${buttonName} button
         await pages.postAutomationRulePage.clickElementByText(POST_AUTOMATION_RULE.NEW_BUTTON);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
           }
           if (/^create$/i.test(buttonName)) {
             return `// Click Create button
         await pages.postAutomationRulePage.clickElementByText(BUTTONS.CREATE);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
           }
           if (/^create\s*load$/i.test(buttonName)) {
             return `// Click Create Load button and capture load number
         await pages.basePage.clickButtonByText("Create Load");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
         console.log("Created Load Number:", loadNumber);`;
           }
           if (/^(save|update)$/i.test(buttonName)) {
             return `// Click ${buttonName} button
         await pages.editLoadFormPage.clickOnSaveBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
           }
           if (/^(delete|remove)$/i.test(buttonName)) {
             return `// Click ${buttonName} button
         await pages.basePage.clickButtonByText("${buttonName}");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
           }
           if (/^(search|find)$/i.test(buttonName)) {
             return `// Click ${buttonName} button
         await pages.basePage.clickButtonByText("${buttonName}");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
           }
           if (/^post$/i.test(buttonName)) {
             return `// Click Post button
         await pages.dfbLoadFormPage.clickOnPostButton();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
           }
           // Generic button click using reusable page object method
           return `// Click ${buttonName} button
         await pages.basePage.clickButtonByText("${buttonName}");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
         }
       }
       // Click on links/elements by text
@@ -1648,7 +1684,7 @@ ${formFields.join('\n')}
           const linkText = linkMatch[1].replace(/^(the|a|an)\s+/i, '').trim();
           return `// Click ${linkText} link/menu
         await pages.basePage.clickLinkByText("${linkText}");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
         }
       }
       // Click on dropdown
@@ -1658,7 +1694,7 @@ ${formFields.join('\n')}
           const ddName = ddMatch[1].replace(/^(the|a|an)\s+/i, '').trim();
           return `// Click ${ddName} dropdown and select a value
         await pages.basePage.clickDropdownById("form_${ddName.toLowerCase().replace(/\s+/g, '_')}");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
         }
       }
       // Click on tab
@@ -1681,11 +1717,11 @@ ${formFields.join('\n')}
       if (lowerAction.includes('search')) {
         return `// Click Search
         await pages.basePage.clickButtonByText("Search");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       // Generic click
       return `// ${action}
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
 
     // ==================== NAVIGATION ACTIONS ====================
@@ -1697,68 +1733,68 @@ ${formFields.join('\n')}
         return `// Navigate to Post Automation Rules
         await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
         await pages.postAutomationRulePage.clickPostAutomationButton();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('load')) {
         return `// Navigate to Loads
         await pages.basePage.hoverOverHeaderByText(HEADERS.LOAD);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('carrier search') || (lowerAction.includes('carrier') && lowerAction.includes('search'))) {
         return `// Navigate to Carrier Search
         await pages.basePage.hoverOverHeaderByText(HEADERS.CARRIER);
         await pages.basePage.clickSubHeaderByText(CARRIER_SUB_MENU.SEARCH);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('carrier')) {
         return `// Navigate to Carriers
         await pages.basePage.hoverOverHeaderByText(HEADERS.CARRIER);
         await pages.basePage.clickSubHeaderByText(CARRIER_SUB_MENU.SEARCH);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('admin')) {
         return `// Navigate to Admin
         await pages.basePage.hoverOverHeaderByText(HEADERS.ADMIN);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('customer')) {
         return `// Navigate to Customers
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('finance')) {
         return `// Navigate to Finance
         await pages.basePage.hoverOverHeaderByText(HEADERS.FINANCE);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('edi') || lowerAction.includes('queue')) {
         return `// Navigate to EDI queue
         await pages.basePage.hoverOverHeaderByText(HEADERS.LOAD);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('office config') || lowerAction.includes('office configuration')) {
         return `// Navigate to Office Config
         await pages.basePage.clickHeaderAndSubMenu(HEADERS.HOME, ADMIN_SUB_MENU.OFFICE_CONFIG);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('office')) {
         return `// Navigate to Office Search
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(ADMIN_SUB_MENU.OFFICE_SEARCH);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('agent search')) {
         return `// Navigate to Agent Search
         await pages.basePage.hoverOverHeaderByText(HEADERS.ADMIN);
         await pages.basePage.clickSubHeaderByText(ADMIN_SUB_MENU.AGENT_SEARCH);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('sales lead')) {
         return `// Navigate to Sales Lead
         await pages.basePage.hoverOverHeaderByText(HEADERS.AGENT);
         await pages.basePage.clickSubHeaderByText(AGENT_SUB_MENU.MY_SALES_LEADS);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('home')) {
         return `// Navigate to Home
@@ -1770,10 +1806,10 @@ ${formFields.join('\n')}
         const destination = navMatch[1].trim();
         return `// Navigate to ${destination}
         await pages.basePage.hoverOverHeaderByText("${destination}");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       return `// Navigate
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
     
     // ==================== LOAD CREATION ACTIONS ====================
@@ -1789,7 +1825,7 @@ ${formFields.join('\n')}
           equipmentType: testData.equipmentType
         });
         await pages.editLoadFormPage.clickOnSaveBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
         console.log("Created Load Number:", loadNumber);`;
       }
@@ -1828,7 +1864,7 @@ ${formFields.join('\n')}
     // ==================== OFFER RATE ACTIONS ====================
     if (lowerAction.includes('offer rate') || lowerAction.includes('enter rate')) {
       return `// Enter offer rate
-        await pages.dfbLoadFormPage.enterOfferRate(testData.offerRate || "1000");`;
+        await pages.dfbLoadFormPage.enterOfferRate(testData.offerRate);`;
     }
     
     // ==================== SAVE ACTIONS ====================
@@ -1836,21 +1872,21 @@ ${formFields.join('\n')}
       if (lowerAction.includes('close')) {
         return `// Save and close
         await pages.nonTabularLoadPage.clickSaveAndClose();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
         console.log("Saved Load Number:", loadNumber);`;
       }
       if (lowerAction.includes('verify') || (lowerAction.includes('and') && lowerAction.includes('load'))) {
         return `// Save and verify load
         await pages.editLoadFormPage.clickOnSaveBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
         expect(loadNumber, "Load should be saved").toBeTruthy();
         console.log("Saved Load Number:", loadNumber);`;
       }
       return `// Save
         await pages.editLoadFormPage.clickOnSaveBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
     
     // ==================== POST ACTIONS ====================
@@ -1858,7 +1894,7 @@ ${formFields.join('\n')}
       if (lowerAction.includes('tnx') || lowerAction.includes('to tnx')) {
         return `// Post to TNX
         await pages.dfbLoadFormPage.clickOnPostButton();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('button') || lowerAction.includes('click')) {
         return `await pages.dfbLoadFormPage.clickOnPostButton();`;
@@ -1931,7 +1967,7 @@ ${formFields.join('\n')}
       if (lowerAction.includes('auto') || lowerAction.includes('automation')) {
         return `// Verify automation
         try {
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+          await commonReusables.waitForAllLoadStates(sharedPage);
           const automationStatus = sharedPage.locator("//*[contains(@class,'status') or contains(@id,'automation')]").first();
           const statusText = await automationStatus.textContent({ timeout: 10000 }).catch(() => "");
           console.log("Automation status: " + statusText);
@@ -1943,7 +1979,7 @@ ${formFields.join('\n')}
         const escapedAct = action.substring(0, 80).replace(/"/g, '\\"');
         return `// Verify column visibility: ${action}
         try {
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+          await commonReusables.waitForAllLoadStates(sharedPage);
           const targetCol = sharedPage.locator("//th[contains(text(),'${escapedAct.split(' ').pop()}')] | //td[contains(text(),'${escapedAct.split(' ').pop()}')]").first();
           const isColumnVisible = await targetCol.isVisible({ timeout: 10000 }).catch(() => false);
           expect.soft(isColumnVisible, "${escapedAct}").toBeTruthy();
@@ -1957,7 +1993,7 @@ ${formFields.join('\n')}
         const escapedAct = action.substring(0, 80).replace(/"/g, '\\"');
         return `// Verify: ${action}
         try {
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+          await commonReusables.waitForAllLoadStates(sharedPage);
           const verifyElement = sharedPage.locator("//*[contains(text(),'${escapedAct.split(' ').slice(-3).join(' ').replace(/'/g, "\\'")}')]").first();
           const isVisible = await verifyElement.isVisible({ timeout: 10000 }).catch(() => false);
           expect.soft(isVisible, "${escapedAct}").toBeTruthy();
@@ -1980,7 +2016,7 @@ ${formFields.join('\n')}
     // Handles: "Customer field is already selected or if not select the customer [NAME]"
     if (lowerAction.includes('customer') && (lowerAction.includes('field') || lowerAction.includes('select the customer') || lowerAction.includes('enter new load')) && !lowerAction.includes('search')) {
       return `// Select customer value on Enter New Load form
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         const customerName = testData['Customer Value'] || testData.customerName;
         const customerSelect2 = sharedPage.locator(
           "//select[contains(@id,'customer')]//following-sibling::span[contains(@class,'select2')]"
@@ -2004,7 +2040,7 @@ ${formFields.join('\n')}
           await customerDropdown.selectOption({ label: customerName });
           console.log(\`Selected customer via dropdown: \${customerName}\`);
         }
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         await sharedPage.waitForTimeout(3000);
         await sharedPage.locator("//select[@id='form_shipper_ship_point']")
           .waitFor({ state: "visible", timeout: WAIT.LARGE });
@@ -2016,12 +2052,12 @@ ${formFields.join('\n')}
       if (lowerAction.includes('navigate') || lowerAction.includes('open')) {
         return `// Navigate to Finance/Commission
         await pages.homePage.navigateToHeader(HEADERS.FINANCE);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('verify') || lowerAction.includes('check') || lowerAction.includes('validate')) {
         return `// Verify commission details
         try {
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+          await commonReusables.waitForAllLoadStates(sharedPage);
           const commissionElement = sharedPage.locator("//*[contains(@class,'commission') or contains(@id,'commission')]").first();
           const commText = await commissionElement.textContent({ timeout: 10000 }).catch(() => "");
           console.log("Commission details: " + commText);
@@ -2043,7 +2079,7 @@ ${formFields.join('\n')}
       if (lowerAction.includes('verify') || lowerAction.includes('check')) {
         return `// Verify sales lead
         try {
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+          await commonReusables.waitForAllLoadStates(sharedPage);
           const leadElement = sharedPage.locator("//*[contains(@class,'lead') or contains(@id,'sales_lead')]").first();
           const leadText = await leadElement.textContent({ timeout: 10000 }).catch(() => "");
           console.log("Sales lead details: " + leadText);
@@ -2057,7 +2093,7 @@ ${formFields.join('\n')}
     if (lowerAction.includes('bulk') && (lowerAction.includes('change') || lowerAction.includes('update'))) {
       return `// Bulk change operation
         try {
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+          await commonReusables.waitForAllLoadStates(sharedPage);
           const bulkChangeForm = sharedPage.locator("//form[contains(@id,'bulk') or contains(@class,'bulk')]").first();
           await bulkChangeForm.waitFor({ state: "visible", timeout: WAIT.LARGE });
           console.log("Bulk change form visible");
@@ -2071,10 +2107,10 @@ ${formFields.join('\n')}
       if (lowerAction.includes('load')) {
         return `// Search for load
         await pages.allLoadsSearchPage.searchLoad(loadNumber);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       return `// Search operation
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
 
     // ==================== SWITCH USER ACTIONS ====================
@@ -2102,12 +2138,12 @@ ${formFields.join('\n')}
       if (lowerAction.includes('create')) {
         return `// Create invoice
         await pages.loadBillingPage.clickOnCreateInvoiceButton();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
       }
       if (lowerAction.includes('verify') || lowerAction.includes('check')) {
         return `// Verify billing/invoice
         try {
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+          await commonReusables.waitForAllLoadStates(sharedPage);
           const billingElement = sharedPage.locator("//*[contains(@class,'billing') or contains(@id,'billing')]").first();
           const billingText = await billingElement.textContent({ timeout: 10000 }).catch(() => "");
           console.log("Billing details: " + billingText);
@@ -2120,7 +2156,7 @@ ${formFields.join('\n')}
     // ==================== OBSERVE/VIEW ACTIONS ====================
     if (lowerAction.includes('observe') || lowerAction.includes('view') || lowerAction.includes('review')) {
       return `// ${action}
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
 
     // ==================== ENTER/FILL/INPUT ACTIONS (generic fallback) ====================
@@ -2176,7 +2212,7 @@ ${formFields.join('\n')}
     // ==================== UNHIDE/SHOW COLUMN ACTIONS ====================
     if (lowerAction.includes('unhide') || lowerAction.includes('show column') || lowerAction.includes('toggle column')) {
       return `// ${action}
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
     
     // ==================== TAB NAVIGATION ====================
@@ -2297,15 +2333,15 @@ ${formFields.join('\n')}
     // ==================== VIEW BILLING / BILLING TOGGLE ====================
     if (lowerAction.includes('view billing') && (lowerAction.includes('click') || lowerAction.includes('navigate'))) {
       return `await pages.editLoadPage.clickOnTab(TABS.LOAD);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         await pages.editLoadFormPage.clickOnViewBillingBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         console.log("Clicked View Billing");`;
     }
     if ((lowerAction.includes('billing toggle') || lowerAction.includes('payable toggle')) && (lowerAction.includes('validate') || lowerAction.includes('verify') || lowerAction.includes('check'))) {
       return `// Billing toggle is in the Billing Issues "Waiting On" section — check if "Agent" has active class
-        const billingIssuesSection = sharedPage.locator("//h4[contains(text(),'Billing Issues')]/parent::*");
-        await billingIssuesSection.first().scrollIntoViewIfNeeded();
+        const billingIssuesSection = sharedPage.locator("#finance_issues_block");
+        await billingIssuesSection.scrollIntoViewIfNeeded();
         const toggleResult = await sharedPage.evaluate(() => {
           const billingHeader = Array.from(document.querySelectorAll('h4'))
             .find(h => h.textContent?.includes('Billing Issues'));
@@ -2337,7 +2373,7 @@ ${formFields.join('\n')}
     // ==================== NOT DELIV FINAL / FINANCE ISSUE VALIDATION ====================
     if ((lowerAction.includes('not deliv') || lowerAction.includes('not delivered') || lowerAction.includes('finance issue')) && (lowerAction.includes('validate') || lowerAction.includes('verify') || lowerAction.includes('check') || lowerAction.includes('marked'))) {
       return `// Not Deliv Final is a <strong> label in Billing Issues with hidden checkbox siblings
-        const billingIssuesSection = sharedPage.locator("//h4[contains(text(),'Billing Issues')]/parent::*").first();
+        const billingIssuesSection = sharedPage.locator("#finance_issues_block");
         await billingIssuesSection.scrollIntoViewIfNeeded();
         const notDelivResult = await sharedPage.evaluate(() => {
           const billingHeader = Array.from(document.querySelectorAll('h4'))
@@ -2366,7 +2402,7 @@ ${formFields.join('\n')}
     // ==================== VIEW LOAD (from billing page) ====================
     if (lowerAction.includes('view load') && (lowerAction.includes('click') || lowerAction.includes('navigate') || lowerAction.includes('back'))) {
       return `await pages.loadBillingPage.clickOnViewLoadBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         console.log("Navigated back to View Load page");`;
     }
 
@@ -2437,7 +2473,7 @@ ${formFields.join('\n')}
         await closeDialogBtn.waitFor({ state: "visible", timeout: WAIT.LARGE });
         await closeDialogBtn.click({ force: true });
         console.log("Closed document upload dialog");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
 
     // ==================== CHOOSE CARRIER (on carrier tab) ====================
@@ -2587,10 +2623,10 @@ ${formFields.join('\n')}
     // ==================== SAVE INVOICE / REFRESH ====================
     if ((lowerAction.includes('save') && lowerAction.includes('invoice')) || (lowerAction.includes('save') && lowerAction.includes('refresh'))) {
       return `await pages.editLoadFormPage.clickOnSaveBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         console.log("Saved invoice");
         await sharedPage.reload();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         console.log("Page refreshed");`;
     }
 
@@ -2600,7 +2636,7 @@ ${formFields.join('\n')}
         await addNewBtn.waitFor({ state: "visible", timeout: WAIT.LARGE });
         await addNewBtn.click();
         console.log("Clicked Add New button");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
 
     // ==================== VIEW HISTORY ====================
@@ -2611,7 +2647,7 @@ ${formFields.join('\n')}
         await viewHistoryBtn.waitFor({ state: "visible", timeout: WAIT.LARGE });
         await viewHistoryBtn.click();
         console.log("Clicked View History");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`;
+        await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
 
     // ==================== PAYABLES RADIO BUTTON ====================
@@ -2642,7 +2678,7 @@ ${formFields.join('\n')}
 
     // ==================== WAIT ACTIONS ====================
     if (lowerAction.includes('wait')) {
-      return `await pages.basePage.waitForMultipleLoadStates(["load", "networkidle", "domcontentloaded"]);`;
+      return `await commonReusables.waitForAllLoadStates(sharedPage);`;
     }
 
     // ==================== GET/EXTRACT ACTIONS ====================
@@ -2741,7 +2777,7 @@ ${formFields.join('\n')}
         const btn_${fieldId} = sharedPage.locator("//button[contains(text(),'${buttonText}')] | //input[@type='button' and contains(@value,'${buttonText}')] | //a[contains(text(),'${buttonText}')]").first();
         await btn_${fieldId}.waitFor({ state: "visible", timeout: WAIT.LARGE });
         await btn_${fieldId}.click();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         console.log("Clicked ${buttonText}");`;
     }
 
@@ -3461,6 +3497,117 @@ ${stepCode}
       .join('\n');
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CARRIER NAME CONSTANT RESOLUTION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Read all CARRIER_NAME entries from globalConstants.ts.
+   * Returns a map of carrier value (lowercase) → constant key.
+   */
+  private readCarrierNameConstants(): Map<string, string> {
+    const map = new Map<string, string>();
+    const filePath = path.resolve(process.cwd(), 'src/utils/globalConstants.ts');
+    if (!fs.existsSync(filePath)) return map;
+    const content = fs.readFileSync(filePath, 'utf-8');
+    // Match entries like: CARRIER_XPO_TRANS: "XPO TRANS INC",
+    const entryPattern = /(\w+):\s*["']([^"']+)["']/g;
+    // Find the CARRIER_NAME block
+    const blockMatch = content.match(/static readonly CARRIER_NAME\s*=\s*\{([^}]+)\}/s);
+    if (!blockMatch) return map;
+    let m;
+    while ((m = entryPattern.exec(blockMatch[1])) !== null) {
+      map.set(m[2].toLowerCase(), m[1]); // value → key
+    }
+    return map;
+  }
+
+  /**
+   * Generate an initials-based CARRIER_NAME key from a carrier name string.
+   * E.g., "18 KING TRUCKING LLC" → "CARRIER_18_KING"
+   *       "XPO TRANS INC" → "CARRIER_XPO_TRANS"
+   *       "SMART WAY TRANSPORT SYSTEMS LLC" → "CARRIER_SMART_WAY"
+   * Takes the first 2-3 distinctive words (skipping common suffixes like LLC, INC, CORP, etc.)
+   */
+  private generateCarrierKey(carrierName: string): string {
+    const suffixes = new Set(['LLC', 'INC', 'CORP', 'CORPORATION', 'CO', 'COMPANY', 'LTD', 'LP', 'LOGISTICS', 'TRUCKING', 'TRANSPORT', 'TRANSPORTATION', 'SYSTEMS', 'SERVICES', 'GROUP', 'ENTERPRISES']);
+    const words = carrierName.toUpperCase().replace(/[^A-Z0-9\s]/g, '').trim().split(/\s+/);
+    const distinctive: string[] = [];
+    for (const word of words) {
+      if (distinctive.length >= 3) break;
+      if (suffixes.has(word) && distinctive.length >= 1) continue;
+      distinctive.push(word);
+    }
+    // Ensure at least 2 words if available
+    if (distinctive.length < 2 && words.length >= 2) {
+      for (const word of words) {
+        if (!distinctive.includes(word)) {
+          distinctive.push(word);
+          if (distinctive.length >= 2) break;
+        }
+      }
+    }
+    return `CARRIER_${distinctive.join('_')}`;
+  }
+
+  /**
+   * Resolve a carrier name value to a CARRIER_NAME constant reference.
+   * 1. Reads existing CARRIER_NAME entries from globalConstants.ts
+   * 2. If the value already exists → returns existing key (e.g., CARRIER_NAME.CARRIER_XPO_TRANS)
+   * 3. If not → generates initials-based key, appends to globalConstants.ts, returns new key
+   *
+   * @returns The constant reference string (e.g., "CARRIER_NAME.CARRIER_18_KING"), or null if carrier value is empty
+   */
+  private resolveCarrierNameConstant(carrierValue: string): string | null {
+    if (!carrierValue || !carrierValue.trim()) return null;
+    const trimmed = carrierValue.trim();
+
+    // Read existing entries
+    const existing = this.readCarrierNameConstants();
+
+    // Check if value already exists (case-insensitive)
+    const existingKey = existing.get(trimmed.toLowerCase());
+    if (existingKey) {
+      console.log(`   🔑 Carrier "${trimmed}" already in CARRIER_NAME as ${existingKey}`);
+      return `CARRIER_NAME.${existingKey}`;
+    }
+
+    // Generate new key
+    let newKey = this.generateCarrierKey(trimmed);
+
+    // Ensure key doesn't conflict with an existing key (different value)
+    const existingKeys = new Set(existing.values());
+    let suffix = 1;
+    let candidateKey = newKey;
+    while (existingKeys.has(candidateKey)) {
+      candidateKey = `${newKey}_${suffix}`;
+      suffix++;
+    }
+    newKey = candidateKey;
+
+    // Append to globalConstants.ts — three locations: static readonly, declare global, globalThis
+    const filePath = path.resolve(process.cwd(), 'src/utils/globalConstants.ts');
+    let content = fs.readFileSync(filePath, 'utf-8');
+
+    // 1. Add to static readonly CARRIER_NAME block
+    const carrierBlockEnd = content.match(/static readonly CARRIER_NAME\s*=\s*\{[^}]*\}\s*as const;/s);
+    if (carrierBlockEnd) {
+      const block = carrierBlockEnd[0];
+      const insertBefore = '} as const;';
+      const idx = block.lastIndexOf(insertBefore);
+      if (idx !== -1) {
+        const newEntry = `    ${newKey}: "${trimmed}",\n  `;
+        const updatedBlock = block.substring(0, idx) + newEntry + insertBefore;
+        content = content.replace(block, updatedBlock);
+      }
+    }
+
+    fs.writeFileSync(filePath, content, 'utf-8');
+    console.log(`   🆕 Appended CARRIER_NAME.${newKey} = "${trimmed}" to globalConstants.ts`);
+
+    return `CARRIER_NAME.${newKey}`;
+  }
+
   /**
    * Post-generation guardrails: detect and auto-fix common LLM generation errors.
    * Runs after code assembly and import cleanup, before POM method existence check.
@@ -3471,8 +3618,10 @@ ${stepCode}
    * 3. Duplicate consecutive method calls (copy-paste errors)
    * 4. POM method calls with wrong constant keys (e.g., DISPATCH_EMAIL_1 → EMAIL_1)
    * 5. Fabricated locator IDs (too long or too many segments)
+   * 30. || fallback alternatives on testData/constant references → strip to single authoritative value
+   * 31. Hard/Soft assertion enforcement — "Hard Assertion" in step text → expect(), otherwise → expect.soft()
    */
-  private validatePostGenerationGuardrails(code: string, _testCase: TestCaseInput): string {
+  private validatePostGenerationGuardrails(code: string, testCase: TestCaseInput, testData?: TestData): string {
     let fixed = code;
     const warnings: string[] = [];
 
@@ -3550,7 +3699,7 @@ ${stepCode}
       },
       {
         pattern: /CARRIER_NAME\.(\w+)/g,
-        validKeys: ['CARRIER_1', 'CARRIER_2', 'CARRIER_3', 'CARRIER_4', 'CARRIER_5', 'CARRIER_6', 'CARRIER_7', 'CARRIER_8', 'CARRIER_9'],
+        validKeys: Array.from(this.readCarrierNameConstants().values()),
         parentName: 'CARRIER_NAME'
       },
       {
@@ -4044,15 +4193,18 @@ ${stepCode}
       }
     }
 
-    // ── 27. Remove waitForMultipleLoadStates from spec code — POM methods handle stability ──
+    // ── 27. Replace waitForMultipleLoadStates with commonReusables.waitForAllLoadStates in spec code ──
     {
       const waitPattern = /^\s*await\s+(?:pages|tnxPages|dmePages|tnxRepPages)\.\w+\.waitForMultipleLoadStates\s*\([^)]*\)\s*;?\s*$/gm;
       const waitMatches = fixed.match(waitPattern);
       if (waitMatches && waitMatches.length > 0) {
-        fixed = fixed.replace(waitPattern, '');
-        // Clean up resulting double blank lines
-        fixed = fixed.replace(/\n{3,}/g, '\n\n');
-        warnings.push(`⚠️  Guardrail: Removed ${waitMatches.length} waitForMultipleLoadStates() call(s) from spec — POM methods handle page stability via waitForPageStable().`);
+        fixed = fixed.replace(waitPattern, (match) => {
+          const indent = match.match(/^(\s*)/)?.[1] || '        ';
+          if (/tnxPages/.test(match)) return `${indent}await commonReusables.waitForAllLoadStates(appManager.tnxPage);`;
+          if (/dmePages/.test(match)) return `${indent}await commonReusables.waitForAllLoadStates(appManager.dmePage);`;
+          return `${indent}await commonReusables.waitForAllLoadStates(sharedPage);`;
+        });
+        warnings.push(`⚠️  Guardrail: Replaced ${waitMatches.length} waitForMultipleLoadStates() call(s) with commonReusables.waitForAllLoadStates().`);
       }
     }
 
@@ -4061,6 +4213,148 @@ ${stepCode}
       const inlineOfficePattern = /officePage\.officeCodeSearchField\(.*?\)[\s\S]*?officePage\.searchButtonClick\(\)[\s\S]*?officePage\.officeSearchRow\(/;
       if (inlineOfficePattern.test(fixed)) {
         warnings.push(`⚠️  Guardrail: Detected inline office setup code (officeCodeSearchField + searchButtonClick + officeSearchRow). Use dfbHelpers.setupOfficePreConditions() instead — it handles office search, configure, toggle verification, and AutoPost check.`);
+      }
+    }
+
+    // ── 29. Replace testData.Carrier with CARRIER_NAME constant ──
+    // Carrier names must come from CARRIER_NAME global constant, not CSV testData.
+    // This guardrail resolves the carrier value, checks/appends to globalConstants.ts,
+    // and replaces all testData.Carrier / testData['Carrier'] / testData.carrierName references.
+    {
+      // Extract carrier value from test data or from the generated code itself
+      let carrierValue = '';
+      if (testData) {
+        carrierValue = (testData as Record<string, string>)['Carrier']
+          || (testData as Record<string, string>)['carrierName']
+          || '';
+      }
+      // Also check testCase.explicitValues or testCase.testData
+      if (!carrierValue && _testCase.testData) {
+        carrierValue = (_testCase.testData as Record<string, string>)['Carrier']
+          || (_testCase.testData as Record<string, string>)['carrierName']
+          || '';
+      }
+
+      if (carrierValue.trim()) {
+        const constantRef = this.resolveCarrierNameConstant(carrierValue.trim());
+        if (constantRef) {
+          // Replace all testData.Carrier / testData['Carrier'] / testData.carrierName patterns
+          const carrierPatterns = [
+            /testData\.Carrier\b/g,
+            /testData\['Carrier'\]/g,
+            /testData\["Carrier"\]/g,
+            /testData\.carrierName\b/g,
+            /testData\['carrierName'\]/g,
+            /testData\["carrierName"\]/g,
+          ];
+          let replacementCount = 0;
+          for (const pattern of carrierPatterns) {
+            const matches = fixed.match(pattern);
+            if (matches) {
+              replacementCount += matches.length;
+              fixed = fixed.replace(pattern, constantRef);
+            }
+          }
+          // Also replace fallback patterns like: testData.Carrier || testData.carrierName
+          fixed = fixed.replace(
+            new RegExp(`${constantRef.replace(/\./g, '\\.')}\\s*\\|\\|\\s*${constantRef.replace(/\./g, '\\.')}`, 'g'),
+            constantRef
+          );
+          // Replace patterns like: CARRIER_NAME.KEY || "" or CARRIER_NAME.KEY || testData.carrierName
+          fixed = fixed.replace(
+            new RegExp(`${constantRef.replace(/\./g, '\\.')}\\s*\\|\\|\\s*""`, 'g'),
+            constantRef
+          );
+          if (replacementCount > 0) {
+            warnings.push(`🔑 Guardrail: Replaced ${replacementCount} testData.Carrier/carrierName reference(s) with ${constantRef}`);
+          }
+        }
+      }
+    }
+
+    // ── 30. Remove || fallback alternatives from testData and constant references ──
+    // LLM sometimes generates: testData.X || testData.Y, testData.X || CONSTANT.Y,
+    // testData.X || "literal", CONSTANT.X || testData.Y — pick only the first (primary) value.
+    {
+      let fallbackCount = 0;
+      // Pattern 1: testData.field || testData.otherField  or  testData['field'] || testData.otherField
+      fixed = fixed.replace(
+        /(testData(?:\.\w+|\[['"][^'"]+['"]\]))\s*\|\|\s*testData(?:\.\w+|\[['"][^'"]+['"]\])/g,
+        (_match, primary) => { fallbackCount++; return primary; }
+      );
+      // Pattern 2: testData.field || CONSTANT_NAME.KEY  (e.g., testData.mileageEngine || MILEAGE_ENGINE.CURRENT)
+      fixed = fixed.replace(
+        /(testData(?:\.\w+|\[['"][^'"]+['"]\]))\s*\|\|\s*[A-Z_]+\.\w+/g,
+        (_match, primary) => { fallbackCount++; return primary; }
+      );
+      // Pattern 3: testData.field || "literal"  (e.g., testData.offerRate || "1000")
+      fixed = fixed.replace(
+        /(testData(?:\.\w+|\[['"][^'"]+['"]\]))\s*\|\|\s*"[^"]*"/g,
+        (_match, primary) => { fallbackCount++; return primary; }
+      );
+      // Pattern 4: CONSTANT.KEY || testData.field  (constant should be authoritative)
+      fixed = fixed.replace(
+        /([A-Z_]+\.\w+)\s*\|\|\s*testData(?:\.\w+|\[['"][^'"]+['"]\])/g,
+        (_match, primary) => { fallbackCount++; return primary; }
+      );
+      if (fallbackCount > 0) {
+        warnings.push(`⚠️  Guardrail 30: Removed ${fallbackCount} || fallback alternative(s) — each value reference must be a single authoritative source`);
+      }
+    }
+
+    // ── 31. Hard/Soft assertion enforcement based on test case step text ──
+    // Steps that contain "hard assertion" or "put hard assertion" → expect() (hard)
+    // All other validation steps → expect.soft() (soft, default)
+    {
+      const hardAssertionRegex = /hard\s*assertion/i;
+
+      // Collect keywords from steps that explicitly request hard assertions
+      const hardAssertionStepKeywords: string[] = [];
+      const allStepTexts = [
+        ...(testCase.preconditions || []),
+        ...testCase.steps.map(s => s.action),
+        ...testCase.steps.map(s => s.expectedResult || ''),
+      ];
+      for (const text of allStepTexts) {
+        if (hardAssertionRegex.test(text)) {
+          // Extract the validation subject (e.g., "Carrier Status must show as Active")
+          const cleaned = text.replace(/\(.*hard\s*assertion.*\)/i, '').trim();
+          if (cleaned.length > 10) {
+            // Take significant keywords for matching to generated step blocks
+            const keywords = cleaned.toLowerCase().match(/\b\w{4,}\b/g) || [];
+            hardAssertionStepKeywords.push(...keywords.slice(0, 5));
+          }
+        }
+      }
+
+      if (hardAssertionStepKeywords.length > 0) {
+        // Split code into test.step blocks and process each
+        const stepBlockRegex = /(await test\.step\([^)]+,\s*async\s*\(\)\s*=>\s*\{)([\s\S]*?)(\}\s*\)\s*;)/g;
+        let softToHardCount = 0;
+        let hardToSoftCount = 0;
+
+        fixed = fixed.replace(stepBlockRegex, (fullMatch, stepHeader: string, stepBody: string, stepClose: string) => {
+          const lowerHeader = stepHeader.toLowerCase();
+          const isHardAssertionStep = hardAssertionStepKeywords.some(kw => lowerHeader.includes(kw));
+
+          if (isHardAssertionStep) {
+            // Convert expect.soft( → expect( in this block
+            const converted = stepBody.replace(/expect\.soft\(/g, () => { softToHardCount++; return 'expect('; });
+            return stepHeader + converted + stepClose;
+          } else {
+            // Convert bare expect( → expect.soft( in this block (skip expect.poll, expect.soft already)
+            const converted = stepBody.replace(/(?<!\.)expect\(/g, (match: string) => {
+              // Double check: don't convert if preceded by 'await ' and followed by '.poll'
+              hardToSoftCount++;
+              return 'expect.soft(';
+            });
+            return stepHeader + converted + stepClose;
+          }
+        });
+
+        if (softToHardCount > 0 || hardToSoftCount > 0) {
+          warnings.push(`⚠️  Guardrail 31: Assertion type enforcement — ${softToHardCount} soft→hard (explicit "Hard Assertion" steps), ${hardToSoftCount} hard→soft (default for all other steps)`);
+        }
       }
     }
 
@@ -4361,9 +4655,9 @@ ${stepCode}
             // Replace the click line + appended validateAlert with a Promise.all
             const clickMatch = generatedStep.code.match(/(await pages\.\w+\.(?:clickElementByText|clickButtonByText)\([^)]+\));/);
             if (clickMatch) {
-              // Remove the click line and waitForMultipleLoadStates from stepBody — we'll redo as Promise.all
+              // Remove the click line and waitForAllLoadStates from stepBody — we'll redo as Promise.all
               stepBody = stepBody.replace(new RegExp('\\s*' + clickMatch[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '.*\\n'), '\n');
-              stepBody = stepBody.replace(/\s*await pages\.basePage\.waitForMultipleLoadStates\(\["load",\s*"networkidle"\]\);\n?/, '\n');
+              stepBody = stepBody.replace(/\s*await commonReusables\.waitForAllLoadStates\(sharedPage\);\n?/, '\n');
 
               const alertPatternsPath = path.resolve(__dirname, '../../utils/alertPatterns.ts');
               stepBody += `\n        // Alert fires synchronously on click — must use Promise.all to capture it\n`;
@@ -4427,7 +4721,7 @@ ${stepCode}
 
     // Check if unmapped expected results are alert validations that should merge with last click step.
     // Alert dialogs fire synchronously on click — validateAlert listener must be set up BEFORE the click.
-    // So we merge them into a single Promise.all([validateAlert(...), clickButton(...)]) step.
+    // So we merge them into a single Promise.all([validateAlert(...), clickButtonByText(...)]) step.
     const alertExpected = unmappedExpected.filter(e => {
       const lower = e.toLowerCase();
       return lower.includes('message') || lower.includes('displayed') || lower.includes('alert') || lower.includes('toast');
@@ -4764,7 +5058,7 @@ ${stepCode}
           code: `// Navigate to Post Automation page, search customer, cleanup existing rules
         await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
         await pages.postAutomationRulePage.verifyCustomerPostAutomationRule(testData.customerName);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
           pageObjects: ['basePage', 'postAutomationRulePage'],
           assertions: []
         };
@@ -4873,16 +5167,16 @@ ${stepCode}
         await pages.basePage.clickSubHeaderByText(ADMIN_SUB_MENU.AGENT_SEARCH);
         await pages.agentSearchPage.nameInputOnAgentPage(testData.salesAgent);
         await pages.agentSearchPage.clickOnSearchButton();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         await pages.agentSearchPage.selectAgentByName(testData.salesAgent);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         const agentInfoEmail = await pages.agentInfoPage.getAgentEmail();
         agentEmail = agentInfoEmail?.trim() || "";
         console.log(\`Captured agent email: "\${agentEmail}"\`);
         pages.logger.info(\`Agent email captured: \${agentEmail}\`);
         const btmsBaseUrl = new URL(sharedPage.url()).origin;
         await sharedPage.goto(btmsBaseUrl);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         await sharedPage.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });`,
           pageObjects: ['basePage', 'agentSearchPage', 'agentInfoPage'],
           assertions: []
@@ -4897,7 +5191,7 @@ ${stepCode}
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
         await pages.searchCustomerPage.enterCustomerName(testData.customerName);
         await pages.searchCustomerPage.clickOnSearchCustomer();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
           pageObjects: ['basePage', 'searchCustomerPage'],
           assertions: []
         };
@@ -4910,67 +5204,38 @@ ${stepCode}
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
         await pages.searchCustomerPage.searchCustomerAndClickDetails(testData.customerName);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         cargoValue = await pages.viewCustomerPage.verifyAndSetCargoValue(CARGO_VALUES.DEFAULT);
         console.log(\`Cargo value set to: \${cargoValue}\`);`,
           pageObjects: ['basePage', 'searchCustomerPage', 'viewCustomerPage'],
           assertions: []
         };
       }
-      // ---- Carrier visibility / loadboard (Reference: DFB-97739 Step 5) ----
+      // ---- Carrier visibility / loadboard (Reference: sample-testcases.csv DFB-97739 preconds 27-39) ----
       else if (groupText.includes('carrier') && (groupText.includes('visibility') || groupText.includes('loadboard'))) {
         step = {
           stepName: 'Verify Carrier Visibility Settings',
-          code: `// Navigate to Carrier Search and verify visibility settings
+          code: `// Carrier Search → profile → MODE IQ → Carrier/Loadboard Active → visibility (matches CSV order)
         await pages.basePage.hoverOverHeaderByText(HEADERS.CARRIER);
         await pages.basePage.clickSubHeaderByText(CARRIER_SUB_MENU.SEARCH);
         await pages.carrierSearchPage.nameInputOnCarrierPage(testData.Carrier);
-        await pages.carrierSearchPage.selectActiveOnCarrier();
         await pages.carrierSearchPage.clickOnSearchButton();
         await pages.carrierSearchPage.verifyCarrierListTableData(testData.Carrier);
         await pages.carrierSearchPage.selectCarrierByName(testData.Carrier);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
 
-        const statusText = await pages.viewCarrierPage.getLoadboardStatus();
-        pages.logger.info(\`Carrier loadboard status: \${statusText}\`);
+        await pages.viewCarrierPage.clickLoadboardTab();
+        const carrierBtmsStatus = await pages.viewCarrierPage.getCarrierBtmsStatusValue();
+        expect.soft(carrierBtmsStatus, "Carrier BTMS Status should be Active").toBe(CARRIER_STATUS.ACTIVE.toUpperCase());
+        const loadboardStatus = await pages.viewCarrierPage.getLoadboardStatus();
+        expect.soft(loadboardStatus, "Loadboard Status should be Active").toMatch(/^Active$/i);
 
-        const requiredVisibility = [
+        await pages.viewCarrierPage.ensureCarrierVisibilityTogglesEnabled([
           CARRIER_VISIBILITY.AVENGER_LOGISTICS,
           CARRIER_VISIBILITY.MODE_TRANSPORTATION,
           CARRIER_VISIBILITY.SUNTECK_TTS,
-        ];
-        const tabClicked = await pages.viewCarrierPage.clickLoadboardTab();
-        expect.soft(tabClicked, "Mode IQ tab should be visible and clickable on carrier page").toBeTruthy();
-        if (tabClicked) {
-          await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-        }
-
-        let togglesFound = false;
-        for (const name of requiredVisibility) {
-          if (await pages.viewCarrierPage.isCarrierVisibilityLabelVisible(name)) {
-            togglesFound = true;
-            break;
-          }
-        }
-
-        if (togglesFound) {
-          const toggleStates = await pages.viewCarrierPage.getCarrierVisibilityToggleStates(requiredVisibility);
-          const disabledToggles: string[] = [];
-          for (const name of requiredVisibility) {
-            const state = toggleStates[name];
-            if (!state?.enabled) {
-              disabledToggles.push(name);
-            }
-          }
-          if (disabledToggles.length > 0) {
-            await pages.basePage.clickButtonByText("Edit");
-            await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-            await pages.viewCarrierPage.enableCarrierVisibilityToggles(disabledToggles);
-            await pages.viewCarrierPage.clickSaveOnCarrierEditPage();
-            await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
-          }
-        }
-        pages.logger.info("Carrier visibility step completed");`,
+        ]);
+        pages.logger.info("Carrier loadboard and visibility step completed");`,
           pageObjects: ['basePage', 'carrierSearchPage', 'viewCarrierPage'],
           assertions: []
         };
@@ -4985,7 +5250,7 @@ ${stepCode}
         await pages.carrierSearchPage.nameInputOnCarrierPage(testData.Carrier);
         await pages.carrierSearchPage.selectStatusOnCarrier(testData.carrierStatus || CARRIER_STATUS.ACTIVE);
         await pages.carrierSearchPage.clickOnSearchButton();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
           pageObjects: ['basePage', 'carrierSearchPage'],
           assertions: []
         };
@@ -4997,16 +5262,16 @@ ${stepCode}
           code: `// Switch to DME and verify carrier is enabled with toggle ON
         await appManager.switchToDME();
         const dmePages = appManager.dmePageManager!;
-        await dmePages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(appManager.dmePage);
         // Navigate to Carriers in DME
         await dmePages.basePage.hoverOverHeaderByText("Carriers");
-        await dmePages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(appManager.dmePage);
         // Search for carrier
         const dmeSearchInput = appManager.dmePage!.locator("input[type='search'], input[placeholder*='Search']").first();
         await dmeSearchInput.waitFor({ state: "visible", timeout: 10000 });
         await dmeSearchInput.fill(testData.Carrier || testData.carrierName || "");
         await appManager.dmePage!.keyboard.press("Enter");
-        await dmePages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(appManager.dmePage);
         console.log("DME: Searched for carrier, verifying toggle status");
         // Verify carrier toggle is ON (enabled)
         const carrierToggle = appManager.dmePage!.locator("[data-toggle], .toggle-switch, input[type='checkbox']").first();
@@ -5021,7 +5286,7 @@ ${stepCode}
         }
         // Switch back to BTMS
         await appManager.switchToBTMS();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         console.log("Switched back to BTMS — DME preconditions complete");`,
           pageObjects: ['basePage'],
           assertions: []
@@ -5078,7 +5343,7 @@ ${stepCode}
           code: `// Navigate to Finance/Commission
         await pages.basePage.hoverOverHeaderByText(HEADERS.FINANCE);
         await pages.basePage.clickSubHeaderByText(FINANCE_SUB_MENU.COMMISSION_AUDIT);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
           pageObjects: ['basePage'],
           assertions: []
         };
@@ -5090,7 +5355,7 @@ ${stepCode}
           code: `// Navigate to EDI Load Tenders
         await pages.basePage.hoverOverHeaderByText(HEADERS.LOAD);
         await pages.basePage.clickSubHeaderByText(LOAD_SUB_MENU.SEARCH);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
           pageObjects: ['basePage'],
           assertions: []
         };
@@ -5102,7 +5367,7 @@ ${stepCode}
           code: `// Navigate to Sales Lead
         await pages.basePage.hoverOverHeaderByText(HEADERS.SALES_LEAD);
         await pages.basePage.clickSubHeaderByText(SALES_LEAD_SUB_MENU.MY_LEADS);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
           pageObjects: ['basePage'],
           assertions: []
         };
@@ -5114,7 +5379,7 @@ ${stepCode}
           code: `// Navigate to DAT
         await pages.basePage.hoverOverHeaderByText(HEADERS.LOAD);
         await pages.basePage.clickSubHeaderByText(LOAD_SUB_MENU.SEARCH);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
           pageObjects: ['basePage'],
           assertions: []
         };
@@ -5367,7 +5632,7 @@ ${stepCode}
     }
     if (lowerExpected.includes('tnx')) {
       return `        console.log("TNX verification: ${expected.replace(/"/g, "'")}");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);\n`;
+        await commonReusables.waitForAllLoadStates(sharedPage);\n`;
     }
 
     // Alert/message/notification/error/toast displayed
@@ -5383,18 +5648,18 @@ ${stepCode}
     // EDI / 990
     if (lowerExpected.includes('990') || lowerExpected.includes('edi')) {
       return `        console.log("EDI verification: ${expected.replace(/"/g, "'")}");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);\n`;
+        await commonReusables.waitForAllLoadStates(sharedPage);\n`;
     }
 
     // Automation triggered
     if (lowerExpected.includes('trigger') || lowerExpected.includes('automation')) {
       return `        console.log("Automation check: ${expected.replace(/"/g, "'")}");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);\n`;
+        await commonReusables.waitForAllLoadStates(sharedPage);\n`;
     }
 
     // Element visible/hidden
     if (lowerExpected.includes('visible') || lowerExpected.includes('hidden') || lowerExpected.includes('column')) {
-      return `        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);\n        console.log("Visibility check: ${expected.replace(/"/g, "'")}");
+      return `        await commonReusables.waitForAllLoadStates(sharedPage);\n        console.log("Visibility check: ${expected.replace(/"/g, "'")}");
         // TODO: Add specific locator assertion for visibility check\n`;
     }
 

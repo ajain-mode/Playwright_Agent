@@ -30,7 +30,12 @@ export default class ViewCarrier {
     private readonly carrierVisibilityListItems_LOC: Locator;
     private readonly carrierVisibilitySliderInput_LOC: Locator;
     private readonly carrierVisibilitySliderLabel_LOC: Locator;
-    private readonly elementByTextContains_LOC: (text: string) => Locator;
+    /**
+     * Right sidebar BTMS status below Carrier Score (carrform.php {@code table.ls_outer}, {@code td} width 160).
+     * Label row is {@code Carrier Status:} or {@code Vendor Status:}.
+     */
+    private readonly carrierBtmsStatusSidebarCell_LOC: Locator;
+    private readonly carrierVisibilityEditButton_LOC: Locator;
 
     constructor(private page: Page) {
         this.mcNumberDetails_LOC = page.locator("//label[@for='mc_num']/parent::td/following-sibling::td[@class='three-across view'][1]");
@@ -55,12 +60,13 @@ export default class ViewCarrier {
         this.bcaSignedSubmittedCell = page.locator("//td[normalize-space()='BCA: Signed & Submitted']");
         this.brokerAuthorityCell = page.locator("//tr[@id='statusbox2']//td[contains(normalize-space(text()), 'Broker: Active')]");
         this.loadboardStatus_LOC = page.locator("#carrier_status_label");
-        this.modeIQTab_LOC = page.locator("#carrform_tab_8 a");
+        this.modeIQTab_LOC = page.locator("#loadboard_count");
         this.carrierEditSaveBtn_LOC = page.locator("input[type='button'][value='  Save  ']");
         this.carrierVisibilityListItems_LOC = page.locator("#carrier_visibility_brands_list .list_item");
         this.carrierVisibilitySliderInput_LOC = page.locator("input.carrier_visibility_slider_input");
         this.carrierVisibilitySliderLabel_LOC = page.locator("label.carrier_visibility_switch");
-        this.elementByTextContains_LOC = (text: string) => page.locator(`//*[contains(text(),'${text}')]`);
+        this.carrierBtmsStatusSidebarCell_LOC = page.locator("table.ls_outer td[width='160']");
+        this.carrierVisibilityEditButton_LOC = page.getByRole("button", { name: "Edit" });
     }
 
     /**
@@ -349,6 +355,21 @@ export default class ViewCarrier {
     }
 
     /**
+     * BTMS carrier status from the right-rail sidebar cell below Carrier Score.
+     * Locator: {@code table.ls_outer td[width='160']} — unique in carrform.php.
+     * @author AI Agent
+     * @modified 2026-04-14
+     */
+    async getCarrierBtmsStatusValue(): Promise<string> {
+        await commonReusables.waitForPageStable(this.page);
+        await this.carrierBtmsStatusSidebarCell_LOC.first().waitFor({ state: "visible", timeout: WAIT.LARGE });
+        let status = ((await this.carrierBtmsStatusSidebarCell_LOC.first().innerText()) || "").trim();
+        status = status.replace(/\*+$/, "").trim().toUpperCase();
+        console.log(`Carrier BTMS Status: ${status}`);
+        return status;
+    }
+
+    /**
      * Gets the toggle states for the given carrier visibility labels by inspecting the DOM.
      * @author AI Agent
      * @created 17-Mar-2026
@@ -447,7 +468,7 @@ export default class ViewCarrier {
 
         if (disabledToggles.length > 0) {
             console.log(`${disabledToggles.length} toggle(s) need updating: ${disabledToggles.join(', ')}`);
-            await this.page.getByRole('button', { name: 'Edit' }).click();
+            await this.carrierVisibilityEditButton_LOC.click();
             await commonReusables.waitForPageStable(this.page);
             await this.enableCarrierVisibilityToggles(disabledToggles);
             await this.clickSaveOnCarrierEditPage();

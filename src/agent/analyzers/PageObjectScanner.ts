@@ -30,6 +30,7 @@ export interface MethodInfo {
   startLine: number;
   endLine: number;
   body: string;            // Full method body
+  createdDate: string;     // @created tag value (e.g. '2025-12-23'), empty if absent
 }
 
 /** Full scan result for a single page object file */
@@ -310,6 +311,18 @@ export class PageObjectScanner {
       'let', 'var', 'enum', 'interface', 'type', 'namespace', 'module',
     ]);
 
+    // Helper: extract @created date from JSDoc block above a method line
+    const extractCreatedDate = (methodLineIndex: number): string => {
+      for (let j = methodLineIndex - 1; j >= Math.max(0, methodLineIndex - 20); j--) {
+        const l = lines[j].trim();
+        const createdMatch = l.match(/@created\s+(.+)/);
+        if (createdMatch) return createdMatch[1].trim();
+        // Stop scanning if we hit code (not JSDoc)
+        if (!l.startsWith('*') && !l.startsWith('/**') && !l.startsWith('//') && l.length > 0 && !l.startsWith('*/')) break;
+      }
+      return '';
+    };
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const match = line.match(methodRegex);
@@ -337,6 +350,7 @@ export class PageObjectScanner {
           startLine: startLine + 1,
           endLine: endLine + 1,
           body: bodyLines.join('\n'),
+          createdDate: extractCreatedDate(i),
         });
         continue;
       }
@@ -384,6 +398,7 @@ export class PageObjectScanner {
             startLine: startLine + 1,
             endLine: endLine + 1,
             body: bodyLines.join('\n'),
+            createdDate: extractCreatedDate(i),
           });
           i = closeLine;
         }

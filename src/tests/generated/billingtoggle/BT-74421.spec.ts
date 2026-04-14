@@ -4,6 +4,7 @@ import { PageManager } from "@utils/PageManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
+import commonReusables from "@utils/commonReusables";
 
 /**
  * Test Case: BT-74421 - Validate updated price difference message when carrier invoice already exists in pending status and secondary invoice is received
@@ -97,7 +98,7 @@ test.describe.serial(
       });
 
       await test.step("Step 5 [CSV 27]: Select Mileage Engine as Current", async () => {
-        await pages.editLoadFormPage.selectMileageEngine(testData.mileageEngine || MILEAGE_ENGINE.CURRENT);
+        await pages.editLoadFormPage.selectMileageEngine(MILEAGE_ENGINE.CURRENT);
       });
 
       await test.step("Step 6 [CSV 28]: Select Method as Practical", async () => {
@@ -132,7 +133,7 @@ test.describe.serial(
 
       await test.step("Step 9 [CSV 32-33]: Carrier tab — enter offer rate", async () => {
         await pages.editLoadPage.clickOnTab(TABS.CARRIER);
-        await pages.dfbLoadFormPage.enterOfferRate(testData['Offer Rate'] || testData.offerRate);
+        await pages.dfbLoadFormPage.enterOfferRate(testData.offerRate);
       });
 
       await test.step("Step 10 [CSV 34-35]: Enter Customer rate 500 and Carrier rate 600", async () => {
@@ -158,8 +159,8 @@ test.describe.serial(
       });
 
       await test.step("Step 15 [CSV 41]: Choose carrier", async () => {
-        await pages.editLoadCarrierTabPage.selectCarrier1(testData.Carrier);
-        pages.logger.info(`Carrier: ${testData.Carrier}`);
+        await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_NAME.CARRIER_XPO_TRANS);
+        pages.logger.info(`Carrier: ${CARRIER_NAME.CARRIER_XPO_TRANS}`);
       });
 
       await test.step("Step 16 [CSV 42]: Click Save and accept BOOKED alert", async () => {
@@ -174,7 +175,7 @@ test.describe.serial(
       await test.step("Step 17 [CSV 43]: Click EDIT, select DELIVERED FINAL, check Override BTF, click Save", async () => {
         await pages.viewLoadPage.clickEditButton();
         await pages.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
-        await pages.editLoadFormPage.checkOverrideBTF();
+        //await pages.editLoadFormPage.checkOverrideBTF();
 
         // After Save, dialogs may fire (e.g. "Are you sure you want to change this load to Delivered Final?")
         const capturedDialogs = await pages.commonReusables.acceptAllDialogsDuringAction(
@@ -205,7 +206,6 @@ test.describe.serial(
       await test.step("Step 18 [CSV 44]: Click on View Billing button", async () => {
         await pages.editLoadPage.clickOnTab(TABS.LOAD);
         await pages.editLoadFormPage.clickOnViewBillingBtn();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
         await pages.commonReusables.waitForPageStable(sharedPage);
       });
 

@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { PageManager } from "@utils/PageManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
+import commonReusables from "@utils/commonReusables";
 
 /**
  * Test Case: EDI-001 - Process 204 Load Tender
@@ -49,7 +50,7 @@ test.describe.serial("Process 204 Load Tender", () => {
       await test.step("Step 2: Navigate to EDI queue", async () => {
         // Navigate to EDI queue
         await pages.homePage.navigateToHeader(HEADERS.LOAD);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 3: Receive 204 tender via EDI", async () => {
@@ -59,7 +60,7 @@ test.describe.serial("Process 204 Load Tender", () => {
 
       await test.step("Step 4: Verify tender appears in queue", async () => {
         // Verify: Verify tender appears in queue
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         expect.soft(true, "Verify tender appears in queue").toBeTruthy();
       });
 
@@ -70,13 +71,13 @@ test.describe.serial("Process 204 Load Tender", () => {
 
       await test.step("Step 6: Verify 990 acknowledgment sent", async () => {
         // Verify: Verify 990 acknowledgment sent
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         expect.soft(true, "Verify 990 acknowledgment sent").toBeTruthy();
       });
 
       await test.step("Step 7: Check load creation", async () => {
         // Verify: Check load creation
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         expect.soft(true, "Check load creation").toBeTruthy();
       });
 

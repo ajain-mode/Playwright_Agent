@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { PageManager } from "@utils/PageManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
+import commonReusables from "@utils/commonReusables";
 
 /**
  * Test Case: CAR-001 - Verify Carrier Status
@@ -50,23 +51,23 @@ test.describe.serial("Verify Carrier Status", () => {
         // Navigate to Carriers
         await pages.basePage.hoverOverHeaderByText(HEADERS.CARRIER);
         await pages.basePage.clickSubHeaderByText(CARRIER_SUB_MENU.SEARCH);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 3: Search for carrier", async () => {
         // Search operation
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 4: Verify carrier status", async () => {
         // Verify: Verify carrier status
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         expect.soft(true, "Verify carrier status").toBeTruthy();
       });
 
       await test.step("Step 5: Check carrier profile", async () => {
         // Verify: Check carrier profile
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         expect.soft(true, "Check carrier profile").toBeTruthy();
       });
 

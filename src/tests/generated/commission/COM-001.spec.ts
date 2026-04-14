@@ -3,6 +3,7 @@ import { PageManager } from "@utils/PageManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
 import commissionHelper from "@utils/commission-helpers";
+import commonReusables from "@utils/commonReusables";
 
 /**
  * Test Case: COM-001 - Verify Commission Calculation
@@ -50,23 +51,23 @@ test.describe.serial("Verify Commission Calculation", () => {
       await test.step("Step 2: Navigate to Finance", async () => {
         // Navigate to Finance
         await pages.homePage.navigateToHeader(HEADERS.FINANCE);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 3: Search for commission report", async () => {
         // Search operation
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 4: Verify commission amount", async () => {
         // Verify: Verify commission amount
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         expect.soft(true, "Verify commission amount").toBeTruthy();
       });
 
       await test.step("Step 5: Check internal share calculation", async () => {
         // Verify: Check internal share calculation
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         expect.soft(true, "Check internal share calculation").toBeTruthy();
       });
 

@@ -196,7 +196,7 @@ export default class ViewLoadPage {
     this.autoLoadTenderCheckbox_LOC = this.page.locator("//input[@id='loadsh_auto_edi204']");
     this.bidsAvgRate_LOC = this.page.locator("//span[@id='bids-avg-rate'] | //td[strong[text()='BIDS']]/following-sibling::td[1]");
     this.confirmDuplicateInvoiceBtn_LOC = this.page.locator("//button[text()='Confirm']").first();
-    this.billingIssuesSection_LOC = this.page.locator("//h4[contains(text(),'Billing Issues')]/parent::*").first();
+    this.billingIssuesSection_LOC = this.page.locator("#finance_issues_block");
     this.dfbLoadBoardSection_LOC = this.page.locator("#tnx_load_board");
     this.autoAcceptCheckbox_LOC = this.page.locator("//input[@id='form_auto_accept']");
     this.carrierContactDropdown_LOC = this.page.locator("//select[@id='form_accept_as_user']");

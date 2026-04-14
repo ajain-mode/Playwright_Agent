@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { PageManager } from "@utils/PageManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
+import commonReusables from "@utils/commonReusables";
 
 /**
  * Test Case: EDI-002 - Reject 204 Load Tender
@@ -49,7 +50,7 @@ test.describe.serial("Reject 204 Load Tender", () => {
       await test.step("Step 2: Navigate to EDI queue", async () => {
         // Navigate to EDI queue
         await pages.homePage.navigateToHeader(HEADERS.LOAD);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 3: Receive 204 tender", async () => {
@@ -60,12 +61,12 @@ test.describe.serial("Reject 204 Load Tender", () => {
       await test.step("Step 4: Reject the tender", async () => {
         // Action: Reject the tender
         // TODO: Implement this step based on your page objects
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 5: Verify 990 rejection sent", async () => {
         // Verify: Verify 990 rejection sent
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         expect.soft(true, "Verify 990 rejection sent").toBeTruthy();
       });
 

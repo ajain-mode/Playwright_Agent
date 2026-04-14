@@ -97,7 +97,7 @@ DEFENSIVE PATTERNS:
 - BTMS recovery after app switching: navigate to absolute base URL, never use page.goto("/")
   const btmsBaseUrl = new URL(sharedPage.url()).origin; await sharedPage.goto(btmsBaseUrl);
 - Guard against closed pages: check page.isClosed() before bringToFront()
-- After switchToBTMS(), always waitForMultipleLoadStates(["load", "networkidle"])`,
+- After switchToBTMS(), always commonReusables.waitForAllLoadStates(sharedPage)`,
 
   // Self-check instructions run after code generation
   SELF_CHECK: `After generating the complete script, verify internally:
@@ -122,13 +122,15 @@ export const CODE_TEMPLATES = {
     standard: `import { test, expect } from "@playwright/test";
 import { PageManager } from "@utils/PageManager";
 import userSetup from "@loginHelpers/userSetup";
-import dataConfig from "@config/dataConfig";`,
+import dataConfig from "@config/dataConfig";
+import commonReusables from "@utils/commonReusables";`,
 
     multiApp: `import { BrowserContext, expect, Page, test } from "@playwright/test";
 import { MultiAppManager } from "@utils/dfbUtils/MultiAppManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
-import { PageManager } from "@utils/PageManager";`,
+import { PageManager } from "@utils/PageManager";
+import commonReusables from "@utils/commonReusables";`,
 
     withHelpers: `import { test, expect } from "@playwright/test";
 import { PageManager } from "@utils/PageManager";
@@ -317,7 +319,7 @@ await pages.loadsPage.selectTabularTL();`,
     pageObject: 'dfbLoadFormPage',
     method: 'validateDFBTextFieldHaveExpectedValues',
     codeTemplate: `await pages.editLoadPage.clickOnTab(TABS.CARRIER);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         await pages.viewLoadPage.scrollToDFBSection();
         const formattedOfferRate = parseFloat(testData.offerRate).toFixed(2);
         await pages.dfbLoadFormPage.validateDFBTextFieldHaveExpectedValues({
@@ -791,12 +793,23 @@ export const GUARDRAIL_RULES: GuardrailRule[] = [
   },
   {
     name: 'noWaitForMultipleLoadStatesInSpecs',
-    description: 'Generated spec files must not call waitForMultipleLoadStates — POM methods handle page stability internally via waitForPageStable()',
+    description: 'Generated spec files must not call waitForMultipleLoadStates — use commonReusables.waitForAllLoadStates(sharedPage) instead',
     validate: (input) => {
       if (!input._generatedCode) return true;
       return !/waitForMultipleLoadStates/.test(input._generatedCode);
     },
-    errorMessage: 'waitForMultipleLoadStates() detected in spec file. Remove it — POM methods handle page stability internally via commonReusables.waitForPageStable().',
+    errorMessage: 'waitForMultipleLoadStates() detected in spec file. Replace with commonReusables.waitForAllLoadStates(sharedPage). waitForMultipleLoadStates is POM-only.',
+  },
+  {
+    name: 'noFallbackAlternativesInValueReferences',
+    description: 'Generated code must not use || fallback alternatives for testData fields or constants — each value must use exactly one authoritative source',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      // Detect testData.X || testData.Y, testData.X || CONSTANT.Y, testData.X || "literal", CONSTANT.X || testData.Y
+      return !/testData(?:\.\w+|\[['"][^'"]+['"]\])\s*\|\|\s*(?:testData(?:\.\w+|\[['"][^'"]+['"]\])|[A-Z_]+\.\w+|"[^"]*")/.test(input._generatedCode) &&
+             !/[A-Z_]+\.\w+\s*\|\|\s*testData(?:\.\w+|\[['"][^'"]+['"]\])/.test(input._generatedCode);
+    },
+    errorMessage: '|| fallback alternative detected in value reference (e.g., testData.X || testData.Y, testData.X || CONSTANT.Y). Use exactly ONE authoritative source: testData.<field> for CSV values or CONSTANT.KEY for known constants.',
   },
 ];
 
@@ -883,7 +896,7 @@ export const GENERATION_RULES = {
   // 6. PRECONDITION RULES — Mandatory for all test cases
   PRECONDITION_RULES: {
     // ALL precondition steps MUST generate real executable code.
-    // Never emit an empty step with only waitForMultipleLoadStates as a placeholder.
+    // Never emit an empty step with only waitForAllLoadStates as a placeholder.
     // If a precondition cannot be mapped to a known pattern, use generateCodeFromAction()
     // to produce the best possible code from the natural language description.
     ALL_PRECONDITIONS_MUST_GENERATE_CODE: true,
@@ -964,13 +977,13 @@ export const GENERATION_RULES = {
     },
     {
       pattern: 'fillFieldBySelector',
-      replacement: 'Direct Playwright locator: sharedPage.locator("#id").fill(value)',
-      reason: 'Often used with auto-generated selectors that do not exist in the DOM',
+      replacement: 'pages.basePage.fillFieldById(fieldId, value) — exact #id matching only',
+      reason: 'Removed — used partial matching (id/name/placeholder). Use fillFieldById with exact element ID instead',
     },
     {
       pattern: 'selectOptionByField',
-      replacement: 'Direct Playwright locator: sharedPage.locator("//select[@name=\\"name\\"]").selectOption({ label: "text" })',
-      reason: 'AI-generated stub — method does not exist on any page object',
+      replacement: 'pages.basePage.selectOptionById(fieldId, label) — exact #id matching only',
+      reason: 'Removed — used partial matching (id/name). Use selectOptionById with exact element ID instead',
     },
     {
       pattern: 'navigateToHeader',
@@ -1033,7 +1046,6 @@ export const GENERATION_RULES = {
   // 15. METHOD ALIASES — Common misgenerated method → correct method mapping.
   //     selfCheckAndFix uses these to auto-correct bad POM calls.
   METHOD_ALIASES: {
-    // 'basePage.clickButton': removed — clickButton now delegates to clickButtonByText
     'basePage.navigateToHeader': 'basePage.hoverOverHeaderByText',
     'basePage.verifyMessageDisplayed': 'commonReusables.validateAlert',
     'basePage.verifyAlertMessage': 'commonReusables.validateAlert',
@@ -1072,7 +1084,7 @@ export const GENERATION_RULES = {
       const emailLocator = sharedPage.locator("//td[contains(text(),'Email')]/following-sibling::td").first();
       agentEmail = (await emailLocator.textContent())?.trim() || "";`,
 
-    // DFB form fill: use createNonTabularLoad, never individual fillFieldBySelector calls
+    // DFB form fill: use createNonTabularLoad, never individual fillFieldById calls
     DFB_FORM_FILL: `
       await pages.nonTabularLoadPage.createNonTabularLoad({
         shipperValue: testData.shipperName,
@@ -1111,10 +1123,10 @@ export const GENERATION_RULES = {
     // BTMS recovery after app switching: use absolute URL, never relative
     BTMS_RECOVERY: `
       await appManager.switchToBTMS();
-      await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+      await commonReusables.waitForAllLoadStates(sharedPage);
       const btmsBaseUrl = new URL(sharedPage.url()).origin;
       await sharedPage.goto(btmsBaseUrl);
-      await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+      await commonReusables.waitForAllLoadStates(sharedPage);`,
 
     // Carrier auto-accept: click checkbox and validate
     CARRIER_AUTO_ACCEPT: `
@@ -1226,15 +1238,15 @@ export const MANDATORY_STEPS = {
         }
         const btmsBaseUrl = new URL(sharedPage.url()).origin;
         await sharedPage.goto(btmsBaseUrl);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
         await pages.searchCustomerPage.enterCustomerName(testData.customerName);
         await pages.searchCustomerPage.selectActiveOnCustomerPage();
         await pages.searchCustomerPage.clickOnSearchCustomer();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         await pages.searchCustomerPage.clickOnActiveCustomer();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);`,
       },
       default: {
@@ -1245,15 +1257,15 @@ export const MANDATORY_STEPS = {
         }
         const btmsBaseUrl = new URL(sharedPage.url()).origin;
         await sharedPage.goto(btmsBaseUrl);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
         await pages.searchCustomerPage.enterCustomerName(testData.customerName);
         await pages.searchCustomerPage.selectActiveOnCustomerPage();
         await pages.searchCustomerPage.clickOnSearchCustomer();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         await pages.searchCustomerPage.clickOnActiveCustomer();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
       },
     },
     carrier: {
@@ -1261,7 +1273,7 @@ export const MANDATORY_STEPS = {
         stepName: 'Navigate to Carrier Search',
         code: `await pages.basePage.hoverOverHeaderByText(HEADERS.CARRIER);
         await pages.basePage.clickSubHeaderByText(CARRIER_SUB_MENU.SEARCH);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
       },
     },
     commission: {
@@ -1269,7 +1281,7 @@ export const MANDATORY_STEPS = {
         stepName: 'Navigate to Commission Audit',
         code: `await pages.basePage.hoverOverHeaderByText(HEADERS.FINANCE);
         await pages.basePage.clickSubHeaderByText(FINANCE_SUB_MENU.COMMISSION_AUDIT);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
       },
     },
     salesLead: {
@@ -1277,7 +1289,7 @@ export const MANDATORY_STEPS = {
         stepName: 'Navigate to Sales Lead',
         code: `await pages.basePage.hoverOverHeaderByText(HEADERS.SALES_LEAD);
         await pages.basePage.clickSubHeaderByText(SALES_LEAD_SUB_MENU.MY_LEADS);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
       },
     },
     edi: {
@@ -1285,7 +1297,7 @@ export const MANDATORY_STEPS = {
         stepName: 'Navigate to EDI Load Tenders',
         code: `await pages.basePage.hoverOverHeaderByText(HEADERS.LOAD);
         await pages.basePage.clickSubHeaderByText(LOAD_SUB_MENU.EDI_204);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
       },
     },
     banyan: {
@@ -1293,7 +1305,7 @@ export const MANDATORY_STEPS = {
         stepName: 'Navigate to Banyan',
         code: `await pages.basePage.hoverOverHeaderByText(HEADERS.LOAD);
         await pages.basePage.clickSubHeaderByText(LOAD_SUB_MENU.BANYAN);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
       },
     },
     dat: {
@@ -1301,7 +1313,7 @@ export const MANDATORY_STEPS = {
         stepName: 'Navigate to DAT',
         code: `await pages.basePage.hoverOverHeaderByText(HEADERS.LOAD);
         await pages.basePage.clickSubHeaderByText(LOAD_SUB_MENU.DAT);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
       },
     },
     bulkChange: {
@@ -1309,7 +1321,7 @@ export const MANDATORY_STEPS = {
         stepName: 'Navigate to Bulk Change',
         code: `await pages.basePage.hoverOverHeaderByText(HEADERS.LOAD);
         await pages.basePage.clickSubHeaderByText(LOAD_SUB_MENU.BULK_CHANGE);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
       },
     },
     nonOperationalLoads: {
@@ -1317,7 +1329,7 @@ export const MANDATORY_STEPS = {
         stepName: 'Navigate to Non-Operational Loads',
         code: `await pages.basePage.hoverOverHeaderByText(HEADERS.LOAD);
         await pages.basePage.clickSubHeaderByText(LOAD_SUB_MENU.NON_OPERATIONAL);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`,
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
       },
     },
     api: {

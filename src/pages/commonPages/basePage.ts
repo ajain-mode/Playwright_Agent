@@ -12,6 +12,8 @@ export default class BasePage {
   // private readonly customersSiteMenu_LOC: Locator;
   private readonly topMenuLogo_LOC: Locator;
   private readonly siteMenuContainer_LOC: Locator;
+  private readonly buttons_LOC: Locator;
+  private readonly links_LOC: Locator;
 
 
   constructor(private page: Page) {
@@ -38,6 +40,8 @@ export default class BasePage {
     // this.customersSiteMenu_LOC = page.locator("//a[normalize-space()='Customers']");
     this.topMenuLogo_LOC = page.locator("//img[contains(@src,'logo.png')]/parent::a");
     this.siteMenuContainer_LOC = page.locator('#c-sitemenu-container');
+    this.buttons_LOC = page.getByRole('button');
+    this.links_LOC = page.getByRole('link');
   }
 
   headerAfterUserSwitch(headerBtnText: string): Locator {
@@ -55,10 +59,7 @@ export default class BasePage {
    */
   async hoverOverHeaderByText(headerText: string) {
 
-    const heading = this.page.getByRole("button", {
-      name: headerText,
-      exact: true,
-    });
+    const heading = this.buttons_LOC.filter({ hasText: headerText });
     await expect(heading).toBeVisible({ timeout: WAIT.XLARGE });
     await heading.hover();
     await this.page.waitForTimeout(WAIT.DEFAULT); // holds hover for 2 seconds
@@ -72,19 +73,12 @@ export default class BasePage {
    */
   async clickSubHeaderByText(subheaderText: string) {
     try {
-      const subheading = this.page
-        .locator("#c-sitemenu-container")
-        .getByRole("link", { name: subheaderText, exact: true });
+      const subheading = this.siteMenuContainer_LOC
+        .getByRole('link', { name: subheaderText, exact: true });
       await expect(subheading).toBeVisible({
         timeout: WAIT.XLARGE,
       });
-      await expect(subheading).toBeVisible({
-        timeout: WAIT.LARGE,
-      }); // waits up to 10 seconds
       await expect(subheading).toBeEnabled({
-        timeout: WAIT.SMALL,
-      });
-      await expect(subheading).toBeAttached({
         timeout: WAIT.SMALL,
       });
       await subheading.click();
@@ -258,7 +252,7 @@ export default class BasePage {
    * @created 2026-02-12
    */
   async clickButtonByText(buttonText: string): Promise<void> {
-    const button = this.page.getByRole('button', { name: buttonText });
+    const button = this.buttons_LOC.filter({ hasText: buttonText });
     await button.waitFor({ state: 'visible', timeout: WAIT.SMALL });
     await button.click();
     await commonReusables.waitForPageStable(this.page);
@@ -273,7 +267,7 @@ export default class BasePage {
    * @created 2026-02-12
    */
   async clickLinkByText(linkText: string): Promise<void> {
-    const link = this.page.getByRole('link', { name: linkText }).first();
+    const link = this.links_LOC.filter({ hasText: linkText }).first();
     await link.waitFor({ state: 'visible', timeout: WAIT.SMALL });
     await link.click();
     await commonReusables.waitForPageStable(this.page);
@@ -294,28 +288,30 @@ export default class BasePage {
   }
 
   /**
-   * fillFieldBySelector - Reusable method to fill a field by name/id/placeholder
+   * fillFieldById - Fill a field by its exact element ID.
    * @author AI Agent Generator
    * @created 2026-02-12
+   * @modified 2026-04-14 — renamed from fillFieldBySelector, uses exact #id only (no partial matching)
    */
-  async fillFieldBySelector(fieldIdentifier: string, value: string): Promise<void> {
-    const field = this.page.locator(`[id='${fieldIdentifier}'], [name='${fieldIdentifier}'], [placeholder='${fieldIdentifier}']`).first();
+  async fillFieldById(fieldId: string, value: string): Promise<void> {
+    const field = this.page.locator(`#${fieldId}`);
     await expect(field).toBeVisible({ timeout: WAIT.SMALL });
     await field.fill(value);
-    console.log(`Filled field '${fieldIdentifier}' with value: ${value}`);
+    console.log(`Filled field '#${fieldId}' with value: ${value}`);
   }
 
   /**
-   * selectOptionByField - Reusable method to select an option from a dropdown by field name
+   * selectOptionById - Select an option from a dropdown by its exact element ID.
    * @author AI Agent Generator
    * @created 2026-02-12
+   * @modified 2026-04-14 — renamed from selectOptionByField, uses exact #id only (no partial matching)
    */
-  async selectOptionByField(fieldIdentifier: string, optionLabel: string): Promise<void> {
-    const field = this.page.locator(`[id='${fieldIdentifier}'], [name='${fieldIdentifier}']`).first();
+  async selectOptionById(fieldId: string, optionLabel: string): Promise<void> {
+    const field = this.page.locator(`#${fieldId}`);
     await expect(field).toBeVisible({ timeout: WAIT.SMALL });
     await field.selectOption({ label: optionLabel });
     await commonReusables.waitForPageStable(this.page);
-    console.log(`Selected '${optionLabel}' from field '${fieldIdentifier}'`);
+    console.log(`Selected '${optionLabel}' from field '#${fieldId}'`);
   }
 
   /**
@@ -330,17 +326,6 @@ export default class BasePage {
     await commonReusables.waitForPageStable(this.page);
     await this.siteMenuContainer_LOC.waitFor({ state: 'visible', timeout: WAIT.MID });
     console.log('Navigated to BTMS base URL');
-  }
-
-  /**
-   * Clicks a button by its visible text label.
-   * Delegates to clickButtonByText — kept as alias for backward compatibility with generated specs.
-   * @author AI Agent
-   * @created 17-Mar-2026
-   * @param buttonText - The button text to match.
-   */
-  async clickButton(buttonText: string): Promise<void> {
-    await this.clickButtonByText(buttonText);
   }
 
 }

@@ -53,6 +53,12 @@ export class DFBGlobalConstants {
   static readonly DFB_BID_HISTORY_FIELDS = {
     EQUIPMENT_1: "F",
     SOURCE: "DFB",
+    TNX_SERVICE_EMAIL: "service-tnx-stage@modeglobal.com",
+  } as const;
+
+  static readonly DFB_RATE_DEFAULTS = {
+    LINEHAUL: "Flat Rate",
+    FUEL_SURCHARGE: "FLAT",
   } as const;
 
   static readonly TENDER_DETAILS_MODAL_TABS = {
@@ -109,6 +115,7 @@ declare global {
   
   const DFB_FORM_FIELDS: typeof DFBGlobalConstants.DFB_FORM_FIELDS;
   const DFB_BID_HISTORY_FIELDS: typeof DFBGlobalConstants.DFB_BID_HISTORY_FIELDS;
+  const DFB_RATE_DEFAULTS: typeof DFBGlobalConstants.DFB_RATE_DEFAULTS;
   const TENDER_DETAILS_MODAL_TABS: typeof DFBGlobalConstants.TENDER_DETAILS_MODAL_TABS;
   const TNX_STATUS_HISTORY: typeof DFBGlobalConstants.TNX_STATUS_HISTORY;
   const CARRIER_DISPATCH_NAME: typeof DFBGlobalConstants.CARRIER_DISPATCH_NAME;
@@ -129,6 +136,8 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).DFB_FORM_FIELDS = DFBGlobalConstants.DFB_FORM_FIELDS;
   (globalThis as any).DFB_BID_HISTORY_FIELDS =
     DFBGlobalConstants.DFB_BID_HISTORY_FIELDS;
+  (globalThis as any).DFB_RATE_DEFAULTS =
+    DFBGlobalConstants.DFB_RATE_DEFAULTS;
   (globalThis as any).TENDER_DETAILS_MODAL_TABS =
     DFBGlobalConstants.TENDER_DETAILS_MODAL_TABS;
   (globalThis as any).TNX_STATUS_HISTORY =

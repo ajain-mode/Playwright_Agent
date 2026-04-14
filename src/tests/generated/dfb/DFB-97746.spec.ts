@@ -7,6 +7,7 @@ import { ALERT_PATTERNS } from "@utils/alertPatterns";
 import commissionHelper from "@utils/commission-helpers";
 import DMEDashboardPage from "@pages/dme/DMEDashboradPage";
 import DFBLoadFormPage from "@pages/loads/DFBLoadFormPage";
+import commonReusables from "@utils/commonReusables";
 
 /**
  * Test Case: DFB-97746 - Automatically book a load when it is manually postedDisplay a message when an active loadboard user is not selected for the Carrier Contact for Rate Confirmation field on the load
@@ -103,15 +104,15 @@ test.describe.serial(
         await pages.basePage.navigateToBaseUrl();
         await pages.basePage.hoverOverHeaderByText(HEADERS.CARRIER);
         await pages.basePage.clickSubHeaderByText(CARRIER_SUB_MENU.SEARCH);
-        await pages.carrierSearchPage.nameInputOnCarrierPage(testData.Carrier);
+        await pages.carrierSearchPage.nameInputOnCarrierPage(CARRIER_NAME.CARRIER_18_KING);
         await pages.carrierSearchPage.selectActiveOnCarrier();
         await pages.carrierSearchPage.clickOnSearchButton();
-        await pages.carrierSearchPage.verifyCarrierListTableData(testData.Carrier);
+        await pages.carrierSearchPage.verifyCarrierListTableData(CARRIER_NAME.CARRIER_18_KING);
         pages.logger.info("Carrier found in search results");
       });
 
       await test.step("Step 5: Click on carrier, verify loadboard status and carrier vis...", async () => {
-        await pages.carrierSearchPage.selectCarrierByName(testData.Carrier);
+        await pages.carrierSearchPage.selectCarrierByName(CARRIER_NAME.CARRIER_18_KING);
 
         await pages.viewCarrierPage.ensureCarrierVisibilityTogglesEnabled([
             CARRIER_VISIBILITY.AVENGER_LOGISTICS,
@@ -130,7 +131,7 @@ test.describe.serial(
         const dmePage = appManager.dmePage;
         const dmeDashboard = new DMEDashboardPage(dmePage);
 
-        await dmeDashboard.ensureCarrierToggleEnabled(testData.Carrier);
+        await dmeDashboard.ensureCarrierToggleEnabled(CARRIER_NAME.CARRIER_18_KING);
         pages.logger.info("Precondition Step 40: DME carrier toggle verified");
 
         await appManager.switchToBTMS();
@@ -183,7 +184,7 @@ test.describe.serial(
       await test.step("Step 11 [CSV 31-35]: Carrier tab — enter offer rate, select carrier, check auto accept", async () => {
         await pages.editLoadPage.clickOnTab(TABS.CARRIER);
         await pages.dfbLoadFormPage.enterOfferRate(testData.offerRate);
-        await pages.dfbLoadFormPage.selectCarriersInIncludeCarriers([testData.Carrier]);
+        await pages.dfbLoadFormPage.selectCarriersInIncludeCarriers([CARRIER_NAME.CARRIER_18_KING]);
         await pages.dfbLoadFormPage.clickCarrierAutoAcceptCheckbox();
         pages.logger.info("Carrier tab configured for auto accept test");
       });
@@ -199,7 +200,7 @@ test.describe.serial(
 
       await test.step("Step 13: Select an active loadboard user for the Carrier Contact f...", async () => {
         // Select carrier contact for rate confirmation
-        await pages.dfbLoadFormPage.selectCarreirContactForRateConfirmation(CARRIER_CONTACT.CONTACT_1);
+        await pages.dfbLoadFormPage.selectCarrierContactForRateConfirmation(CARRIER_CONTACT.CONTACT_1);
       });
 
       await test.step("Step 14: Click the Save button on the load.", async () => {
@@ -212,7 +213,7 @@ test.describe.serial(
       await test.step("Step 14b [CSV 39]: Validate view-mode fields after save", async () => {
         await pages.editLoadPage.clickOnTab(TABS.CARRIER);
         console.log("Carrier tab clicked");
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         await pages.viewLoadPage.scrollToDFBSection();
 
         const formattedOfferRate = parseFloat(testData.offerRate).toFixed(2);
@@ -223,7 +224,7 @@ test.describe.serial(
         });
 
         await pages.dfbLoadFormPage.validateFormFieldsState({
-          includeCarriers: [testData.Carrier],
+          includeCarriers: [CARRIER_NAME.CARRIER_18_KING],
           emailNotification: agentEmail,
         });
 
@@ -266,7 +267,7 @@ test.describe.serial(
         await pages.viewLoadPage.refreshAndValidateLoadStatus(LOAD_STATUS.BOOKED);
 
         await pages.viewLoadPage.clickCarrierTab();
-        await pages.viewLoadCarrierTabPage.validateCarrierAssignedText(testData.Carrier);
+        await pages.viewLoadCarrierTabPage.validateCarrierAssignedText(CARRIER_NAME.CARRIER_18_KING);
 
         await pages.viewLoadCarrierTabPage.validateCarrierDispatchName(
           CARRIER_DISPATCH_NAME.DISPATCH_NAME_1
@@ -290,7 +291,7 @@ test.describe.serial(
         await pages.viewLoadCarrierTabPage.clickViewLoadPageLinks(TNX.BID_HISTORY);
         const bidHistoryDetails = await pages.viewLoadCarrierTabPage.getBidHistoryFirstRowDetails();
         pages.logger.info(`Bid History — Carrier: "${bidHistoryDetails.carrier}", Rate: "${bidHistoryDetails.bidRate}", Source: "${bidHistoryDetails.source}"`);
-        expect.soft(bidHistoryDetails.carrier, "Bid History carrier should match assigned carrier").toContain(testData.Carrier);
+        expect.soft(bidHistoryDetails.carrier, "Bid History carrier should match assigned carrier").toContain(CARRIER_NAME.CARRIER_18_KING);
         expect.soft(bidHistoryDetails.source, "BIDS Source should be populated").toBeTruthy();
         await pages.viewLoadCarrierTabPage.closeBidHistoryModal();
 
@@ -326,7 +327,7 @@ test.describe.serial(
         const tnxPages = await appManager.switchToTNX();
         await appManager.tnxPage.setViewportSize({ width: 1920, height: 1080 });
 
-        await tnxPages.tnxLandingPage.selectOrganizationByText(testData.Carrier);
+        await tnxPages.tnxLandingPage.selectOrganizationByText(CARRIER_NAME.CARRIER_18_KING);
         await tnxPages.tnxLandingPage.handleOptionalSkipButton();
         await tnxPages.tnxLandingPage.handleOptionalNoThanksButton();
         await tnxPages.tnxLandingPage.clickOnTNXHeaderLink(TNX.ACTIVE_JOBS);

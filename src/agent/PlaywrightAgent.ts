@@ -620,18 +620,16 @@ export class PlaywrightAgent {
       return `clickButtonByText("${text.trim()}")`;
     });
 
-    // 6. Fix fillFieldBySelector with invalid selectors containing quotes/parens
-    //    e.g. fillFieldBySelector("the_"customer"_field", ...) -> fillFieldBySelector("customer_field", ...)
+    // 6. Rename fillFieldBySelector → fillFieldById (partial-matching method removed)
     code = code.replace(/fillFieldBySelector\(\s*"([^"]*)"([^)]*)\)/g, (_match, selector: string, rest: string) => {
       const cleanSelector = selector.replace(/[^a-zA-Z0-9_]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
-      // Also clean the second argument if it's a testData reference (already handled by rule 2)
-      return `fillFieldBySelector("${cleanSelector}"${rest})`;
+      return `fillFieldById("${cleanSelector}"${rest})`;
     });
 
-    // 7. Fix selectOptionByField with invalid selectors
+    // 7. Rename selectOptionByField → selectOptionById (partial-matching method removed)
     code = code.replace(/selectOptionByField\(\s*"([^"]*)"([^)]*)\)/g, (_match, selector: string, rest: string) => {
       const cleanSelector = selector.replace(/[^a-zA-Z0-9_]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
-      return `selectOptionByField("${cleanSelector}"${rest})`;
+      return `selectOptionById("${cleanSelector}"${rest})`;
     });
 
     // 8. Remove trailing dots from property access chains: obj.prop. ) -> obj.prop)
@@ -647,9 +645,9 @@ export class PlaywrightAgent {
     // 11. Ensure loadNumber is assigned after Create Load if it's used but never assigned
     if (/let loadNumber/.test(code) && /searchLoad\(loadNumber\)|expect\(loadNumber/.test(code)) {
       if (!/loadNumber\s*=\s*await/.test(code)) {
-        // Inject loadNumber capture after clickButtonByText("Create Load") or clickButton("create")
+        // Inject loadNumber capture after clickButtonByText("Create Load")
         code = code.replace(
-          /(clickButtonByText\("Create Load"\);[\s\S]*?waitForMultipleLoadStates\(\[.*?\]\);)/,
+          /(clickButtonByText\("Create Load"\);[\s\S]*?waitForAllLoadStates\([^)]*\);)/,
           `$1\n        loadNumber = await pages.dfbLoadFormPage.getLoadNumber();\n        console.log("Created Load Number:", loadNumber);`
         );
       }
@@ -1004,9 +1002,9 @@ export class PlaywrightAgent {
     }
 
     // Fix 6: Regenerate placeholder steps with direct locator code, or remove if not recoverable.
-    // Steps that contain only waitForMultipleLoadStates or TODO comments had no real logic.
+    // Steps that contain only waitForAllLoadStates/waitForMultipleLoadStates or TODO comments had no real logic.
     // Attempt to derive direct locator code from the step name before removing entirely.
-    const placeholderStepRegex = /\n\s*await test\.step\("([^"]+)",\s*async\s*\(\)\s*=>\s*\{\s*(?:\/\/[^\n]*\n\s*)*(?:\/\/[^\n]*\n\s*)?await pages\.basePage\.waitForMultipleLoadStates\(\["load",\s*"networkidle"\]\);\s*\}\);\s*\n/g;
+    const placeholderStepRegex = /\n\s*await test\.step\("([^"]+)",\s*async\s*\(\)\s*=>\s*\{\s*(?:\/\/[^\n]*\n\s*)*(?:\/\/[^\n]*\n\s*)?await (?:pages\.basePage\.waitForMultipleLoadStates\(\["load",\s*"networkidle"\]\)|commonReusables\.waitForAllLoadStates\(sharedPage\));\s*\}\);\s*\n/g;
     const placeholderMatches = code.match(placeholderStepRegex) || [];
     if (placeholderMatches.length > 0) {
       for (const ph of placeholderMatches) {
@@ -1026,7 +1024,7 @@ export class PlaywrightAgent {
           regeneratedCode = `const btn = sharedPage.locator("//button[contains(text(),'${btnText}')] | //a[contains(text(),'${btnText}')]").first();
         await btn.waitFor({ state: "visible", timeout: WAIT.LARGE });
         await btn.click();
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
         console.log("Clicked ${btnText.substring(0, 40)}");`;
         } else if (lowerStep.includes('verify') || lowerStep.includes('validate') || lowerStep.includes('assert') || lowerStep.includes('check')) {
           regeneratedCode = `try {
@@ -1047,7 +1045,7 @@ export class PlaywrightAgent {
 
         if (regeneratedCode) {
           const regeneratedStep = ph.replace(
-            /(?:\/\/[^\n]*\n\s*)*(?:\/\/[^\n]*\n\s*)?await pages\.basePage\.waitForMultipleLoadStates\(\["load",\s*"networkidle"\]\);/,
+            /(?:\/\/[^\n]*\n\s*)*(?:\/\/[^\n]*\n\s*)?await (?:pages\.basePage\.waitForMultipleLoadStates\(\["load",\s*"networkidle"\]\)|commonReusables\.waitForAllLoadStates\(sharedPage\));/,
             `// Direct locator fallback for: ${stepName.substring(0, 60)}\n        ${regeneratedCode}`
           );
           code = code.replace(ph, regeneratedStep);
@@ -1060,7 +1058,7 @@ export class PlaywrightAgent {
       warnings.push(`PLACEHOLDER STEPS: Processed ${placeholderMatches.length} placeholder step(s) — regenerated with direct locators where possible, removed the rest.`);
     }
 
-    // Fix 7: Auto-replace fillFieldBySelector/fillFieldByLabel/selectOptionByField with direct locator code
+    // Fix 7: Auto-replace fillFieldBySelector/fillFieldByLabel/selectOptionByField with exact-ID POM calls
     const forbiddenMethodPatterns = [
       { regex: /await\s+pages\.basePage\.fillFieldBySelector\(\s*"([^"]+)"\s*,\s*([^)]+)\)/g, type: 'fill' as const },
       { regex: /await\s+pages\.basePage\.fillFieldByLabel\(\s*"([^"]+)"\s*,\s*"([^"]+)"\)/g, type: 'fill' as const },
@@ -1074,23 +1072,17 @@ export class PlaywrightAgent {
         const value = match[2];
         let replacement: string;
         if (type === 'select') {
-          replacement = `const sel_${fieldId.replace(/[^a-z0-9]/g, '_')} = sharedPage.locator("//select[contains(@name,'${fieldId}') or contains(@id,'${fieldId}')]").first();
-        await sel_${fieldId.replace(/[^a-z0-9]/g, '_')}.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await sel_${fieldId.replace(/[^a-z0-9]/g, '_')}.selectOption({ label: ${value} });
-        console.log("Selected from ${fieldId}: " + ${value})`;
+          replacement = `await pages.basePage.selectOptionById("${fieldId}", ${value})`;
         } else {
-          replacement = `const field_${fieldId.replace(/[^a-z0-9]/g, '_')} = sharedPage.locator("#form_${fieldId}, #${fieldId}, [name='${fieldId}']").first();
-        await field_${fieldId.replace(/[^a-z0-9]/g, '_')}.waitFor({ state: "visible", timeout: WAIT.LARGE });
-        await field_${fieldId.replace(/[^a-z0-9]/g, '_')}.fill(${value});
-        console.log("Entered ${fieldId}: " + ${value})`;
+          replacement = `await pages.basePage.fillFieldById("${fieldId}", ${value})`;
         }
         code = code.replace(match[0], replacement);
         forbiddenReplacements++;
-        console.log(`   🔧 Self-check: Replaced forbidden ${match[0].substring(0, 50)}... with direct locator code`);
+        console.log(`   🔧 Self-check: Replaced forbidden ${match[0].substring(0, 50)}... with exact-ID POM call`);
       }
     }
     if (forbiddenReplacements > 0) {
-      warnings.push(`FORBIDDEN METHODS: Replaced ${forbiddenReplacements} fillFieldBySelector/fillFieldByLabel/selectOptionByField call(s) with direct Playwright locator code.`);
+      warnings.push(`FORBIDDEN METHODS: Replaced ${forbiddenReplacements} fillFieldBySelector/fillFieldByLabel/selectOptionByField call(s) with exact-ID POM methods.`);
     }
 
     // Fix 8: Wrong timeout for multi-app tests
@@ -1151,7 +1143,6 @@ export class PlaywrightAgent {
     // Fix 12: POM method validation — detect calls to non-existent or misnamed methods
     {
       const METHOD_ALIASES: Record<string, string> = {
-        // 'basePage.clickButton': 'basePage.clickButtonByText', — clickButton now delegates to clickButtonByText
         'basePage.navigateToHeader': 'basePage.hoverOverHeaderByText',
         'basePage.verifyMessageDisplayed': 'commonReusables.validateAlert',
         'basePage.verifyAlertMessage': 'commonReusables.validateAlert',
@@ -1187,7 +1178,7 @@ export class PlaywrightAgent {
         code = code.replace(
           /await pages\.postAutomationRulePage\.hoverAndSelectOfficeConfig\([^)]*\);?/g,
           `await pages.basePage.hoverOverHeaderByText(HEADERS.HOME);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`
+        await commonReusables.waitForAllLoadStates(sharedPage);`
         );
         console.log('   🔧 Self-check: Replaced hoverAndSelectOfficeConfig → hoverOverHeaderByText(HEADERS.HOME)');
       }
@@ -1223,7 +1214,7 @@ export class PlaywrightAgent {
         /await pages\.basePage\.clickHomeButton\s*\(\s*\)\s*;/g,
         `const btmsBaseUrl = new URL(sharedPage.url()).origin;
         await sharedPage.goto(btmsBaseUrl);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);`
+        await commonReusables.waitForAllLoadStates(sharedPage);`
       );
       console.log('   🔧 Self-check: Replaced clickHomeButton() → URL-based navigation');
     }
@@ -1281,7 +1272,7 @@ export class PlaywrightAgent {
     // Every goto(btmsBaseUrl/btmsHome/btmsOrigin) followed by hoverOverHeaderByText
     // must have a sidebar container wait in between.
     {
-      const gotoThenHover = /await sharedPage\.goto\(btms\w+\);\s*\n(\s*)await pages\.basePage\.waitForMultipleLoadStates\(\["load",\s*"networkidle"\]\);\s*\n(\s*)(await pages\.basePage\.hoverOverHeaderByText)/g;
+      const gotoThenHover = /await sharedPage\.goto\(btms\w+\);\s*\n(\s*)await commonReusables\.waitForAllLoadStates\(sharedPage\);\s*\n(\s*)(await pages\.basePage\.hoverOverHeaderByText)/g;
       let navMatch;
       let fixCount = 0;
       while ((navMatch = gotoThenHover.exec(code)) !== null) {
@@ -1331,7 +1322,7 @@ export class PlaywrightAgent {
           const indent = '        ';
           const navCode = `${indent}const btmsBaseUrl = new URL(sharedPage.url()).origin;\n` +
             `${indent}await sharedPage.goto(btmsBaseUrl);\n` +
-            `${indent}await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);\n` +
+            `${indent}await commonReusables.waitForAllLoadStates(sharedPage);\n` +
             `${indent}await sharedPage.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });\n` +
             `${indent}await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);\n` +
             `${indent}await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);\n`;

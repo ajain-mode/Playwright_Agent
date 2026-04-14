@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { PageManager } from "@utils/PageManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
+import commonReusables from "@utils/commonReusables";
 
 /**
  * Test Case: 67847 - Validating the scenario when the LTL load is not  in "Delivered Final" status and paperwork received for the load with price difference.
@@ -43,14 +44,14 @@ test.describe.serial("Validating the scenario when the LTL load is not  in "Deli
 
       await test.step("Step 1: Precondition Setup", async () => {
         // Precondition: 1.Load status ≠ 'Delivered Final'
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 2: Navigate to DAT", async () => {
         // Navigate to DAT
         await pages.basePage.hoverOverHeaderByText(HEADERS.LOAD);
         await pages.basePage.clickSubHeaderByText(LOAD_SUB_MENU.SEARCH);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 3: Login into the BTMS.", async () => {
@@ -61,7 +62,7 @@ test.describe.serial("Validating the scenario when the LTL load is not  in "Deli
         // Navigate to Customers
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 5: Create a new load for that customer and make sure the sta...", async () => {
@@ -90,12 +91,12 @@ test.describe.serial("Validating the scenario when the LTL load is not  in "Deli
       await test.step("Step 6: Set the price on the load ie Carrier charges to $1000 and...", async () => {
         // Action: Set the price on the load ie Carrier charges to $1000 and upload paperwork with Carrier charge as $1100.
         // TODO: Implement this step based on your page objects
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Step 7: Triger the cron job or upload the paper work and observe.", async () => {
         // Triger the cron job or upload the paper work and observe.
-        await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"]);
+        await commonReusables.waitForAllLoadStates(sharedPage);
       });
 
       await test.step("Verify Expected Results", async () => {

@@ -95,8 +95,7 @@ test.describe.serial('Case ID: <TEST_ID>', () => {
 - await sharedPage.waitForTimeout(WAIT.MID)       // 15000ms
 - await sharedPage.waitForTimeout(WAIT.LARGE)     // 20000ms
 - await sharedPage.waitForTimeout(WAIT.XLARGE)    // 30000ms
-- await pages.basePage.waitForMultipleLoadStates(["load", "networkidle"])
-- await pages.commonReusables.waitForAllLoadStates(sharedPage)
+- await commonReusables.waitForAllLoadStates(sharedPage)  // use this for page load waits in spec files
 - await pages.commonReusables.waitForPageStable(sharedPage)
 
 ## Data Access
@@ -152,9 +151,10 @@ After clicking Save, the load enters view mode. Validate DFB fields using dedica
   IMPORTANT: Time values from CSV may lack leading zeros (e.g., "9:00"). Always use .padStart(5, "0") to normalize to "09:00".
 - Select/dropdown fields (includeCarriers, emailNotification, commodity):
   await pages.dfbLoadFormPage.validateFormFieldsState({
-    includeCarriers: [testData.Carrier],
+    includeCarriers: [CARRIER_NAME.<KEY>],
     emailNotification: agentEmail,
   })
+  IMPORTANT: Use CARRIER_NAME.<KEY> constant, NEVER testData.Carrier. The pipeline auto-resolves carrier values.
 - Auto Accept checkbox: const isAutoAcceptChecked = await pages.viewLoadPage.isAutoAcceptChecked()
 - Carrier Contact: const carrierContactValue = await pages.viewLoadPage.getCarrierContactDropdownValue()
 - Non-editable fields: await pages.dfbLoadFormPage.validateFieldsAreNotEditable([
@@ -261,6 +261,7 @@ ${FRAMEWORK_KNOWLEDGE}
     FIRST check the Available Page Objects schema above for an existing method that does what you need.
     If a functionally equivalent method already exists (even with a slightly different name), USE IT — do NOT invent a new one.
     For example, if getRateTypeValue() exists, do NOT create getLinehaulDefaultValue() for the same purpose.
+    When MULTIPLE similar methods exist for the same action, ALWAYS pick the one with the latest @created date tag — it is the most robust version.
     Only if NO existing method covers the functionality, generate the call using a descriptive method name — the pipeline will auto-create it.
     Use naming conventions: clickOn<Element>(), enter<FieldName>(value), select<Option>(value), verify<State>(), get<Value>().
     NEVER use sharedPage.locator() directly in spec files — all locators MUST live in page object files.
@@ -336,8 +337,11 @@ ${FRAMEWORK_KNOWLEDGE}
 21. NEVER use console.log() as a substitute for assertions or validations. Every "Expected:" result in the test case
     MUST map to either: expect()/expect.soft() assertion, or a POM validation method (e.g., validateCarrierAssignedText()).
     console.log is for progress tracking ONLY (e.g., "Step completed", "Load number captured").
-22. When a test step says "Validate X is Y" or "Verify X shows Y", ALWAYS produce an expect() or expect.soft() assertion.
-    Pattern: const value = await <get_value>; expect.soft(value).toBe/toContain/toMatch(expected);
+22. When a test step says "Validate X is Y" or "Verify X shows Y", ALWAYS produce an assertion.
+    - If the step text contains "Hard Assertion" or "Put Hard Assertion" → use expect() (hard assertion that stops the test on failure).
+    - Otherwise → default to expect.soft() (soft assertion that reports failure but continues the test).
+    Pattern (soft): const value = await <get_value>; expect.soft(value, "description").toBe/toContain/toMatch(expected);
+    Pattern (hard): const value = await <get_value>; expect(value, "description").toBe/toContain/toMatch(expected);
 23b. For DFB view-mode validation (after save), ALWAYS use the dedicated POM validation methods:
     validateDFBTextFieldHaveExpectedValues(), validateFormFieldsState(), validateFieldsAreNotEditable().
     NEVER use getDFBFormFieldValues() for assertions — it is a raw getter with no assertions.
@@ -393,6 +397,9 @@ ${FRAMEWORK_KNOWLEDGE}
     - Do NOT create getFuelSurchargeDefaultValue() when a similar getter already exists
     - Do NOT create enterCarrierLinehaul() when enterCarrierLinehaulRate() already exists
     The pipeline will BLOCK creation of methods that are semantically similar to existing ones.
+33a. When MULTIPLE similar POM methods exist for the same action (e.g. validateBidsReportValue and validateBidsReportValueWithRefresh),
+    ALWAYS use the one with the latest @created date tag in its JSDoc. The latest version is the most robust and up-to-date.
+    Parse @created dates when choosing between similar methods — never pick the older one.
 34. NEVER pass hardcoded numeric strings to POM methods for rates, amounts, miles, or invoice numbers.
     Always use testData.* from CSV: testData.customerRate, testData.carrierRate, testData.miles, testData.linehaulRate,
     testData.carrierInvoiceNumber, testData.carrierInvoiceAmount1, testData.carrierInvoiceAmount2.
@@ -423,12 +430,27 @@ ${FRAMEWORK_KNOWLEDGE}
     Use Playwright built-in role locators: page.getByRole('button', { name: text }) for buttons,
     page.getByRole('link', { name: text }) for links. These are case-insensitive, match accessible names,
     and work with <button>, <input type="button|submit|reset">, and <a> elements automatically.
-41. NEVER call waitForMultipleLoadStates() in spec files. Page stability is handled INSIDE POM methods
-    via commonReusables.waitForPageStable(this.page). Specs should only call POM methods — the POM methods
-    internally wait for page stability after actions (clicks, selects, navigation).
+41. NEVER call waitForMultipleLoadStates() in spec files — it is POM-only.
+    For page load waits in spec files, use: await commonReusables.waitForAllLoadStates(sharedPage).
+    For TNX context use appManager.tnxPage, for DME use appManager.dmePage as the page argument.
 42. For DFB office precondition setup, ALWAYS use dfbHelpers.setupOfficePreConditions(pages, testData.officeName, toggleSettingsValue, pages.toggleSettings.verifyAutoPost).
     NEVER inline manual office search code (officeCodeSearchField + searchButtonClick + officeSearchRow + ensureToggleValues + ensureTnxValue).
-    The helper handles office search, configureOfficePreConditions, toggle verification, AND AutoPost verification in one call.`;
+    The helper handles office search, configureOfficePreConditions, toggle verification, AND AutoPost verification in one call.
+43. Carrier names MUST come from the CARRIER_NAME global constant, NEVER from testData.Carrier or testData.carrierName.
+    - Use CARRIER_NAME.<KEY> for all carrier name references in spec files (e.g., CARRIER_NAME.CARRIER_18_KING, CARRIER_NAME.CARRIER_XPO_TRANS).
+    - The pipeline will auto-resolve: if testData.Carrier contains "18 KING TRUCKING LLC", it checks CARRIER_NAME for an existing match,
+      generates an initials-based key if new (e.g., CARRIER_18_KING), appends to globalConstants.ts, and replaces all testData.Carrier references.
+    - When writing selectCarrier1(), validateCarrierAssignedText(), selectCarriersInIncludeCarriers(), or carrier search methods,
+      pass the CARRIER_NAME constant, NOT testData.Carrier.
+    - Examples: selectCarrier1(CARRIER_NAME.CARRIER_18_KING), validateCarrierAssignedText(CARRIER_NAME.CARRIER_XPO_TRANS),
+      selectCarriersInIncludeCarriers([CARRIER_NAME.CARRIER_18_KING]).
+44. NEVER use || fallback alternatives for testData fields or constants. Each value reference must use exactly ONE authoritative source.
+    - WRONG: testData.offerRate || "1000"  — hardcoded fallback masks missing CSV data
+    - WRONG: testData.mileageEngine || MILEAGE_ENGINE.CURRENT  — pick the constant OR testData, not both
+    - WRONG: testData['Offer Rate'] || testData.offerRate  — pick the correct CSV column name, not both
+    - RIGHT: testData.offerRate  (single CSV source)
+    - RIGHT: MILEAGE_ENGINE.CURRENT  (single constant source)
+    - If a value comes from CSV, use testData.<field>. If it's a known constant, use the constant. Never combine with ||.`;
 }
 
 /**
@@ -459,11 +481,13 @@ export function buildFullSpecPrompt(
 3. Keep ALL imports, variable declarations, beforeAll/afterAll blocks from the reference
 4. Keep ALL method calls exactly as they appear in the reference — do NOT invent new methods
 5. Only change: test case ID, title, and test-specific values (testData fields, constants)
-6. Every expected result MUST use expect() or expect.soft() — NEVER use console.log as a substitute for validation
+6. Every expected result MUST use expect() or expect.soft() — NEVER use console.log as a substitute for validation.
+    If the test step text contains "Hard Assertion" or "Put Hard Assertion" → use expect() (hard, stops on failure).
+    Otherwise → default to expect.soft() (soft, reports failure but continues).
 7. Use testData.* for all CSV-derived values
 8. NEVER hardcode string values that exist as global constants. Use the constant reference (e.g., CARRIER_DISPATCH_EMAIL.EMAIL_1, CARRIER_VISIBILITY.AVENGER_LOGISTICS, LOAD_STATUS.ACTIVE, CARRIER_STATUS.ACTIVE, SAFETY_RATING_SFD.SATISFACTORY, etc.)
 9. NEVER use ALERT_PATTERNS.UNKNOWN_MESSAGE
-10. validateCarrierAssignedText() requires argument: validateCarrierAssignedText(testData.Carrier)
+10. validateCarrierAssignedText() requires argument: validateCarrierAssignedText(CARRIER_NAME.<KEY>) — use the CARRIER_NAME constant, not testData.Carrier
 11. The const testcaseID must be "${testCaseId}" and dataConfig must use dataConfig.${testCaseCategory}Data
 12. Output must compile with TypeScript strict mode (noUnusedLocals, noUnusedParameters)
 13. NEVER use sharedPage.locator(), tnxPage.locator(), dmePage.locator() in spec files — all locators must be POM methods
@@ -491,7 +515,12 @@ export function buildFullSpecPrompt(
     Always log errors: .catch((err) => { console.warn(\`methodName: \${err.message}\`); return false; }).
 26. NEVER use XPath contains(text()), translate(text()), or //*[contains(text(),...)] for buttons or links.
     Use page.getByRole('button', { name: text }) for buttons, page.getByRole('link', { name: text }) for links.
-27. NEVER call waitForMultipleLoadStates() in spec files. POM methods handle stability internally via waitForPageStable().`;
+27. NEVER call waitForMultipleLoadStates() in spec files — it is POM-only. Use commonReusables.waitForAllLoadStates(sharedPage) for page load waits in specs.
+28. Carrier names MUST use CARRIER_NAME.<KEY> constants, NEVER testData.Carrier or testData.carrierName.
+    The pipeline auto-resolves carrier values to CARRIER_NAME constants. Use existing keys from the Constants Reference.
+29. NEVER use || fallback alternatives for testData fields or constants. Each value must use exactly ONE authoritative source.
+    WRONG: testData.offerRate || "1000", testData.mileageEngine || MILEAGE_ENGINE.CURRENT, testData['Offer Rate'] || testData.offerRate.
+    RIGHT: testData.offerRate (single CSV source) or MILEAGE_ENGINE.CURRENT (single constant). Never combine with ||.`;
 
   const stepsText = steps.map(s => `  ${s.stepNumber}. ${s.action}${s.expectedResult ? ` → Expected: ${s.expectedResult}` : ''}`).join('\n');
   const expectedText = expectedResults.length > 0

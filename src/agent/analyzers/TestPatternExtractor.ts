@@ -228,8 +228,8 @@ export class TestPatternExtractor {
 
     if (!stripped) return true;
 
-    // Only contains waitForMultipleLoadStates
-    if (/^await\s+pages\.basePage\.waitForMultipleLoadStates\(/.test(stripped) &&
+    // Only contains waitForAllLoadStates or waitForMultipleLoadStates
+    if (/^await\s+(?:pages\.basePage\.waitForMultipleLoadStates|commonReusables\.waitForAllLoadStates)\(/.test(stripped) &&
         !stripped.includes('\n') && stripped.split(';').filter(s => s.trim()).length <= 1) {
       return true;
     }
