@@ -1,30 +1,30 @@
 import axios from "axios";
-
+ 
 class PostMarkUtils {
-   private apiKey: string | null = null;
-
+    private apiKey: string | null = null;
+ 
     constructor() {
         this.apiKey = process.env.POSTMARK_API_KEY || null;
     }
-
+ 
     private validateApiKey(): void {
         if (!this.apiKey) {
             throw new Error("POSTMARK_API_KEY environment variable is not set");
         }
     }
-    
+ 
     /**
      * Get Message ID from Postmark API with retry logic
      * @author Rohit Singh
      * @created 2026-01-07
-     * @param subject Subject of the email to filter messages 
-     * @returns 
+     * @param subject Subject of the email to filter messages
+     * @returns
      */
     async getMessageID(subject?: string): Promise<any> {
         await this.validateApiKey();
-        const maxRetries = 5;
+        const maxRetries = 10;
         const pollInterval = WAIT.SMALL; // 10 seconds
-
+ 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 const response = await axios.get(`https://api.postmarkapp.com/messages/outbound`, {
@@ -47,7 +47,7 @@ class PostMarkUtils {
             } catch (error) {
                 console.error(`Attempt ${attempt}/${maxRetries}: Error fetching message ID:`, error);
             }
-
+ 
             // Wait before retrying (except on last attempt)
             if (attempt < maxRetries) {
                 await new Promise(resolve => setTimeout(resolve, pollInterval));
@@ -55,13 +55,13 @@ class PostMarkUtils {
         }
         throw new Error("Failed to retrieve message ID after 5 retry attempts");
     }
-
+ 
     /**
      * Get Message Body from Postmark API using Message ID
      * @author Rohit Singh
      * @created 2026-01-07
-     * @param messageID Message ID of the email 
-     * @returns 
+     * @param messageID Message ID of the email
+     * @returns
      */
     async getMessageData(messageID: string): Promise<any> {
         await this.validateApiKey();
@@ -74,7 +74,7 @@ class PostMarkUtils {
         });
         return response.data;
     }
-
+ 
     /**
      * Convert HTML body to plain text
      * @author Rohit Singh
@@ -114,10 +114,10 @@ class PostMarkUtils {
             .map(line => line.trim())
             .filter(line => line.length > 0)
             .join("\n");
-
+ 
         return plainText;
     }
-
+ 
 }
 const postMarkUtils = new PostMarkUtils();
 export default postMarkUtils;

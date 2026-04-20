@@ -8,6 +8,7 @@ import commissionHelper from "@utils/commission-helpers";
 import DMEDashboardPage from "@pages/dme/DMEDashboradPage";
 import DFBLoadFormPage from "@pages/loads/DFBLoadFormPage";
 import commonReusables from "@utils/commonReusables";
+import postMarkUtils from "@utils/emailUtils/postMarkUtils";
 
 /**
  * Test Case: DFB-97739 - Automatically book a load when it is manually posted
@@ -135,14 +136,24 @@ test.describe.serial(
 
           // Precond 33: Loadboard Status Active — soft assertion (no hard assertion specified)
           const loadboardStatus = await pages.viewCarrierPage.getLoadboardStatus();
-          expect.soft(loadboardStatus, "Loadboard Status should be Active").toMatch(/^Active$/i);
+          expect.soft(loadboardStatus, "Loadboard Status should be Active").toBe(CARRIER_STATUS.ACTIVE);
 
-          // Precond 34-39: Carrier Visibility toggles
+          // Precond 35-39: Carrier Visibility toggles — check, enable if needed, update
           await pages.viewCarrierPage.ensureCarrierVisibilityTogglesEnabled([
             CARRIER_VISIBILITY.AVENGER_LOGISTICS,
             CARRIER_VISIBILITY.MODE_TRANSPORTATION,
             CARRIER_VISIBILITY.SUNTECK_TTS,
           ]);
+
+          // Precond 40: Verify toggles are turned on
+          const toggleStates = await pages.viewCarrierPage.getCarrierVisibilityToggleStates([
+            CARRIER_VISIBILITY.AVENGER_LOGISTICS,
+            CARRIER_VISIBILITY.MODE_TRANSPORTATION,
+            CARRIER_VISIBILITY.SUNTECK_TTS,
+          ]);
+          expect.soft(toggleStates[CARRIER_VISIBILITY.AVENGER_LOGISTICS]?.enabled, "Avenger Logistics toggle should be enabled").toBe(true);
+          expect.soft(toggleStates[CARRIER_VISIBILITY.MODE_TRANSPORTATION]?.enabled, "Mode Transportation toggle should be enabled").toBe(true);
+          expect.soft(toggleStates[CARRIER_VISIBILITY.SUNTECK_TTS]?.enabled, "Sunteck TTS toggle should be enabled").toBe(true);
           pages.logger.info("Carrier visibility toggles verified/enabled");
         });
 
@@ -257,7 +268,7 @@ test.describe.serial(
           await commonReusables.waitForAllLoadStates(sharedPage);
           await pages.viewLoadPage.scrollToDFBSection();
 
-          const formattedOfferRate = DFBLoadFormPage.formatRateForDisplay(testData.offerRate);
+          const formattedOfferRate = commonReusables.formatRateForDisplay(testData.offerRate);
           await pages.dfbLoadFormPage.validateDFBTextFieldHaveExpectedValues({
             offerRate: formattedOfferRate,
             expirationDate: pages.commonReusables.getNextTwoDatesFormatted().tomorrow,
@@ -276,7 +287,7 @@ test.describe.serial(
           expect.soft(isAutoAcceptChecked, "Auto Accept should be checked").toBe(true);
 
           const carrierContactValue = await pages.viewLoadPage.getCarrierContactDropdownValue();
-          expect.soft(carrierContactValue, "Carrier Contact should be selected").toBeTruthy();
+          expect.soft(carrierContactValue, "Carrier Contact should match the selected loadboard user").toContain(commonReusables.extractEmailFromContact(CARRIER_CONTACT.CONTACT_1));
 
           // All fields are not editable except the Include Carriers field (which remains editable)
           await pages.dfbLoadFormPage.validateFieldsAreNotEditable([
@@ -288,10 +299,7 @@ test.describe.serial(
             DFB_FORM_FIELDS.Exclude_Carriers,
             DFB_FORM_FIELDS.Include_Carriers,
           ]);
-          // CSV specifies Include Carriers should remain editable
-          // await pages.dfbLoadFormPage.validateFieldsAreEditable([
-          //   DFB_FORM_FIELDS.Include_Carriers,
-          // ]);
+          
 
           pages.logger.info("View-mode field validations completed");
         });
@@ -378,11 +386,25 @@ test.describe.serial(
         });
 
         await test.step("Step 22 [CSV 44.4]: Validate notification emails", async () => {
-          // Step 44.4: Email validation — Rate Confirmation sent to carrier user,
-          // notification sent to agent email captured in Step 3
-          pages.logger.info(`Agent email for notifications: ${agentEmail}`);
-          expect.soft(agentEmail, "Agent email for notifications should have been captured").toBeTruthy();
-          pages.logger.info("Notification email validation logged for manual verification");
+          // 1. Validate Rate Confirmation email sent to carrier contact
+          const carrierContactEmail = commonReusables.extractEmailFromContact(CARRIER_CONTACT.CONTACT_1);
+          const rateConfMsgId = await postMarkUtils.getMessageID(carrierContactEmail);
+          const rateConfData = await postMarkUtils.getMessageData(rateConfMsgId);
+          const rateConfBody = postMarkUtils.convertHtmlToPlainText(rateConfData.HtmlBody);
+
+          expect.soft(rateConfData.Subject, "Rate Confirmation email subject should contain load number")
+            .toContain(loadNumber);
+          expect.soft(rateConfBody, "Rate Confirmation email body should not be empty")
+            .toBeTruthy();
+          pages.logger.info(`Rate Confirmation email validated — Subject: ${rateConfData.Subject}, To: ${carrierContactEmail}`);
+
+          // 2. Validate notification email sent to agent email (captured in Step 3)
+          const notifMsgId = await postMarkUtils.getMessageID(agentEmail);
+          const notifData = await postMarkUtils.getMessageData(notifMsgId);
+
+          expect.soft(notifData.Subject, "Notification email subject should contain load number")
+            .toContain(loadNumber);
+          pages.logger.info(`Agent notification email validated — Subject: ${notifData.Subject}, To: ${agentEmail}`);
         });
 
         await test.step("Step 23 [CSV 45-47]: Switch to DME — verify load statuses", async () => {

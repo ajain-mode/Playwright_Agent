@@ -277,7 +277,7 @@ Empty Location Zip",,"aiteam,carrierautoaccept,dfb"
 32.Click on MODE IQ tab.
 33.Carrier Status must show as Active. (Put Hard Assertion)
 34. Loadboard Status must show as Active.
-35 .Under Carrier Visibility below field  toggle should be enabled Avenger Logistics,Mode Transportation,Suntecktts(If all of them is already enabled then skip step 33 to 35)
+35 .Under Carrier Visibility below field  toggle should be enabled Avenger Logistics,Mode Transportation,Suntecktts(If all of them is already enabled then skip step 36 to 39)
 36. Click on toggle to turn on.
 37. Click on Update Carrier visiblity.
 38. Click OK on popup ""Are you sure you want to modify the carrier whitelist?""

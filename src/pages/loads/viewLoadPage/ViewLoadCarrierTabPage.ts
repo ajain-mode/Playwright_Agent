@@ -1342,7 +1342,7 @@ class ViewLoadCarrierTabPage {
     expect.soft(
       calculatedAvg,
       `Calculated Avg Rate (${calculatedAvg}) should match displayed Avg Rate (${displayedAvg})`
-    ).toBeCloseTo(displayedAvg, 0);
+    ).toBeCloseTo(displayedAvg, 2);
 
     return { sum, entryCount, calculatedAvg };
   }

@@ -370,7 +370,7 @@ await pages.viewLoadPage.verifyLoadNumber(loadNumber);`,
     keywords: ['verify', 'validate', 'check', 'assert', 'should'],
     pageObject: 'basePage',
     method: 'validate',
-    codeTemplate: `expect.soft({{ACTUAL}}, "{{EXPECTED}}").toBeTruthy();`,
+    codeTemplate: `expect.soft({{ACTUAL}}, "{{EXPECTED}}").toContain({{EXPECTED_VALUE}});`,
   },
 
   // TNX Actions
@@ -810,6 +810,19 @@ export const GUARDRAIL_RULES: GuardrailRule[] = [
              !/[A-Z_]+\.\w+\s*\|\|\s*testData(?:\.\w+|\[['"][^'"]+['"]\])/.test(input._generatedCode);
     },
     errorMessage: '|| fallback alternative detected in value reference (e.g., testData.X || testData.Y, testData.X || CONSTANT.Y). Use exactly ONE authoritative source: testData.<field> for CSV values or CONSTANT.KEY for known constants.',
+  },
+  {
+    name: 'noGenericUtilitiesOnDomainPages',
+    description: 'Generic utility functions (format, parse, normalize, convert, etc.) must live in CommonReusables, not domain-specific page objects',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      // Detect ClassName.formatX(), ClassName.parseX(), etc. where ClassName is a domain page object
+      const staticUtilPattern = /(?<!commonReusables\.)(?<!pages\.commonReusables\.)\b(?:format|parse|normalize|convert|calculate|compute|transform|extract|sanitize)\w+\s*\(/g;
+      const matches = input._generatedCode.match(staticUtilPattern) || [];
+      // Filter out known safe calls (Math.*, JSON.*, etc.)
+      return matches.every((m: string) => /^(Math|JSON|Date|parseInt|parseFloat|Number|String)\./.test(m));
+    },
+    errorMessage: 'Generic utility function (format/parse/normalize/convert) called on a domain page object. Move to CommonReusables and call via pages.commonReusables.<method>() or commonReusables.<method>().',
   },
 ];
 

@@ -854,6 +854,25 @@ class CommonReusables {
         const dateTime = `${year}${month}${day}${hours}${minutes}`;
         return dateTime;
     }
+    /**
+     * @description Extracts email address from a "Name (email)" formatted string
+     * @author AI Agent
+     * @created 2026-04-16
+     * @param contactString - String in format "Name (email@domain.com)"
+     * @returns The extracted email address, or empty string if not found
+     */
+    extractEmailFromContact(contactString: string): string {
+        return contactString.match(/\(([^)]+)\)/)?.[1] ?? "";
+    }
+
+    /**
+     * Formats a raw rate string to a display value with 2 decimal places (e.g. "2000" → "2000.00").
+     * @author AI Agent
+     * @created 13-Apr-2026
+     */
+    formatRateForDisplay(rate: string): string {
+        return parseFloat(rate).toFixed(2);
+    }
 }
 const commonReusables = new CommonReusables();
 export default commonReusables;

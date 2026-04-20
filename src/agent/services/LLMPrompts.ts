@@ -188,6 +188,7 @@ NEVER use getDFBFormFieldValues() for validation — it returns raw values witho
 - pages.commonReusables.getDate(day, format) — day: "today"|"tomorrow"|"dayAfterTomorrow", format: "MM/DD/YYYY"|"YYYY-MM-DD"
 - pages.commonReusables.formatToCurrency(value) — returns "$1,234.56"
 - pages.commonReusables.normalizeRate(rate) — removes commas, ensures $X.XX
+- pages.commonReusables.formatRateForDisplay(rate) — formats raw rate to 2 decimal places (e.g. "2000" → "2000.00")
 - pages.commonReusables.generateRandomNumber(digits) — returns random number string
 - pages.commonReusables.reloadPage(sharedPage) — reload and wait for networkidle
 - pages.commonReusables.verifyTabHeading(sharedPage, expectedTitle) — verify page title
@@ -342,6 +343,11 @@ ${FRAMEWORK_KNOWLEDGE}
     - Otherwise → default to expect.soft() (soft assertion that reports failure but continues the test).
     Pattern (soft): const value = await <get_value>; expect.soft(value, "description").toBe/toContain/toMatch(expected);
     Pattern (hard): const value = await <get_value>; expect(value, "description").toBe/toContain/toMatch(expected);
+    IMPORTANT: Use exact matchers (.toBe, .toContain, .toMatch) for value validations — NEVER use .toBeTruthy() when a specific expected value is known.
+    .toBeTruthy() is ONLY acceptable for: checking a value exists/is non-empty (e.g., loadNumber captured), boolean flags (isVisible, isChecked), or when the step says "is present"/"exists"/"is displayed".
+    - WRONG: expect.soft(status, "Status should be Active").toBeTruthy()  — status has an expected value "Active"
+    - RIGHT: expect.soft(status, "Status should be Active").toBe(CARRIER_STATUS.ACTIVE)
+    - RIGHT: expect(loadNumber, "Load should be created").toBeTruthy()  — checking existence, no specific value expected
 23b. For DFB view-mode validation (after save), ALWAYS use the dedicated POM validation methods:
     validateDFBTextFieldHaveExpectedValues(), validateFormFieldsState(), validateFieldsAreNotEditable().
     NEVER use getDFBFormFieldValues() for assertions — it is a raw getter with no assertions.
@@ -366,7 +372,7 @@ ${FRAMEWORK_KNOWLEDGE}
 25. NEVER wrap validation/assertion code in try/catch blocks that swallow errors with console.log().
     Swallowing errors creates false positives — the test passes even when the validation fails.
     Use expect.soft() for non-critical assertions that should report failure without stopping the test.
-    Pattern: expect.soft(value, "descriptive failure message").toBe/toContain/toBeTruthy(expected);
+    Pattern: expect.soft(value, "descriptive failure message").toBe/toContain/toMatch(expected);
 26. All locators MUST reside in POM files under src/pages/, NEVER inside spec files.
     - Do NOT use sharedPage.locator(), tnxPage.locator(), dmePage.locator() etc. in spec files.
     - Instead, create/use POM methods: pages.<getter>.<method>() or pageInstance.<method>()
@@ -450,6 +456,13 @@ ${FRAMEWORK_KNOWLEDGE}
     - WRONG: testData['Offer Rate'] || testData.offerRate  — pick the correct CSV column name, not both
     - RIGHT: testData.offerRate  (single CSV source)
     - RIGHT: MILEAGE_ENGINE.CURRENT  (single constant source)
+45. Generic utility functions (format, parse, normalize, convert, calculate, transform, extract, sanitize) MUST be called via pages.commonReusables.<method>().
+    NEVER create or call static utility methods on domain-specific page objects (e.g., DFBLoadFormPage.formatRate()).
+    If a function performs pure data transformation with no page/locator interaction, it belongs on CommonReusables.
+    - WRONG: DFBLoadFormPage.formatRateForDisplay(rate)
+    - WRONG: pages.editLoadFormPage.parseAmount(value)
+    - RIGHT: pages.commonReusables.formatRateForDisplay(rate)
+    - RIGHT: commonReusables.formatRateForDisplay(rate)
     - If a value comes from CSV, use testData.<field>. If it's a known constant, use the constant. Never combine with ||.`;
 }
 
@@ -484,6 +497,8 @@ export function buildFullSpecPrompt(
 6. Every expected result MUST use expect() or expect.soft() — NEVER use console.log as a substitute for validation.
     If the test step text contains "Hard Assertion" or "Put Hard Assertion" → use expect() (hard, stops on failure).
     Otherwise → default to expect.soft() (soft, reports failure but continues).
+    Use exact matchers (.toBe, .toContain, .toMatch) when a specific value is expected — NEVER .toBeTruthy() for value validations.
+    .toBeTruthy() is ONLY for: existence checks (loadNumber captured), boolean flags (isVisible, isChecked), or "is present"/"exists" steps.
 7. Use testData.* for all CSV-derived values
 8. NEVER hardcode string values that exist as global constants. Use the constant reference (e.g., CARRIER_DISPATCH_EMAIL.EMAIL_1, CARRIER_VISIBILITY.AVENGER_LOGISTICS, LOAD_STATUS.ACTIVE, CARRIER_STATUS.ACTIVE, SAFETY_RATING_SFD.SATISFACTORY, etc.)
 9. NEVER use ALERT_PATTERNS.UNKNOWN_MESSAGE
@@ -520,7 +535,9 @@ export function buildFullSpecPrompt(
     The pipeline auto-resolves carrier values to CARRIER_NAME constants. Use existing keys from the Constants Reference.
 29. NEVER use || fallback alternatives for testData fields or constants. Each value must use exactly ONE authoritative source.
     WRONG: testData.offerRate || "1000", testData.mileageEngine || MILEAGE_ENGINE.CURRENT, testData['Offer Rate'] || testData.offerRate.
-    RIGHT: testData.offerRate (single CSV source) or MILEAGE_ENGINE.CURRENT (single constant). Never combine with ||.`;
+    RIGHT: testData.offerRate (single CSV source) or MILEAGE_ENGINE.CURRENT (single constant). Never combine with ||.
+30. Generic utility functions (format, parse, normalize, convert, calculate, transform, extract, sanitize) MUST be called via pages.commonReusables.<method>() or commonReusables.<method>().
+    NEVER create or call static utility methods on domain-specific page objects. If a function is a pure data transformation, it belongs on CommonReusables.`;
 
   const stepsText = steps.map(s => `  ${s.stepNumber}. ${s.action}${s.expectedResult ? ` → Expected: ${s.expectedResult}` : ''}`).join('\n');
   const expectedText = expectedResults.length > 0

@@ -153,15 +153,6 @@ export class DFBLoadFormPage {
   }
 
   /**
-   * Formats a raw rate string to a display value with 2 decimal places (e.g. "2000" → "2000.00").
-   * @author AI Agent
-   * @created 13-Apr-2026
-   */
-  static formatRateForDisplay(rate: string): string {
-    return parseFloat(rate).toFixed(2);
-  }
-
-  /**
    *
    * @author Deepak Bohra
    * @description Enter value into the Offer Rate

@@ -194,7 +194,7 @@ export default class ViewLoadPage {
     this.carrierInvoiceAmount_LOC = this.page.locator("//input[@id='carr_invoice_amount']");
     this.submitRemoteButton_LOC = this.page.locator("#submit_remote");
     this.autoLoadTenderCheckbox_LOC = this.page.locator("//input[@id='loadsh_auto_edi204']");
-    this.bidsAvgRate_LOC = this.page.locator("//span[@id='bids-avg-rate'] | //td[strong[text()='BIDS']]/following-sibling::td[1]");
+    this.bidsAvgRate_LOC = this.page.locator("#bids-rate");
     this.confirmDuplicateInvoiceBtn_LOC = this.page.locator("//button[text()='Confirm']").first();
     this.billingIssuesSection_LOC = this.page.locator("#finance_issues_block");
     this.dfbLoadBoardSection_LOC = this.page.locator("#tnx_load_board");

@@ -353,7 +353,7 @@ export class CodeGenerator {
       if (clonedContent) {
         let content = this.cleanUnusedImports(clonedContent);
         content = this.validatePostGenerationGuardrails(content, testCase, testData);
-        this.ensurePageObjectMethodsExist(content, testCase);
+        content = this.ensurePageObjectMethodsExist(content, testCase);
 
         const metadata = this.generateMetadata(testCase, testType);
         const imports = content.split('\n').filter(l => l.trim().startsWith('import '));
@@ -411,7 +411,7 @@ export class CodeGenerator {
         if (fullSpecCode) {
           let content = this.cleanUnusedImports(fullSpecCode);
           content = this.validatePostGenerationGuardrails(content, testCase, testData);
-          this.ensurePageObjectMethodsExist(content, testCase);
+          content = this.ensurePageObjectMethodsExist(content, testCase);
 
           const metadata = this.generateMetadata(testCase, testType);
           const imports = content.split('\n').filter(l => l.trim().startsWith('import '));
@@ -496,7 +496,8 @@ export class CodeGenerator {
 
     // Ensure all referenced page object methods exist in the page files
     // If any are missing, generate reusable locator functions in the respective page files
-    this.ensurePageObjectMethodsExist(content, testCase);
+    // Generic utility methods are auto-redirected to CommonReusables
+    content = this.ensurePageObjectMethodsExist(content, testCase);
 
     return {
       testCaseId: testCase.id,
@@ -603,10 +604,11 @@ export class CodeGenerator {
     return bestMatch;
   }
 
-  private ensurePageObjectMethodsExist(content: string, testCase: TestCaseInput): void {
+  private ensurePageObjectMethodsExist(content: string, testCase: TestCaseInput): string {
     // Pattern: pages.<pageGetter>.<methodName>(
     const pageCallRegex = /pages\.(\w+)\.(\w+)\s*\(/g;
     let match;
+    let updatedContent = content;
     const checkedMethods = new Set<string>();
 
     while ((match = pageCallRegex.exec(content)) !== null) {
@@ -653,14 +655,39 @@ export class CodeGenerator {
       }
 
       // Method doesn't exist — generate and add it
-      console.log(`\n🔧 Method '${methodName}' not found on '${className}'. Generating reusable function...`);
-
       const { locator, method } = this.generatePageObjectMethod(
         className, methodName, pageGetter, testCase
       );
 
+      // ── Generic utility detection: redirect pure data-transformation methods to CommonReusables ──
+      if (this.isGenericUtilityMethod(method, locator)) {
+        // Ensure CommonReusables is scanned into the cache (it lives in src/utils/, not src/pages/)
+        const commonReusablesPath = path.resolve(AgentConfig.paths.baseDir, 'src/utils/commonReusables.ts');
+        const scanner = this.schemaAnalyzer.getScanner();
+        if (!scanner.getByClassName('CommonReusables')) {
+          scanner.scanFile(commonReusablesPath);
+        }
+
+        // Check if CommonReusables already has this method
+        if (this.schemaAnalyzer.methodExistsOnClass('CommonReusables', methodName)) {
+          console.log(`\n♻️  Generic utility '${methodName}' already exists on CommonReusables. Redirecting spec call.`);
+        } else {
+          console.log(`\n♻️  Generic utility detected: '${methodName}' has no page-specific dependencies.`);
+          console.log(`   Redirecting from '${className}' → CommonReusables (src/utils/commonReusables.ts)`);
+          this.ensureMethodOnPageObject('CommonReusables', methodName, undefined, method);
+        }
+        // Rewrite spec references: pages.<domainPage>.<method>( → pages.commonReusables.<method>(
+        const domainCallPattern = new RegExp(`pages\\.${pageGetter}\\.${methodName}\\s*\\(`, 'g');
+        updatedContent = updatedContent.replace(domainCallPattern, `pages.commonReusables.${methodName}(`);
+        console.log(`   Updated spec: pages.${pageGetter}.${methodName}() → pages.commonReusables.${methodName}()`);
+        continue;
+      }
+
+      console.log(`\n🔧 Method '${methodName}' not found on '${className}'. Generating reusable function...`);
       this.ensureMethodOnPageObject(className, methodName, locator, method);
     }
+
+    return updatedContent;
   }
 
   /**
@@ -892,6 +919,41 @@ await this.page.waitForLoadState('networkidle');`,
 await this.page.waitForLoadState('load');`,
       },
     };
+  }
+
+  /**
+   * Detect whether a generated method is a generic utility (pure data transformation)
+   * that should live in CommonReusables rather than a domain-specific page object.
+   *
+   * A method is generic if:
+   * 1. It has NO locator dependency (no associated locator definition)
+   * 2. Its body does NOT reference this.page, this.*_LOC, or any this.* property
+   * 3. It is NOT async (no Playwright interactions)
+   * 4. It performs pure data transformation (format, parse, normalize, convert, etc.)
+   */
+  private isGenericUtilityMethod(method: NewMethodDef, locator?: NewLocatorDef): boolean {
+    // If it needs a locator, it's page-specific
+    if (locator) return false;
+
+    // If it's async, it likely interacts with the page
+    if (method.isAsync) return false;
+
+    // If the body references this.page, this.*_LOC, or any this.* instance property — page-specific
+    if (/\bthis\.\w+/.test(method.body)) return false;
+
+    // If the body uses Playwright primitives (await, expect, locator, click, fill, etc.) — page-specific
+    if (/\b(await|expect|locator|click|fill|check|press|selectOption|waitFor|page\.|toBeVisible|toHaveText)\b/.test(method.body)) return false;
+
+    // Method name patterns that indicate generic utility functions
+    const genericNamePatterns = /^(format|parse|normalize|convert|calculate|compute|transform|extract|sanitize|clean|trim|pad|round|truncate|capitalize|camelize|slugify|encode|decode)/i;
+    if (genericNamePatterns.test(method.name)) return true;
+
+    // If the body is a pure expression (math, string ops, no DOM or page interaction)
+    const purePatterns = /^(return\s|const\s|let\s)/m;
+    const domPatterns = /\b(page|locator|selector|element|querySelector|getBy|waitFor|click|fill)\b/;
+    if (purePatterns.test(method.body) && !domPatterns.test(method.body)) return true;
+
+    return false;
   }
 
   /**
@@ -3620,6 +3682,7 @@ ${stepCode}
    * 5. Fabricated locator IDs (too long or too many segments)
    * 30. || fallback alternatives on testData/constant references → strip to single authoritative value
    * 31. Hard/Soft assertion enforcement — "Hard Assertion" in step text → expect(), otherwise → expect.soft()
+   * 32. .toBeTruthy() misuse detection — warns when used for value validations instead of .toBe()/.toContain()
    */
   private validatePostGenerationGuardrails(code: string, testCase: TestCaseInput, testData?: TestData): string {
     let fixed = code;
@@ -4354,6 +4417,49 @@ ${stepCode}
 
         if (softToHardCount > 0 || hardToSoftCount > 0) {
           warnings.push(`⚠️  Guardrail 31: Assertion type enforcement — ${softToHardCount} soft→hard (explicit "Hard Assertion" steps), ${hardToSoftCount} hard→soft (default for all other steps)`);
+        }
+      }
+    }
+
+    // ── 32. Detect .toBeTruthy() misuse on value validations ──
+    // .toBeTruthy() is only valid for existence/presence checks and boolean flags.
+    // When the assertion message contains a specific expected value (e.g., "should be Active",
+    // "should be Booked", "should show Agent"), replace with .toBe() using the value from the message.
+    {
+      let truthyFixCount = 0;
+      // Match: expect/expect.soft(..., "...should be/show/equal X...").toBeTruthy()
+      const truthyValuePattern = /(?:expect\.soft|expect)\(([^,]+),\s*["']([^"']*(?:should\s+(?:be|show|equal|display|have|contain|match)|must\s+(?:be|show|equal))[^"']*)["']\)\.toBeTruthy\(\)/gi;
+      fixed = fixed.replace(truthyValuePattern, (fullMatch, actualVar, message) => {
+        // Don't fix boolean variables (isVisible, isChecked, found, exists, etc.)
+        const booleanVarPattern = /^(?:is\w+|has\w+|found|exists|visible|checked|enabled|disabled|displayed)/i;
+        if (booleanVarPattern.test(actualVar.trim())) return fullMatch;
+        // Don't fix existence/presence checks
+        if (/(?:present|exists|captured|created|saved|non-?empty|displayed|visible)/i.test(message)) return fullMatch;
+        truthyFixCount++;
+        warnings.push(`⚠️  Guardrail 32: .toBeTruthy() used for value validation: "${message}". Use .toBe()/.toContain() with the expected value instead.`);
+        return fullMatch; // Warn only — auto-fix would need to parse the expected value from the message
+      });
+    }
+
+    // ── 33. Redirect generic static utility calls from domain page objects to commonReusables ──
+    // Detects patterns like ClassName.staticMethod(args) where the static method is a pure utility
+    // (format, parse, normalize, convert, etc.) and rewrites to commonReusables.methodName(args)
+    {
+      const genericStaticPattern = /(\w+)\.(format\w+|parse\w+|normalize\w+|convert\w+|calculate\w+|compute\w+|transform\w+|extract\w+|sanitize\w+|clean\w+|trim\w+|pad\w+|round\w+|truncate\w+)\s*\(/gi;
+      let staticRedirectCount = 0;
+      fixed = fixed.replace(genericStaticPattern, (fullMatch, className, methodName) => {
+        // Skip if already on commonReusables/pages.commonReusables or known non-page-object classes
+        if (/^(commonReusables|pages|Math|JSON|Date|String|Number|Object|Array|console|parseInt|parseFloat|test|expect)$/i.test(className)) {
+          return fullMatch;
+        }
+        staticRedirectCount++;
+        return `commonReusables.${methodName}(`;
+      });
+      if (staticRedirectCount > 0) {
+        warnings.push(`⚠️  Guardrail 33: Redirected ${staticRedirectCount} static utility call(s) from domain page objects to commonReusables`);
+        // Ensure commonReusables import exists
+        if (!fixed.includes("import commonReusables from")) {
+          fixed = `import commonReusables from "@utils/commonReusables";\n` + fixed;
         }
       }
     }

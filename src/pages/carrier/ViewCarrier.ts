@@ -30,6 +30,7 @@ export default class ViewCarrier {
     private readonly carrierVisibilityListItems_LOC: Locator;
     private readonly carrierVisibilitySliderInput_LOC: Locator;
     private readonly carrierVisibilitySliderLabel_LOC: Locator;
+    private readonly updateCarrierVisibilityBtn_LOC: Locator;
     /**
      * Right sidebar BTMS status below Carrier Score (carrform.php {@code table.ls_outer}, {@code td} width 160).
      * Label row is {@code Carrier Status:} or {@code Vendor Status:}.
@@ -67,6 +68,7 @@ export default class ViewCarrier {
         this.carrierVisibilitySliderLabel_LOC = page.locator("label.carrier_visibility_switch");
         this.carrierBtmsStatusSidebarCell_LOC = page.locator("table.ls_outer td[width='160']");
         this.carrierVisibilityEditButton_LOC = page.getByRole("button", { name: "Edit" });
+        this.updateCarrierVisibilityBtn_LOC = page.locator("#update_carrier_visibility_to_dme");
     }
 
     /**
@@ -442,7 +444,25 @@ export default class ViewCarrier {
     }
 
     /**
+     * Clicks the Update Carrier Visibility button and accepts the two confirmation popups:
+     * 1. "Are you sure you want to modify the carrier whitelist?"
+     * 2. "Carrier visibility has been updated."
+     * @author AI Agent
+     * @created 2026-04-17
+     */
+    async clickUpdateCarrierVisibility(): Promise<void> {
+        await this.updateCarrierVisibilityBtn_LOC.waitFor({ state: 'visible', timeout: WAIT.SMALL });
+        const dialogMessages = await commonReusables.acceptAllDialogsDuringAction(
+            this.page,
+            async () => { await this.updateCarrierVisibilityBtn_LOC.click(); }
+        );
+        console.log(`Update Carrier Visibility — dialogs accepted: ${dialogMessages.join(' | ')}`);
+        await commonReusables.waitForPageStable(this.page);
+    }
+
+    /**
      * High-level method that checks carrier visibility toggles and enables any that are disabled.
+     * Clicks "Update Carrier Visibility" button (not generic Save) and handles confirmation popups.
      * Encapsulates all conditional/loop logic so specs remain clean.
      * @author AI Agent
      * @created 26-Mar-2026
@@ -471,9 +491,9 @@ export default class ViewCarrier {
             await this.carrierVisibilityEditButton_LOC.click();
             await commonReusables.waitForPageStable(this.page);
             await this.enableCarrierVisibilityToggles(disabledToggles);
-            await this.clickSaveOnCarrierEditPage();
+            await this.clickUpdateCarrierVisibility();
         } else {
-            console.log('All carrier visibility toggles already enabled — skipping Edit/Save (steps 33-35)');
+            console.log('All carrier visibility toggles already enabled — skipping Edit/Save (steps 35-39)');
         }
     }
 }
