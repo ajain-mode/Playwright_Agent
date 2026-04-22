@@ -200,6 +200,11 @@ export class GlobalConstants {
    * @author Rohit Singh
    * @modified 02-Dec-2025
    */
+  static readonly LOADBOARD_STATUS = {
+    ACTIVE: "Active",
+    INACTIVE: "Inactive",
+  } as const;
+
   static readonly CARRIER_STATUS = {
     ACTIVE: "Active",
     INACTIVE: "Inactive",
@@ -583,6 +588,26 @@ export class GlobalConstants {
     NEUTRAL: "Neutral",
   } as const;
 
+  static readonly INVOICE_PROCESS = {
+    OFFICE: "Office",
+    CENTRAL: "Central",
+  } as const;
+
+  static readonly AUTOPAY_STATUS = {
+    ENABLED: "YES",
+    DISABLED: "NO",
+  } as const;
+
+  static readonly FINANCE_MESSAGES = {
+    LOAD_NOT_INVOICED: "Load is not Invoiced",
+  } as const;
+
+  static readonly DEFAULT_ITEM_DIMENSIONS = {
+    LENGTH: 11,
+    WIDTH: 11,
+    HEIGHT: 11,
+  } as const;
+
   static readonly MILEAGE_ENGINE = {
     CURRENT: "Current",
   } as const;
@@ -603,6 +628,7 @@ export class GlobalConstants {
     CARRIER_9: "VICTOR LOGISTICS INC (256395)",
     CARRIER_18_KING: "18 KING TRUCKING LLC",
     CARRIER_XPO_TRANS: "XPO TRANS INC",
+      CARRIER_XPO_TRANS_AND: "XPO TRANS INC and select it once fully visible",
   } as const;
 
 }
@@ -653,6 +679,7 @@ declare global {
   const DOCUMENT_TEXT: typeof GlobalConstants.DOCUMENT_TEXT;
   const LOAD_METHOD: typeof GlobalConstants.LOAD_METHOD;
   const CARRIER_SUB_MENU: typeof GlobalConstants.CARRIER_SUB_MENU;
+  const LOADBOARD_STATUS: typeof GlobalConstants.LOADBOARD_STATUS;
   const CARRIER_STATUS: typeof GlobalConstants.CARRIER_STATUS;
   const TOGGLE_NAME: typeof GlobalConstants.TOGGLE_NAME;
   const TOGGLE_OPTIONS: typeof GlobalConstants.TOGGLE_OPTIONS;
@@ -666,6 +693,10 @@ declare global {
   const CARRIER_NAME: typeof GlobalConstants.CARRIER_NAME;
   const RATE_TYPE: typeof GlobalConstants.RATE_TYPE;
   const PAYABLE_TOGGLE_VALUE: typeof GlobalConstants.PAYABLE_TOGGLE_VALUE;
+  const INVOICE_PROCESS: typeof GlobalConstants.INVOICE_PROCESS;
+  const AUTOPAY_STATUS: typeof GlobalConstants.AUTOPAY_STATUS;
+  const FINANCE_MESSAGES: typeof GlobalConstants.FINANCE_MESSAGES;
+  const DEFAULT_ITEM_DIMENSIONS: typeof GlobalConstants.DEFAULT_ITEM_DIMENSIONS;
   const MILEAGE_ENGINE: typeof GlobalConstants.MILEAGE_ENGINE;
   const MILEAGE_METHOD: typeof GlobalConstants.MILEAGE_METHOD;
 }
@@ -723,6 +754,7 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).DOCUMENT_TEXT = GlobalConstants.DOCUMENT_TEXT;
   (globalThis as any).LOAD_METHOD = GlobalConstants.LOAD_METHOD;
   (globalThis as any).CARRIER_SUB_MENU = GlobalConstants.CARRIER_SUB_MENU;
+  (globalThis as any).LOADBOARD_STATUS = GlobalConstants.LOADBOARD_STATUS;
   (globalThis as any).CARRIER_STATUS = GlobalConstants.CARRIER_STATUS;
   (globalThis as any).TOGGLE_NAME = GlobalConstants.TOGGLE_NAME;
   (globalThis as any).FINANCE_SUB_MENU = GlobalConstants.FINANCE_SUB_MENU;
@@ -734,6 +766,10 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).CARRIER_NAME = GlobalConstants.CARRIER_NAME;
   (globalThis as any).RATE_TYPE = GlobalConstants.RATE_TYPE;
   (globalThis as any).PAYABLE_TOGGLE_VALUE = GlobalConstants.PAYABLE_TOGGLE_VALUE;
+  (globalThis as any).INVOICE_PROCESS = GlobalConstants.INVOICE_PROCESS;
+  (globalThis as any).AUTOPAY_STATUS = GlobalConstants.AUTOPAY_STATUS;
+  (globalThis as any).FINANCE_MESSAGES = GlobalConstants.FINANCE_MESSAGES;
+  (globalThis as any).DEFAULT_ITEM_DIMENSIONS = GlobalConstants.DEFAULT_ITEM_DIMENSIONS;
   (globalThis as any).MILEAGE_ENGINE = GlobalConstants.MILEAGE_ENGINE;
   (globalThis as any).MILEAGE_METHOD = GlobalConstants.MILEAGE_METHOD;
 }

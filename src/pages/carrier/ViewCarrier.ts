@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from "@playwright/test";
 import commonReusables from "@utils/commonReusables";
+import { ALERT_PATTERNS } from "@utils/alertPatterns";
 
 export default class ViewCarrier {
 
@@ -444,19 +445,30 @@ export default class ViewCarrier {
     }
 
     /**
-     * Clicks the Update Carrier Visibility button and accepts the two confirmation popups:
-     * 1. "Are you sure you want to modify the carrier whitelist?"
-     * 2. "Carrier visibility has been updated."
+     * Clicks the Update Carrier Visibility button and validates/accepts the two confirmation popups:
+     * 1. "Are you sure you want to modify the carrier whitelist?" — validated then accepted
+     * 2. "Carrier visibility has been updated." — validated then accepted
      * @author AI Agent
      * @created 2026-04-17
      */
     async clickUpdateCarrierVisibility(): Promise<void> {
         await this.updateCarrierVisibilityBtn_LOC.waitFor({ state: 'visible', timeout: WAIT.SMALL });
-        const dialogMessages = await commonReusables.acceptAllDialogsDuringAction(
+
+        const firstAlert = commonReusables.validateAlert(
             this.page,
-            async () => { await this.updateCarrierVisibilityBtn_LOC.click(); }
+            ALERT_PATTERNS.CARRIER_WHITELIST_CONFIRM
         );
-        console.log(`Update Carrier Visibility — dialogs accepted: ${dialogMessages.join(' | ')}`);
+        await this.updateCarrierVisibilityBtn_LOC.click();
+        await firstAlert;
+        console.log('Validated popup: "Are you sure you want to modify the carrier whitelist?"');
+
+        const secondAlert = commonReusables.validateAlert(
+            this.page,
+            ALERT_PATTERNS.CARRIER_VISIBILITY_UPDATED
+        );
+        await secondAlert;
+        console.log('Validated popup: "Carrier visibility has been updated."');
+
         await commonReusables.waitForPageStable(this.page);
     }
 

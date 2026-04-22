@@ -49,8 +49,25 @@ export class PageObjectWriter {
   }
 
   /**
+   * Checks if a method in the file content is human-authored (any @author that is NOT "AI Agent").
+   * Returns true if the method exists AND is authored by a human.
+   */
+  private isHumanAuthored(content: string, methodName: string): boolean {
+    const methodIdx = content.search(new RegExp(`(?:async\\s+)?${methodName}\\s*\\(`, 'm'));
+    if (methodIdx === -1) return false;
+    const preceding = content.slice(Math.max(0, methodIdx - 500), methodIdx);
+    const jsdocMatch = preceding.match(/\/\*\*[\s\S]*?\*\/\s*$/);
+    if (!jsdocMatch) return false;
+    const jsdoc = jsdocMatch[0];
+    const authorMatch = jsdoc.match(/@author\s+(.+)/);
+    if (!authorMatch) return false;
+    return authorMatch[1].trim().toLowerCase() !== 'ai agent';
+  }
+
+  /**
    * Add locators and methods to an existing page object file.
    * Skips any locator/method that already exists.
+   * MANDATORY: Never modifies human-authored methods or locators.
    * Returns a detailed result.
    */
   addToPageObject(
@@ -95,14 +112,17 @@ export class PageObjectWriter {
     }
 
     // ---- 2. Add new methods (before the class closing brace) ----
+    // MANDATORY: Never modify human-authored methods (any @author != "AI Agent")
     const methodsToAdd: NewMethodDef[] = [];
     for (const method of methods) {
       const scannerKnows = this.scanner.methodExists(className, method.name);
-      // Fallback: raw text search catches multi-line signatures the scanner regex may miss
       const rawTextExists = new RegExp(
         `(?:async\\s+)?${method.name}\\s*\\(`, 'm'
       ).test(content);
       if (scannerKnows || rawTextExists) {
+        if (this.isHumanAuthored(content, method.name)) {
+          console.log(`   🛡️ PROTECTED: '${method.name}' on ${className} is human-authored — will not modify.`);
+        }
         skippedMethods.push(method.name);
         if (rawTextExists && !scannerKnows) {
           console.log(`   ⚠️ Scanner missed '${method.name}' on ${className} but raw text search found it — skipping.`);

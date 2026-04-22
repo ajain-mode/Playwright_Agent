@@ -1,0 +1,54 @@
+---
+description: 3-agent architecture and code generation rules for the Playwright Agent
+alwaysApply: true
+---
+
+# Agent Architecture & Code Generation Rules
+
+## 3-Agent Pipeline (LLM Disabled)
+
+Generation is rule-based. The pipeline is:
+1. **StepProcessor** (Agent 1) — classifies raw test steps into `ProcessedStep` with `PageContext` (tracks `currentPage`, `isEditMode`, `currentTab`, `currentApp`)
+2. **POMMethodMatcher** (Agent 2) — matches steps to existing POM methods or proposes new ones using `AppSourceIndexer` data
+3. **SpecValidator** (Agent 3) — validates generated spec against guardrails, auto-fixes violations (including NAV-001 for missing navigateToBaseUrl)
+
+## Application Source Locators
+
+The `AppSourceIndexer` scans cloned repos (`modetrans/mono.git`, `modetrans/dme.git`) for HTML elements. Cache lives in `src/agent/.cache/`.
+
+### View Mode vs Edit Mode
+
+- **Edit mode**: Form elements exist with exact `#id` — use `page.locator('#id')` with `.inputValue()` / `.fill()`
+- **View mode**: Same fields render as plain text in `<td>` — use Playwright chained locators: `page.getByRole('row', { name: /Label/i }).locator('td').nth(1)` with `.textContent()`
+- The `StepProcessor` tracks `isEditMode`; `POMMethodMatcher` uses it to choose the locator strategy
+
+## MANDATORY: navigateToBaseUrl() Before Header Navigation
+
+**Detail/form pages** (View Office Info, View Customer, Edit Load, View Carrier, Edit Office, etc.) do NOT render the main navigation header buttons (Admin, Customers, Loads, Finance, Home, etc.).
+
+**Rule**: ALWAYS call `pages.basePage.navigateToBaseUrl()` BEFORE `pages.basePage.hoverOverHeaderByText()`. This is enforced at three levels:
+1. **StepMappings** — all HOVER and NAVIGATION entries prepend `navigateToBaseUrl()`
+2. **SpecValidator (NAV-001)** — detects and auto-fixes missing `navigateToBaseUrl()` before `hoverOverHeaderByText()`
+3. **PromptsConfig guardrail** — `navigateToBaseUrlBeforeHeaderNav` rule flags violations at generation time
+
+The call is idempotent — safe even if already on the base URL. Reference specs: BT-67846, BT-74421, DFB-97746, DFB-97739.
+
+```typescript
+// CORRECT — always navigateToBaseUrl before header nav
+await pages.basePage.navigateToBaseUrl();
+await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
+await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
+
+// WRONG — will fail if browser is on a detail/form page
+await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
+```
+
+## Assertion Values
+
+Never hardcode expected values in assertions. Use:
+- `INVOICE_PROCESS.OFFICE`, `AUTOPAY_STATUS.ENABLED`, `PAYABLE_TOGGLE_VALUE.AGENT`, `FINANCE_MESSAGES.LOAD_NOT_INVOICED` from `globalConstants.ts`
+- `testData.*` from CSV for dynamic values (rates, amounts, names)
+
+## POM Method JSDoc
+
+Every new POM method must include: `@author AI Agent`, `@created YYYY-MM-DD`, `@param` (if applicable), `@returns` (if applicable), and locator source reference.

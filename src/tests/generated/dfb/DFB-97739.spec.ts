@@ -26,6 +26,7 @@ let cargoValue: string;
 let loadNumber: string;
 let agentEmail: string;
 let initialBidsCount: number;
+let totalMilesValue: string;
 let sharedContext: BrowserContext;
 let sharedPage: Page;
 let appManager: MultiAppManager;
@@ -136,7 +137,7 @@ test.describe.serial(
 
           // Precond 33: Loadboard Status Active — soft assertion (no hard assertion specified)
           const loadboardStatus = await pages.viewCarrierPage.getLoadboardStatus();
-          expect.soft(loadboardStatus, "Loadboard Status should be Active").toBe(CARRIER_STATUS.ACTIVE);
+          expect.soft(loadboardStatus, "Loadboard Status should be Active").toBe(LOADBOARD_STATUS.ACTIVE);
 
           // Precond 35-39: Carrier Visibility toggles — check, enable if needed, update
           await pages.viewCarrierPage.ensureCarrierVisibilityTogglesEnabled([
@@ -266,6 +267,8 @@ test.describe.serial(
         await test.step("Step 16 [Ensure after CSV 41-42]: Validate view mode — DFB fields after save", async () => {
           await pages.editLoadPage.clickOnTab(TABS.CARRIER);
           await commonReusables.waitForAllLoadStates(sharedPage);
+          totalMilesValue = await pages.editLoadFormPage.getTotalMilesValue();
+          pages.logger.info(`Total Miles captured from Carrier tab: ${totalMilesValue}`);
           await pages.viewLoadPage.scrollToDFBSection();
 
           const formattedOfferRate = commonReusables.formatRateForDisplay(testData.offerRate);
@@ -370,6 +373,7 @@ test.describe.serial(
             consState: testData.consigneeState,
             carrier: CARRIER_NAME.CARRIER_18_KING,
             bidRate: testData.offerRate,
+            totalMiles: totalMilesValue,
             equipment: DFB_BID_HISTORY_FIELDS.EQUIPMENT_1,
             source: DFB_BID_HISTORY_FIELDS.SOURCE,
             email: DFB_BID_HISTORY_FIELDS.TNX_SERVICE_EMAIL,

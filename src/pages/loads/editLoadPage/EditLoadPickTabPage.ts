@@ -42,6 +42,9 @@ class EditLoadPickTabPage {
   private readonly dropdownOption_LOC: (comodity: string) => Locator;
   private readonly closeNmfcDialog_LOC: Locator;
   private readonly selectClassDropDown_LOC: Locator;
+  private readonly palletLength_LOC: Locator;
+  private readonly palletWidth_LOC: Locator;
+  private readonly palletHeight_LOC: Locator;
 
   /**
    * Constructor to initialize page locators for Pick tab elements
@@ -78,6 +81,9 @@ class EditLoadPickTabPage {
     this.dropdownOption_LOC = (comodity: string)=> this.page.locator(`//ul[@id='select2-carr_1_stop_1_item_1_intermodal_commodity_code_id-results']/li[contains(text(),'${comodity}')]`);
     this.closeNmfcDialog_LOC = this.page.locator("//span[@class='ui-button-icon ui-icon ui-icon-closethick']");
     this.selectClassDropDown_LOC = this.page.locator("//select[@id='carr_1_stop_1_item_1_class']");
+    this.palletLength_LOC = this.page.locator('#carr_1_stop_1_item_1_pallet_length');
+    this.palletWidth_LOC = this.page.locator('#carr_1_stop_1_item_1_pallet_width');
+    this.palletHeight_LOC = this.page.locator('#carr_1_stop_1_item_1_pallet_height');
   }
 
   get qtyInput(): Locator {
@@ -427,6 +433,41 @@ class EditLoadPickTabPage {
         await this.selectClassDropDown_LOC.selectOption(option);
         await this.closeNmfcDialog_LOC.last().click();
     }
+
+  /**
+   * Enters item pallet dimensions (L x W x H) on the Pick tab.
+   * Locators: #carr_1_stop_1_item_1_pallet_length, _width, _height (loadform.php:13474-13476)
+   * @author AI Agent
+   * @created 2026-04-14
+   * @param length - Pallet length value.
+   * @param width - Pallet width value.
+   * @param height - Pallet height value.
+   */
+  async enterItemDimensions(length: string | number, width: string | number, height: string | number): Promise<void> {
+    await this.palletLength_LOC.waitFor({ state: 'visible' });
+    await this.palletLength_LOC.fill(String(length));
+    await this.palletWidth_LOC.fill(String(width));
+    await this.palletHeight_LOC.fill(String(height));
+  }
+
+  /**
+   * Closes the NMFC classification popup dialog if it is visible.
+   * The application may trigger this dialog after entering item description or dimensions.
+   * Uses the existing closeNmfcDialog_LOC (ui-icon-closethick) to dismiss it.
+   * @author AI Agent
+   * @created 2026-04-14
+   */
+  async closeNmfcPopupIfVisible(): Promise<void> {
+    try {
+      const closeBtn = this.closeNmfcDialog_LOC.last();
+      if (await closeBtn.isVisible({ timeout: WAIT.SMALL })) {
+        await closeBtn.click();
+        await this.page.waitForLoadState('domcontentloaded');
+      }
+    } catch {
+      // No popup present — safe to proceed
+    }
+  }
 }
 
 export default EditLoadPickTabPage;

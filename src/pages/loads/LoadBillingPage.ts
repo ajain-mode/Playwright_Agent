@@ -745,8 +745,8 @@ class LoadBillingPage {
     }
 
     /**
-     * Opens View History popup, fetches the last row of messages, extracts the dollar
-     * value from it, and verifies it matches the expected price difference.
+     * Opens View History popup, searches backwards through rows for the most recent
+     * message containing a dollar value (price difference), skipping toggle entries.
      *
      * Expected price difference = Total Invoices - MODE Global Total Charges (carrier rate)
      *
@@ -766,21 +766,34 @@ class LoadBillingPage {
         const expectedPriceDiff = Math.abs(totalInvoiced - charges);
         console.log(`Expected price diff: Total Invoices(${totalInvoiced}) - Total Charges(${charges}) = ${expectedPriceDiff}`);
 
-        // Open View History popup and fetch last data row's Message column
+        // Open View History popup and search for the price difference message.
         // Table structure (from billing.php): Time | User | Message | Inactive Date
-        // So td:nth-child(3) = Message column
+        // So td:nth-child(3) = Message column.
+        // The history table contains both system messages AND toggle events (e.g. "payables_waiting_on").
+        // Iterate backwards to find the most recent row whose Message column contains a dollar value.
         const historyPopup = await this.clickViewHistoryAndGetPopup();
         const dataRows = historyPopup.locator(this.HISTORY_TABLE_DATA_ROWS_SELECTOR);
         const rowCount = await dataRows.count();
-        const lastMessage = rowCount > 0
-            ? ((await dataRows.nth(rowCount - 1).locator(this.HISTORY_MESSAGE_COLUMN_SELECTOR).textContent()) || '').trim()
-            : '';
 
-        console.log(`View History last message: "${lastMessage}"`);
+        let lastMessage = '';
+        let priceDifference: number | null = null;
+        for (let i = rowCount - 1; i >= 0; i--) {
+            const msgText = ((await dataRows.nth(i).locator(this.HISTORY_MESSAGE_COLUMN_SELECTOR).textContent()) || '').trim();
+            const extracted = this.extractDollarValue(msgText);
+            if (extracted !== null) {
+                lastMessage = msgText;
+                priceDifference = extracted;
+                console.log(`View History row ${i} has price difference message: "${msgText}"`);
+                break;
+            }
+        }
+        if (priceDifference === null && rowCount > 0) {
+            // Fallback: return the last row's message for diagnostics
+            lastMessage = ((await dataRows.nth(rowCount - 1).locator(this.HISTORY_MESSAGE_COLUMN_SELECTOR).textContent()) || '').trim();
+            console.log(`No price difference message found in View History. Last row: "${lastMessage}"`);
+        }
+
         await historyPopup.close();
-
-        // Extract dollar value from the last message
-        const priceDifference = this.extractDollarValue(lastMessage);
         console.log(`Extracted price difference: ${priceDifference}, expected: ${expectedPriceDiff}`);
 
         return { lastMessage, priceDifference, expectedPriceDiff };

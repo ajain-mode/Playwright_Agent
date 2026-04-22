@@ -54,6 +54,12 @@ export const ALERT_PATTERNS = {
 
   CONFIRM_CHANGE_TO_DELIVERED_FINAL: "Are you sure you want to change this load to Delivered Final",
 
+  CARRIER_WHITELIST_CONFIRM: /Are you sure you want to modify the carrier whitelist/i,
+
+  CARRIER_VISIBILITY_UPDATED: /Carrier visibility has been updated/i,
+
+  AGENT: "Agent",
+
 };
 
 

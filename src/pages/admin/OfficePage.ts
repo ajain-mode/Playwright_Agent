@@ -12,6 +12,8 @@ export default class OfficePage {
   private readonly MatchVendorDropDown_LOC: Locator;
   private readonly internalStatusValue_LOC: Locator
   private readonly internalStatusDropdown: Locator;
+  private readonly invoiceProcess_LOC: Locator;
+  private readonly autopayDisabled_LOC: Locator;
 
   constructor(private page: Page) {
     this.officeCodeInput_LOC = page.locator("#search_office_code");
@@ -24,6 +26,11 @@ export default class OfficePage {
     this.MatchVendorDropDown_LOC = page.locator("#match_vendors");
     this.internalStatusValue_LOC = page.locator("//div[.='Enable Internal Shares']/../../td[2]");
     this.internalStatusDropdown = page.locator("#feature_internal_shares");
+    //this.invoiceProcess_LOC = page.locator("div[align='left']").filter({ hasText: /Invoice\s+Process/ }).locator("xpath=../../td[2]");
+    //this.autopayDisabled_LOC = page.locator("div[align='left']").filter({ hasText: /Enable Auto.Pay/ }).locator("xpath=../../td[2]");
+    //this.invoiceProcess_LOC = page.locator('td.fn td:has-text("Office")')
+    this.invoiceProcess_LOC = page.locator('td.fn:has-text("Invoice Process") + td.view')
+    this.autopayDisabled_LOC = page.locator('td.fn:has-text("Enable Auto-Pay") + td.view')
   }
 
   /**
@@ -306,5 +313,36 @@ export default class OfficePage {
     await this.officeCodeSearchField(officeName);
     await this.searchButtonClick();
     await this.officeSearchRow(officeName);
+  }
+
+  /**
+   * Gets the Invoice Process value from the office view page.
+   * Locator: div[align='left'] "Invoice Process" → ../../td[2] (officeform.php:1449-1450)
+   * @author AI Agent
+   * @created 2026-04-14
+   * @modified 2026-04-14
+   * @returns The displayed invoice process value (e.g. "Office", "Central"), trimmed.
+   */
+  async getInvoiceProcessValue(): Promise<string> {
+    await this.invoiceProcess_LOC.waitFor({ state: 'visible' });
+    const text = await this.invoiceProcess_LOC.textContent();
+    console.log(`Invoice Process value: ${text}`);
+    return (text ?? '').trim();
+  }
+
+  /**
+   * Gets the Enable Auto-Pay value from the office view page.
+   * The view page shows "YES" when autopay is enabled, "NO" when disabled.
+   * Locator: div[align='left'] "Enable Auto-Pay" → ../../td[2] (officeform.php:1557-1558)
+   * @author AI Agent
+   * @created 2026-04-14
+   * @modified 2026-04-14
+   * @returns The displayed auto-pay value (e.g. "YES" = enabled, "NO" = disabled), trimmed.
+   */
+  async getAutopayDisabledValue(): Promise<string> {
+    await this.autopayDisabled_LOC.waitFor({ state: 'visible' });
+    const text = await this.autopayDisabled_LOC.textContent();
+    console.log(`Enable Auto-Pay value: ${text}`);
+    return (text ?? '').trim();
   }
 }

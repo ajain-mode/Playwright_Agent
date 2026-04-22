@@ -39,6 +39,13 @@ export class SchemaAnalyzer {
   }
 
   /**
+   * Alias for {@link getScanner} — used by POM method matching / three-agent pipeline.
+   */
+  getPageObjectScanner(): PageObjectScanner {
+    return this.scanner;
+  }
+
+  /**
    * Get the PageObjectWriter instance
    */
   getWriter(): PageObjectWriter {

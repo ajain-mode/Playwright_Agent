@@ -107,6 +107,33 @@ export class AgentConfig {
     'APPROVAL_FOR', 'REVIEWED_BY',
   ];
 
+  // Application source repositories for locator extraction
+  public readonly appSourceRepos = [
+    {
+      repoUrl: 'https://github.com/modetrans/mono.git',
+      branch: 'master',
+      name: 'mono',
+      subPath: 'btms/php/src',
+      fileTypes: ['*.php'],
+      app: 'btms',
+    },
+    {
+      repoUrl: 'https://github.com/modetrans/dme.git',
+      branch: 'main',
+      name: 'dme',
+      subPath: 'templates',
+      fileTypes: ['*.twig', '*.html.twig'],
+      app: 'dme',
+    },
+  ];
+
+  // App source cache settings
+  public readonly appSourceCacheDir: string = path.join(
+    path.resolve(__dirname, '../../..'),
+    'src/agent/.cache',
+  );
+  public readonly appSourceCacheMaxAgeMs: number = 24 * 60 * 60 * 1000;
+
   // Page directories excluded from scanning and code generation
   public readonly excludedPageDirs = [
     'bulkChange',
@@ -119,9 +146,9 @@ export class AgentConfig {
 
   constructor(options: AgentConfigOptions = {}) {
     this.projectRoot = path.resolve(__dirname, '../../..');
-    this.modelName = options.modelName || 'claude-opus-4-5-20250514';
+    this.modelName = options.modelName || 'claude-sonnet-4-6';
     this.temperature = options.temperature ?? 0.3;
-    this.llmEnabled = options.llmEnabled ?? true;
+    this.llmEnabled = options.llmEnabled ?? false;
     this.llmMaxRetries = options.llmMaxRetries ?? 1;
     this.llmCacheEnabled = options.llmCacheEnabled ?? true;
     

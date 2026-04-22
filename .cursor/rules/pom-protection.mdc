@@ -1,0 +1,31 @@
+---
+description: POM authorship protection — never modify human-written methods or locators
+globs: src/pages/**/*.ts
+alwaysApply: false
+---
+
+# POM Authorship Protection
+
+## Mandatory Rule
+
+Human-authored POM methods and locators are **strictly read-only**. Check the `@author` JSDoc tag before making any change.
+
+### Allowed
+
+- ADD new methods/locators with `@author AI Agent`
+- MODIFY methods that have `@author AI Agent`
+
+### Forbidden
+
+- Modifying methods with any human `@author` (Deepak Bohra, Avanish Srivastava, Mukul Khan, etc.)
+- Changing human-written locator assignments in constructors
+- Reformatting or "improving" human-written code (e.g., converting XPath to getByRole)
+
+### If a Human Locator Needs Fixing
+
+Propose the fix as a code comment — do not apply it:
+
+```typescript
+// SUGGESTED FIX (human-authored, do not auto-apply):
+// this.matchVendor_LOC = page.getByRole("row", { name: /Match Vendor/i }).locator("td").nth(1);
+```

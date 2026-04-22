@@ -12,3 +12,4 @@ UIPATHREPORT/
 .vscode/
 .env
 env
+src/agent/.cache/

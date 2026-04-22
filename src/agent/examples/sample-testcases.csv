@@ -192,7 +192,7 @@ Current Location Zip
 Empty Location City 
 Empty Location State
 Empty Location Zip",,"aiteam,carrierautoaccept,dfb"
-67846,,FD-35847,,"1.Load status ? 'Delivered Final'
+67846,,FD-35847,"Validating the scenario when the load is not in ""Delivered Final"" status and the paperwork received date? delivered date.","1.Load status ? 'Delivered Final'
 2.Paperwork received date ? delivered date","1.Login to BTMS application and Hover to Customers and click Search.
 2. Enter the Customer name in the ""Customer"" field (FORD MOTOR C/O CASS INFO SYSTEMS)
 3. Click on ""Search"" button.
@@ -491,67 +491,34 @@ Pending carrier invoice with price difference
 43.  Status will be set to INVOICED.
 50. Payable Toggle should get moved to the Agent.
 51. Below View History ""XPO TRANS INC invoiced $1,700.00 over the total charge"" kind of message containing dynamic price difference should appear on the screen. The system should display the price difference accurately via the formula Total Invoices$2,400.00 -MODE Global Total Charges$700.00 = Price Difference which is $1700.",,"aiteam,payabletoggle"
-97740,,,Automatically book a load when it is manually postedDisplay a message when a carrier having a status of CAUTION is selected,"Agent has logged into the BTMS
-Agent's Office Info has the following field settings:
-- Match vendors is set to TNX
-- Enable Digital Matching Engine is set to YES
-A load has been created by the agent which:
-- has a status of ACTIVE
-- has a method of TL
-- is in edit mode
-Agent's Office Config does not have a post automation rule that matches the load
-Carrier:
-- Has a status of CAUTION in BTMS
-- Is enabled in DME","1. Enter a valid value for the Offer Rate field on the load
-2. Select a carrier having a status of CAUTION for the Include Carriers field on the load
-3. Check the Carrier Auto Accept checkbox
-
-Next Steps
-1. Click OK
-2. Select an active loadboard user for the Carrier Contact for Rate Confirmation field
-3. Click the Save button on the load
-Next Steps
-1. Click the Post button
-Next Steps","A message is displayed relating ""CAUTION: Carrier has a cautionary safety rating""
-Next Steps
-The load is saved and is displayed in view mode
-- The Offer Rate field is populated with the rate entered
-- The Expiration Date field is auto populated with the value of the origin pick deadline date
-- The Expiration Time field is auto populated with the origin pick deadline time
-- The Email for Notifications field is auto populated with the agent's email address
-- The Include Carriers field has the carrier selected
-- The Carrier Auto Accept checkbox is checked
-- The Carrier Contact for Rate Confirmation field has the active loadboard user selected
-
-All fields are not editable except the Include Carriers field
-
-The following DFB UI elements are displayed:
-- Post Status of the load is NOT POSTED
-- Activated Post button
-- Activated Create Rule button
-- Activated Clear Form button
-Next Steps
-BTMS
-- The Status of the load is BOOKED
-- The Carrier selected for the Include Carriers field is assigned to the load
-- The Carrier Dispatcher Name field is auto populated with the name of the active loadboard user selected for the Carrier Contact for Rate Confirmation field
-- The Carrier Dispatcher Email field is auto populated with the email address of the active loadboard user selected for the Carrier Contact for Rate Confirmation field
-- BIDS Source
-- Avg Rate accurately updated
-- Reports accurately updated
-- Bid Results accurately updated
-- Bid History accurately updated
-- Email containing the Rate Confirmation is sent to the carrier user
-- Email notification sent to the agent(s) selected for the Email for Notifications field on the load
-DME
-- Load is created
-- Vendor Statuses:
-- BTMS REQUESTED
-- TNX REQUESTED
-- Vendor Statuses:
-- BTMS CANCELLED
-- TNX BOOKED
-TNX
-- A load is matched for the included carrier
-- The fields for providing execution notes are displayed
-Next Steps",,"aiteam,carrierautoaccept,dfb"
+72258,,FD-36321,Verify the Payable Toggle setting when the Carrier remainder amount >= Carrier invoice amount for Autopay load.,,"1.	Login to BTMS application, hover over Admin and click on OFFICE SEARCH.
+2.	Enter the office code as GA-LE790 and click Search.
+3.	Click on the row once details appear post search.
+4.	Hover over Customers and click Search.
+5.	Enter the Customer name AAK USA K1 LLC in the ""Customer"" field.
+6.	Click the Search button.
+7.	Click on the Customer detail row.
+8.	Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""NEW LOAD - LTL"" and Accept the alert.
+9.	Navigate to the Carrier tab and click Choose a Carrier, enter XPO TRANS INC and select it once fully visible.
+10.	Enter flat rate in Customer as 500.
+11.	Enter flat rate in Carrier as 600.
+12.	Enter trailer length as 20.
+13.	Navigate to the PICK tab.
+14.	Select the location from the ""Shipper"" field — AAK USA LLC.
+15.	Select the Actual Date (tomorrow's date).
+16.	Enter the Actual Time (e.g.09:00).
+17.	Enter item details — QTY: 1, TYPE: Select CASE from the dropdown, Description: Test Description (close any pop-up if it appears), Dims L x W x H: 11 x 11 x 11 (close any pop-up if it appears), Weight: 50.
+18.	Navigate to the DROP tab.
+19.	Select the location from the ""Consignee"" field — GHIRARDELL CHOCLATE CO..
+20.	Accept the alert by clicking OK.
+21.	Select the Actual Date (tomorrow's date).
+22.	Enter the Actual Time (e.g.09:00).
+23.	Click the SAVE button on the load.
+24.	Accept the alert.
+25.	Under the Load Documents section, click the upload icon against Payable.
+26.	Select the radio button Payables and select Document Type as Carrier Invoice.
+27.	Enter Invoice Number (e.g.123456), enter Invoice Amount (e.g.600), and click Attach — once attached, close the pop-up.
+28.	Click on VIEW BILLING and navigate to the Payable Status section.","
+3.Ensure after Step 3 validate via hard assertion that Invoice Process is ""OFFICE"" and   Enable Auto Pay for GA-LE790 is set to YES.
+23.Ensure after step 23 validate via hard assertion that alert with the message ""Status has been set to BOOKED"" should appear on the page.
+28.Ensure after step 28 validate via hard assertion  that Payable toggle should be set to ""Agent"" with the payable message shown as “Load is not Invoiced”.",,"aiteam,billingtoggle"

@@ -320,7 +320,10 @@ export class LLMService {
           if (stderr.trim()) {
             console.log(`      LLM CLI stderr: ${stderr.trim().substring(0, 500)}`);
           }
-          const errMsg = stderr.trim().substring(0, 500) || `exit code ${code}`;
+          if (stdout.trim() && !stderr.trim()) {
+            console.log(`      LLM CLI stdout (error detail): ${stdout.trim().substring(0, 500)}`);
+          }
+          const errMsg = stderr.trim().substring(0, 500) || stdout.trim().substring(0, 500) || `exit code ${code}`;
           reject(new Error(errMsg));
         }
       });

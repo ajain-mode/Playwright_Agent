@@ -824,6 +824,51 @@ export const GUARDRAIL_RULES: GuardrailRule[] = [
     },
     errorMessage: 'Generic utility function (format/parse/normalize/convert) called on a domain page object. Move to CommonReusables and call via pages.commonReusables.<method>() or commonReusables.<method>().',
   },
+  {
+    name: 'pomMethodJSDocRequired',
+    description: 'Every POM method must have a JSDoc block with @author, @created, @param (if applicable), and @returns (if applicable) tags',
+    validate: (_input) => {
+      return true;
+    },
+    errorMessage: 'POM methods must include JSDoc documentation with mandatory tags: @author, @created. Include @param for each parameter and @returns for non-void return types. Include the source locator reference (e.g., file:line) when the locator was discovered from application source code.',
+  },
+  {
+    name: 'noHardcodedAssertionValues',
+    description: 'Assertion expected values must come from global constants (INVOICE_PROCESS, AUTOPAY_STATUS, PAYABLE_TOGGLE_VALUE, FINANCE_MESSAGES, LOAD_STATUS, etc.) or testData — never hardcoded strings',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      const assertionWithHardcoded = /(?:\.toBe|\.toContain|\.toEqual|\.toMatch|\.toHaveText)\(\s*["'][A-Z][A-Za-z\s]+["']\s*\)/g;
+      const matches = input._generatedCode.match(assertionWithHardcoded) || [];
+      return matches.length === 0;
+    },
+    errorMessage: 'Hardcoded string values used in assertions. Expected values for status, toggle, process, and finance messages must come from global constants (e.g., INVOICE_PROCESS.OFFICE, AUTOPAY_STATUS.ENABLED, PAYABLE_TOGGLE_VALUE.AGENT, FINANCE_MESSAGES.LOAD_NOT_INVOICED). Numeric and dynamic values should come from testData.*.',
+  },
+  {
+    name: 'navigateToBaseUrlBeforeHeaderNav',
+    description: 'Generated code must call navigateToBaseUrl() before hoverOverHeaderByText() to ensure the main nav header is visible — detail/form pages (Office View, Customer View, Edit Load, etc.) do not render the main navigation buttons',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      const lines = input._generatedCode.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        if (/hoverOverHeaderByText\s*\(/.test(lines[i])) {
+          const context = lines.slice(Math.max(0, i - 5), i).join('\n');
+          if (!/navigateToBaseUrl/.test(context) && !/hoverOverHeaderByText/.test(context)) {
+            return false;
+          }
+        }
+      }
+      return true;
+    },
+    errorMessage: 'hoverOverHeaderByText() called without navigateToBaseUrl() in preceding lines. Detail/form pages (Office View, Customer View, Edit Load) do not render the main nav buttons. Always call pages.basePage.navigateToBaseUrl() before header navigation.',
+  },
+  {
+    name: 'noModifyHumanAuthoredPOM',
+    description: 'The agent must NEVER modify, rename, or replace human-authored POM methods, locators, or their implementations. Only methods/locators with @author AI Agent may be edited. Human-authored code (any @author tag that is not "AI Agent") is read-only.',
+    validate: (_input) => {
+      return true;
+    },
+    errorMessage: 'MANDATORY: Human-authored POM methods and locators are strictly read-only. The agent may only ADD new methods/locators (marked @author AI Agent) or MODIFY existing @author AI Agent methods. Never alter methods authored by Deepak Bohra, Avanish Srivastava, Mukul Khan, or any other human author. If a human-authored locator is incorrect, propose the fix as a comment — do not apply it.',
+  },
 ];
 
 /**
@@ -975,7 +1020,16 @@ export const GENERATION_RULES = {
   //     Inside steps, log: console.log("CSV 38: Validated alert — ...")
   STEP_CSV_MAPPING: true,
 
-  // 13. FORBIDDEN PATTERNS — Patterns that must NEVER appear in generated code.
+  // 13. NAVIGATE TO BASE URL — Mandatory before header navigation.
+  //     Detail/form pages (Office View, Customer View, Edit Load, View Carrier,
+  //     Edit Office, etc.) do NOT render the main navigation buttons (Admin,
+  //     Customers, Loads, Finance, etc.). After visiting any such page, ALWAYS call
+  //     pages.basePage.navigateToBaseUrl() BEFORE pages.basePage.hoverOverHeaderByText().
+  //     Reference: BT-67846, BT-74421, DFB-97746, DFB-97739 all follow this pattern.
+  //     The call is idempotent — safe to call even if already on the base URL.
+  NAVIGATE_TO_BASE_BEFORE_HEADER_NAV: true,
+
+  // 14. FORBIDDEN PATTERNS — Patterns that must NEVER appear in generated code.
   //     selfCheckAndFix automatically detects and replaces these.
   FORBIDDEN_PATTERNS: [
     {

@@ -1,0 +1,27 @@
+---
+description: Guardrail rules for generated spec files
+globs: src/tests/generated/**/*.spec.ts
+alwaysApply: false
+---
+
+# Spec File Guardrails
+
+## Hard Blocks (generation fails if violated)
+
+- No `sharedPage.locator(...)` — use POM methods via `pages.<getter>.<method>()`
+- No `sharedPage.evaluate()` with DOM guessing — use Playwright built-in methods
+- No `force: true` — fix the root cause (wait for element, dismiss overlay)
+- No `page.waitForTimeout(number)` — use `commonReusables.waitForAllLoadStates(sharedPage)`
+- No fabricated element IDs — all locators must come from app source or existing POM
+
+## Assertion Rules
+
+- No hardcoded strings in `.toBe()`, `.toContain()`, `.toEqual()`, `.toMatch()`, `.toHaveText()` — use global constants
+- No `expect.soft(...).toBeTruthy()` for value checks — use `.toBe()` / `.toContain()` with exact values
+- Steps mentioning "hard assertion" must use `expect()`, not `expect.soft()`
+- Verify steps must have at least one `expect()` call
+
+## Data Rules
+
+- Rates, amounts, miles, invoice numbers must use `testData.*` from CSV — never hardcoded
+- Timeout values must use `WAIT.*` constants from `globalConstants.ts`
