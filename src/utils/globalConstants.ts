@@ -600,6 +600,7 @@ export class GlobalConstants {
 
   static readonly FINANCE_MESSAGES = {
     LOAD_NOT_INVOICED: "Load is not Invoiced",
+    CARRIER_OVER_INVOICED: "over the total charge",
   } as const;
 
   static readonly DEFAULT_ITEM_DIMENSIONS = {

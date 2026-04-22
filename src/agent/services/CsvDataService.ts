@@ -82,21 +82,75 @@ export class CsvDataService {
       return;
     }
 
-    let found = false;
+    let foundLineIndex = -1;
     for (let i = 1; i < lines.length; i++) {
       const values = this.parseCsvLine(lines[i]);
       if (values[idColumnIndex] && values[idColumnIndex].trim() === testCaseId) {
-        found = true;
+        foundLineIndex = i;
         break;
       }
     }
 
-    if (found) {
+    if (foundLineIndex >= 0) {
       console.log(`   ✅ Test ID '${testCaseId}' already exists in ${path.basename(csvPath)}`);
+      // Update existing row if testCase has extracted values that differ from the CSV
+      this.updateExistingRowIfNeeded(csvPath, lines, headers, foundLineIndex, testCase);
     } else {
       console.log(`   ➕ Test ID '${testCaseId}' not found. Adding to ${path.basename(csvPath)}...`);
       this.appendTestDataToCsv(csvPath, headers, testCase);
       console.log(`   ✅ Test ID '${testCaseId}' added to ${path.basename(csvPath)}`);
+    }
+  }
+
+  /**
+   * Update an existing CSV row if extracted values from the test case differ.
+   * Only updates columns where the test case has a non-empty extracted value
+   * and the existing CSV cell is empty or contains inherited (stale) data.
+   */
+  private updateExistingRowIfNeeded(
+    csvPath: string,
+    lines: string[],
+    headers: string[],
+    rowIndex: number,
+    testCase: TestCaseInput,
+  ): void {
+    const testData = testCase.testData || {};
+    const ev = testCase.explicitValues;
+    if (!ev) return;
+
+    // Build alias map from extracted values
+    const aliasMap: Record<string, string> = buildCsvAliasMap(ev, (v) => this.normalizeLoadMethod(v));
+
+    const existingValues = this.parseCsvLine(lines[rowIndex]);
+    let updated = false;
+    const updatedColumns: string[] = [];
+
+    const newValues = headers.map((header, colIndex) => {
+      const headerClean = header.trim();
+      const headerLower = headerClean.toLowerCase().replace(/[\s_-]/g, '');
+      if (headerLower === 'testscriptid') return existingValues[colIndex] || testCase.id;
+
+      const extractedVal =
+        testData[headerClean] ||
+        testData[toCamelCase(headerClean)] ||
+        aliasMap[headerLower] ||
+        '';
+      const existingVal = (existingValues[colIndex] || '').trim();
+
+      // Update if: we have an extracted value AND it differs from existing
+      if (extractedVal && String(extractedVal).trim() && String(extractedVal).trim() !== existingVal) {
+        updated = true;
+        updatedColumns.push(`${headerClean}: ${existingVal} → ${String(extractedVal).trim()}`);
+        return this.escapeCsvValue(String(extractedVal));
+      }
+      return existingValues[colIndex] || '';
+    });
+
+    if (updated) {
+      lines[rowIndex] = newValues.join(',');
+      const newContent = lines.join('\n') + '\n';
+      fs.writeFileSync(csvPath, newContent, 'utf-8');
+      console.log(`   🔄 Updated ${updatedColumns.length} column(s) in existing row: ${updatedColumns.join(', ')}`);
     }
   }
 

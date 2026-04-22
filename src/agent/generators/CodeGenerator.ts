@@ -1143,14 +1143,23 @@ await this.page.waitForLoadState('load');`,
   }
 
   /**
-   * Generate test steps code
+   * Generate test steps code.
+   * Pre-processes all steps via StepProcessor.processAllSteps() to build
+   * immutable contextBefore/contextAfter snapshots used by POM matching.
    */
   private async generateTestSteps(testCase: TestCaseInput, testData?: TestData): Promise<GeneratedTestStep[]> {
+    // Pre-process all steps with evolving context (immutable snapshots)
+    const { processedSteps } = this.stepProcessor.processAllSteps(
+      testCase.steps.map(s => ({ stepNumber: s.stepNumber, action: s.action, expectedResult: s.expectedResult })),
+      testData as Record<string, any> | undefined,
+    );
+    this._processedSteps = processedSteps;
+
     const steps: GeneratedTestStep[] = [];
 
     for (let index = 0; index < testCase.steps.length; index++) {
       const step = testCase.steps[index];
-      const generatedStep = await this.generateSingleStep(step.action, index + 1, testData);
+      const generatedStep = await this.generateSingleStep(step.action, index + 1, testData, processedSteps[index]);
       steps.push(generatedStep);
     }
 
@@ -1158,16 +1167,17 @@ await this.page.waitForLoadState('load');`,
   }
 
   /**
-   * Generate code for a single test step
-   * Uses comprehensive action-to-code mapping for better code generation
+   * Generate code for a single test step.
+   * When a pre-processed step is provided (from processAllSteps), it carries
+   * immutable contextBefore/contextAfter snapshots for POM matching.
    */
-  private async generateSingleStep(action: string, _stepNumber: number, testData?: TestData): Promise<GeneratedTestStep> {
+  private async generateSingleStep(action: string, _stepNumber: number, testData?: TestData, preProcessed?: ProcessedStep): Promise<GeneratedTestStep> {
     const pageObjects: string[] = [];
     const assertions: string[] = [];
 
     // Always use the comprehensive code generator for better results
-    const code = await this.generateCodeFromAction(action, testData);
-    
+    const code = await this.generateCodeFromAction(action, testData, preProcessed);
+
     // Get suggested page objects for reference
     const suggestions = this.schemaAnalyzer.suggestPageObjects(action);
     suggestions.forEach(po => pageObjects.push(po));
@@ -1184,8 +1194,9 @@ await this.page.waitForLoadState('load');`,
    * Generate code from action description.
    *
    * Pattern library → declarative mappings → POM method matching (three-agent pipeline).
+   * When preProcessed is provided, uses the pre-processed step with immutable context snapshots.
    */
-  private async generateCodeFromAction(action: string, _testData?: TestData): Promise<string> {
+  private async generateCodeFromAction(action: string, _testData?: TestData, preProcessed?: ProcessedStep): Promise<string> {
     // ==================== PRIORITY 1: PATTERN LIBRARY ====================
     const existingPattern = this.patternExtractor.findPattern(action);
     if (existingPattern) {
@@ -1218,14 +1229,15 @@ await this.page.waitForLoadState('load');`,
     }
 
     // ==================== PRIORITY 3: POM METHOD MATCHING (Agent 2) ====================
-    const stepNumber = this._processedSteps.length + 1;
-    const processedStep = this.stepProcessor.processStep(
-      stepNumber,
+    // Use pre-processed step (with immutable context snapshots) when available,
+    // otherwise fall back to inline processStep for ad-hoc calls (preconditions, clone path).
+    const processedStep = preProcessed ?? this.stepProcessor.processStep(
+      this._processedSteps.length + 1,
       action,
       { currentApp: 'btms', currentPage: 'loadform', currentTab: 'GENERAL', isEditMode: true, currentForm: 'fatsform' },
       _testData,
     );
-    this._processedSteps.push(processedStep);
+    if (!preProcessed) this._processedSteps.push(processedStep);
 
     const matchResult = this.pomMatcher.matchAndGenerate(processedStep, _testData);
     
@@ -1886,12 +1898,39 @@ ${stepCode}
         }
       }
 
+      // If the action text matches well but the step has expected results,
+      // check whether the reference block's code already handles those expectations.
+      // If the expected result contains keywords NOT found in the reference block code,
+      // lower the similarity to force LLM adaptation for the assertions.
+      if (bestSimilarity >= 0.5 && step.expectedResult && bestMatch >= 0) {
+        const expectedKeywords = this.extractAssertionKeywords(step.expectedResult);
+        const refCode = refBlocks[bestMatch].fullText.toLowerCase();
+        const missingKeywords = expectedKeywords.filter(kw => !refCode.includes(kw));
+        if (missingKeywords.length > 0 && missingKeywords.length >= expectedKeywords.length * 0.3) {
+          console.log(`      ⚠️ Step ${step.stepNumber}: action matches reference but expected result differs (missing: ${missingKeywords.join(', ')})`);
+          bestSimilarity = Math.min(bestSimilarity, 0.4); // Force into "differing" category
+        }
+      }
+
       return {
         newStep: step,
         refBlockIndex: bestMatch,
         similarity: bestSimilarity,
       };
     });
+  }
+
+  /**
+   * Extract meaningful keywords from expected result text for comparison.
+   * Filters out common stopwords and returns lowercase keywords.
+   */
+  private extractAssertionKeywords(expectedResult: string): string[] {
+    const stopwords = new Set(['the', 'should', 'be', 'set', 'to', 'with', 'and', 'that', 'ensure', 'after', 'step', 'validate', 'via', 'hard', 'soft', 'assertion', 'page', 'for', 'is', 'on', 'of', 'in', 'as', 'a', 'an']);
+    return expectedResult
+      .toLowerCase()
+      .replace(/[^a-z0-9\s$]/g, ' ')
+      .split(/\s+/)
+      .filter(w => w.length > 2 && !stopwords.has(w));
   }
 
   /**

@@ -283,6 +283,20 @@ export const FIELD_REGISTRY: FieldDefinition[] = [
     csvAliases: ['consigneelatesttime'],
     extractionSources: ['formFields.consigneeLatestTime'],
   },
+  {
+    canonicalKey: 'carrierInvoiceAmount1',
+    formFieldId: 'carr_invoice_amount',
+    stepPatterns: [/invoice\s*amount/i, /carrier\s*invoice\s*amount/i],
+    csvAliases: ['carrierinvoiceamount1'],
+    extractionSources: ['formFields.carrierInvoiceAmount1'],
+  },
+  {
+    canonicalKey: 'carrierInvoiceAmount2',
+    formFieldId: 'carr_invoice_amount',
+    stepPatterns: [],
+    csvAliases: ['carrierinvoiceamount2'],
+    extractionSources: ['formFields.carrierInvoiceAmount2'],
+  },
 ];
 
 // ─── Derived Lookups ─────────────────────────────────────────────────

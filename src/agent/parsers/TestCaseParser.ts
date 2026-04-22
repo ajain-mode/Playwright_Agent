@@ -490,8 +490,8 @@ export class TestCaseParser {
       consigneeCountry: csvRow['consigneeCountry'] || '',
       offerRate: csvRow['offerRate'] || csvRow['Offer Rate'] || '',
       bidRate: csvRow['bidRate'] || '',
-      rateType: csvRow['rateType'] || 'SPOT',
-      loadMethod: csvRow['loadMethod'] || 'TL',
+      rateType: csvRow['rateType'] || '',
+      loadMethod: csvRow['loadMethod'] || '',
       shipperEarliestTime: csvRow['shipperEarliestTime'] || '',
       shipperLatestTime: csvRow['shipperLatestTime'] || '',
       consigneeEarliestTime: csvRow['consigneeEarliestTime'] || '',
@@ -501,7 +501,7 @@ export class TestCaseParser {
       shipmentCommodityDescription: csvRow['shipmentCommodityDescription'] || '',
       shipmentCommodityWeight: csvRow['shipmentCommodityWeight'] || '',
       equipmentLength: csvRow['equipmentLength'] || '',
-      Method: csvRow['Method'] || 'Practical',
+      Method: csvRow['Method'] || '',
       saleAgentEmail: csvRow['saleAgentEmail'] || '',
       shipperAddress: csvRow['shipperAddress'] || '',
       consigneeAddress: csvRow['consigneeAddress'] || '',
@@ -1042,6 +1042,7 @@ export class TestCaseParser {
         ]},
         { key: 'loadType', patterns: [
           /(?:LoadMethod|Load\s*Method)\s*(?:\/TYPE)?\s*:\s*(.+)/i,
+          /NEW\s+LOAD\s*[-–]\s*(LTL|TL|FTL)/i,
         ]},
         { key: 'equipmentType', patterns: [
           /(?:Equipment|Equipment\s*Type)\s*(?:\/Equipment\s*Type)?\s*:\s*(.+)/i,
@@ -1130,6 +1131,13 @@ export class TestCaseParser {
           if (tlMatch) values.formFields['trailerLength'] = tlMatch[1].trim();
         }
 
+        // Invoice Amount: "enter Invoice Amount (e.g.900)" or "Invoice Amount as 600"
+        if (!values.formFields['carrierInvoiceAmount1']) {
+          const invAmtMatch = trimmed.match(/Invoice\s+Amount\s*\(\s*(?:e\.?g\.?\s*)?(\d+)\s*\)/i)
+            || trimmed.match(/Invoice\s+Amount\s+(?:as\s+)?(\d+)/i);
+          if (invAmtMatch) values.formFields['carrierInvoiceAmount1'] = invAmtMatch[1].trim();
+        }
+
         // "Mileage Engine" field as "Current"
         if (!values.formFields['mileageEngine']) {
           const mileMatch = trimmed.match(/"?Mileage\s+Engine"?\s+field\s+as\s+"([^"]+)"/i)
@@ -1153,10 +1161,11 @@ export class TestCaseParser {
 
         // Carrier name: "Include Carriers field on the load.(Eg. 18 KING TRUCKING LLC)"
         // Also: "choose a carrier button and enter value as XPO TRANS INC"
+        // Also: "enter XPO TRANS INC and select it once fully visible"
         if (!values.formFields['carrierName']) {
           const carrierMatch = trimmed.match(/(?:Include\s+)?Carrier[s]?\s+field[^(]*\(\s*(?:Eg\.?\s*)?([^)]+)\s*\)/i)
             || trimmed.match(/select\s+a\s+carrier[^(]*\(\s*(?:Eg\.?\s*)?([^)]+)\s*\)/i)
-            || trimmed.match(/choose\s+a?\s*carrier\b.*?(?:enter|type|typing)\s+(?:value\s+as\s+|in\s+)?([A-Z][A-Z0-9\s&,.'()-]+?)(?:\s+and\s+once|\s*\.|\s*$)/i);
+            || trimmed.match(/choose\s+a?\s*carrier\b.*?(?:enter|type|typing)\s+(?:value\s+as\s+|in\s+)?([A-Z][A-Z0-9\s&,.'()-]+?)(?:\s+and\s+(?:\w+\s+)*once|\s*\.|\s*$)/i);
           if (carrierMatch) values.formFields['carrierName'] = (carrierMatch[1] || '').trim();
         }
 
@@ -1456,6 +1465,13 @@ export class TestCaseParser {
     }
     if (form['expirationTime'] && !merged['expirationTime']) {
       merged['expirationTime'] = form['expirationTime'];
+    }
+    // Carrier invoice amounts extracted from step text (e.g., "Invoice Amount (e.g.900)")
+    if (form['carrierInvoiceAmount1'] && !merged['carrierInvoiceAmount1']) {
+      merged['carrierInvoiceAmount1'] = form['carrierInvoiceAmount1'];
+    }
+    if (form['carrierInvoiceAmount2'] && !merged['carrierInvoiceAmount2']) {
+      merged['carrierInvoiceAmount2'] = form['carrierInvoiceAmount2'];
     }
 
     // Extract city/state from shipper name format "NAME - CITY, ST" or "|NAME|CITY|ST"

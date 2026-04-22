@@ -522,3 +522,34 @@ Pending carrier invoice with price difference
 3.Ensure after Step 3 validate via hard assertion that Invoice Process is ""OFFICE"" and   Enable Auto Pay for GA-LE790 is set to YES.
 23.Ensure after step 23 validate via hard assertion that alert with the message ""Status has been set to BOOKED"" should appear on the page.
 28.Ensure after step 28 validate via hard assertion  that Payable toggle should be set to ""Agent"" with the payable message shown as “Load is not Invoiced”.",,"aiteam,billingtoggle"
+72259,,FD-36321,Verify the Payable Toggle setting when the Carrier remainder amount < Carrier invoice amount for Autopay load.,,"1.	Login to BTMS application, hover over Admin and click on OFFICE SEARCH.
+2.	Enter the office code as GA-LE790 and click Search.
+3.	Click on the row once details appear post search.
+4.	Hover over Customers and click Search.
+5.	Enter the Customer name AAK USA K1 LLC in the ""Customer"" field.
+6.	Click the Search button.
+7.	Click on the Customer detail row.
+8.	Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""NEW LOAD - LTL"" and Accept the alert.
+9.	Navigate to the Carrier tab and click Choose a Carrier, enter XPO TRANS INC and select it once fully visible.
+10.	Enter flat rate in Customer as 500.
+11.	Enter flat rate in Carrier as 600.
+12.	Enter trailer length as 20.
+13.	Navigate to the PICK tab.
+14.	Select the location from the ""Shipper"" field — AAK USA LLC.
+15.	Select the Actual Date (tomorrow's date).
+16.	Enter the Actual Time (e.g.09:00).
+17.	Enter item details — QTY: 1, TYPE: Select CASE from the dropdown, Description: Test Description (close any pop-up if it appears), Dims L x W x H: 11 x 11 x 11 (close any pop-up if it appears), Weight: 50.
+18.	Navigate to the DROP tab.
+19.	Select the location from the ""Consignee"" field — GHIRARDELL CHOCLATE CO..
+20.	Accept the alert by clicking OK.
+21.	Select the Actual Date (tomorrow's date).
+22.	Enter the Actual Time (e.g.09:00).
+23.	Click the SAVE button on the load.
+24.	Accept the alert.
+25.	Under the Load Documents section, click the upload icon against Payable.
+26.	Select the radio button Payables and select Document Type as Carrier Invoice.
+27.	Enter Invoice Number (e.g.123456), enter Invoice Amount (e.g.900), and click Attach — once attached, close the pop-up.
+28.	Click on VIEW BILLING and navigate to the Payable Status section.","
+3.Ensure after Step 3 validate via hard assertion that Invoice Process is ""OFFICE"" and   Enable Auto Pay for GA-LE790 is set to YES.
+23.Ensure after step 23 validate via hard assertion that alert with the message ""Status has been set to BOOKED"" should appear on the page.
+28.Ensure after step 28 validate via hard assertion that Payable toggle should be set to ""Agent"" with the payable message to “{Carrier Name} carrier invoiced $XXX over the total charge”",,"aiteam,billingtoggle"

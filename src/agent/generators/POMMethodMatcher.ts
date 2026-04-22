@@ -54,6 +54,20 @@ const PAGE_CONTEXT_TO_CLASSES: Record<string, string[]> = {
   finance: ['FinancePage', 'AccountsPayablePage'],
 };
 
+/**
+ * Tab-specific page object preferences.
+ * When context.currentTab is set, the matching page object class gets a boost.
+ * This disambiguates methods like enterActualDateValue that exist on both
+ * EditLoadPickTabPage and EditLoadDropTabPage.
+ */
+const TAB_TO_PREFERRED_CLASS: Record<string, string> = {
+  pick: 'EditLoadPickTabPage',
+  drop: 'EditLoadDropTabPage',
+  carrier: 'EditLoadCarrierTabPage',
+  general: 'EditLoadFormPage',
+  load: 'EditLoadFormPage',
+};
+
 function normalizeIdentifier(s: string): string {
   return s.toLowerCase().replace(/[\s_\-]+/g, '');
 }
@@ -156,6 +170,19 @@ function fieldSimilarityScore(step: ProcessedStep, methodName: string, parameter
 }
 
 function pageContextMatchScore(pageCtx: PageContext, className: string): number {
+  // Tab-specific boost: if we know the current tab, strongly prefer the tab's page object
+  if (pageCtx.currentTab) {
+    const tabKey = pageCtx.currentTab.toLowerCase();
+    const preferred = TAB_TO_PREFERRED_CLASS[tabKey];
+    if (preferred) {
+      if (className === preferred) return 1;
+      // Penalize the wrong tab's page object (e.g., DropTabPage when on PICK tab)
+      for (const [otherTab, otherClass] of Object.entries(TAB_TO_PREFERRED_CLASS)) {
+        if (otherTab !== tabKey && className === otherClass) return 0.1;
+      }
+    }
+  }
+
   const key = pageCtx.currentPage.toLowerCase();
   const list = PAGE_CONTEXT_TO_CLASSES[key];
   if (!list?.length) {
@@ -352,7 +379,7 @@ function todayFormatted(): string {
 
 function buildJsDoc(
   el: AppElement,
-  methodName: string,
+  _methodName: string,
   description: string,
   params: Array<{ name: string; desc: string }>,
   returnType?: string,

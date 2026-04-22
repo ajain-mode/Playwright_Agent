@@ -54,6 +54,7 @@ class LoadBillingPage {
 
     // Finance Messages locators
     private readonly financeMessagesList_LOC: Locator;
+    private readonly payableMessagesList_LOC: Locator;
 
     // View History link
     private readonly viewHistoryLink_LOC: Locator;
@@ -139,8 +140,11 @@ class LoadBillingPage {
         this.carrierInvoiceAmountInput_LOC = this.page.locator("#carrier_invoice_amount_id");
         this.saveCarrierInvoiceBtn_LOC = this.page.locator("#submit_save_carrier_invoice");
 
-        // Finance Messages
-        this.financeMessagesList_LOC = this.page.locator(".finance-messages .message");
+        // Finance Messages — all sections (billing + payables), excluding the input row
+        this.financeMessagesList_LOC = this.page.locator(".finance-messages .messages-list > .message");
+
+        // Finance Messages — payables section (scoped to payables container)
+        this.payableMessagesList_LOC = this.page.locator("div[id^='payables-note-container_'] .finance-messages .messages-list > .message");
 
         // View History — scoped to the payables note container
         this.viewHistoryLink_LOC = this.page.locator("div[id^='payables-note-container_'] a:has(small)");
@@ -644,6 +648,39 @@ class LoadBillingPage {
     async hasFinanceMessageContaining(searchText: string): Promise<boolean> {
         const messages = await this.getFinanceMessages();
         return messages.some(msg => msg.toLowerCase().includes(searchText.toLowerCase()));
+    }
+
+    /**
+     * Gets all payable-section messages from the billing page.
+     * Scoped to div[id^='payables-note-container_'] .finance-messages .messages-list > .message
+     * @author AI Agent
+     * @created 14-Apr-2026
+     * @returns Array of payable message texts.
+     */
+    async getPayableMessages(): Promise<string[]> {
+        const count = await this.payableMessagesList_LOC.count();
+        const messages: string[] = [];
+        for (let i = 0; i < count; i++) {
+            const text = await this.payableMessagesList_LOC.nth(i).textContent();
+            if (text?.trim()) {
+                messages.push(text.trim());
+            }
+        }
+        return messages;
+    }
+
+    /**
+     * Finds a payable message matching the given text (case-insensitive substring).
+     * Returns the full message text if found, null otherwise.
+     * @author AI Agent
+     * @created 14-Apr-2026
+     * @param searchText - substring to search for in payable messages
+     * @returns The full matching message text, or null if not found.
+     */
+    async findPayableMessageContaining(searchText: string): Promise<string | null> {
+        const messages = await this.getPayableMessages();
+        const match = messages.find(msg => msg.toLowerCase().includes(searchText.toLowerCase()));
+        return match || null;
     }
 
     /**

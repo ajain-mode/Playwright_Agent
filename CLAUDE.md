@@ -47,14 +47,18 @@ LLM calls are currently disabled. Generation is fully rule-based using the 3-age
 
 ```
 Input (JSON / plain text / CSV / XLSX)
-  → TestCaseParser          (src/agent/parsers/)       — categorize + type-detect via keyword matching
+  → TestCaseParser          (src/agent/parsers/)       — categorize + type-detect via keyword matching + FieldRegistry extraction
   → RepoCloneManager        (src/agent/services/)      — clones/updates app source repos (returns anyUpdated flag)
   → AppSourceIndexer        (src/agent/analyzers/)     — scans PHP/Twig for HTML elements (index invalidated on repo update)
   → CsvDataService          (src/agent/services/)      — ensures test data row in category CSV
-  → Agent 1: StepProcessor  (src/agent/analyzers/)     — classifies steps, produces immutable contextBefore/contextAfter
-  → StepMappings            (src/agent/config/)        — best-match scoring across 130+ declarative mappings
-  → Agent 2: POMMethodMatcher (src/agent/generators/)  — matches steps to existing POMs or proposes new methods
-  → CodeGenerator           (src/agent/generators/)    — assembles spec code from step mappings (rule-based)
+  → CodeGenerator           (src/agent/generators/)    — orchestrates generation:
+      ├─ HIGH MATCH (≥70%): cloneAndAdaptReferenceSpec  — clones reference, compares steps + expected results
+      │   └─ steps with matching action AND expected results → kept from reference
+      │   └─ steps with differing expected results → LLM generates replacement code
+      └─ STEP-BY-STEP: processAllSteps() pre-processes all steps with evolving context:
+          → Agent 1: StepProcessor  (src/agent/analyzers/) — classifies steps, immutable contextBefore/contextAfter
+          → StepMappings            (src/agent/config/)    — best-match scoring across 130+ declarative mappings
+          → Agent 2: POMMethodMatcher (src/agent/generators/) — matches steps to POMs using context snapshots
   → Agent 3: SpecValidator  (src/agent/validators/)    — sanitizer pre-pass + guardrail validation + auto-fixes
   → PageObjectWriter        (src/agent/analyzers/)     — writes new POM methods to page object files
   → src/tests/generated/<category>/<TEST_ID>.spec.ts
@@ -120,6 +124,15 @@ The `StepProcessor` tracks `isEditMode` in `PageContext`. Each `ProcessedStep` c
 The `POMMethodMatcher` uses `step.context` to choose locator strategy:
 - **Edit mode** (`isEditMode=true`): Uses exact `#id` locators (e.g., `page.locator('#invoice_process')`) with `.inputValue()`, `.fill()`, `.selectOption()`
 - **View mode** (`isEditMode=false`, action=`verify`): Uses Playwright chained locators (e.g., `page.getByRole('row', { name: /Label/i }).locator('td').nth(1)`) with `.textContent()`
+- **Tab awareness** (`currentTab`): `TAB_TO_PREFERRED_CLASS` maps tab names to preferred POM classes (e.g., PICK → `EditLoadPickTabPage`, DROP → `EditLoadDropTabPage`). This disambiguates methods like `enterActualDateValue()` that exist on both tab pages.
+
+### Clone+Adapt Expected Result Comparison
+
+When `cloneAndAdaptReferenceSpec()` clones a high-match reference spec, `matchStepsToReference()` compares both **action text** (Jaccard word similarity) and **expected results**. If a step's action matches the reference (≥0.5 similarity) but its expected result contains keywords missing from the reference step's code, the similarity is capped at 0.4 to force LLM-based adaptation. This prevents blind cloning of assertion code when the expected outcome differs (e.g., "Load is not Invoiced" vs "carrier invoiced $XXX over the total charge").
+
+### Data Extraction: No Hardcoded Defaults
+
+`TestCaseParser` field defaults for `rateType`, `loadMethod`, and `Method` are empty strings — not category-specific defaults like "SPOT" or "TL". Values must come from explicit step text extraction or CSV data. This prevents incorrect defaults from polluting test data for categories that don't use those fields.
 
 ### Key Source Files
 
@@ -222,7 +235,7 @@ Assertion expected values must come from `src/utils/globalConstants.ts`, never h
 | `INVOICE_PROCESS` | `OFFICE`, `CENTRAL` | Office invoice process validation |
 | `AUTOPAY_STATUS` | `ENABLED` ("YES"), `DISABLED` ("NO") | Office auto-pay validation (view page display values) |
 | `PAYABLE_TOGGLE_VALUE` | `AGENT`, `BILLING`, `NEUTRAL` | Billing page payable toggle |
-| `FINANCE_MESSAGES` | `LOAD_NOT_INVOICED` | Finance/billing message assertions |
+| `FINANCE_MESSAGES` | `LOAD_NOT_INVOICED`, `CARRIER_OVER_INVOICED` | Finance/billing message assertions |
 | `LOAD_STATUS` | Various | Load status assertions |
 | `HEADERS`, `ADMIN_SUB_MENU`, `LOAD_SUB_MENU`, etc. | Various | Navigation constants |
 
