@@ -52,14 +52,15 @@ export class EditLoadFormPage {
     );
     this.expirationDate_LOC = page.locator("#form_expiration_date");
     this.expirationTime_LOC = page.locator("#form_expiration_time");
-    this.mileageEngine_LOC = page.locator("//select[contains(@id,'mileage_engine')]").first();
-    this.mileageMethod_LOC = page.locator("//select[contains(@id,'mileage_method')]").first();
-    this.linehaulRateInput_LOC = page.locator("//input[contains(@id,'linehaul_rate')]").first();
-    this.whseInstructionsField_LOC = page.locator("//textarea[contains(@id,'shipper_whse')] | //input[contains(@id,'shipper_whse')]").first();
-    this.rateTypeDropdown_LOC = page.locator("//select[contains(@id,'rate_type') or contains(@name,'rate_type')]").first();
+    this.mileageEngine_LOC = page.locator("#form_carriers_1_mileage_engine"); // EquipmentRequirementsType.php:132
+    this.mileageMethod_LOC = page.locator("#form_carriers_1_mileage_method"); // EquipmentRequirementsType.php:133
+    this.linehaulRateInput_LOC = page.locator("#form_carriers_1_linehaul_rate"); // EquipmentRequirementsType.php:169
+    // TODO: locator not found in app source — manual lookup required
+    this.whseInstructionsField_LOC = page.locator("[name='whse_instructions']");
+    this.rateTypeDropdown_LOC = page.locator("#load_rate_type_select");
     this.linehaulRateType_LOC = page.locator("#form_carriers_1_linehaul_rate_type");
     this.fuelSurchargeRateType_LOC = page.locator("#form_fuel_surcharges_1_customer_rate_type");
-    this.methodDropdown_LOC = page.locator("//select[contains(@name,'method') or contains(@id,'method')]").first();
+    this.methodDropdown_LOC = page.locator("#loadsh_load_method"); // loadform.php:8080
     this.overrideBTFCheckbox_LOC = page.locator("#btf_override");
 
     this.searchAgentCombobox_LOC = page.locator(

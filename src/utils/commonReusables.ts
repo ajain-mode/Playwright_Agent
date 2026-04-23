@@ -640,6 +640,45 @@ class CommonReusables {
     console.log(`Generated ${digits}-digit random number: ${randomNumber}`);
     return randomNumber.toString();
   }
+
+  /**
+   * Generates a random 10-digit invoice number string.
+   * Convenience wrapper around generateRandomNumber(10).
+   * @author AI Agent
+   * @created 2026-04-23
+   * @returns A random 10-digit numeric string
+   */
+  generateRandomInvoiceNumber(): string {
+    return this.generateRandomNumber(10);
+  }
+
+  /**
+   * Extracts a dollar value from a string. Matches patterns like $1,500.00, $900, $2,000.00, etc.
+   * Returns the numeric value or null if no dollar amount found.
+   * @author AI Agent
+   * @created 2026-04-23
+   * @param text - The text to extract the dollar value from
+   * @returns The extracted numeric dollar value, or null
+   */
+  extractDollarValue(text: string): number | null {
+    const match = text.match(/\$\s*([\d,]+(?:\.\d{1,2})?)/);
+    if (!match) return null;
+    const value = parseFloat(match[1].replace(/,/g, ''));
+    return isNaN(value) ? null : value;
+  }
+
+  /**
+   * Normalizes a rate/amount string by stripping $, commas, and decimal portions.
+   * Returns the integer portion only (e.g., "$2,000.00" → "2000", "2000" → "2000").
+   * @author AI Agent
+   * @created 2026-04-23
+   * @param rate - The rate string to normalize
+   * @returns The integer portion as a string
+   */
+  normalizeRateToInteger(rate: string): string {
+    return rate.replace(/[\$,]/g, '').split('.')[0];
+  }
+
   /**
    * Starts a time counter and logs the elapsed time every second.
    * @author Rohit Singh

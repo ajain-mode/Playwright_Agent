@@ -50,10 +50,17 @@ test.describe.serial(
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
 
-        await test.step("Step 3: Click office row and validate Invoice Process & Auto Pay", async () => {
+        await test.step("Step 3: Click office row", async () => {
           await pages.officePage.officeSearchRow(testData.officeName);
           await commonReusables.waitForAllLoadStates(sharedPage);
+        });
 
+        await test.step("Step 4-6.1: Check Invoice Process and Auto Pay — edit if not correct, then validate", async () => {
+          // Step 4: Check values — if not correct, steps 5-6.1 will edit and save
+          await pages.officePage.ensureInvoiceProcessAndAutoPay(INVOICE_PROCESS.OFFICE, AUTOPAY_STATUS.ENABLED);
+          await commonReusables.waitForAllLoadStates(sharedPage);
+
+          // Validate after potential edit (Step 6.1 expected result)
           const invoiceProcess = await pages.officePage.getInvoiceProcessValue();
           pages.logger.info(`Invoice Process: ${invoiceProcess}`);
           expect(
@@ -69,67 +76,77 @@ test.describe.serial(
           ).toBe(AUTOPAY_STATUS.ENABLED);
         });
 
-        await test.step("Step 4: Navigate to Customer Search", async () => {
+        await test.step("Step 7: Navigate to Customer Search", async () => {
           await pages.basePage.navigateToBaseUrl();
           await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
           await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
 
-        await test.step("Step 5-6: Enter customer name and click Search", async () => {
+        await test.step("Step 8-9: Enter customer name and click Search", async () => {
           await pages.searchCustomerPage.enterCustomerName(testData.customerName);
           await pages.searchCustomerPage.selectActiveOnCustomerPage();
           await pages.searchCustomerPage.clickOnSearchCustomer();
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
 
-        await test.step("Step 7: Click on the Customer detail row", async () => {
+        await test.step("Step 10: Click on the Customer detail row", async () => {
           await pages.searchCustomerPage.clickOnActiveCustomer();
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
 
-        await test.step("Step 8: Click NEW LOAD - LTL and accept alert", async () => {
+        await test.step("Step 11: Click NEW LOAD - LTL and accept alert", async () => {
           await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.NEW_LOAD_LTL);
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
 
-        await test.step("Step 9: Navigate to Carrier tab and choose carrier XPO TRANS INC", async () => {
+        await test.step("Step 11.1: Select Rate Type as SPOT if visible", async () => {
+          const isRateTypeVisible = await pages.editLoadFormPage.isRateTypeFieldVisible();
+          if (isRateTypeVisible) {
+            await pages.editLoadPage.selectRateType(testData.rateType);
+            pages.logger.info("Rate Type set to SPOT");
+          } else {
+            pages.logger.info("Rate Type dropdown not visible — skipped");
+          }
+        });
+
+        await test.step("Step 12: Navigate to Carrier tab and choose carrier XPO TRANS INC", async () => {
           await pages.editLoadPage.clickOnTab(TABS.CARRIER);
           await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_NAME.CARRIER_XPO_TRANS);
           pages.logger.info(`Carrier selected: ${CARRIER_NAME.CARRIER_XPO_TRANS}`);
         });
 
-        await test.step("Step 10: Enter Customer flat rate as 500", async () => {
+        await test.step("Step 13: Enter Customer flat rate as 500", async () => {
           await pages.editLoadCarrierTabPage.enterCustomerRate(testData.customerRate);
         });
 
-        await test.step("Step 11: Enter Carrier flat rate as 600", async () => {
+        await test.step("Step 14: Enter Carrier flat rate as 600", async () => {
           await pages.editLoadCarrierTabPage.enterCarrierRate(testData.carrierRate);
         });
 
-        await test.step("Step 12: Enter trailer length as 20", async () => {
+        await test.step("Step 15: Enter trailer length as 20", async () => {
           await pages.editLoadCarrierTabPage.enterValueInTrailerLength(testData.trailerLength);
         });
 
-        await test.step("Step 13: Navigate to the PICK tab", async () => {
+        await test.step("Step 16: Navigate to the PICK tab", async () => {
           await pages.editLoadPage.clickOnTab(TABS.PICK);
         });
 
-        await test.step("Step 14: Select shipper location — AAK USA LLC", async () => {
+        await test.step("Step 17: Select shipper location — AAK USA LLC", async () => {
           await pages.editLoadPickTabPage.selectShipperAddress();
           await pages.editLoadPickTabPage.selectClientByName(testData.shipperName);
         });
 
-        await test.step("Step 15: Select Actual Date (tomorrow)", async () => {
+        await test.step("Step 18: Select Actual Date (tomorrow)", async () => {
           const dates = commonReusables.getNextTwoDatesFormatted();
           await pages.editLoadPickTabPage.enterActualDateValue(dates.tomorrow);
         });
 
-        await test.step("Step 16: Enter Actual Time 09:00", async () => {
+        await test.step("Step 19: Enter Actual Time 09:00", async () => {
           await pages.editLoadPickTabPage.enterActualTimeValue(testData.shipperEarliestTime);
         });
 
-        await test.step("Step 17: Enter item details — QTY, Type, Description, Dims, Weight", async () => {
+        await test.step("Step 20: Enter item details — QTY, Type, Description, Dims, Weight", async () => {
           await pages.editLoadPickTabPage.enterQtyValue(testData.shipmentCommodityQty);
           await pages.editLoadPickTabPage.selectItemType(testData.shipmentCommodityUoM);
           await pages.editLoadPickTabPage.enterDescriptionValue(testData.shipmentCommodityDescription);
@@ -139,26 +156,26 @@ test.describe.serial(
           await pages.editLoadPickTabPage.enterWeightValue(testData.shipmentCommodityWeight);
         });
 
-        await test.step("Step 18: Navigate to the DROP tab", async () => {
+        await test.step("Step 21: Navigate to the DROP tab", async () => {
           await pages.editLoadPage.clickOnTab(TABS.DROP);
         });
 
-        await test.step("Step 19-20: Select consignee — GHIRARDELL CHOCLATE CO. and accept alert", async () => {
+        await test.step("Step 22-23: Select consignee — GHIRARDELL CHOCLATE CO. and accept alert", async () => {
           await pages.editLoadDropTabPage.selectConsigneeAddress();
           await pages.editLoadDropTabPage.selectConsigneeByNameConsignee(testData.consigneeName);
           await pages.editLoadDropTabPage.alertPopUp();
         });
 
-        await test.step("Step 21: Select Actual Date (tomorrow)", async () => {
+        await test.step("Step 24: Select Actual Date (tomorrow)", async () => {
           const dates = commonReusables.getNextTwoDatesFormatted();
           await pages.editLoadDropTabPage.enterActualDateValue(dates.tomorrow);
         });
 
-        await test.step("Step 22: Enter Actual Time 09:00", async () => {
+        await test.step("Step 25: Enter Actual Time 09:00", async () => {
           await pages.editLoadDropTabPage.enterActualTimeValue(testData.consigneeEarliestTime);
         });
 
-        await test.step("Step 23: Click SAVE and validate BOOKED alert", async () => {
+        await test.step("Step 26-27: Click SAVE and validate BOOKED alert", async () => {
           const alertPromise = pages.commonReusables.validateAlert(
             sharedPage,
             ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_BOOKED
@@ -170,24 +187,22 @@ test.describe.serial(
             "Alert should contain 'Status has been set to BOOKED'"
           ).toMatch(ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_BOOKED);
           await commonReusables.waitForAllLoadStates(sharedPage);
-          pages.logger.info("Load saved — Status has been set to BOOKED");
+          const loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
+          pages.logger.info(`Load saved — Status has been set to BOOKED. Load ID: ${loadNumber}`);
         });
 
-        await test.step("Step 24: Click upload icon against Payable in Load Documents", async () => {
+        await test.step("Step 28: Click upload icon against Payable in Load Documents", async () => {
           await pages.viewLoadPage.openDocumentUploadDialog();
         });
 
-        await test.step("Step 25: Select Payables radio and Document Type as Carrier Invoice", async () => {
+        await test.step("Step 29: Select Payables radio, Document Type as Carrier Invoice, and upload file", async () => {
           await pages.viewLoadPage.selectPayablesRadio();
-          await pages.viewLoadPage.selectDocumentType('Carrier Invoice');
-        });
-
-        await test.step("Step 26: Upload Carrier Invoice file from local", async () => {
+          await pages.viewLoadPage.selectDocumentType(DOCUMENT_TYPE.CARRIER_INVOICE);
           await pages.viewLoadPage.attachCarrierInvoiceFile();
         });
 
-        await test.step("Step 27: Enter Invoice Number, Invoice Amount 900, click Attach and close popup", async () => {
-          const invoiceNumber = pages.loadBillingPage.generateRandomInvoiceNumber();
+        await test.step("Step 30: Enter Invoice Number, Invoice Amount 900, click Attach and close popup", async () => {
+          const invoiceNumber = pages.commonReusables.generateRandomInvoiceNumber();
           await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNumber);
           await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
 
@@ -196,10 +211,11 @@ test.describe.serial(
           await pages.viewLoadPage.closeDocumentUploadDialogSafe();
         });
 
-        await test.step("Step 28: Click VIEW BILLING and validate Payable Toggle = Agent with carrier over-invoiced message", async () => {
+        await test.step("Step 31: Click VIEW BILLING and validate Payable Toggle, carrier over-invoiced message, and Carrier payable status", async () => {
           await pages.viewLoadPage.clickViewBillingButton();
           await commonReusables.waitForAllLoadStates(sharedPage);
 
+          // Validate Payable toggle = Agent
           const payableToggle = await pages.loadBillingPage.getPayableToggleValue();
           pages.logger.info(`Payable toggle value: ${payableToggle}`);
           expect(
@@ -207,6 +223,7 @@ test.describe.serial(
             "Payable toggle should be set to 'Agent'"
           ).toBe(PAYABLE_TOGGLE_VALUE.AGENT);
 
+          // Validate carrier over-invoiced message: "{Carrier Name} invoiced $XXX over the total charge"
           const overcharge = (Number(testData.carrierInvoiceAmount1) - Number(testData.carrierRate)).toFixed(2);
           const expectedMsg = `${CARRIER_NAME.CARRIER_XPO_TRANS} invoiced $${overcharge} ${FINANCE_MESSAGES.CARRIER_OVER_INVOICED}`;
           pages.logger.info(`Expected payable message: ${expectedMsg}`);
@@ -217,6 +234,24 @@ test.describe.serial(
             actualMsg,
             `Payable message should match '${expectedMsg}'`
           ).toContain(expectedMsg);
+
+          // Validate Carrier payable status is "Invoice Received"
+          const carrierPayableStatus = await pages.loadBillingPage.getCarrierPayableStatus();
+          pages.logger.info(`Carrier payable status: ${carrierPayableStatus}`);
+          expect(
+            carrierPayableStatus,
+            "Carrier payable status should be 'Invoice Received'"
+          ).toBe(CARRIER_PAYABLE_STATUS.INVOICE_RECEIVED);
+        });
+
+        await test.step("Step 32: Validate Carrier REMAINDER < TOTAL INVOICES", async () => {
+          const remainder = await pages.loadBillingPage.getCarrierRemainderAmount();
+          const totalInvoices = await pages.loadBillingPage.getCarrierTotalInvoicesAmount();
+          pages.logger.info(`Carrier Remainder: ${remainder}, Total Invoices: ${totalInvoices}`);
+          expect(
+            remainder,
+            `Carrier remainder (${remainder}) should be < total invoices (${totalInvoices})`
+          ).toBeLessThan(totalInvoices);
         });
 
       }

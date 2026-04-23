@@ -170,15 +170,16 @@ function fieldSimilarityScore(step: ProcessedStep, methodName: string, parameter
 }
 
 function pageContextMatchScore(pageCtx: PageContext, className: string): number {
-  // Tab-specific boost: if we know the current tab, strongly prefer the tab's page object
+  // Tab-specific enforcement: if we know the current tab, HARD-BLOCK the wrong tab's page object
   if (pageCtx.currentTab) {
     const tabKey = pageCtx.currentTab.toLowerCase();
     const preferred = TAB_TO_PREFERRED_CLASS[tabKey];
     if (preferred) {
       if (className === preferred) return 1;
-      // Penalize the wrong tab's page object (e.g., DropTabPage when on PICK tab)
+      // Hard-block wrong tab page objects — return -1 so scoreCandidate produces a negative total
+      // e.g., on PICK tab, NEVER use EditLoadDropTabPage (and vice versa)
       for (const [otherTab, otherClass] of Object.entries(TAB_TO_PREFERRED_CLASS)) {
-        if (otherTab !== tabKey && className === otherClass) return 0.1;
+        if (otherTab !== tabKey && className === otherClass) return -1;
       }
     }
   }
@@ -257,9 +258,13 @@ function scoreCandidate(step: ProcessedStep, className: string, method: MethodIn
   if (method.isPrivate) {
     return 0;
   }
+  const p = pageContextMatchScore(step.context, className);
+  // Hard-block: if page context returns -1, this class is disqualified (wrong tab page object)
+  if (p < 0) {
+    return -1;
+  }
   const a = actionAlignmentScore(step.actionType, step.rawAction, method.name);
   const f = fieldSimilarityScore(step, method.name, method.parameters);
-  const p = pageContextMatchScore(step.context, className);
   const c = parameterCompatScore(step.actionType, method.parameters);
   return a * 0.3 + f * 0.3 + p * 0.2 + c * 0.2;
 }
@@ -276,6 +281,14 @@ function buildInvocationArgs(step: ProcessedStep, method: MethodInfo, testData?:
     return `testData.${camelCaseFromField(step.targetField)}`;
   }
   if (step.targetValue !== undefined && step.valueSource === 'hardcoded') {
+    // Instead of emitting hardcoded values, try to derive a testData key from the method name.
+    // e.g., method "enterCustomerRate" → testData.customerRate
+    const methodBody = method.name.replace(/^(enter|fill|select|set|type)/, '');
+    if (methodBody) {
+      const inferredKey = methodBody.charAt(0).toLowerCase() + methodBody.slice(1);
+      console.log(`   ⚠️ buildInvocationArgs: value "${step.targetValue}" is hardcoded — inferring testData.${inferredKey} from method "${method.name}"`);
+      return `testData.${inferredKey}`;
+    }
     return JSON.stringify(step.targetValue);
   }
   if (testData && typeof testData === 'object') {
@@ -590,21 +603,40 @@ export class POMMethodMatcher {
 
   private findBestPomMatch(step: ProcessedStep, testData?: Record<string, any>): MatchResult | null {
     const all = this.pomScanner.scanAll();
-    let best: { className: string; method: MethodInfo; score: number } | null = null;
+    // Collect ALL viable candidates, then pick the best with tie-breaking
+    const candidates: { className: string; method: MethodInfo; score: number }[] = [];
     for (const [, scan] of all) {
       for (const method of scan.methods) {
         if (method.isPrivate) {
           continue;
         }
         const score = scoreCandidate(step, scan.className, method);
-        if (!best || score > best.score) {
-          best = { className: scan.className, method, score };
+        // Skip hard-blocked candidates (negative score = wrong tab page object)
+        if (score < 0) {
+          continue;
+        }
+        if (score >= 0.6) {
+          candidates.push({ className: scan.className, method, score });
         }
       }
     }
-    if (!best || best.score < 0.6) {
+    if (candidates.length === 0) {
       return null;
     }
+    // Sort by score descending; when scores are close (within 0.1), prefer the class
+    // that is listed in PAGE_CONTEXT_TO_CLASSES for the current page context
+    const currentPageKey = step.context.currentPage.toLowerCase();
+    const preferredClasses = PAGE_CONTEXT_TO_CLASSES[currentPageKey] ?? [];
+    candidates.sort((a, b) => {
+      const scoreDiff = b.score - a.score;
+      if (Math.abs(scoreDiff) > 0.1) return scoreDiff;
+      // Tie-break: prefer class in current page's preferred list
+      const aInCtx = preferredClasses.includes(a.className) ? 1 : 0;
+      const bInCtx = preferredClasses.includes(b.className) ? 1 : 0;
+      if (bInCtx !== aInCtx) return bInCtx - aInCtx;
+      return scoreDiff;
+    });
+    const best = candidates[0];
     const { code, pageGetter } = emitExistingPomCall(
       this.pomScanner,
       best.className,
@@ -633,10 +665,31 @@ export class POMMethodMatcher {
       return null;
     }
     const el = qualified[0];
+    const methodName = proposeMethodName(step);
+
+    // --- Guard: check if a method with the same or similar name already exists on ANY POM class ---
+    const existingOwner = this.findExistingMethodOwner(methodName, step);
+    if (existingOwner) {
+      console.log(`   ⚠️ phaseBNewPom: method "${methodName}" already exists on ${existingOwner.className} — using existing instead of proposing new`);
+      const { code, pageGetter } = emitExistingPomCall(
+        this.pomScanner,
+        existingOwner.className,
+        existingOwner.method,
+        step,
+      );
+      return {
+        type: 'existing-pom',
+        code,
+        pageObject: pageGetter,
+        methodName: existingOwner.method.name,
+        confidence: 0.85,
+        reason: `Existing POM method found during new-pom phase: ${existingOwner.className}.${existingOwner.method.name}()`,
+      };
+    }
+
     const picked = pickPomClassForContext(this.pomScanner, step.context.currentPage);
     const className = picked?.className ?? 'BasePage';
     const filePath = picked?.filePath ?? `src/pages/.../${className}.ts`;
-    const methodName = proposeMethodName(step);
     let getter = this.pomScanner.getPageManagerGetterForClass(className);
     if (!getter) getter = deriveGetterName(className);
 
@@ -677,6 +730,52 @@ export class POMMethodMatcher {
       newLocator: el,
       reason: `App source match → ${className}.${methodName}() [${el.stabilityReason}, ${el.stabilityScore.toFixed(2)}]`,
     };
+  }
+
+  /**
+   * Searches all POM classes for an existing method with the same (or very similar) name.
+   * Returns the best-matching owner class + method, or null if none found.
+   * Respects tab context: will not return a method on a wrong-tab page object.
+   */
+  private findExistingMethodOwner(
+    proposedName: string,
+    step: ProcessedStep,
+  ): { className: string; method: MethodInfo } | null {
+    const all = this.pomScanner.scanAll();
+    const normProposed = proposedName.toLowerCase();
+    let best: { className: string; method: MethodInfo; score: number } | null = null;
+
+    for (const [, scan] of all) {
+      // Hard-block wrong tab page objects
+      const ctxScore = pageContextMatchScore(step.context, scan.className);
+      if (ctxScore < 0) continue;
+
+      for (const method of scan.methods) {
+        if (method.isPrivate) continue;
+        const normMethod = method.name.toLowerCase();
+        // Exact match or substring containment (e.g., proposed "enterRateType" matches "selectRateType")
+        let similarity = 0;
+        if (normMethod === normProposed) {
+          similarity = 1;
+        } else if (normMethod.includes(normProposed) || normProposed.includes(normMethod)) {
+          similarity = 0.85;
+        } else {
+          // Check action-stripped match: "isRateTypeFieldVisible" vs "selectRateType" both contain "ratetype"
+          const coreProposed = normProposed.replace(/^(enter|select|click|verify|get|is|set|check|ensure|validate)/, '');
+          const coreMethod = normMethod.replace(/^(enter|select|click|verify|get|is|set|check|ensure|validate)/, '');
+          if (coreProposed && coreMethod && (coreMethod.includes(coreProposed) || coreProposed.includes(coreMethod))) {
+            similarity = 0.75;
+          }
+        }
+        if (similarity > 0) {
+          const weightedScore = similarity * 0.7 + ctxScore * 0.3;
+          if (!best || weightedScore > best.score) {
+            best = { className: scan.className, method, score: weightedScore };
+          }
+        }
+      }
+    }
+    return best && best.score >= 0.6 ? { className: best.className, method: best.method } : null;
   }
 
   matchAndGenerate(step: ProcessedStep, testData?: Record<string, any>): MatchResult {

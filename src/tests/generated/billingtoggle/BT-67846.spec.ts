@@ -171,7 +171,7 @@ test.describe.serial(
         });
 
         await test.step("Step 21 [CSV 47]: Enter invoice details, click attach, accept alert, and close pop up", async () => {
-          const invoiceNumber = pages.loadBillingPage.generateRandomInvoiceNumber();
+          const invoiceNumber = pages.commonReusables.generateRandomInvoiceNumber();
           await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNumber);
           await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
 
@@ -196,7 +196,7 @@ test.describe.serial(
           // Validate: Toggle should still be "Agent" after reload
           const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
           pages.logger.info(`Billing toggle after reload: ${toggleValue}`);
-          expect(toggleValue, "Billing Issues toggle should still be 'Agent' after reload").toBe('Agent');
+          expect(toggleValue, "Billing Issues toggle should still be 'Agent' after reload").toBe(PAYABLE_TOGGLE_VALUE.AGENT);
 
           // Validate: "Not Deliv. Final" checkbox should be checked
           const notDelivChecked = await pages.loadBillingPage.isNotDeliveredFinalChecked();

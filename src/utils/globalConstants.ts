@@ -464,6 +464,7 @@ export class GlobalConstants {
   static readonly DOCUMENT_TYPE = {
     BILL_OF_LADING: "BOL",
     PROOF_OF_DELIVERY: "POD",
+    CARRIER_INVOICE: "Carrier Invoice",
   } as const;
 
   static readonly DOCUMENT_ACTION_TYPE = {
@@ -603,10 +604,28 @@ export class GlobalConstants {
     CARRIER_OVER_INVOICED: "over the total charge",
   } as const;
 
+  static readonly CARRIER_PAYABLE_STATUS = {
+    IN_PROCESS: "IN PROCESS",
+    INVOICE_RECEIVED: "INVOICE RECEIVED",
+    NEW_INVOICE_RECEIVED: "NEW INVOICE RECEIVED",
+    INVOICE_APPROVED: "INVOICE APPROVED",
+    HOLD_PAY: "HOLD PAY",
+    POSTED: "POSTED",
+  } as const;
+
   static readonly DEFAULT_ITEM_DIMENSIONS = {
     LENGTH: 11,
     WIDTH: 11,
     HEIGHT: 11,
+  } as const;
+
+  /**
+   * @author AI Agent
+   * @created 2026-04-23
+   * @description Success messages displayed by the application after completing actions.
+   */
+  static readonly SUCCESS_MESSAGES = {
+    ALL_DOCUMENTS_ATTACHED: "All documents attached successfully.",
   } as const;
 
   static readonly MILEAGE_ENGINE = {
@@ -697,9 +716,11 @@ declare global {
   const INVOICE_PROCESS: typeof GlobalConstants.INVOICE_PROCESS;
   const AUTOPAY_STATUS: typeof GlobalConstants.AUTOPAY_STATUS;
   const FINANCE_MESSAGES: typeof GlobalConstants.FINANCE_MESSAGES;
+  const CARRIER_PAYABLE_STATUS: typeof GlobalConstants.CARRIER_PAYABLE_STATUS;
   const DEFAULT_ITEM_DIMENSIONS: typeof GlobalConstants.DEFAULT_ITEM_DIMENSIONS;
   const MILEAGE_ENGINE: typeof GlobalConstants.MILEAGE_ENGINE;
   const MILEAGE_METHOD: typeof GlobalConstants.MILEAGE_METHOD;
+  const SUCCESS_MESSAGES: typeof GlobalConstants.SUCCESS_MESSAGES;
 }
 /**
  * @author Deepak Bohra
@@ -770,7 +791,9 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).INVOICE_PROCESS = GlobalConstants.INVOICE_PROCESS;
   (globalThis as any).AUTOPAY_STATUS = GlobalConstants.AUTOPAY_STATUS;
   (globalThis as any).FINANCE_MESSAGES = GlobalConstants.FINANCE_MESSAGES;
+  (globalThis as any).CARRIER_PAYABLE_STATUS = GlobalConstants.CARRIER_PAYABLE_STATUS;
   (globalThis as any).DEFAULT_ITEM_DIMENSIONS = GlobalConstants.DEFAULT_ITEM_DIMENSIONS;
   (globalThis as any).MILEAGE_ENGINE = GlobalConstants.MILEAGE_ENGINE;
   (globalThis as any).MILEAGE_METHOD = GlobalConstants.MILEAGE_METHOD;
+  (globalThis as any).SUCCESS_MESSAGES = GlobalConstants.SUCCESS_MESSAGES;
 }

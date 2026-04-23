@@ -691,6 +691,202 @@ const SANITIZER_RULES: GuardrailRule[] = [
       'selectCarreirContactForRateConfirmation(CARRIER_CONTACT.CONTACT_1)',
     ),
   },
+  {
+    id: 'SAN-014',
+    description: 'Fix wrong tab page object — editLoadDropTabPage used on PICK tab or editLoadPickTabPage used on DROP tab',
+    severity: 'error',
+    category: 'pom-compliance',
+    detect: (code) => {
+      const lines = code.split('\n');
+      let currentTab = '';
+      for (const line of lines) {
+        const tabMatch = line.match(/clickOnTab\(TABS\.(PICK|DROP)\)/i);
+        if (tabMatch) {
+          currentTab = tabMatch[1].toUpperCase();
+          continue;
+        }
+        if (currentTab === 'PICK' && /pages\.editLoadDropTabPage\.(?:enterActual|selectShipper|enterQty|selectItem|enterDescription|enterWeight|enterItem|closeNmfc)/i.test(line)) {
+          return true;
+        }
+        if (currentTab === 'DROP' && /pages\.editLoadPickTabPage\.(?:enterActual|selectConsignee|alertPopUp)/i.test(line)) {
+          return true;
+        }
+        // Reset tab context when switching to a different tab
+        if (/clickOnTab\(TABS\./i.test(line)) {
+          currentTab = '';
+        }
+      }
+      return false;
+    },
+    fix: (code) => {
+      const lines = code.split('\n');
+      let currentTab = '';
+      const fixed: string[] = [];
+      for (const line of lines) {
+        const tabMatch = line.match(/clickOnTab\(TABS\.(PICK|DROP)\)/i);
+        if (tabMatch) {
+          currentTab = tabMatch[1].toUpperCase();
+          fixed.push(line);
+          continue;
+        }
+        let fixedLine = line;
+        if (currentTab === 'PICK') {
+          fixedLine = fixedLine.replace(/pages\.editLoadDropTabPage\./g, 'pages.editLoadPickTabPage.');
+        }
+        if (currentTab === 'DROP') {
+          fixedLine = fixedLine.replace(/pages\.editLoadPickTabPage\./g, 'pages.editLoadDropTabPage.');
+        }
+        if (/clickOnTab\(TABS\./i.test(line)) {
+          currentTab = '';
+        }
+        fixed.push(fixedLine);
+      }
+      return fixed.join('\n');
+    },
+  },
+  {
+    id: 'SAN-015',
+    description: 'Fix hardcoded string arguments in POM calls — use DOCUMENT_TYPE/CARRIER_PAYABLE_STATUS constants',
+    severity: 'error',
+    category: 'data-compliance',
+    detect: (code) =>
+      /selectDocumentType\(\s*['"]Carrier Invoice['"]\s*\)/.test(code) ||
+      /\.toBe\(\s*['"]Invoice Received['"]\s*\)/.test(code) ||
+      /\.toBe\(\s*['"]INVOICE RECEIVED['"]\s*\)/.test(code) ||
+      /\.toBe\(\s*['"]IN PROCESS['"]\s*\)/.test(code) ||
+      /\.toBe\(\s*['"]INVOICE APPROVED['"]\s*\)/.test(code) ||
+      /\.toBe\(\s*['"]HOLD PAY['"]\s*\)/.test(code) ||
+      /\.toBe\(\s*['"]POSTED['"]\s*\)/.test(code) ||
+      /selectRateType\(\s*['"]SPOT['"]\s*\)/.test(code),
+    fix: (code) => code
+      .replace(/selectDocumentType\(\s*['"]Carrier Invoice['"]\s*\)/g, 'selectDocumentType(DOCUMENT_TYPE.CARRIER_INVOICE)')
+      .replace(/\.toBe\(\s*['"]Invoice Received['"]\s*\)/g, '.toBe(CARRIER_PAYABLE_STATUS.INVOICE_RECEIVED)')
+      .replace(/\.toBe\(\s*['"]INVOICE RECEIVED['"]\s*\)/g, '.toBe(CARRIER_PAYABLE_STATUS.INVOICE_RECEIVED)')
+      .replace(/\.toBe\(\s*['"]IN PROCESS['"]\s*\)/g, '.toBe(CARRIER_PAYABLE_STATUS.IN_PROCESS)')
+      .replace(/\.toBe\(\s*['"]INVOICE APPROVED['"]\s*\)/g, '.toBe(CARRIER_PAYABLE_STATUS.INVOICE_APPROVED)')
+      .replace(/\.toBe\(\s*['"]HOLD PAY['"]\s*\)/g, '.toBe(CARRIER_PAYABLE_STATUS.HOLD_PAY)')
+      .replace(/\.toBe\(\s*['"]POSTED['"]\s*\)/g, '.toBe(CARRIER_PAYABLE_STATUS.POSTED)')
+      .replace(/selectRateType\(\s*['"]SPOT['"]\s*\)/g, 'selectRateType(testData.rateType)'),
+  },
+  {
+    id: 'SAN-016',
+    description: 'Fix emailedDocumentsForLoadPage calls — redirect to viewLoadPage when method exists there',
+    severity: 'error',
+    category: 'pom-compliance',
+    detect: (code) => /pages\.emailedDocumentsForLoadPage\.selectDocumentType\(/.test(code),
+    fix: (code) => code.replace(
+      /pages\.emailedDocumentsForLoadPage\.selectDocumentType\(/g,
+      'pages.viewLoadPage.selectDocumentType(',
+    ),
+  },
+  {
+    id: 'SAN-017',
+    description: 'Remove || fallback alternatives in testData/constant value references',
+    severity: 'error',
+    category: 'data-compliance',
+    detect: (code) => /testData\.\w+\s*\|\|\s*["']/.test(code),
+    fix: (code) => code.replace(
+      /testData\.(\w+)\s*\|\|\s*["'][^"']*["']/g,
+      'testData.$1',
+    ),
+  },
+  {
+    id: 'SAN-018',
+    description: 'Replace known raw locator patterns with POM method calls in generated specs',
+    severity: 'error',
+    category: 'pom-compliance',
+    detect: (code) =>
+      /sharedPage\.locator\(\s*["']\/\/select\[@name=['"]document_type['"]\]/.test(code) ||
+      /sharedPage\.locator\(\s*["']#cat_payables["']\)/.test(code) ||
+      /sharedPage\.locator\(\s*["']\/\/input\[@type=['"]file['"]\]/.test(code) ||
+      /sharedPage\.locator\(\s*["']#carr_invoice_num_input["']\)/.test(code) ||
+      /sharedPage\.locator\(\s*["']#carr_invoice_amount["']\)/.test(code) ||
+      /sharedPage\.locator\(\s*["']\/\/img\[@title=['"]Upload document['"]\]/.test(code),
+    fix: (code) => {
+      let c = code;
+      // Payables radio
+      c = c.replace(
+        /await\s+sharedPage\.locator\(\s*["']#cat_payables["']\s*\)\.check\(\)\s*;/g,
+        'await pages.viewLoadPage.selectPayablesRadio();',
+      );
+      // Document type select
+      c = c.replace(
+        /await\s+sharedPage\.locator\(\s*["']\/\/select\[@name=['"]document_type['"]\]["']\s*\)\.selectOption\(\s*\{\s*label:\s*["']([^"']+)["']\s*\}\s*\)\s*;/g,
+        'await pages.viewLoadPage.selectDocumentType(DOCUMENT_TYPE.CARRIER_INVOICE);',
+      );
+      // Upload document icon
+      c = c.replace(
+        /await\s+sharedPage\.locator\(\s*["']\/\/img\[@title=['"]Upload document['"]\]["']\s*\)\.first\(\)\.click\(\)\s*;/g,
+        'await pages.viewLoadPage.openDocumentUploadDialog();',
+      );
+      // Invoice number input
+      c = c.replace(
+        /await\s+sharedPage\.locator\(\s*["']#carr_invoice_num_input["']\s*\)\.fill\(([^)]+)\)\s*;/g,
+        'await pages.viewLoadPage.fillCarrierInvoiceNumber($1);',
+      );
+      // Invoice amount input
+      c = c.replace(
+        /await\s+sharedPage\.locator\(\s*["']#carr_invoice_amount["']\s*\)\.fill\(([^)]+)\)\s*;/g,
+        'await pages.viewLoadPage.fillCarrierInvoiceAmount($1);',
+      );
+      return c;
+    },
+  },
+  // SAN-019: Replace hardcoded assertion values and POM message strings with global constants
+  {
+    id: 'SAN-019',
+    description: 'Replace hardcoded assertion/message values with global constants (toggle values, success messages, payable status, etc.)',
+    severity: 'error',
+    category: 'data-compliance',
+    detect: (code) =>
+      // Toggle values in assertions
+      /\.toBe\(\s*['"](?:Agent|Billing|Neutral)['"]\s*\)/.test(code) ||
+      // Success messages hardcoded in toHaveText
+      /toHaveText\(\s*['"]All documents attached successfully\.['"]\s*\)/.test(code) ||
+      // Invoice process values
+      /\.toBe\(\s*['"](?:Office|Central)['"]\s*\)/.test(code) ||
+      // Carrier payable status values
+      /\.toBe\(\s*['"](?:Invoice Received|INVOICE RECEIVED|In Process|IN PROCESS|Invoice Approved|INVOICE APPROVED|Hold Pay|HOLD PAY)['"]\s*\)/.test(code) ||
+      // Document type in selectOption
+      /selectOption\(\s*\{\s*label:\s*['"](?:Carrier Invoice|Proof of Delivery|Bill of Lading)['"]\s*\}\s*\)/.test(code),
+    fix: (code) => {
+      let c = code;
+      // Toggle values
+      c = c.replace(/\.toBe\(\s*['"]Agent['"]\s*\)/g, '.toBe(PAYABLE_TOGGLE_VALUE.AGENT)');
+      c = c.replace(/\.toBe\(\s*['"]Billing['"]\s*\)/g, '.toBe(PAYABLE_TOGGLE_VALUE.BILLING)');
+      c = c.replace(/\.toBe\(\s*['"]Neutral['"]\s*\)/g, '.toBe(PAYABLE_TOGGLE_VALUE.NEUTRAL)');
+      // Success messages
+      c = c.replace(/toHaveText\(\s*['"]All documents attached successfully\.['"]\s*\)/g, 'toHaveText(SUCCESS_MESSAGES.ALL_DOCUMENTS_ATTACHED)');
+      // Invoice process
+      c = c.replace(/\.toBe\(\s*['"]Office['"]\s*\)/g, '.toBe(INVOICE_PROCESS.OFFICE)');
+      c = c.replace(/\.toBe\(\s*['"]Central['"]\s*\)/g, '.toBe(INVOICE_PROCESS.CENTRAL)');
+      // Carrier payable status
+      c = c.replace(/\.toBe\(\s*['"](?:Invoice Received|INVOICE RECEIVED)['"]\s*\)/g, '.toBe(CARRIER_PAYABLE_STATUS.INVOICE_RECEIVED)');
+      c = c.replace(/\.toBe\(\s*['"](?:In Process|IN PROCESS)['"]\s*\)/g, '.toBe(CARRIER_PAYABLE_STATUS.IN_PROCESS)');
+      c = c.replace(/\.toBe\(\s*['"](?:Invoice Approved|INVOICE APPROVED)['"]\s*\)/g, '.toBe(CARRIER_PAYABLE_STATUS.INVOICE_APPROVED)');
+      c = c.replace(/\.toBe\(\s*['"](?:Hold Pay|HOLD PAY)['"]\s*\)/g, '.toBe(CARRIER_PAYABLE_STATUS.HOLD_PAY)');
+      // Document type in selectOption
+      c = c.replace(/selectOption\(\s*\{\s*label:\s*['"]Carrier Invoice['"]\s*\}\s*\)/g, 'selectOption({ label: DOCUMENT_TYPE.CARRIER_INVOICE })');
+      c = c.replace(/selectOption\(\s*\{\s*label:\s*['"]Proof of Delivery['"]\s*\}\s*\)/g, 'selectOption({ label: DOCUMENT_TEXT.PROOF_OF_DELIVERY })');
+      c = c.replace(/selectOption\(\s*\{\s*label:\s*['"]Bill of Lading['"]\s*\}\s*\)/g, 'selectOption({ label: DOCUMENT_TEXT.BILL_OF_LADING })');
+      return c;
+    },
+  },
+  // SAN-020: Redirect generic utility method calls from domain page objects to commonReusables
+  {
+    id: 'SAN-020',
+    description: 'Redirect generic utility calls (generate*, extract*, normalize*, format*) from domain POM to pages.commonReusables',
+    severity: 'warning',
+    category: 'pom-compliance',
+    detect: (code) =>
+      /pages\.(?!commonReusables)\w+\.(generate\w+|extract\w+|normalizeRate\w+|formatRate\w+)\s*\(/.test(code),
+    fix: (code) => {
+      return code.replace(
+        /pages\.(?!commonReusables)(\w+)\.(generate\w+|extract\w+|normalizeRate\w+|formatRate\w+)\s*\(/g,
+        (_match, _pageObj, methodName) => `pages.commonReusables.${methodName}(`,
+      );
+    },
+  },
 ];
 
 export class SpecValidator {
@@ -1351,6 +1547,54 @@ export class SpecValidator {
         autoFixable: true,
       });
     }
+
+    // DATA-006: Detect hardcoded string arguments in POM select/document/rate/assertion calls
+    // that should use global constants instead
+    const hardcodedConstantPatterns: { regex: RegExp; constant: string; rule: string }[] = [
+      { regex: /selectDocumentType\(\s*['"]Carrier Invoice['"]\s*\)/, constant: 'DOCUMENT_TYPE.CARRIER_INVOICE', rule: 'selectDocumentType' },
+      { regex: /selectDocumentType\(\s*['"]Proof of Delivery['"]\s*\)/, constant: 'DOCUMENT_TEXT.PROOF_OF_DELIVERY', rule: 'selectDocumentType' },
+      { regex: /selectDocumentType\(\s*['"]Bill of Lading['"]\s*\)/, constant: 'DOCUMENT_TEXT.BILL_OF_LADING', rule: 'selectDocumentType' },
+      { regex: /selectRateType\(\s*['"]SPOT['"]\s*\)/, constant: 'testData.rateType', rule: 'selectRateType' },
+      { regex: /\.toBe\(\s*['"](?:Invoice Received|INVOICE RECEIVED)['"]\s*\)/, constant: 'CARRIER_PAYABLE_STATUS.INVOICE_RECEIVED', rule: 'assertion' },
+      { regex: /\.toBe\(\s*['"](?:In Process|IN PROCESS)['"]\s*\)/, constant: 'CARRIER_PAYABLE_STATUS.IN_PROCESS', rule: 'assertion' },
+      { regex: /\.toBe\(\s*['"](?:Invoice Approved|INVOICE APPROVED)['"]\s*\)/, constant: 'CARRIER_PAYABLE_STATUS.INVOICE_APPROVED', rule: 'assertion' },
+      { regex: /\.toBe\(\s*['"](?:Hold Pay|HOLD PAY)['"]\s*\)/, constant: 'CARRIER_PAYABLE_STATUS.HOLD_PAY', rule: 'assertion' },
+      { regex: /\.toBe\(\s*['"](?:Posted|POSTED)['"]\s*\)/, constant: 'CARRIER_PAYABLE_STATUS.POSTED', rule: 'assertion' },
+      // Payable/Billing toggle values
+      { regex: /\.toBe\(\s*['"]Agent['"]\s*\)/, constant: 'PAYABLE_TOGGLE_VALUE.AGENT', rule: 'assertion' },
+      { regex: /\.toBe\(\s*['"]Billing['"]\s*\)/, constant: 'PAYABLE_TOGGLE_VALUE.BILLING', rule: 'assertion' },
+      { regex: /\.toBe\(\s*['"]Neutral['"]\s*\)/, constant: 'PAYABLE_TOGGLE_VALUE.NEUTRAL', rule: 'assertion' },
+      // Success messages
+      { regex: /toHaveText\(\s*['"]All documents attached successfully\.['"]\s*\)/, constant: 'SUCCESS_MESSAGES.ALL_DOCUMENTS_ATTACHED', rule: 'toHaveText' },
+      // Invoice process values
+      { regex: /\.toBe\(\s*['"]Office['"]\s*\)/, constant: 'INVOICE_PROCESS.OFFICE', rule: 'assertion' },
+      { regex: /\.toBe\(\s*['"]Central['"]\s*\)/, constant: 'INVOICE_PROCESS.CENTRAL', rule: 'assertion' },
+      // Autopay status values
+      { regex: /\.toBe\(\s*['"]YES['"]\s*\)/, constant: 'AUTOPAY_STATUS.ENABLED', rule: 'assertion' },
+      { regex: /\.toBe\(\s*['"]NO['"]\s*\)/, constant: 'AUTOPAY_STATUS.DISABLED', rule: 'assertion' },
+    ];
+    for (const { regex, constant, rule } of hardcodedConstantPatterns) {
+      if (regex.test(specCode)) {
+        violations.push({
+          ruleId: 'DATA-006',
+          severity: 'error',
+          message: `Hardcoded value in ${rule} call should use constant: ${constant}`,
+          category: 'data-compliance',
+          autoFixable: true,
+        });
+      }
+    }
+
+    // DATA-007: Detect || fallback alternatives in testData references
+    if (/testData\.\w+\s*\|\|\s*["']/.test(specCode)) {
+      violations.push({
+        ruleId: 'DATA-007',
+        severity: 'error',
+        message: 'testData.* || "fallback" patterns must not appear — use testData.* only (ensure CSV has the field).',
+        category: 'data-compliance',
+        autoFixable: true,
+      });
+    }
   }
 
   private runAssertionQuality(
@@ -1554,6 +1798,42 @@ export class SpecValidator {
         result.push(lines[i]);
       }
       code = result.join('\n');
+    }
+
+    // DATA-006: Auto-fix hardcoded constant values → use global constants
+    if (ids.has('DATA-006')) {
+      code = code
+        // Document type selections
+        .replace(/selectDocumentType\(\s*['"]Carrier Invoice['"]\s*\)/g, 'selectDocumentType(DOCUMENT_TYPE.CARRIER_INVOICE)')
+        .replace(/selectDocumentType\(\s*['"]Proof of Delivery['"]\s*\)/g, 'selectDocumentType(DOCUMENT_TEXT.PROOF_OF_DELIVERY)')
+        .replace(/selectDocumentType\(\s*['"]Bill of Lading['"]\s*\)/g, 'selectDocumentType(DOCUMENT_TEXT.BILL_OF_LADING)')
+        .replace(/selectRateType\(\s*['"]SPOT['"]\s*\)/g, 'selectRateType(testData.rateType)')
+        // Carrier payable status assertions
+        .replace(/\.toBe\(\s*['"](?:Invoice Received|INVOICE RECEIVED)['"]\s*\)/g, '.toBe(CARRIER_PAYABLE_STATUS.INVOICE_RECEIVED)')
+        .replace(/\.toBe\(\s*['"](?:In Process|IN PROCESS)['"]\s*\)/g, '.toBe(CARRIER_PAYABLE_STATUS.IN_PROCESS)')
+        .replace(/\.toBe\(\s*['"](?:Invoice Approved|INVOICE APPROVED)['"]\s*\)/g, '.toBe(CARRIER_PAYABLE_STATUS.INVOICE_APPROVED)')
+        .replace(/\.toBe\(\s*['"](?:Hold Pay|HOLD PAY)['"]\s*\)/g, '.toBe(CARRIER_PAYABLE_STATUS.HOLD_PAY)')
+        .replace(/\.toBe\(\s*['"](?:Posted|POSTED)['"]\s*\)/g, '.toBe(CARRIER_PAYABLE_STATUS.POSTED)')
+        // Payable/Billing toggle values
+        .replace(/\.toBe\(\s*['"]Agent['"]\s*\)/g, '.toBe(PAYABLE_TOGGLE_VALUE.AGENT)')
+        .replace(/\.toBe\(\s*['"]Billing['"]\s*\)/g, '.toBe(PAYABLE_TOGGLE_VALUE.BILLING)')
+        .replace(/\.toBe\(\s*['"]Neutral['"]\s*\)/g, '.toBe(PAYABLE_TOGGLE_VALUE.NEUTRAL)')
+        // Success messages in toHaveText
+        .replace(/toHaveText\(\s*['"]All documents attached successfully\.['"]\s*\)/g, 'toHaveText(SUCCESS_MESSAGES.ALL_DOCUMENTS_ATTACHED)')
+        // Invoice process values
+        .replace(/\.toBe\(\s*['"]Office['"]\s*\)/g, '.toBe(INVOICE_PROCESS.OFFICE)')
+        .replace(/\.toBe\(\s*['"]Central['"]\s*\)/g, '.toBe(INVOICE_PROCESS.CENTRAL)')
+        // Autopay status values
+        .replace(/\.toBe\(\s*['"]YES['"]\s*\)/g, '.toBe(AUTOPAY_STATUS.ENABLED)')
+        .replace(/\.toBe\(\s*['"]NO['"]\s*\)/g, '.toBe(AUTOPAY_STATUS.DISABLED)');
+    }
+
+    // DATA-007: Auto-fix || fallback alternatives in testData references
+    if (ids.has('DATA-007')) {
+      code = code.replace(
+        /testData\.(\w+)\s*\|\|\s*["'][^"']*["']/g,
+        'testData.$1',
+      );
     }
 
     void processedSteps;

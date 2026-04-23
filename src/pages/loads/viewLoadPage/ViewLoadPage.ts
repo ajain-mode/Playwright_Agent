@@ -1531,7 +1531,7 @@ export default class ViewLoadPage {
    */
   async waitForUploadSuccess(): Promise<void> {
     await expect(this.successMessage_LOC).toBeVisible({ timeout: WAIT.LARGE });
-    await expect(this.successMessage_LOC).toHaveText("All documents attached successfully.", { timeout: WAIT.LARGE });
+    await expect(this.successMessage_LOC).toHaveText(SUCCESS_MESSAGES.ALL_DOCUMENTS_ATTACHED, { timeout: WAIT.LARGE });
     console.log("Upload success message confirmed");
   }
 

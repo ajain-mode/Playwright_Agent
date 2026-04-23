@@ -974,7 +974,7 @@ await this.page.waitForLoadState('load');`,
     if (/\b(await|expect|locator|click|fill|check|press|selectOption|waitFor|page\.|toBeVisible|toHaveText)\b/.test(method.body)) return false;
 
     // Method name patterns that indicate generic utility functions
-    const genericNamePatterns = /^(format|parse|normalize|convert|calculate|compute|transform|extract|sanitize|clean|trim|pad|round|truncate|capitalize|camelize|slugify|encode|decode)/i;
+    const genericNamePatterns = /^(format|parse|normalize|convert|calculate|compute|transform|extract|sanitize|clean|trim|pad|round|truncate|capitalize|camelize|slugify|encode|decode|generate)/i;
     if (genericNamePatterns.test(method.name)) return true;
 
     // If the body is a pure expression (math, string ops, no DOM or page interaction)
@@ -2854,7 +2854,7 @@ ${stepCode}
     // Detects patterns like ClassName.staticMethod(args) where the static method is a pure utility
     // (format, parse, normalize, convert, etc.) and rewrites to commonReusables.methodName(args)
     {
-      const genericStaticPattern = /(\w+)\.(format\w+|parse\w+|normalize\w+|convert\w+|calculate\w+|compute\w+|transform\w+|extract\w+|sanitize\w+|clean\w+|trim\w+|pad\w+|round\w+|truncate\w+)\s*\(/gi;
+      const genericStaticPattern = /(\w+)\.(format\w+|parse\w+|normalize\w+|convert\w+|calculate\w+|compute\w+|transform\w+|extract\w+|sanitize\w+|clean\w+|trim\w+|pad\w+|round\w+|truncate\w+|generate\w+)\s*\(/gi;
       let staticRedirectCount = 0;
       fixed = fixed.replace(genericStaticPattern, (fullMatch, className, methodName) => {
         // Skip if already on commonReusables/pages.commonReusables or known non-page-object classes

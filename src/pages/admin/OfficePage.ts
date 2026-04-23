@@ -14,6 +14,8 @@ export default class OfficePage {
   private readonly internalStatusDropdown: Locator;
   private readonly invoiceProcess_LOC: Locator;
   private readonly autopayDisabled_LOC: Locator;
+  private readonly invoiceProcessDropdown_LOC: Locator;
+  private readonly autoPayDropdown_LOC: Locator;
 
   constructor(private page: Page) {
     this.officeCodeInput_LOC = page.locator("#search_office_code");
@@ -31,6 +33,8 @@ export default class OfficePage {
     //this.invoiceProcess_LOC = page.locator('td.fn td:has-text("Office")')
     this.invoiceProcess_LOC = page.locator('td.fn:has-text("Invoice Process") + td.view')
     this.autopayDisabled_LOC = page.locator('td.fn:has-text("Enable Auto-Pay") + td.view')
+    this.invoiceProcessDropdown_LOC = page.locator('#invoice_process');
+    this.autoPayDropdown_LOC = page.locator('#autopay_disabled');
   }
 
   /**
@@ -344,5 +348,38 @@ export default class OfficePage {
     const text = await this.autopayDisabled_LOC.textContent();
     console.log(`Enable Auto-Pay value: ${text}`);
     return (text ?? '').trim();
+  }
+
+  /**
+   * Ensures Invoice Process and Enable Auto-Pay are set to the expected values.
+   * Reads current values in view mode; if either differs, clicks Edit,
+   * selects the correct dropdown values, and clicks Save.
+   * Locator: #invoice_process (officeform.php:2327)
+   * Locator: #autopay_disabled (officeform.php:2197)
+   * @author AI Agent
+   * @created 2026-04-23
+   * @param expectedInvoiceProcess - Expected Invoice Process label (e.g., "Office")
+   * @param expectedAutoPay - Expected Enable Auto-Pay label (e.g., "YES")
+   */
+  async ensureInvoiceProcessAndAutoPay(expectedInvoiceProcess: string, expectedAutoPay: string): Promise<void> {
+    const currentInvoiceProcess = await this.getInvoiceProcessValue();
+    const currentAutoPay = await this.getAutopayDisabledValue();
+
+    const needsEdit =
+      currentInvoiceProcess.toLowerCase() !== expectedInvoiceProcess.toLowerCase() ||
+      currentAutoPay.toUpperCase() !== expectedAutoPay.toUpperCase();
+
+    if (needsEdit) {
+      console.log(`Office settings need update: Invoice Process=${currentInvoiceProcess} (want ${expectedInvoiceProcess}), Auto-Pay=${currentAutoPay} (want ${expectedAutoPay})`);
+      await this.editButton_LOC.click();
+
+      await this.invoiceProcessDropdown_LOC.selectOption({ label: expectedInvoiceProcess });
+      await this.autoPayDropdown_LOC.selectOption({ label: expectedAutoPay });
+
+      await this.saveButton_LOC.click();
+      console.log(`Office settings updated: Invoice Process=${expectedInvoiceProcess}, Auto-Pay=${expectedAutoPay}`);
+    } else {
+      console.log(`Office settings already correct: Invoice Process=${currentInvoiceProcess}, Auto-Pay=${currentAutoPay}`);
+    }
   }
 }

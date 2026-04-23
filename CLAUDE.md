@@ -210,6 +210,27 @@ Every POM method must have a JSDoc block:
 - `@returns` for non-void return types
 - Locator source reference (e.g., `officeform.php:1449`) when discovered from app source
 
+### Mandatory Locator Lookup from App Source (Conversational & Pipeline)
+
+**MANDATORY**: Before declaring ANY new locator in a POM file — whether during automated pipeline generation OR conversational edits — the actual HTML element ID/name MUST be looked up from the cloned application source:
+
+1. **Search the app source cache first**:
+   ```bash
+   # For BTMS elements (monotrans):
+   grep -r "field_name_or_keyword" src/agent/.cache/mono/btms/php/src/ --include="*.php"
+   # For DME elements (monodme):
+   grep -r "field_name_or_keyword" src/agent/.cache/dme/templates/ --include="*.html.twig"
+   ```
+2. **Use the exact `id` attribute** from the source HTML (e.g., `#load_rate_type_select`), never a guessed XPath or `contains()` expression.
+3. **Locator priority**: `#id` (stability 1.0) > `[name=...]` (0.9) > `getByRole()` (0.7) > empty string (never guess).
+4. **If no match is found** in the app source cache, do NOT fabricate a locator. Instead:
+   - Leave the locator as an empty string or placeholder
+   - Add a `// TODO: locator not found in app source — manual lookup required` comment
+   - Log a warning so the developer knows to verify
+5. **Never use**: `//select[contains(@id,'...')]`, `//input[contains(@name,'...')]`, or any wildcard XPath as a locator. These are fragile and often wrong.
+
+This rule exists because conversational POM edits bypass the `AppSourceIndexer` pipeline, which has the correct locator hierarchy built in. The cache at `src/agent/.cache/` contains the same repos the pipeline indexes — always grep it.
+
 ### Guardrail Rules
 
 Key guardrails enforced by `SpecValidator` (Agent 3) and `PromptsConfig.ts`:
@@ -225,6 +246,7 @@ Key guardrails enforced by `SpecValidator` (Agent 3) and `PromptsConfig.ts`:
 | `noModifyHumanAuthoredPOM` | Modifying human-authored POM methods/locators |
 | `noSilentCatchInGeneratedPOM` | Silent `.catch(() => false)` — must log errors |
 | `noEvaluateDomGuessing` | `page.evaluate()` with DOM querySelector — use Playwright methods |
+| `noHardcodedMessagesInAssertions` | Hardcoded message strings in `.toBe()`, `.toHaveText()`, `selectOption({label:})` — use global constants (`PAYABLE_TOGGLE_VALUE`, `CARRIER_PAYABLE_STATUS`, `SUCCESS_MESSAGES`, `DOCUMENT_TYPE`, etc.) |
 
 ### Global Constants
 
@@ -236,6 +258,9 @@ Assertion expected values must come from `src/utils/globalConstants.ts`, never h
 | `AUTOPAY_STATUS` | `ENABLED` ("YES"), `DISABLED` ("NO") | Office auto-pay validation (view page display values) |
 | `PAYABLE_TOGGLE_VALUE` | `AGENT`, `BILLING`, `NEUTRAL` | Billing page payable toggle |
 | `FINANCE_MESSAGES` | `LOAD_NOT_INVOICED`, `CARRIER_OVER_INVOICED` | Finance/billing message assertions |
+| `SUCCESS_MESSAGES` | `ALL_DOCUMENTS_ATTACHED` | Upload success message validation |
+| `DOCUMENT_TYPE` | `BILL_OF_LADING`, `PROOF_OF_DELIVERY`, `CARRIER_INVOICE` | Document type selections |
+| `CARRIER_PAYABLE_STATUS` | `INVOICE_RECEIVED`, `IN_PROCESS`, `INVOICE_APPROVED`, `HOLD_PAY`, `POSTED` | Carrier payable status assertions |
 | `LOAD_STATUS` | Various | Load status assertions |
 | `HEADERS`, `ADMIN_SUB_MENU`, `LOAD_SUB_MENU`, etc. | Various | Navigation constants |
 

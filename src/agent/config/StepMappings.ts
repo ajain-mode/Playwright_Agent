@@ -545,7 +545,7 @@ await commonReusables.waitForAllLoadStates(sharedPage);`,
     pattern: /enter.*customer.*rate|flat\s*rate.*customer/i,
     pageObject: 'editLoadCarrierTabPage',
     method: 'enterCustomerRate',
-    code: `await pages.editLoadCarrierTabPage.enterCustomerRate(testData.customerRate || "500");`,
+    code: `await pages.editLoadCarrierTabPage.enterCustomerRate(testData.customerRate);`,
     confidence: 0.9,
     category: 'CARRIER_TAB',
   },
@@ -553,7 +553,7 @@ await commonReusables.waitForAllLoadStates(sharedPage);`,
     pattern: /enter.*carrier.*rate|flat\s*rate.*carrier/i,
     pageObject: 'editLoadCarrierTabPage',
     method: 'enterCarrierRate',
-    code: `await pages.editLoadCarrierTabPage.enterCarrierRate(testData.carrierRate || "600");`,
+    code: `await pages.editLoadCarrierTabPage.enterCarrierRate(testData.carrierRate);`,
     confidence: 0.9,
     category: 'CARRIER_TAB',
   },
@@ -561,7 +561,7 @@ await commonReusables.waitForAllLoadStates(sharedPage);`,
     pattern: /enter.*(?:total\s*)?miles/i,
     pageObject: 'editLoadCarrierTabPage',
     method: 'enterMiles',
-    code: `await pages.editLoadCarrierTabPage.enterMiles(testData.miles || "100");`,
+    code: `await pages.editLoadCarrierTabPage.enterMiles(testData.miles);`,
     confidence: 0.9,
     category: 'CARRIER_TAB',
   },
@@ -579,7 +579,7 @@ await commonReusables.waitForAllLoadStates(sharedPage);`,
     method: 'clickOnChooseCarrier',
     code: `await pages.editLoadCarrierTabPage.clickOnChooseCarrier();
 await sharedPage.locator("#carr_1_carr_auto").waitFor({ state: "visible" });
-await sharedPage.locator("#carr_1_carr_auto").pressSequentially(testData.Carrier || testData.carrierName || "", { delay: 50 });
+await sharedPage.locator("#carr_1_carr_auto").pressSequentially(testData.Carrier ?? testData.carrierName ?? "", { delay: 50 });
 await sharedPage.keyboard.press("Tab");
 await sharedPage.waitForTimeout(3000);
 const carrierOption = sharedPage.locator("#carr_1_carr_select > option");
@@ -609,8 +609,8 @@ await pages.viewLoadCarrierTabPage.validateCarrierDispatchEmail(CARRIER_DISPATCH
     code: `await pages.viewLoadPage.clickCarrierTab();
 await commonReusables.waitForAllLoadStates(sharedPage);
 await pages.viewLoadCarrierTabPage.validateCarrierAssignedText();
-await pages.viewLoadCarrierTabPage.validateCarrierDispatchName(testData.dispatchName || "");
-await pages.viewLoadCarrierTabPage.validateCarrierDispatchEmail(testData.dispatchEmail || "");`,
+await pages.viewLoadCarrierTabPage.validateCarrierDispatchName(testData.dispatchName);
+await pages.viewLoadCarrierTabPage.validateCarrierDispatchEmail(testData.dispatchEmail);`,
     confidence: 0.9,
     multiLine: true,
     category: 'CARRIER_TAB',
@@ -865,7 +865,7 @@ await pages.dfbLoadFormPage.validateFieldsAreNotEditable([
     pattern: /cargo\s*value/i,
     pageObject: 'nonTabularLoadPage',
     method: 'enterCargoValue',
-    code: 'await pages.nonTabularLoadPage.enterCargoValue(String(testData.cargoValue || ""));',
+    code: 'await pages.nonTabularLoadPage.enterCargoValue(String(testData.cargoValue));',
     confidence: 0.85,
     category: 'DFB',
   },
@@ -885,43 +885,43 @@ await commonReusables.waitForAllLoadStates(sharedPage);`,
   },
   {
     pattern: /payable.*radio|select.*payable/i,
-    pageObject: 'locator',
-    method: 'check',
-    code: `await sharedPage.locator("#cat_payables").check();`,
+    pageObject: 'viewLoadPage',
+    method: 'selectPayablesRadio',
+    code: `await pages.viewLoadPage.selectPayablesRadio();`,
     confidence: 0.85,
     category: 'BILLING',
   },
   {
     pattern: /document\s*type.*carrier\s*invoice/i,
-    pageObject: 'locator',
-    method: 'selectOption',
-    code: `await sharedPage.locator("//select[@name='document_type']").selectOption({ label: "Carrier Invoice" });`,
+    pageObject: 'viewLoadPage',
+    method: 'selectDocumentType',
+    code: `await pages.viewLoadPage.selectDocumentType(DOCUMENT_TYPE.CARRIER_INVOICE);`,
     confidence: 0.85,
     category: 'BILLING',
   },
   {
     pattern: /document\s*type.*proof/i,
-    pageObject: 'locator',
-    method: 'selectOption',
-    code: `await sharedPage.locator("//select[@name='document_type']").selectOption({ label: "Proof of Delivery" });`,
+    pageObject: 'viewLoadPage',
+    method: 'selectDocumentType',
+    code: `await pages.viewLoadPage.selectDocumentType(DOCUMENT_TYPE.PROOF_OF_DELIVERY);`,
     confidence: 0.85,
     category: 'BILLING',
   },
   {
     pattern: /enter.*invoice\s*number/i,
-    pageObject: 'locator',
-    method: 'fill',
-    code: `const invoiceNumber = Math.floor(Math.random() * 9000000000 + 1000000000).toString();
-await sharedPage.locator("#carr_invoice_num_input").fill(invoiceNumber);`,
+    pageObject: 'viewLoadPage',
+    method: 'fillCarrierInvoiceNumber',
+    code: `const invoiceNumber = pages.commonReusables.generateRandomInvoiceNumber();
+await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNumber);`,
     confidence: 0.85,
     multiLine: true,
     category: 'BILLING',
   },
   {
     pattern: /enter.*invoice\s*amount/i,
-    pageObject: 'locator',
-    method: 'fill',
-    code: `await sharedPage.locator("#carr_invoice_amount").fill(testData.carrierInvoiceAmount || "1000");`,
+    pageObject: 'viewLoadPage',
+    method: 'fillCarrierInvoiceAmount',
+    code: `await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount1);`,
     confidence: 0.85,
     category: 'BILLING',
   },
@@ -943,40 +943,28 @@ await sharedPage.locator("#carr_invoice_num_input").fill(invoiceNumber);`,
   },
   {
     pattern: /(?:attach|browse).*(?:file|document|invoice)/i,
-    pageObject: 'locator',
-    method: 'setInputFiles',
-    code: `const fileInput = sharedPage.locator("//input[@type='file']").first();
-const path = require("path");
-const filePath = path.resolve(process.cwd(), "src", "data", "bulkchange", "CarrierInvoice.pdf");
-await fileInput.setInputFiles(filePath);`,
+    pageObject: 'viewLoadPage',
+    method: 'attachCarrierInvoiceFile',
+    code: `await pages.viewLoadPage.attachCarrierInvoiceFile();`,
     confidence: 0.85,
-    multiLine: true,
     category: 'BILLING',
   },
   {
     pattern: /(?:attach|submit).*(?:click|accept)/i,
-    pageObject: 'locator',
-    method: 'click',
-    code: `const submitBtn = sharedPage.locator("//input[@type='submit']").first();
-await submitBtn.click();
-await sharedPage.waitForTimeout(3000);
-const confirmBtn = sharedPage.locator("//button[text()='Confirm']").first();
-if (await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-  await confirmBtn.click();
-}`,
+    pageObject: 'viewLoadPage',
+    method: 'clickSubmitRemote',
+    code: `await pages.viewLoadPage.clickSubmitRemote();
+await pages.viewLoadPage.waitForUploadSuccess();`,
     confidence: 0.85,
     multiLine: true,
     category: 'BILLING',
   },
   {
     pattern: /close.*(?:dialog|upload|popup|modal)/i,
-    pageObject: 'locator',
-    method: 'click',
-    code: `await sharedPage.locator(
-  "//div[@role='dialog' and .//span[text()='Document Upload Utility']]//button[contains(@class,'ui-dialog-titlebar-close')]"
-).first().click({ force: true });`,
+    pageObject: 'viewLoadPage',
+    method: 'closeDocumentUploadDialogSafe',
+    code: `await pages.viewLoadPage.closeDocumentUploadDialogSafe();`,
     confidence: 0.85,
-    multiLine: true,
     category: 'BILLING',
   },
   {
@@ -991,21 +979,18 @@ await commonReusables.waitForAllLoadStates(sharedPage);`,
   },
   {
     pattern: /add\s*new.*(?:invoice|carrier)/i,
-    pageObject: 'locator',
-    method: 'click',
-    code: `await sharedPage.locator("//button[contains(text(),'Add New')] | //a[contains(text(),'Add New')] | //input[@value='Add New']").first().click();`,
+    pageObject: 'loadBillingPage',
+    method: 'clickAddNewCarrierInvoice',
+    code: `await pages.loadBillingPage.clickAddNewCarrierInvoice();`,
     confidence: 0.85,
     category: 'BILLING',
   },
   {
     pattern: /view\s*history/i,
-    pageObject: 'locator',
-    method: 'click',
-    code: `await sharedPage.locator(
-  "//button[contains(text(),'View history')] | //a[contains(text(),'View history')] | //button[contains(text(),'View History')] | //a[contains(text(),'View History')]"
-).first().click();`,
+    pageObject: 'loadBillingPage',
+    method: 'clickViewHistoryAndGetPopup',
+    code: `const historyPopup = await pages.loadBillingPage.clickViewHistoryAndGetPopup();`,
     confidence: 0.85,
-    multiLine: true,
     category: 'BILLING',
   },
 
@@ -1392,9 +1377,9 @@ await commonReusables.waitForAllLoadStates(sharedPage);`,
   },
   {
     pattern: /enter\s+amount|amount.*enter/i,
-    pageObject: 'locator',
-    method: 'fill',
-    code: `await sharedPage.locator("#carr_invoice_amount").fill(testData.carrierInvoiceAmount || "1000");`,
+    pageObject: 'viewLoadPage',
+    method: 'fillCarrierInvoiceAmount',
+    code: `await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount1);`,
     confidence: 0.85,
     category: 'BILLING',
   },
@@ -1492,65 +1477,54 @@ await pages.viewCarrierPage.verifyCarrierNameInDetails(testData.carrierName);`,
   },
   {
     pattern: /click\s+(?:on\s+)?(?:the\s+)?(?:upload|document)/i,
-    pageObject: 'locator',
-    method: 'click',
-    code: `await sharedPage.locator("//img[@title='Upload document']").first().click();`,
+    pageObject: 'viewLoadPage',
+    method: 'openDocumentUploadDialog',
+    code: `await pages.viewLoadPage.openDocumentUploadDialog();`,
     confidence: 0.82,
     category: 'BILLING',
   },
   {
     pattern: /submit.*alert|submit.*dialog|accept.*submit/i,
-    pageObject: 'locator',
-    method: 'click',
-    code: `await sharedPage.locator("//input[@type='submit']").first().click();
-const confirmBtn = sharedPage.locator("//button[text()='Confirm']").first();
-if (await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-  await confirmBtn.click();
-}`,
+    pageObject: 'viewLoadPage',
+    method: 'clickSubmitRemote',
+    code: `await pages.viewLoadPage.clickSubmitRemote();
+await pages.viewLoadPage.waitForUploadSuccess();`,
     confidence: 0.82,
     multiLine: true,
     category: 'BILLING',
   },
   {
     pattern: /invoice\s+#.*enter|invoice\s+num.*enter/i,
-    pageObject: 'locator',
-    method: 'fill',
-    code: `const invoiceNumber = Math.floor(Math.random() * 9000000000 + 1000000000).toString();
-await sharedPage.locator("#carr_invoice_num_input").fill(invoiceNumber);`,
+    pageObject: 'viewLoadPage',
+    method: 'fillCarrierInvoiceNumber',
+    code: `const invoiceNumber = pages.commonReusables.generateRandomInvoiceNumber();
+await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNumber);`,
     confidence: 0.85,
     multiLine: true,
     category: 'BILLING',
   },
   {
     pattern: /radio\s+button/i,
-    pageObject: 'locator',
-    method: 'check',
-    code: `if (await sharedPage.locator("#cat_payables").isVisible({ timeout: 5000 }).catch(() => false)) {
-  await sharedPage.locator("#cat_payables").check();
-}`,
+    pageObject: 'viewLoadPage',
+    method: 'selectPayablesRadio',
+    code: `await pages.viewLoadPage.selectPayablesRadio();`,
     confidence: 0.78,
-    multiLine: true,
     category: 'BILLING',
   },
   {
     pattern: /document\s*type/i,
-    pageObject: 'locator',
-    method: 'selectOption',
-    code: `await sharedPage.locator("//select[@name='document_type']").waitFor({ state: "visible", timeout: WAIT.LARGE });
-await sharedPage.locator("//select[@name='document_type']").selectOption({ label: "Carrier Invoice" });`,
+    pageObject: 'viewLoadPage',
+    method: 'selectDocumentType',
+    code: `await pages.viewLoadPage.selectDocumentType(DOCUMENT_TYPE.CARRIER_INVOICE);`,
     confidence: 0.78,
-    multiLine: true,
     category: 'BILLING',
   },
   {
     pattern: /upload.*document|upload.*file/i,
-    pageObject: 'locator',
-    method: 'setInputFiles',
-    code: `const fileInput = sharedPage.locator("//input[@type='file']").first();
-const path = require("path");
-await fileInput.setInputFiles(path.resolve(process.cwd(), "src", "data", "bulkchange", "CarrierInvoice.pdf"));`,
+    pageObject: 'viewLoadPage',
+    method: 'attachCarrierInvoiceFile',
+    code: `await pages.viewLoadPage.attachCarrierInvoiceFile();`,
     confidence: 0.78,
-    multiLine: true,
     category: 'BILLING',
   },
   {
@@ -1661,7 +1635,7 @@ await commonReusables.waitForAllLoadStates(sharedPage);`,
     pattern: /carrier\s+contact.*rate\s+confirmation/i,
     pageObject: 'dfbLoadFormPage',
     method: 'selectCarreirContactForRateConfirmation',
-    code: `const contactDropdown = sharedPage.locator("//select[@id='form_accept_as_user']");
+    code: `const contactDropdown = sharedPage.locator("#form_accept_as_user");
 await contactDropdown.waitFor({ state: "attached", timeout: WAIT.LARGE });
 const contactOptions = await contactDropdown.locator("option").allTextContents();
 const matchedContact = contactOptions.find(

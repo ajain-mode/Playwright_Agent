@@ -214,7 +214,7 @@ test.describe.serial(
       });
 
       await test.step("Step 20 [CSV 46]: Enter Invoice Number, Amount as 1500, click SAVE INVOICE", async () => {
-        const invoiceNumber1 = pages.loadBillingPage.generateRandomInvoiceNumber();
+        const invoiceNumber1 = pages.commonReusables.generateRandomInvoiceNumber();
         await pages.loadBillingPage.enterCarrierInvoiceNumber(invoiceNumber1);
         await pages.loadBillingPage.enterCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
         await pages.loadBillingPage.clickSaveCarrierInvoice();
@@ -229,7 +229,7 @@ test.describe.serial(
       });
 
       await test.step("Step 23 [CSV 49]: Enter Invoice Number, Amount as 2000, click SAVE INVOICE", async () => {
-        const invoiceNumber2 = pages.loadBillingPage.generateRandomInvoiceNumber();
+        const invoiceNumber2 = pages.commonReusables.generateRandomInvoiceNumber();
         await pages.loadBillingPage.enterCarrierInvoiceNumber(invoiceNumber2);
         await pages.loadBillingPage.enterCarrierInvoiceAmount(testData.carrierInvoiceAmount2);
         await pages.loadBillingPage.clickSaveCarrierInvoice();

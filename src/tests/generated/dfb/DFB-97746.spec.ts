@@ -6,7 +6,6 @@ import { PageManager } from "@utils/PageManager";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
 import commissionHelper from "@utils/commission-helpers";
 import DMEDashboardPage from "@pages/dme/DMEDashboradPage";
-import DFBLoadFormPage from "@pages/loads/DFBLoadFormPage";
 import commonReusables from "@utils/commonReusables";
 
 /**
@@ -340,7 +339,7 @@ test.describe.serial(
         );
         await tnxPages.tnxLandingPage.clickLoadLink();
         const tnxRateNumeric = await tnxPages.tnxLandingPage.getLoadOfferRateNumeric();
-        const expectedRateNumeric = DFBLoadFormPage.normalizeRateToInteger(testData.offerRate);
+        const expectedRateNumeric = commonReusables.normalizeRateToInteger(testData.offerRate);
         pages.logger.info(`TNX offer rate (numeric): ${tnxRateNumeric} | Expected: ${expectedRateNumeric}`);
         expect(tnxRateNumeric, `Offer rate mismatch`).toBe(expectedRateNumeric);
         await tnxPages.tnxLandingPage.clickOnSelectTenderDetailsModalTab(

@@ -39,7 +39,7 @@ export class DFBLoadFormPage {
   private readonly carrierErrorMessage_LOC: Locator;  
   private readonly carrierAutoAcceptCheckBox_LOC: Locator;
   private readonly carrierContactForRateConfirmationDropdown_LOC: Locator;
-
+  private readonly viewLoadValue_LOC: Locator;
   /**
    * Constructor to initialize page locators for form validation elements
    * @param page - Playwright Page instance for web interactions
@@ -55,6 +55,8 @@ export class DFBLoadFormPage {
     this.editLoadValue_LOC = page.locator(
       "//td[contains(@class, 'hedbar0') and contains(normalize-space(), 'Edit Load #')]"
     );
+    this.viewLoadValue_LOC = page.locator("//td[contains(@class, 'hedbar0') and contains(normalize-space(), 'View Load #')]");
+    
     this.hoverOver_LOC = page.locator("#hoverImage");
     //this.postedPopUP = page.locator("#lastPostedDetailsTable");
     this.expirationDateValue_LOC = page.locator(
@@ -148,8 +150,11 @@ export class DFBLoadFormPage {
    * @author AI Agent
    * @created 26-Mar-2026
    */
+  /**
+   * @deprecated Use commonReusables.normalizeRateToInteger() directly
+   */
   static normalizeRateToInteger(rate: string): string {
-    return rate.replace(/[\$,]/g, '').split('.')[0];
+    return commonReusables.normalizeRateToInteger(rate);
   }
 
   /**
@@ -192,8 +197,8 @@ export class DFBLoadFormPage {
       if (await this.editLoadValue_LOC.isVisible()) {
         loadText = await this.editLoadValue_LOC.textContent();
         console.log(`Found Edit Load text: ${loadText}`);
-      } else if (await this.editLoadValue_LOC.isVisible()) {
-        loadText = await this.editLoadValue_LOC.textContent();
+      } else if (await this.viewLoadValue_LOC.isVisible()) {
+        loadText = await this.viewLoadValue_LOC.textContent();
         console.log(`Found View Load text: ${loadText}`);
       } else {
         throw new Error("Neither Edit Load nor View Load header is visible");

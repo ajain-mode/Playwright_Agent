@@ -59,6 +59,11 @@ class LoadBillingPage {
     // View History link
     private readonly viewHistoryLink_LOC: Locator;
 
+    // Carrier Payable Status dropdown and charge fields
+    private readonly carrierPayableStatusSelect_LOC: Locator;
+    private readonly carrierRemainderAmount_LOC: Locator;
+    private readonly carrierTotalInvoicesAmount_LOC: Locator;
+
     // View History popup selectors (used on the popup Page, not main page — cannot be Locator since popup doesn't exist at construction)
     private readonly HISTORY_TABLE_DATA_ROWS_SELECTOR = 'table.hist tr:not(:first-child)';
     private readonly HISTORY_MESSAGE_COLUMN_SELECTOR = 'td:nth-child(3)';
@@ -148,6 +153,12 @@ class LoadBillingPage {
 
         // View History — scoped to the payables note container
         this.viewHistoryLink_LOC = this.page.locator("div[id^='payables-note-container_'] a:has(small)");
+
+        // Carrier Payable Status dropdown (first carrier), Remainder, and Total Invoices
+        this.carrierPayableStatusSelect_LOC = this.page.locator("select[id^='carr_'][id$='_post_status']").first();
+        this.carrierRemainderAmount_LOC = this.page.locator("span[id^='carr_'][id$='_carr_balance']").first();
+        // Total Invoices label uses &nbsp; in PHP source ("Total&nbsp;Invoices"), so match words separately
+        this.carrierTotalInvoicesAmount_LOC = this.page.locator("//span[contains(@class, 'pmt-label')][contains(., 'Total') and contains(., 'Invoices')]/following-sibling::span").first();
 
     }
     /**
@@ -758,27 +769,26 @@ class LoadBillingPage {
 
     /**
      * Generates a random 10-digit invoice number string.
-     * Encapsulates Math.random logic so specs remain clean.
+     * Delegates to commonReusables.generateRandomInvoiceNumber().
      * @author AI Agent
      * @created 26-Mar-2026
+     * @deprecated Use commonReusables.generateRandomInvoiceNumber() or pages.commonReusables.generateRandomInvoiceNumber() directly
      */
     generateRandomInvoiceNumber(): string {
-        return Math.floor(Math.random() * 9000000000 + 1000000000).toString();
+        return commonReusables.generateRandomInvoiceNumber();
     }
 
     /**
      * Extracts a dollar value from a string. Matches patterns like $1,500.00, $900, $2,000.00, etc.
-     * Returns the numeric value or null if no dollar amount found.
+     * Delegates to commonReusables.extractDollarValue().
      * @param text - The text to extract the dollar value from
      * @returns The extracted numeric dollar value, or null
      * @author AI Agent
      * @created 07-Apr-2026
+     * @deprecated Use commonReusables.extractDollarValue() directly
      */
     extractDollarValue(text: string): number | null {
-        const match = text.match(/\$\s*([\d,]+(?:\.\d{1,2})?)/);
-        if (!match) return null;
-        const value = parseFloat(match[1].replace(/,/g, ''));
-        return isNaN(value) ? null : value;
+        return commonReusables.extractDollarValue(text);
     }
 
     /**
@@ -834,6 +844,53 @@ class LoadBillingPage {
         console.log(`Extracted price difference: ${priceDifference}, expected: ${expectedPriceDiff}`);
 
         return { lastMessage, priceDifference, expectedPriceDiff };
+    }
+
+    /**
+     * Gets the carrier payable status from the status dropdown (first carrier).
+     * Reads the selected option text (e.g., "Invoice Received", "Pending").
+     * Locator: select[id^='carr_'][id$='_post_status'] (billing.php:2187)
+     * @author AI Agent
+     * @created 2026-04-23
+     * @returns The selected payable status text.
+     */
+    async getCarrierPayableStatus(): Promise<string> {
+        await this.carrierPayableStatusSelect_LOC.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        const selectedText = await this.carrierPayableStatusSelect_LOC.evaluate(
+            (el: HTMLSelectElement) => el.options[el.selectedIndex]?.textContent?.trim() ?? ''
+        );
+        console.log(`Carrier payable status: ${selectedText}`);
+        return selectedText;
+    }
+
+    /**
+     * Gets the carrier remainder (balance) amount from the Carrier Charges section.
+     * Locator: span[id^='carr_'][id$='_carr_balance'] (billing.php:2087)
+     * @author AI Agent
+     * @created 2026-04-23
+     * @returns The remainder amount as a number (e.g., 600.00).
+     */
+    async getCarrierRemainderAmount(): Promise<number> {
+        await this.carrierRemainderAmount_LOC.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        const text = await this.carrierRemainderAmount_LOC.textContent();
+        const amount = parseFloat((text ?? '').replace(/[$,]/g, ''));
+        console.log(`Carrier remainder amount: ${amount}`);
+        return amount;
+    }
+
+    /**
+     * Gets the total invoices amount from the Carrier Invoices section.
+     * Locator: //span[pmt-label 'Total Invoices']/following-sibling::span (billing.php:2819-2821)
+     * @author AI Agent
+     * @created 2026-04-23
+     * @returns The total invoices amount as a number (e.g., 600.00).
+     */
+    async getCarrierTotalInvoicesAmount(): Promise<number> {
+        await this.carrierTotalInvoicesAmount_LOC.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        const text = await this.carrierTotalInvoicesAmount_LOC.textContent();
+        const amount = parseFloat((text ?? '').replace(/[$,]/g, ''));
+        console.log(`Carrier total invoices amount: ${amount}`);
+        return amount;
     }
 }
 export default LoadBillingPage;

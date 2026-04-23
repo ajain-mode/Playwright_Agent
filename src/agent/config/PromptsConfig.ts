@@ -813,16 +813,16 @@ export const GUARDRAIL_RULES: GuardrailRule[] = [
   },
   {
     name: 'noGenericUtilitiesOnDomainPages',
-    description: 'Generic utility functions (format, parse, normalize, convert, etc.) must live in CommonReusables, not domain-specific page objects',
+    description: 'Generic utility functions (format, parse, normalize, convert, generate, etc.) must live in CommonReusables, not domain-specific page objects',
     validate: (input) => {
       if (!input._generatedCode) return true;
-      // Detect ClassName.formatX(), ClassName.parseX(), etc. where ClassName is a domain page object
-      const staticUtilPattern = /(?<!commonReusables\.)(?<!pages\.commonReusables\.)\b(?:format|parse|normalize|convert|calculate|compute|transform|extract|sanitize)\w+\s*\(/g;
+      // Detect ClassName.formatX(), ClassName.parseX(), generateX() etc. where ClassName is a domain page object
+      const staticUtilPattern = /(?<!commonReusables\.)(?<!pages\.commonReusables\.)\b(?:format|parse|normalize|convert|calculate|compute|transform|extract|sanitize|generate)\w+\s*\(/g;
       const matches = input._generatedCode.match(staticUtilPattern) || [];
       // Filter out known safe calls (Math.*, JSON.*, etc.)
       return matches.every((m: string) => /^(Math|JSON|Date|parseInt|parseFloat|Number|String)\./.test(m));
     },
-    errorMessage: 'Generic utility function (format/parse/normalize/convert) called on a domain page object. Move to CommonReusables and call via pages.commonReusables.<method>() or commonReusables.<method>().',
+    errorMessage: 'Generic utility function (format/parse/normalize/convert/generate) called on a domain page object. Move to CommonReusables and call via pages.commonReusables.<method>() or commonReusables.<method>().',
   },
   {
     name: 'pomMethodJSDocRequired',
