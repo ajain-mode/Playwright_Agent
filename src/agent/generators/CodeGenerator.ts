@@ -356,7 +356,11 @@ export class CodeGenerator {
     // Secondary fallback: load DFB-97739 as supplementary reference for POM method discovery
     let _secondaryRefSpecCode: string | null = null;
     if (testCase.category !== 'dfb') {
+<<<<<<< HEAD
       const secondaryRefPath = path.resolve(process.cwd(), 'src/tests/AIAgent/dfb/DFB-97739.spec.ts');
+=======
+      const secondaryRefPath = path.resolve(process.cwd(), 'src/tests/AIAgent/dfb/DFB-97746.spec.ts');
+>>>>>>> 480d7a8 (initial commit)
       if (fs.existsSync(secondaryRefPath)) {
         try {
           _secondaryRefSpecCode = fs.readFileSync(secondaryRefPath, 'utf-8');

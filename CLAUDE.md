@@ -9,7 +9,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npx playwright test
 
 # Run a single test file
+<<<<<<< HEAD
 npx playwright test src/tests/AIAgent/dfb/DFB-97739.spec.ts
+=======
+npx playwright test src/tests/AIAgent/dfb/DFB-97746.spec.ts
+>>>>>>> 480d7a8 (initial commit)
 
 # Run tests with Allure reporting
 npm run test:allure

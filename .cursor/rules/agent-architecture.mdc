@@ -31,7 +31,11 @@ The `AppSourceIndexer` scans cloned repos (`modetrans/mono.git`, `modetrans/dme.
 2. **SpecValidator (NAV-001)** — detects and auto-fixes missing `navigateToBaseUrl()` before `hoverOverHeaderByText()`
 3. **PromptsConfig guardrail** — `navigateToBaseUrlBeforeHeaderNav` rule flags violations at generation time
 
+<<<<<<< HEAD
 The call is idempotent — safe even if already on the base URL. Reference specs: BT-67846, BT-74418, DFB-97739.
+=======
+The call is idempotent — safe even if already on the base URL. Reference specs: BT-67846, BT-74418, DFB-97746, DFB-97739.
+>>>>>>> 480d7a8 (initial commit)
 
 ```typescript
 // CORRECT — always navigateToBaseUrl before header nav
