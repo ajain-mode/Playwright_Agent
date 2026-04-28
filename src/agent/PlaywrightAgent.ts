@@ -252,7 +252,7 @@ export class PlaywrightAgent {
 
     // Track which test cases have been generated in this batch so far.
     // Only exclude already-generated IDs from similarity matching — NOT all batch IDs.
-    // This allows test case DFB-97748 to match against DFB-97746 (which hasn't been
+    // This allows test case DFB-97748 to match against DFB-97739 (which hasn't been
     // regenerated yet) while preventing it from matching against a freshly-generated
     // sibling whose spec might be broken.
     this.matcher.clearBatchExcludeIds();

@@ -1,6 +1,4 @@
 import { Locator, Page } from "@playwright/test";
-import commonReusables from "@utils/commonReusables";
-
 /**
  * CustomerPage handles customer search, cargo value management, and load navigation operations
  */
@@ -24,10 +22,6 @@ class CustomerPage {
   private readonly agentValue_LOC: any;
   private readonly agentResultValue_LOC: any;
   private readonly searchAgentCombobox_LOC: Locator;
-  // Auto-generated locators by AI Agent
-  private readonly customerNameInput_LOC: Locator;
-  // Auto-generated locators by AI Agent
-  private readonly searchCustomer_LOC: Locator;
 
 
 
@@ -67,10 +61,6 @@ class CustomerPage {
     this.searchAgentCombobox_LOC = page.locator(
       "//div[@id='share_frame_internal']//span[@role='combobox' and contains(@aria-labelledby,'commission_internalagent_id')]"
     );
-    // Auto-generated locator assignments by AI Agent
-    this.customerNameInput_LOC = page.locator("#customerName, [name*='customerName'], [placeholder*='Customer Name']");
-    // Auto-generated locator assignments by AI Agent
-    this.searchCustomer_LOC = page.locator("//*[contains(text(),'Search Customer')] | //button[contains(text(),'Search Customer')] | //input[contains(@value,'Search Customer')]");
   }
   // /*
   //  * @author Parth Rastogi

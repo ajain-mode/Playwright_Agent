@@ -1,7 +1,5 @@
 import { Locator, Page } from '@playwright/test';
 import { PageManager } from "@utils/PageManager";
-import commonReusables from "@utils/commonReusables";
-
 /**
  * This class provides utility functions for All Loads Search Page.
  * @author Tejaswini
@@ -14,9 +12,6 @@ export default class AllLoadsSearchPage {
     private readonly bulkChange_LOC: Locator;
     private readonly searchbutton_LOC: Locator;
     private readonly searchLoads_LOC: Locator;
-  // Auto-generated locators by AI Agent
-  private readonly newLoadDropdown_LOC: Locator;
-  private readonly nonTabularTLDropdown_LOC: Locator;
 
     
     constructor(private page: Page) {
@@ -24,9 +19,6 @@ export default class AllLoadsSearchPage {
         this.bulkChange_LOC = this.page.locator("//button[@id='bulk-change-button']");
         this.searchbutton_LOC = this.page.locator("//input[@class='submit-report-search']");
         this.searchLoads_LOC = this.page.locator("//input[@id='search_loadsh_ids']");
-    // Auto-generated locator assignments by AI Agent
-    this.newLoadDropdown_LOC = page.locator("//*[contains(text(),'New Load Dropdown')] | //button[contains(text(),'New Load Dropdown')] | //input[contains(@value,'New Load Dropdown')]");
-    this.nonTabularTLDropdown_LOC = page.locator('[id*="nonTabularTL"], [name*="nonTabularTL"]');
     }   
 
     /**

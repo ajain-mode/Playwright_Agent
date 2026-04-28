@@ -353,14 +353,14 @@ export class CodeGenerator {
       } catch { /* ignore read errors */ }
     }
 
-    // Secondary fallback: load DFB-97746 as supplementary reference for POM method discovery
+    // Secondary fallback: load DFB-97739 as supplementary reference for POM method discovery
     let _secondaryRefSpecCode: string | null = null;
     if (testCase.category !== 'dfb') {
-      const secondaryRefPath = path.resolve(process.cwd(), 'src/tests/AIAgent/dfb/DFB-97746.spec.ts');
+      const secondaryRefPath = path.resolve(process.cwd(), 'src/tests/AIAgent/dfb/DFB-97739.spec.ts');
       if (fs.existsSync(secondaryRefPath)) {
         try {
           _secondaryRefSpecCode = fs.readFileSync(secondaryRefPath, 'utf-8');
-          console.log(`   📐 Loaded secondary reference DFB-97746.spec.ts for POM method discovery`);
+          console.log(`   📐 Loaded secondary reference DFB-97739.spec.ts for POM method discovery`);
         } catch { /* ignore read errors */ }
       }
     }

@@ -1025,7 +1025,7 @@ export const GENERATION_RULES = {
   //     Edit Office, etc.) do NOT render the main navigation buttons (Admin,
   //     Customers, Loads, Finance, etc.). After visiting any such page, ALWAYS call
   //     pages.basePage.navigateToBaseUrl() BEFORE pages.basePage.hoverOverHeaderByText().
-  //     Reference: BT-67846, BT-74418, DFB-97746, DFB-97739 all follow this pattern.
+  //     Reference: BT-67846, BT-74418, DFB-97739 all follow this pattern.
   //     The call is idempotent — safe to call even if already on the base URL.
   NAVIGATE_TO_BASE_BEFORE_HEADER_NAV: true,
 

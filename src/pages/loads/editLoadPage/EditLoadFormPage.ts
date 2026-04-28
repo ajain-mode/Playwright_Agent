@@ -30,12 +30,9 @@ export class EditLoadFormPage {
   private readonly mileageEngine_LOC: Locator;
   private readonly mileageMethod_LOC: Locator;
   private readonly linehaulRateInput_LOC: Locator;
-  private readonly whseInstructionsField_LOC: Locator;
   private readonly rateTypeDropdown_LOC: Locator;
   private readonly linehaulRateType_LOC: Locator;
   private readonly fuelSurchargeRateType_LOC: Locator;
-  private readonly methodDropdown_LOC: Locator;
-  private readonly overrideBTFCheckbox_LOC: Locator;
 
   /**
    * Constructor to initialize page locators for form validation elements
@@ -55,13 +52,9 @@ export class EditLoadFormPage {
     this.mileageEngine_LOC = page.locator("#form_carriers_1_mileage_engine"); // EquipmentRequirementsType.php:132
     this.mileageMethod_LOC = page.locator("#form_carriers_1_mileage_method"); // EquipmentRequirementsType.php:133
     this.linehaulRateInput_LOC = page.locator("#form_carriers_1_linehaul_rate"); // EquipmentRequirementsType.php:169
-    // TODO: locator not found in app source — manual lookup required
-    this.whseInstructionsField_LOC = page.locator("[name='whse_instructions']");
     this.rateTypeDropdown_LOC = page.locator("#load_rate_type_select");
     this.linehaulRateType_LOC = page.locator("#form_carriers_1_linehaul_rate_type");
     this.fuelSurchargeRateType_LOC = page.locator("#form_fuel_surcharges_1_customer_rate_type");
-    this.methodDropdown_LOC = page.locator("#loadsh_load_method"); // loadform.php:8080
-    this.overrideBTFCheckbox_LOC = page.locator("#btf_override");
 
     this.searchAgentCombobox_LOC = page.locator(
       "//tbody[@id='share_frame_internal']//span[contains(@class,'select2-selection') and @role='combobox']"

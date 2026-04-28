@@ -7,7 +7,6 @@ export default class EditOfficeInfoPage {
     private readonly thirdPartyCredentials_LOC: Locator;
     private readonly transcoreDATSelect_LOC: Locator;
     private readonly datPostMethodSelect_LOC: Locator;
-    private readonly officeSearchInput_LOC: Locator;
 
     constructor(private page: any) {
         this.enableInternalShares_LOC = this.page.locator("#feature_internal_shares");
@@ -15,7 +14,6 @@ export default class EditOfficeInfoPage {
         this.thirdPartyCredentials_LOC = this.page.locator("//a[normalize-space()='3rd Party Credentials']");
         this.transcoreDATSelect_LOC = this.page.locator("//select[@id='use_natl']");
         this.datPostMethodSelect_LOC = this.page.locator("//select[@id='dat_protocol']");
-        this.officeSearchInput_LOC = this.page.locator("input[type='search'], input[id*='search'], input[placeholder*='Search']").first();
     }
     /**
      * Handles enabling or disabling internal shares on the office edit page.

@@ -99,7 +99,7 @@ export class LLMService {
       userPrompt += `\n\n${instruction}\n\`\`\`typescript\n${context.referenceSpecCode.substring(0, maxRefLength)}\n\`\`\``;
     }
 
-    // Append secondary reference for POM method discovery (e.g., DFB-97746 has carrier/load methods)
+    // Append secondary reference for POM method discovery (e.g., DFB-97739 has carrier/load methods)
     if (context.secondaryRefSpecCode && !context.referenceSpecCode) {
       userPrompt += `\n\n## Secondary Reference (for POM method discovery only — use method signatures and patterns, but do NOT copy DFB-specific preconditions or flow):\n\`\`\`typescript\n${context.secondaryRefSpecCode.substring(0, 3000)}\n\`\`\``;
     }

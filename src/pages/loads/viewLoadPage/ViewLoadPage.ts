@@ -77,12 +77,10 @@ export default class ViewLoadPage {
   private readonly carrierInvoiceAmount_LOC: Locator;
   private readonly submitRemoteButton_LOC: Locator;
   private readonly bidsAvgRate_LOC: Locator;
-  private readonly confirmDuplicateInvoiceBtn_LOC: Locator;
   private readonly billingIssuesSection_LOC: Locator;
   private readonly dfbLoadBoardSection_LOC: Locator;
   private readonly autoAcceptCheckbox_LOC: Locator;
   private readonly carrierContactDropdown_LOC: Locator;
-  private readonly optionElements_LOC: Locator;
   private readonly commissionsIframe_LOC: string;
   private readonly commissionsFooterCell_LOC: string;
   private readonly internalShareRows_LOC: Locator;
@@ -195,12 +193,10 @@ export default class ViewLoadPage {
     this.submitRemoteButton_LOC = this.page.locator("#submit_remote");
     this.autoLoadTenderCheckbox_LOC = this.page.locator("//input[@id='loadsh_auto_edi204']");
     this.bidsAvgRate_LOC = this.page.locator("#bids-rate");
-    this.confirmDuplicateInvoiceBtn_LOC = this.page.locator("//button[text()='Confirm']").first();
     this.billingIssuesSection_LOC = this.page.locator("#finance_issues_block");
     this.dfbLoadBoardSection_LOC = this.page.locator("#tnx_load_board");
     this.autoAcceptCheckbox_LOC = this.page.locator("//input[@id='form_auto_accept']");
     this.carrierContactDropdown_LOC = this.page.locator("//select[@id='form_accept_as_user']");
-    this.optionElements_LOC = this.page.locator("option");
     this.commissionsIframe_LOC = "#iframe_commissions";
     this.commissionsFooterCell_LOC = "//table[@id='example']//tfoot/tr/td[10]";
     this.internalShareRows_LOC = this.page.locator("//table[@id='commissioninternal_']//tr");

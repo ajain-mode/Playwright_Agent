@@ -27,7 +27,6 @@ export default class ViewCarrier {
     private readonly brokerAuthorityCell: Locator;
     private readonly loadboardStatus_LOC: Locator;
     private readonly modeIQTab_LOC: Locator;
-    private readonly carrierEditSaveBtn_LOC: Locator;
     private readonly carrierVisibilityListItems_LOC: Locator;
     private readonly carrierVisibilitySliderInput_LOC: Locator;
     private readonly carrierVisibilitySliderLabel_LOC: Locator;
@@ -63,7 +62,6 @@ export default class ViewCarrier {
         this.brokerAuthorityCell = page.locator("//tr[@id='statusbox2']//td[contains(normalize-space(text()), 'Broker: Active')]");
         this.loadboardStatus_LOC = page.locator("#carrier_status_label");
         this.modeIQTab_LOC = page.locator("#loadboard_count");
-        this.carrierEditSaveBtn_LOC = page.locator("input[type='button'][value='  Save  ']");
         this.carrierVisibilityListItems_LOC = page.locator("#carrier_visibility_brands_list .list_item");
         this.carrierVisibilitySliderInput_LOC = page.locator("input.carrier_visibility_slider_input");
         this.carrierVisibilitySliderLabel_LOC = page.locator("label.carrier_visibility_switch");
