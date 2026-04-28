@@ -234,7 +234,7 @@ const agent = new PlaywrightAgent({
 
 Generated scripts are saved to:
 ```
-src/tests/generated/{category}/{testcaseId}.spec.ts
+src/tests/AIAgent/{category}/{testcaseId}.spec.ts
 ```
 
 ## Best Practices

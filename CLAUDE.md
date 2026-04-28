@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npx playwright test
 
 # Run a single test file
-npx playwright test src/tests/generated/dfb/DFB-97746.spec.ts
+npx playwright test src/tests/AIAgent/dfb/DFB-97746.spec.ts
 
 # Run tests with Allure reporting
 npm run test:allure
@@ -61,7 +61,7 @@ Input (JSON / plain text / CSV / XLSX)
           → Agent 2: POMMethodMatcher (src/agent/generators/) — matches steps to POMs using context snapshots
   → Agent 3: SpecValidator  (src/agent/validators/)    — sanitizer pre-pass + guardrail validation + auto-fixes
   → PageObjectWriter        (src/agent/analyzers/)     — writes new POM methods to page object files
-  → src/tests/generated/<category>/<TEST_ID>.spec.ts
+  → src/tests/AIAgent/<category>/<TEST_ID>.spec.ts
 ```
 
 ### Application Source Integration
@@ -113,6 +113,8 @@ This eliminates ordering fragility — specific mappings (e.g., "Enter carrier r
 - SAN-011: Duplicate import line deduplication
 
 The `validateAndCorrect()` method calls `sanitize()` before entering the validation loop.
+
+After structural validation, `runCategorySpecificChecks()` applies category-aware rules (e.g., `CAT-BT-001` for billing toggle user switch enforcement).
 
 ### View Mode vs Edit Mode Awareness
 
@@ -167,7 +169,7 @@ When `cloneAndAdaptReferenceSpec()` clones a high-match reference spec, `matchSt
 | `src/loginHelpers/userSetup.ts` | All application user credentials (env vars + `userConfig.json`) |
 | `src/data/<category>/` | CSV test data files per test category |
 | `src/config/dataConfig.ts` | CSV data reader utility |
-| `src/tests/generated/` | Output directory for AI-generated spec files |
+| `src/tests/AIAgent/` | Output directory for AI-generated spec files |
 
 ### Test Categories & Data Files
 
@@ -247,6 +249,7 @@ Key guardrails enforced by `SpecValidator` (Agent 3) and `PromptsConfig.ts`:
 | `noSilentCatchInGeneratedPOM` | Silent `.catch(() => false)` — must log errors |
 | `noEvaluateDomGuessing` | `page.evaluate()` with DOM querySelector — use Playwright methods |
 | `noHardcodedMessagesInAssertions` | Hardcoded message strings in `.toBe()`, `.toHaveText()`, `selectOption({label:})` — use global constants (`PAYABLE_TOGGLE_VALUE`, `CARRIER_PAYABLE_STATUS`, `SUCCESS_MESSAGES`, `DOCUMENT_TYPE`, etc.) |
+| `CAT-BT-001` | Billing toggle spec missing `USER_ROLES.BILLINGTOGGLE_USER` switch after login — auto-fixes by injecting switch code |
 
 ### Global Constants
 
@@ -262,7 +265,29 @@ Assertion expected values must come from `src/utils/globalConstants.ts`, never h
 | `DOCUMENT_TYPE` | `BILL_OF_LADING`, `PROOF_OF_DELIVERY`, `CARRIER_INVOICE` | Document type selections |
 | `CARRIER_PAYABLE_STATUS` | `INVOICE_RECEIVED`, `IN_PROCESS`, `INVOICE_APPROVED`, `HOLD_PAY`, `POSTED` | Carrier payable status assertions |
 | `LOAD_STATUS` | Various | Load status assertions |
+| `USER_ROLES` | `BULK_CHANGE_LOADS_MGR`, `BILLINGTOGGLE_USER` | User role constants for account switching |
 | `HEADERS`, `ADMIN_SUB_MENU`, `LOAD_SUB_MENU`, etc. | Various | Navigation constants |
+
+### Mandatory: Billing Toggle User Switch
+
+**All `billingtoggle` category test cases** MUST switch to `USER_ROLES.BILLINGTOGGLE_USER` after the initial `BTMSLogin`. This is enforced at four pipeline levels:
+
+1. **CodeGenerator** — automatically injects the switch into the mandatory login step for `billingtoggle` category
+2. **StepMappings** — `BILLINGTOGGLE_USER` pattern generates the correct switch code
+3. **SpecValidator (`CAT-BT-001`)** — detects missing `USER_ROLES.BILLINGTOGGLE_USER` in billingtoggle specs and auto-fixes
+4. **PromptsConfig** — `BILLING_TOGGLE_USER_SWITCH` rule documents the requirement
+
+```typescript
+// CORRECT — billing toggle login step
+await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
+await pages.homePage.clickSwitchAccountButton();
+await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
+
+// WRONG — missing user switch (fails CAT-BT-001)
+await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
+```
+
+`USER_ROLES.BILLINGTOGGLE_USER` is defined in `globalConstants.ts`. Never hardcode the username string. `BILLINGTOGGLE_USER` is NOT a `salesAgent` — it is a user role constant. Reference spec: `BT-74421.spec.ts`.
 
 ### Multi-Application Support
 
@@ -302,7 +327,7 @@ test.describe.serial('Case ID: TEST_ID - Title', () => {
     await sharedContext.close();
   });
 
-  test('description', { tag: '@aiteam,@category' }, async () => {
+  test('description', { tag: '@AIAgent,@category' }, async () => {
     await test.step('Step 1: Login BTMS', async () => { ... });
     await test.step('Step 2: ...', async () => { ... });
   });
@@ -313,7 +338,7 @@ Key patterns:
 - `test.describe.serial()` for sequential steps sharing browser context
 - `beforeAll`/`afterAll` manage shared `BrowserContext` and `Page`
 - Test data from CSV: `dataConfig.getTestDataFromCsv(dataConfig.<category>Data, testcaseID)`
-- Tags on each test: `{ tag: '@aiteam,@<category>' }`
+- Tags on each test: `{ tag: '@AIAgent,@<category>' }`
 - Alert assertions use `ALERT_PATTERNS` constants, not hardcoded strings
 - Assertion values use global constants (`INVOICE_PROCESS.OFFICE`, `AUTOPAY_STATUS.ENABLED`), not hardcoded strings
 

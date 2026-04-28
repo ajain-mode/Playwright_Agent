@@ -7,7 +7,7 @@
  *
  * Priority order:
  *   1. Hand-written tests (src/tests/dfb/, src/tests/carrier/, etc.) — most reliable
- *   2. Generated tests marked as working (src/tests/generated/) — second priority
+ *   2. Generated tests marked as working (src/tests/AIAgent/) — second priority
  *
  * @author AI Agent Generator
  * @created 2026-02-20
@@ -70,7 +70,7 @@ export class TestPatternExtractor {
       'dfb', 'carrier', 'edi', 'salesLead', 'nonOperationalLoads',
     ].map(d => path.join(this.testsRoot, d));
 
-    const generatedDir = path.join(this.testsRoot, 'generated');
+    const generatedDir = path.join(this.testsRoot, 'AIAgent');
 
     // Scan hand-written tests first (higher priority)
     for (const dir of handWrittenDirs) {

@@ -43,7 +43,6 @@ class LoadBillingPage {
 
     // Not Delivered Final checkbox locators
     private readonly notDeliveredFinalCheckbox_LOC: Locator;
-    private readonly notDeliveredFinalLabel_LOC: Locator;
 
     // Add New Carrier Invoice dialog locators
     private readonly addNewCarrierInvoiceBtn_LOC: Locator;
@@ -63,6 +62,11 @@ class LoadBillingPage {
     private readonly carrierPayableStatusSelect_LOC: Locator;
     private readonly carrierRemainderAmount_LOC: Locator;
     private readonly carrierTotalInvoicesAmount_LOC: Locator;
+
+    // Billing Issues checkboxes (all inside #finance_issues_block)
+    private readonly allBillingIssueCheckboxes_LOC: Locator;
+    private readonly lumperCheckbox_LOC: Locator;
+    private readonly lumperLabel_LOC: Locator;
 
     // View History popup selectors (used on the popup Page, not main page — cannot be Locator since popup doesn't exist at construction)
     private readonly HISTORY_TABLE_DATA_ROWS_SELECTOR = 'table.hist tr:not(:first-child)';
@@ -136,7 +140,6 @@ class LoadBillingPage {
 
         // Not Delivered Final checkbox
         this.notDeliveredFinalCheckbox_LOC = this.page.locator("#Delivs");
-        this.notDeliveredFinalLabel_LOC = this.page.locator("label[for='Delivs'].ckb");
 
         // Add New Carrier Invoice dialog
         this.addNewCarrierInvoiceBtn_LOC = this.page.locator("#carr_invoice_add_new");
@@ -153,6 +156,11 @@ class LoadBillingPage {
 
         // View History — scoped to the payables note container
         this.viewHistoryLink_LOC = this.page.locator("div[id^='payables-note-container_'] a:has(small)");
+
+        // Billing Issues / Missing Paperwork checkboxes (hidden inputs, use labels to click)
+        this.allBillingIssueCheckboxes_LOC = this.page.locator("#finance_issues_block input.fi_ckb");
+        this.lumperCheckbox_LOC = this.page.locator("#Lumpers");
+        this.lumperLabel_LOC = this.page.locator("label[for='Lumpers'].ckb");
 
         // Carrier Payable Status dropdown (first carrier), Remainder, and Total Invoices
         this.carrierPayableStatusSelect_LOC = this.page.locator("select[id^='carr_'][id$='_post_status']").first();
@@ -732,50 +740,47 @@ class LoadBillingPage {
     }
 
     /**
-     * Clicks the "Not Deliv. Final" checkbox label to toggle its state.
+     * Checks whether ANY billing issue checkbox in the #finance_issues_block is checked.
+     * Returns true if all are unchecked, false if any is checked.
      * @author AI Agent
-     * @created 17-Mar-2026
+     * @created 28-Apr-2026
      */
-    async toggleNotDeliveredFinal(): Promise<void> {
-        await this.notDeliveredFinalLabel_LOC.scrollIntoViewIfNeeded();
-        await this.notDeliveredFinalLabel_LOC.click();
-        await commonReusables.waitForPageStable(this.page);
-        console.log('Toggled Not Delivered Final checkbox');
-    }
-
-    /**
-     * Validates the Not Delivered Final checkbox text/label is visible.
-     * @author AI Agent
-     * @created 17-Mar-2026
-     */
-    async isNotDeliveredFinalVisible(): Promise<boolean> {
-        try {
-            await this.notDeliveredFinalLabel_LOC.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
-            return true;
-        } catch (err) {
-            console.error(`isNotDeliveredFinalVisible: ${(err as Error).message}`);
-            throw err;
+    async areNoBillingIssuesChecked(): Promise<boolean> {
+        await this.allBillingIssueCheckboxes_LOC.first().waitFor({ state: "attached", timeout: WAIT.DEFAULT });
+        const checkboxes = await this.allBillingIssueCheckboxes_LOC.all();
+        for (const cb of checkboxes) {
+            if (await cb.isChecked()) return false;
         }
-    }
-    /**
-     * Reads and returns the full body text from a popup Page object (e.g. View History popup).
-     * @author AI Agent
-     * @created 17-Mar-2026
-     * @param popup - The popup Page returned by clickViewHistoryAndGetPopup()
-     */
-    async getPopupBodyText(popup: import('@playwright/test').Page): Promise<string> {
-        return (await popup.textContent("body")) || '';
+        return true;
     }
 
     /**
-     * Generates a random 10-digit invoice number string.
-     * Delegates to commonReusables.generateRandomInvoiceNumber().
+     * Clicks the "Lumper" checkbox label in Missing Paperwork section.
+     * Waits for the AJAX-driven checkbox state to actually toggle.
      * @author AI Agent
-     * @created 26-Mar-2026
-     * @deprecated Use commonReusables.generateRandomInvoiceNumber() or pages.commonReusables.generateRandomInvoiceNumber() directly
+     * @created 28-Apr-2026
      */
-    generateRandomInvoiceNumber(): string {
-        return commonReusables.generateRandomInvoiceNumber();
+    async clickLumperCheckbox(): Promise<void> {
+        await this.lumperLabel_LOC.scrollIntoViewIfNeeded();
+        const wasChecked = await this.lumperCheckbox_LOC.isChecked();
+        await this.lumperLabel_LOC.click();
+        await commonReusables.waitForPageStable(this.page);
+        if (wasChecked) {
+            await expect(this.lumperCheckbox_LOC).not.toBeChecked({ timeout: WAIT.DEFAULT });
+        } else {
+            await expect(this.lumperCheckbox_LOC).toBeChecked({ timeout: WAIT.DEFAULT });
+        }
+        console.log(`Clicked Lumper checkbox (was: ${wasChecked}, now: ${!wasChecked})`);
+    }
+
+    /**
+     * Checks whether the "Lumper" checkbox is checked.
+     * @author AI Agent
+     * @created 28-Apr-2026
+     */
+    async isLumperChecked(): Promise<boolean> {
+        await this.lumperCheckbox_LOC.waitFor({ state: "attached", timeout: WAIT.DEFAULT });
+        return this.lumperCheckbox_LOC.isChecked();
     }
 
     /**

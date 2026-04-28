@@ -808,16 +808,6 @@ class TNXLandingPage {
   }
 
   /**
-   * Returns all option texts from the organization selector dropdown.
-   * @author AI Agent
-   * @created 17-Mar-2026
-   */
-  async getOrgDropdownOptions(): Promise<string[]> {
-    await this.orgSelectorDropdown_LOC.waitFor({ state: "visible", timeout: WAIT.XLARGE });
-    return await this.orgSelectorDropdown_LOC.locator("option").allTextContents();
-  }
-
-  /**
    * Retrieves the numeric part (dollars, no cents) from the load offer rate.
    * @author AI Agent
    * @created 26-Mar-2026

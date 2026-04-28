@@ -132,25 +132,6 @@ export class EditLoadFormPage {
     }
   }
 
-  /**
-   * Checks the "Override BTF" checkbox on the Edit Load page.
-   * Required before changing status to DELIVERED FINAL when BTF Status is Pending/Error.
-   * @author AI Agent
-   * @created 03-Apr-2026
-   */
-  async checkOverrideBTF(): Promise<void> {
-    const isPresent = await this.overrideBTFCheckbox_LOC.isVisible({ timeout: WAIT.DEFAULT }).catch(() => false);
-    if (!isPresent) {
-      console.log("Override BTF checkbox not present — skipping");
-      return;
-    }
-    if (!(await this.overrideBTFCheckbox_LOC.isChecked())) {
-      await this.overrideBTFCheckbox_LOC.check();
-      console.log("Checked Override BTF checkbox");
-    } else {
-      console.log("Override BTF checkbox already checked");
-    }
-  }
 
   /**
    * Click on Save Button
@@ -627,16 +608,6 @@ export class EditLoadFormPage {
     console.log(`Entered Linehaul Rate: ${value}`);
   }
 
-  /**
-   * Fills the Whse Instructions textarea/input field.
-   * @author AI Agent
-   * @created 17-Mar-2026
-   */
-  async fillWhseInstructions(value: string): Promise<void> {
-    await this.whseInstructionsField_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
-    await this.whseInstructionsField_LOC.fill(value);
-    console.log(`Filled Whse Instructions: ${value}`);
-  }
 
   /**
    * Reads the current value of the Rate Type dropdown.
@@ -703,18 +674,6 @@ export class EditLoadFormPage {
       console.error(`getFuelSurchargeDefaultValue: ${(err as Error).message}`);
       throw err;
     }
-  }
-
-  /**
-   * Selects Method dropdown value (e.g., "Practical").
-   * @author AI Agent
-   * @created 17-Mar-2026
-   */
-  async selectMethod(value: string): Promise<void> {
-    await this.methodDropdown_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
-    await this.methodDropdown_LOC.selectOption({ label: value });
-    await commonReusables.waitForPageStable(this.page);
-    console.log(`Selected Method: ${value}`);
   }
 
   /**

@@ -1025,11 +1025,30 @@ export const GENERATION_RULES = {
   //     Edit Office, etc.) do NOT render the main navigation buttons (Admin,
   //     Customers, Loads, Finance, etc.). After visiting any such page, ALWAYS call
   //     pages.basePage.navigateToBaseUrl() BEFORE pages.basePage.hoverOverHeaderByText().
-  //     Reference: BT-67846, BT-74421, DFB-97746, DFB-97739 all follow this pattern.
+  //     Reference: BT-67846, BT-74418, DFB-97746, DFB-97739 all follow this pattern.
   //     The call is idempotent — safe to call even if already on the base URL.
   NAVIGATE_TO_BASE_BEFORE_HEADER_NAV: true,
 
-  // 14. FORBIDDEN PATTERNS — Patterns that must NEVER appear in generated code.
+  // 14. BILLING TOGGLE CATEGORY — Mandatory user switch rule.
+  //     All test cases in the 'billingtoggle' category MUST switch to BILLINGTOGGLE_USER
+  //     after the initial BTMSLogin. The login step must include:
+  //       await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
+  //       await pages.homePage.clickSwitchAccountButton();
+  //       await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
+  //     This is mandatory because billing toggle tests require a specific user context
+  //     with billing permissions. The constant USER_ROLES.BILLINGTOGGLE_USER is defined
+  //     in globalConstants.ts and must never be hardcoded as a string in the spec.
+  BILLING_TOGGLE_USER_SWITCH: true,
+
+  // 15. ASSERTION METHOD RULES — Use the correct assertion for each check type.
+  //     .toBeTruthy() / .toBeFalsy(): ONLY for boolean existence checks (e.g., isChecked, isVisible).
+  //     .toContain(): For verifying message/string content (e.g., dialog text, alert messages).
+  //     .toBe(): For exact value matching (e.g., status values, toggle values).
+  //     .not.toBe(): For verifying a value is NOT a specific value.
+  //     NEVER use .toBeTruthy() to validate message text or specific values.
+  ASSERTION_METHOD_RULES: true,
+
+  // 16. FORBIDDEN PATTERNS — Patterns that must NEVER appear in generated code.
   //     selfCheckAndFix automatically detects and replaces these.
   FORBIDDEN_PATTERNS: [
     {
@@ -1099,14 +1118,14 @@ export const GENERATION_RULES = {
   //     ReferenceSpecAnalyzer uses these to clone structural templates.
   REFERENCE_SPECS: {
     dfb: [
-      'src/tests/generated/dfb/DFB-97739.spec.ts',
-      'src/tests/generated/dfb/DFB-97741.spec.ts',
+      'src/tests/AIAgent/dfb/DFB-97739.spec.ts',
+      'src/tests/AIAgent/dfb/DFB-97741.spec.ts',
     ],
     billingtoggle: [
-      'src/tests/generated/billingtoggle/BT-67846.spec.ts',
+      'src/tests/AIAgent/billingtoggle/BT-67846.spec.ts',
     ],
     commission: [
-      'src/tests/generated/dfb/DFB-25103.spec.ts',
+      'src/tests/AIAgent/dfb/DFB-25103.spec.ts',
     ],
   } as Record<string, string[]>,
 
@@ -1420,49 +1439,49 @@ export const CATEGORY_CONFIG: Record<string, {
   dfb: {
     dataFile: 'dfbData',
     timeout: 300000,
-    defaultTags: ['@dfb'],
+    defaultTags: ['@AIAgent', '@dfb'],
     requiredImports: ['dfbHelpers'],
   },
   edi: {
     dataFile: 'ediData',
     timeout: 300000,
-    defaultTags: ['@edi'],
+    defaultTags: ['@AIAgent', '@edi'],
     requiredImports: [],
   },
   commission: {
     dataFile: 'commissionData',
     timeout: 300000,
-    defaultTags: ['@commission'],
+    defaultTags: ['@AIAgent', '@commission'],
     requiredImports: ['commissionHelper'],
   },
   salesLead: {
     dataFile: 'salesLeadData',
     timeout: 300000,
-    defaultTags: ['@salesLead'],
+    defaultTags: ['@AIAgent', '@salesLead'],
     requiredImports: [],
   },
   carrier: {
     dataFile: 'carrierData',
     timeout: 300000,
-    defaultTags: ['@carrier'],
+    defaultTags: ['@AIAgent', '@carrier'],
     requiredImports: [],
   },
   api: {
     dataFile: 'apiData',
     timeout: 120000,
-    defaultTags: ['@api'],
+    defaultTags: ['@AIAgent', '@api'],
     requiredImports: ['axios'],
   },
   billingtoggle: {
     dataFile: 'billingtoggleData',
     timeout: 300000,
-    defaultTags: ['@billingtoggle'],
+    defaultTags: ['@AIAgent', '@billingtoggle'],
     requiredImports: [],
   },
   custom: {
     dataFile: 'dfbData',
     timeout: 300000,
-    defaultTags: ['@custom'],
+    defaultTags: ['@AIAgent', '@custom'],
     requiredImports: [],
   },
 };

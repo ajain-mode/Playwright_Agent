@@ -1022,6 +1022,22 @@ export class TestCaseParser {
         values.testStepsRaw = testStepMatches.map(s => s.trim());
       }
 
+      // ── Extract office code from test steps (if not already found in preconditions) ──
+      if (!values.precondition.officeCode) {
+        const stepOfficePatterns = [
+          /office\s+code\s+([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
+          /office\s+code\s+([A-Z][A-Z0-9 ]+?)\s+and\s+click/i,
+          /office\s+code\s+([A-Z][A-Z0-9 ]+?)\s+(?:and|then|in)\b/i,
+        ];
+        for (const pattern of stepOfficePatterns) {
+          const officeMatch = normalizedSteps.match(pattern);
+          if (officeMatch) {
+            values.precondition.officeCode = officeMatch[1].trim();
+            break;
+          }
+        }
+      }
+
       // ── Strategy 1: Direct "Key: Value" patterns (original) ──
       const fieldPatterns: { key: keyof ExplicitValues['formFields']; patterns: RegExp[] }[] = [
         { key: 'customerName', patterns: [
@@ -1029,6 +1045,7 @@ export class TestCaseParser {
           /"Customer"\s+field\s*\(\s*([^)]+)\s*\)/i,
           /customer\s+name\s+in\s+the\s+"?Customer"?\s+field\s*\(\s*([^)]+)\s*\)/i,
           /enter\s+the\s+Customer\s+name[^(]*\(\s*([^)]+)\s*\)/i,
+          /enter\s+the\s+Customer\s+name\s+(.+?)\s+in\s+the\s+"?Customer"?\s+field/i,
         ]},
         { key: 'pickLocation', patterns: [
           /(?:ShipperName|Pickup\s*Location|Pick)\s*(?:\/City)?\s*:\s*(.+)/i,

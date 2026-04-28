@@ -275,19 +275,6 @@ export default class BasePage {
   }
 
   /**
-   * clickDropdownById - Reusable method to click on a dropdown by its ID
-   * @author AI Agent Generator
-   * @created 2026-02-12
-   */
-  async clickDropdownById(dropdownId: string): Promise<void> {
-    const dropdown = this.page.locator(`#${dropdownId}`);
-    await expect(dropdown).toBeVisible({ timeout: WAIT.SMALL });
-    await dropdown.click();
-    await commonReusables.waitForPageStable(this.page);
-    console.log(`Clicked dropdown: ${dropdownId}`);
-  }
-
-  /**
    * fillFieldById - Fill a field by its exact element ID.
    * @author AI Agent Generator
    * @created 2026-02-12

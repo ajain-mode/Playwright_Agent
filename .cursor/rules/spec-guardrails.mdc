@@ -1,6 +1,6 @@
 ---
 description: Guardrail rules for generated spec files
-globs: src/tests/generated/**/*.spec.ts
+globs: src/tests/AIAgent/**/*.spec.ts
 alwaysApply: false
 ---
 

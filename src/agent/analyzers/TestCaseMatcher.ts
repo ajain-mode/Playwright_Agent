@@ -434,7 +434,7 @@ export class TestCaseMatcher {
    */
   private computeTagOverlap(tagsA: string[], tagsB: string[]): number {
     // Exclude generic tags
-    const exclude = new Set(['aiteam']);
+    const exclude = new Set(['AIAgent']);
     const setA = new Set(tagsA.filter(t => !exclude.has(t)));
     const setB = new Set(tagsB.filter(t => !exclude.has(t)));
     if (setA.size === 0 && setB.size === 0) return 0;
@@ -535,7 +535,7 @@ export class TestCaseMatcher {
    * Find the spec file for a given test case ID.
    */
   private findSpecFile(caseId: string, category: string): string {
-    const generatedDir = path.resolve(this.projectRoot, 'src/tests/generated');
+    const generatedDir = path.resolve(this.projectRoot, 'src/tests/AIAgent');
     const prefixed = this.prefixId(caseId, category);
 
     // Try exact match in category folder

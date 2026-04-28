@@ -47,7 +47,7 @@ test.describe.serial('Case ID: <TEST_ID>', () => {
     await appManager.closeAllSecondaryPages();
     await sharedContext.close();
   });
-  test('description', { tag: '@aiteam,@category' }, async () => {
+  test('description', { tag: '@AIAgent,@category' }, async () => {
     await test.step('Step 1: ...', async () => { ... });
   });
 });

@@ -528,7 +528,8 @@ export class GlobalConstants {
    * @description Global constants for user roles for the test automation framework.
    */
   static readonly USER_ROLES = {
-    BULK_CHANGE_LOADS_MGR: "BULK_CHANGE_LOADS_MGR"
+    BULK_CHANGE_LOADS_MGR: "BULK_CHANGE_LOADS_MGR",
+    BILLINGTOGGLE_USER: "BILLINGTOGGLE.USER",
   } as const;
 
   /**

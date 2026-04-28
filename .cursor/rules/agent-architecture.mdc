@@ -31,7 +31,7 @@ The `AppSourceIndexer` scans cloned repos (`modetrans/mono.git`, `modetrans/dme.
 2. **SpecValidator (NAV-001)** — detects and auto-fixes missing `navigateToBaseUrl()` before `hoverOverHeaderByText()`
 3. **PromptsConfig guardrail** — `navigateToBaseUrlBeforeHeaderNav` rule flags violations at generation time
 
-The call is idempotent — safe even if already on the base URL. Reference specs: BT-67846, BT-74421, DFB-97746, DFB-97739.
+The call is idempotent — safe even if already on the base URL. Reference specs: BT-67846, BT-74418, DFB-97746, DFB-97739.
 
 ```typescript
 // CORRECT — always navigateToBaseUrl before header nav
@@ -42,6 +42,25 @@ await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
 // WRONG — will fail if browser is on a detail/form page
 await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
 ```
+
+## MANDATORY: Billing Toggle User Switch
+
+**All test cases in the `billingtoggle` category** MUST switch to `USER_ROLES.BILLINGTOGGLE_USER` after the initial login. This is enforced at three levels:
+1. **StepMappings** — BILLINGTOGGLE_USER pattern generates the correct switch code
+2. **SpecValidator (CAT-BT-001)** — detects missing `USER_ROLES.BILLINGTOGGLE_USER` in billingtoggle specs and auto-fixes by injecting the switch after `BTMSLogin`
+3. **PromptsConfig** — `BILLING_TOGGLE_USER_SWITCH` rule documents the requirement
+
+```typescript
+// CORRECT — billing toggle specs
+await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
+await pages.homePage.clickSwitchAccountButton();
+await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
+
+// WRONG — missing user switch (will fail CAT-BT-001)
+await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
+```
+
+The constant `USER_ROLES.BILLINGTOGGLE_USER` is defined in `globalConstants.ts`. NEVER hardcode the username string directly. Reference spec: BT-74421.
 
 ## Assertion Values
 

@@ -152,7 +152,7 @@ export class AgentConfig {
     this.llmMaxRetries = options.llmMaxRetries ?? 1;
     this.llmCacheEnabled = options.llmCacheEnabled ?? true;
     
-    this.outputDir = options.outputDir || path.join(this.projectRoot, 'src/tests/generated');
+    this.outputDir = options.outputDir || path.join(this.projectRoot, 'src/tests/AIAgent');
     this.dataDir = options.dataDir || path.join(this.projectRoot, 'src/data');
     this.pagesDir = options.pagesDir || path.join(this.projectRoot, 'src/pages');
     this.utilsDir = options.utilsDir || path.join(this.projectRoot, 'src/utils');

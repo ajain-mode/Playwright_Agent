@@ -134,15 +134,6 @@ class NonTabularLoadPage {
     }
 
     /**
-     * Selects the distance method from the Select2-wrapped dropdown.
-     * @author AI Agent
-     * @created 19-Mar-2026
-     */
-    async selectMethod(method: string): Promise<void> {
-        await this.selectFromSelect2SingleDropdown("form_carriers_1_mileage_method", method);
-    }
-
-    /**
      * Selects a value from a Select2 dropdown by clicking the container, typing in the
      * search field, and clicking the matching result.
      * @param select2ContainerId - The Select2 container ID (e.g. "select2-form_shipper_ship_point-container")

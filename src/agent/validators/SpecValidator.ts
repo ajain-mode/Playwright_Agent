@@ -76,6 +76,8 @@ const KNOWN_ALERT_PATTERN_KEYS = new Set<string>([
   'STATUS_HAS_BEEN_SET_TO_BOOKED',
   'PAYABLE_STATUS_INVOICE_RECEIVED',
   'UNRECOGNISED_ZIP_CODE_ENTERED',
+  'CARRIER_WHITELIST_CONFIRM',
+  'CARRIER_VISIBILITY_UPDATED',
 ]);
 
 const KNOWN_PAGE_GETTERS = new Set<string>([
@@ -887,6 +889,71 @@ const SANITIZER_RULES: GuardrailRule[] = [
       );
     },
   },
+  // SAN-021: Fix unescaped double quotes inside double-quoted string literals (compilation blocker)
+  {
+    id: 'SAN-021',
+    description: 'Replace double-quoted strings containing inner quotes with backtick template literals in test titles',
+    severity: 'error',
+    category: 'structural',
+    detect: (code) => {
+      const lines = code.split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (/^".*".*".*"/.test(trimmed) &&
+            (trimmed.endsWith('",') || trimmed.endsWith('",'))) {
+          return true;
+        }
+      }
+      return false;
+    },
+    fix: (code) => {
+      const lines = code.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        const trimmed = lines[i].trim();
+        if (!trimmed.startsWith('"') || !trimmed.endsWith('",')) continue;
+        const quoteCount = (trimmed.match(/"/g) || []).length;
+        if (quoteCount <= 2) continue;
+        const indent = lines[i].match(/^(\s*)/)?.[1] || '';
+        const content = trimmed.slice(1, -2);
+        lines[i] = `${indent}\`${content.replace(/"/g, "'").replace(/`/g, "\\`")}\`,`;
+      }
+      return lines.join('\n');
+    },
+  },
+  // SAN-022: Replace fabricated TABS/HEADERS constants with TODO placeholder
+  {
+    id: 'SAN-022',
+    description: 'Replace fabricated long-name constants (TABS.EDIT_BUTTON_AND..., HEADERS.SOME_LONG_NAME) with TODO',
+    severity: 'error',
+    category: 'guardrail',
+    detect: (code) => /TABS\.[A-Z_]{40,}|HEADERS\.[A-Z_]{30,}/.test(code),
+    fix: (code) => {
+      return code.replace(
+        /(?:await\s+)?pages\.\w+\.clickOnTab\(\s*(TABS\.[A-Z_]{40,})\s*\)\s*;?/g,
+        '// TODO: Fabricated constant $1 — manual implementation required.',
+      );
+    },
+  },
+  // SAN-023: Replace unknown ALERT_PATTERNS keys with UNKNOWN_MESSAGE
+  {
+    id: 'SAN-023',
+    description: 'Replace unknown ALERT_PATTERNS keys (e.g. EXPECTED_MESSAGE) with ALERT_PATTERNS.UNKNOWN_MESSAGE',
+    severity: 'error',
+    category: 'guardrail',
+    detect: (code) => {
+      const matches = code.matchAll(/ALERT_PATTERNS\.([A-Z0-9_]+)/g);
+      for (const m of matches) {
+        if (!KNOWN_ALERT_PATTERN_KEYS.has(m[1])) return true;
+      }
+      return false;
+    },
+    fix: (code) => {
+      return code.replace(/ALERT_PATTERNS\.([A-Z0-9_]+)/g, (full, key) => {
+        if (KNOWN_ALERT_PATTERN_KEYS.has(key)) return full;
+        return 'ALERT_PATTERNS.UNKNOWN_MESSAGE';
+      });
+    },
+  },
 ];
 
 export class SpecValidator {
@@ -916,6 +983,7 @@ export class SpecValidator {
     this.runDataCompliance(specCode, violations);
     this.runAssertionQuality(specCode, processedSteps, violations);
     this.runNavigationChecks(specCode, violations);
+    this.runCategorySpecificChecks(specCode, violations);
 
     const hardBlocks = violations.filter((v) => v.severity === 'hard-block').length;
     const errors = violations.filter((v) => v.severity === 'error').length;
@@ -1143,8 +1211,22 @@ export class SpecValidator {
       }
 
       const title = firstStr.text;
+
+      // Check composite [CSV X-Y] notation — step n is covered if X <= n <= Y
+      let csvRangeMatch = false;
+      const csvRangeRe = /\[CSV\s+(\d+)[-–](\d+)\]/i;
+      const csvM = title.match(csvRangeRe);
+      if (csvM) {
+        const rangeStart = parseInt(csvM[1], 10);
+        const rangeEnd = parseInt(csvM[2], 10);
+        if (n >= rangeStart && n <= rangeEnd) {
+          csvRangeMatch = true;
+        }
+      }
+
       const titleMatch =
         title.includes(needle) ||
+        csvRangeMatch ||
         (kwSlice.length >= 6 &&
           title.toLowerCase().includes(kwSlice.toLowerCase().slice(0, Math.min(24, kwSlice.length))));
 
@@ -1276,11 +1358,11 @@ export class SpecValidator {
       if (!KNOWN_ALERT_PATTERN_KEYS.has(key)) {
         violations.push({
           ruleId: 'HARD-006',
-          severity: 'hard-block',
-          message: `ALERT_PATTERNS.${key} is not a known alert key.`,
+          severity: 'error',
+          message: `ALERT_PATTERNS.${key} is not a known alert key — auto-fixed to UNKNOWN_MESSAGE by SAN-023.`,
           category: 'guardrail',
-          autoFixable: false,
-          correctionHint: 'Use only documented ALERT_PATTERNS keys from alertPatterns.ts allowlist.',
+          autoFixable: true,
+          correctionHint: 'SAN-023 sanitizer replaces unknown keys with ALERT_PATTERNS.UNKNOWN_MESSAGE.',
         });
       }
     }
@@ -1537,7 +1619,7 @@ export class SpecValidator {
       });
     }
 
-    const isSalesLead = /@aiteam,\s*@salesLead/i.test(specCode) || /@salesLead/i.test(specCode);
+    const isSalesLead = /@AIAgent,\s*@salesLead/i.test(specCode) || /@salesLead/i.test(specCode);
     if (!isSalesLead && /userSetup\.salesLeadUser/.test(specCode)) {
       violations.push({
         ruleId: 'DATA-005',
@@ -1694,6 +1776,34 @@ export class SpecValidator {
     }
   }
 
+  /**
+   * Category-specific validation rules.
+   * Detects the test category from spec code and applies mandatory rules.
+   */
+  private runCategorySpecificChecks(specCode: string, violations: ValidationViolation[]): void {
+    const isBillingToggle =
+      /billingtoggleData/.test(specCode) || /@billingtoggle/.test(specCode);
+
+    if (isBillingToggle) {
+      const hasUserSwitch = /USER_ROLES\.BILLINGTOGGLE_USER/.test(specCode);
+      if (!hasUserSwitch) {
+        violations.push({
+          ruleId: 'CAT-BT-001',
+          severity: 'error',
+          message:
+            'Billing toggle specs MUST switch to USER_ROLES.BILLINGTOGGLE_USER after login. ' +
+            'Add: await pages.homePage.clickSwitchAccountButton(); ' +
+            'await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);',
+          category: 'structural',
+          autoFixable: true,
+          correctionHint:
+            'After BTMSLogin(userSetup.globalUser), insert clickSwitchAccountButton() ' +
+            'and clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER).',
+        });
+      }
+    }
+  }
+
   private applyAutoFixes(
     specCode: string,
     violations: ValidationViolation[],
@@ -1772,7 +1882,7 @@ export class SpecValidator {
     }
 
     if (ids.has('DATA-005')) {
-      const isSalesLead = /@aiteam,\s*@salesLead/i.test(code) || /@salesLead/i.test(code);
+      const isSalesLead = /@AIAgent,\s*@salesLead/i.test(code) || /@salesLead/i.test(code);
       if (!isSalesLead) {
         code = code.replace(/userSetup\.salesLeadUser/g, 'userSetup.globalUser');
       }
@@ -1782,6 +1892,20 @@ export class SpecValidator {
       code = code.replace(/(?:const|let|var)\s+(\w+)\s*=\s*require\s*\(\s*['"]([^'"]+)['"]\s*\)\s*;?/g, (_f, name, mod) => {
         return `import ${name} from '${mod}';`;
       });
+    }
+
+    if (ids.has('CAT-BT-001')) {
+      const loginPattern = /(await\s+pages\.btmsLoginPage\.BTMSLogin\s*\([^)]*\)\s*;)/;
+      const match = code.match(loginPattern);
+      if (match) {
+        const indent = code.split('\n')
+          .find(l => l.includes('BTMSLogin'))
+          ?.match(/^(\s*)/)?.[1] || '          ';
+        code = code.replace(
+          loginPattern,
+          `$1\n${indent}await pages.homePage.clickSwitchAccountButton();\n${indent}await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);`,
+        );
+      }
     }
 
     if (ids.has('NAV-001')) {

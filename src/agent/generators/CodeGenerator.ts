@@ -31,7 +31,7 @@ import { LLMService } from '../services/LLMService';
 import { SchemaContext } from '../services/LLMPrompts';
 import fs from 'fs';
 import path from 'path';
-import { GlobalConstants } from '@utils/globalConstants';
+import { GlobalConstants } from '../../utils/globalConstants';
 import { StepProcessor, ProcessedStep } from '../analyzers/StepProcessor';
 import { POMMethodMatcher } from './POMMethodMatcher';
 import { matchStepMapping, resolveCodePlaceholders } from '../config/StepMappings';
@@ -356,7 +356,7 @@ export class CodeGenerator {
     // Secondary fallback: load DFB-97746 as supplementary reference for POM method discovery
     let _secondaryRefSpecCode: string | null = null;
     if (testCase.category !== 'dfb') {
-      const secondaryRefPath = path.resolve(process.cwd(), 'src/tests/generated/dfb/DFB-97746.spec.ts');
+      const secondaryRefPath = path.resolve(process.cwd(), 'src/tests/AIAgent/dfb/DFB-97746.spec.ts');
       if (fs.existsSync(secondaryRefPath)) {
         try {
           _secondaryRefSpecCode = fs.readFileSync(secondaryRefPath, 'utf-8');
@@ -2958,6 +2958,12 @@ ${stepCode}
       const loginConfig = MANDATORY_STEPS.LOGIN;
       code += `      await test.step("Step ${stepCounter}: ${loginConfig.stepName}", async () => {\n`;
       code += this.formatStepCode(loginConfig.code);
+
+      if (testCase.category === 'billingtoggle') {
+        code += `        await pages.homePage.clickSwitchAccountButton();\n`;
+        code += `        await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);\n`;
+      }
+
       code += `      });\n\n`;
     }
 

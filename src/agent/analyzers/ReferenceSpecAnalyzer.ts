@@ -56,14 +56,14 @@ export interface SpecStructure {
 // Category → reference spec file paths (relative to project root)
 const REFERENCE_SPECS: Record<string, string[]> = {
   dfb: [
-    'src/tests/generated/dfb/DFB-97739.spec.ts',
-    'src/tests/generated/dfb/DFB-97741.spec.ts',
+    'src/tests/AIAgent/dfb/DFB-97739.spec.ts',
+    'src/tests/AIAgent/dfb/DFB-97741.spec.ts',
   ],
   billingtoggle: [
-    'src/tests/generated/billingtoggle/BT-67846.spec.ts',
+    'src/tests/AIAgent/billingtoggle/BT-67846.spec.ts',
   ],
   commission: [
-    'src/tests/generated/dfb/DFB-25103.spec.ts',
+    'src/tests/AIAgent/dfb/DFB-25103.spec.ts',
   ],
 };
 

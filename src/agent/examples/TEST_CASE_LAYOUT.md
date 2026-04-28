@@ -224,7 +224,7 @@ npm run agent -- -p "Login to BTMS, create load, verify status"
 
 Generated scripts are saved to:
 ```
-src/tests/generated/
+src/tests/AIAgent/
 ├── dfb/
 │   ├── DFB-001.spec.ts
 │   └── DFB-002.spec.ts

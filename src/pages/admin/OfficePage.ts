@@ -382,4 +382,26 @@ export default class OfficePage {
       console.log(`Office settings already correct: Invoice Process=${currentInvoiceProcess}, Auto-Pay=${currentAutoPay}`);
     }
   }
+
+  /**
+   * Ensures Invoice Process is set to the expected value.
+   * If it differs, clicks Edit, sets the dropdown, and clicks Save.
+   * Does not read or modify Auto-Pay.
+   * Locator: #invoice_process (officeform.php:2327)
+   * @author AI Agent
+   * @created 2026-04-28
+   * @param expectedInvoiceProcess - Expected Invoice Process label (e.g., "Central", "Office")
+   */
+  async ensureInvoiceProcess(expectedInvoiceProcess: string): Promise<void> {
+    const current = await this.getInvoiceProcessValue();
+    if (current.toLowerCase() === expectedInvoiceProcess.toLowerCase()) {
+      console.log(`Invoice Process already correct: ${current}`);
+      return;
+    }
+    console.log(`Invoice Process needs update: ${current} → ${expectedInvoiceProcess}`);
+    await this.editButton_LOC.click();
+    await this.invoiceProcessDropdown_LOC.selectOption({ label: expectedInvoiceProcess });
+    await this.saveButton_LOC.click();
+    console.log(`Invoice Process updated to: ${expectedInvoiceProcess}`);
+  }
 }

@@ -144,20 +144,6 @@ export class DFBLoadFormPage {
   }
 
   /**
-   * Normalizes a rate/amount string by stripping $, commas, and decimal portions.
-   * Returns the integer portion only (e.g., "$2,000.00" → "2000", "2000" → "2000").
-   * Encapsulates string manipulation so specs remain clean.
-   * @author AI Agent
-   * @created 26-Mar-2026
-   */
-  /**
-   * @deprecated Use commonReusables.normalizeRateToInteger() directly
-   */
-  static normalizeRateToInteger(rate: string): string {
-    return commonReusables.normalizeRateToInteger(rate);
-  }
-
-  /**
    *
    * @author Deepak Bohra
    * @description Enter value into the Offer Rate
@@ -1206,30 +1192,6 @@ export class DFBLoadFormPage {
    * @author Parth Rastogi
    * @created : 2025-12-22
    */
-  /**
-   * Gets the current expiration date field value.
-   * @author AI Agent
-   * @created 26-Mar-2026
-   */
-  async getExpirationDateValue(): Promise<string> {
-    await this.expirationDateValue_LOC.waitFor({ state: "visible", timeout: WAIT.SMALL });
-    const value = await this.expirationDateValue_LOC.inputValue();
-    console.log(`Expiration Date value: ${value}`);
-    return value;
-  }
-
-  /**
-   * Gets the current expiration time field value.
-   * @author AI Agent
-   * @created 26-Mar-2026
-   */
-  async getExpirationTimeValue(): Promise<string> {
-    await this.expirationTimeValue_LOC.waitFor({ state: "visible", timeout: WAIT.SMALL });
-    const value = await this.expirationTimeValue_LOC.inputValue();
-    console.log(`Expiration Time value: ${value}`);
-    return value;
-  }
-
   async selectCarrierContactForRateConfirmation(contactName:string){
     //await commonReusables.waitForAllLoadStates(this.page);
     await this.page.waitForTimeout(WAIT.SMALL);

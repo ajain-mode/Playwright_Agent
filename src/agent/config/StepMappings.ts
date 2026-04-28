@@ -1038,6 +1038,16 @@ await commonReusables.waitForAllLoadStates(sharedPage);`,
 
   // --- SWITCH USER ---
   {
+    pattern: /switch\s*user.*BILLINGTOGGLE|BILLINGTOGGLE_USER|select\s+BILLINGTOGGLE/i,
+    pageObject: 'homePage',
+    method: 'clickSwitchAccountButton',
+    code: `await pages.homePage.clickSwitchAccountButton();
+await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);`,
+    confidence: 1,
+    multiLine: true,
+    category: 'SWITCH_USER',
+  },
+  {
     pattern: /switch\s*user|change\s*user/i,
     pageObject: 'adminPage',
     method: 'switchUser',

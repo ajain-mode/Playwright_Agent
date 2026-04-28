@@ -1513,18 +1513,6 @@ export default class ViewLoadPage {
   }
 
   /**
-   * Clicks the Submit/Attach button without waiting for page stability.
-   * Use this when the caller expects a browser alert to fire during page navigation
-   * triggered by the submit — waitForPageStable would block past the alert timeout.
-   * @author AI Agent
-   * @created 02-Apr-2026
-   */
-  async clickSubmitRemoteAndAwaitAlert(): Promise<void> {
-    await this.submitRemoteButton_LOC.click();
-    console.log("Clicked Submit/Attach button (awaiting alert)");
-  }
-
-  /**
    * Waits for and validates the success message in the Document Upload Utility.
    * @author AI Agent
    * @created 17-Mar-2026
@@ -1533,25 +1521,6 @@ export default class ViewLoadPage {
     await expect(this.successMessage_LOC).toBeVisible({ timeout: WAIT.LARGE });
     await expect(this.successMessage_LOC).toHaveText(SUCCESS_MESSAGES.ALL_DOCUMENTS_ATTACHED, { timeout: WAIT.LARGE });
     console.log("Upload success message confirmed");
-  }
-
-  /**
-   * Clicks the Confirm button on the duplicate invoice dialog if it appears.
-   * This is a conditional action — the dialog only appears for duplicate invoices.
-   * Returns true if the dialog was found and clicked, false if it did not appear.
-   * @author AI Agent
-   * @created 17-Mar-2026
-   */
-  async clickConfirmDuplicateInvoiceDialog(): Promise<boolean> {
-    try {
-      await this.confirmDuplicateInvoiceBtn_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
-      await this.confirmDuplicateInvoiceBtn_LOC.click();
-      console.log("Clicked Confirm on duplicate invoice dialog");
-      return true;
-    } catch {
-      console.log("No duplicate invoice dialog appeared — continuing");
-      return false;
-    }
   }
 
   /**
@@ -1637,21 +1606,5 @@ export default class ViewLoadPage {
     }
   }
 
-  /**
-   * Gets all options from the Carrier Contact (Accept As User) dropdown.
-   * @author AI Agent
-   * @created 17-Mar-2026
-   */
-  async getCarrierContactDropdownOptions(): Promise<string[]> {
-    try {
-      await this.page.waitForLoadState("domcontentloaded");
-      await this.carrierContactDropdown_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
-      const options = await this.carrierContactDropdown_LOC.locator(this.optionElements_LOC).allTextContents();
-      return options;
-    } catch (err) {
-      console.error(`getCarrierContactDropdownOptions: ${(err as Error).message}`);
-      throw err;
-    }
-  }
 
 }

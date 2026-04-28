@@ -433,18 +433,6 @@ export default class ViewCarrier {
     }
 
     /**
-     * Clicks the Save button on the carrier edit page.
-     * @author AI Agent
-     * @created 17-Mar-2026
-     */
-    async clickSaveOnCarrierEditPage(): Promise<void> {
-        await this.carrierEditSaveBtn_LOC.waitFor({ state: "visible", timeout: WAIT.SMALL });
-        await this.carrierEditSaveBtn_LOC.click();
-        await commonReusables.waitForPageStable(this.page);
-        console.log('Clicked Save on carrier edit page');
-    }
-
-    /**
      * Clicks the Update Carrier Visibility button and validates/accepts the two confirmation popups:
      * 1. "Are you sure you want to modify the carrier whitelist?" — validated then accepted
      * 2. "Carrier visibility has been updated." — validated then accepted
