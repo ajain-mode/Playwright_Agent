@@ -39,7 +39,7 @@ test.describe.serial(
     test(
       "Case Id: DFB-25103 - Verify that a message is displayed when a value is not entered for the Email for Notifications field on the CREATE NEW ENTRY form",
       {
-        tag: "@AIAgent,@dfb,@nontabular,@postautomationrules,@rulefieldvalidation",
+        tag: "@aiagent,@at_dfb,@at_nontabular,@at_postautomationrules,@at_rulefieldvalidation",
       },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT);

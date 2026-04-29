@@ -108,15 +108,31 @@ export class PageObjectScanner {
    */
   getByPageManagerName(getterName: string): PageObjectScanResult | null {
     if (this.cache.size === 0) this.scanAll();
+
+    // Pass 1: Exact match — className.toLowerCase() === getterName.toLowerCase()
+    const exactKey = getterName.toLowerCase();
     for (const [, result] of this.cache) {
-      // Match by lowercased class name or partial match
-      const classLower = result.className.toLowerCase();
-      const getterLower = getterName.toLowerCase().replace('page', '');
-      if (classLower.includes(getterLower) || getterLower.includes(classLower.replace('page', ''))) {
+      if (result.className.toLowerCase() === exactKey) {
         return result;
       }
     }
-    return null;
+
+    // Pass 2: Fuzzy match — prefer the shortest (closest) matching class name
+    const getterLower = getterName.toLowerCase().replace('page', '');
+    let bestMatch: PageObjectScanResult | null = null;
+    let bestLength = Infinity;
+
+    for (const [, result] of this.cache) {
+      const classLower = result.className.toLowerCase();
+      if (classLower.includes(getterLower) || getterLower.includes(classLower.replace('page', ''))) {
+        if (classLower.length < bestLength) {
+          bestMatch = result;
+          bestLength = classLower.length;
+        }
+      }
+    }
+
+    return bestMatch;
   }
 
   /**
@@ -147,16 +163,37 @@ export class PageObjectScanner {
   }
 
   /**
-   * Find which page object has a specific method
+   * Find which page object has a specific method (prefers shortest class name).
    */
   findMethodOwner(methodName: string): PageObjectScanResult | null {
     if (this.cache.size === 0) this.scanAll();
+    let bestMatch: PageObjectScanResult | null = null;
+    let bestLength = Infinity;
+
     for (const [, result] of this.cache) {
       if (result.methods.some(m => m.name === methodName)) {
-        return result;
+        if (result.className.length < bestLength) {
+          bestMatch = result;
+          bestLength = result.className.length;
+        }
       }
     }
-    return null;
+    return bestMatch;
+  }
+
+  /**
+   * Find ALL page objects that have a specific method.
+   * Used by Guardrail 22 to detect ambiguous methods shared across multiple classes.
+   */
+  findAllMethodOwners(methodName: string): PageObjectScanResult[] {
+    if (this.cache.size === 0) this.scanAll();
+    const owners: PageObjectScanResult[] = [];
+    for (const [, result] of this.cache) {
+      if (result.methods.some(m => m.name === methodName)) {
+        owners.push(result);
+      }
+    }
+    return owners;
   }
 
   /**

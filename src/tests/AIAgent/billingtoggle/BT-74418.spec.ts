@@ -45,7 +45,7 @@ test.describe.serial(
     test(
       "Case Id: BT-74418 - Validate updated price difference message when carrier invoice already exists in pending status and secondary invoice is received.",
       {
-        tag: "@AIAgent,@payabletoggle"
+        tag: "@aiagent,@at_payabletoggle"
       },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE); // 15 minutes

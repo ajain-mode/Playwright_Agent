@@ -98,6 +98,15 @@ export class SchemaAnalyzer {
   }
 
   /**
+   * Count how many page object classes have a specific method.
+   * Returns > 1 when the method is ambiguous (exists on multiple POMs).
+   */
+  methodOwnerCount(methodName: string): number {
+    this.ensureDynamicScan();
+    return this.scanner.findAllMethodOwners(methodName).length;
+  }
+
+  /**
    * Check if a method exists on a specific page object class
    */
   methodExistsOnClass(className: string, methodName: string): boolean {

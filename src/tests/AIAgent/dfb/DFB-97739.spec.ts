@@ -54,7 +54,7 @@ test.describe.serial(
     test(
       "Case Id: DFB-97739 - Automatically book a load when it is manually posted and display a message when an active loadboard user is not selected for the Carrier Contact for Rate Confirmation field on the load",
       {
-        tag: "@AIAgent,@carrierautoaccept,@dfb"
+        tag: "@aiagent,@at_carrierautoaccept,@at_dfb"
       },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);

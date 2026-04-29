@@ -37,13 +37,13 @@ export class LLMService {
   constructor(config: AgentConfig) {
     this.config = config;
 
-    if (config.llmEnabled === false) {
+    if (config.llmEnabled !== true) {
       this.enabled = false;
-      console.log('LLM Service disabled via --no-llm flag. Using rule-based generation only.');
+      console.log('LLM Service disabled. Using rule-based generation only.');
       return;
     }
 
-    // Check if Claude CLI is available
+    // Check if Claude CLI is available (only when LLM is explicitly enabled)
     try {
       const result = spawnSync('claude', ['--version'], {
         encoding: 'utf-8',
