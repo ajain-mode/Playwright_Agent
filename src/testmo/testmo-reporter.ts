@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { execSync } from "child_process";
 import commonReusables from "@utils/commonReusables";
-import loginSetup from "src/loginHelpers/loginSetup";
+import loginSetup from "@loginHelpers/loginSetup";
 class TestmoReporter implements Reporter {
   private results: any[] = [];
 
