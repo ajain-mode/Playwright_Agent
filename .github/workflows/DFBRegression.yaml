@@ -1,4 +1,4 @@
-name: Billing Toggle Regression Tests
+name: DFB Regression Tests
 
 on:
   workflow_dispatch:
@@ -43,7 +43,7 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     # Only run on schedule if RUN_BILLING_TOGGLE is true to disable execution make it to false from repo settings
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && vars.RUN_BILLING_TOGGLE == 'true')
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && vars.RUN_DFB == 'true')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -61,10 +61,10 @@ jobs:
         run: npx playwright install chrome --with-deps
  
       - name: Run Playwright tests
-        run: npx playwright test --grep "@at_billingtoggle"
+        run: npx playwright test --grep "@at_dfb"
         env:
-          TEST_MODULE: Billing Toggle
-          RUN_NAME: AI-Billing Toggle
+          TEST_MODULE: DFB
+          RUN_NAME: AI-DFB
           source: ${{ (github.event_name == 'schedule' && 'Scheduled') || (github.event_name == 'workflow_dispatch' && 'Manual') || 'Local' }}
           EXECUTION_ENV: ${{ github.event_name == 'schedule' && 'stage' || github.event.inputs.environment }}
           REPORT_INTEGRATION: ${{ github.event_name == 'schedule' && 'Mode QA' || github.event.inputs.report-integration }}
