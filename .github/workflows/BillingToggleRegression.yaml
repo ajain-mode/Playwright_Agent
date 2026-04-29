@@ -61,7 +61,7 @@ jobs:
         run: npx playwright install chrome --with-deps
  
       - name: Run Playwright tests
-        run: npx playwright test finance --grep "@at_billingtoggle"
+        run: npx playwright test --grep "@at_billingtoggle"
         env:
           TEST_MODULE: Billing Toggle
           RUN_NAME: AI-Billing Toggle
