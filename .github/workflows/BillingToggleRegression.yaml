@@ -64,7 +64,7 @@ jobs:
         run: npx playwright test finance --grep "@at_billingtoggle"
         env:
           TEST_MODULE: Billing Toggle
-          RUN_NAME: Billing Toggle
+          RUN_NAME: AI-Billing Toggle
           source: ${{ (github.event_name == 'schedule' && 'Scheduled') || (github.event_name == 'workflow_dispatch' && 'Manual') || 'Local' }}
           EXECUTION_ENV: ${{ github.event_name == 'schedule' && 'stage' || github.event.inputs.environment }}
           REPORT_INTEGRATION: ${{ github.event_name == 'schedule' && 'Mode QA' || github.event.inputs.report-integration }}
