@@ -44,10 +44,9 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Parse LLM flag: --no-llm disables LLM integration
-  const llmDisabled = args.includes('--no-llm');
+  // LLM is disabled — rule-based generation only (hybrid approach)
   const filteredArgs = args.filter(a => a !== '--no-llm');
-  const agentOptions: any = llmDisabled ? { llmEnabled: false } : {};
+  const agentOptions: any = { llmEnabled: false };
 
   // Default behavior (no arguments): read from sample-testcases.csv
   if (filteredArgs.length === 0) {

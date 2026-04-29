@@ -34,7 +34,7 @@ test.describe.serial(
 
     test(
       "Case Id: BT-67846 - Billing Toggle Validation with Carrier Invoice Upload",
-      { tag: "@AIAgent,@billingtoggle" },
+      { tag: "@aiagent,@at_billingtoggle" },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 

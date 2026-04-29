@@ -32,7 +32,7 @@ test.describe.serial(
 
     test(
       "Case Id: BT-72259 - Verify the Payable Toggle setting when the Carrier remainder amount < Carrier invoice amount for Autopay load.",
-      { tag: "@AIAgent,@billingtoggle" },
+      { tag: "@aiagent,@at_billingtoggle" },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 

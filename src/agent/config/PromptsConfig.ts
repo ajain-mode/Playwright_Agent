@@ -370,7 +370,7 @@ await pages.viewLoadPage.verifyLoadNumber(loadNumber);`,
     keywords: ['verify', 'validate', 'check', 'assert', 'should'],
     pageObject: 'basePage',
     method: 'validate',
-    codeTemplate: `expect.soft({{ACTUAL}}, "{{EXPECTED}}").toContain({{EXPECTED_VALUE}});`,
+    codeTemplate: `expect.soft({{ACTUAL}}, "{{EXPECTED}}").toBe({{EXPECTED_VALUE}});`,
   },
 
   // TNX Actions
@@ -1042,11 +1042,23 @@ export const GENERATION_RULES = {
 
   // 15. ASSERTION METHOD RULES — Use the correct assertion for each check type.
   //     .toBeTruthy() / .toBeFalsy(): ONLY for boolean existence checks (e.g., isChecked, isVisible).
-  //     .toContain(): For verifying message/string content (e.g., dialog text, alert messages).
-  //     .toBe(): For exact value matching (e.g., status values, toggle values).
+  //     .toBe(): For exact value matching — status values (LOAD_STATUS, CARRIER_STATUS),
+  //              toggle values (PAYABLE_TOGGLE_VALUE), invoice process, autopay status.
+  //              Example: expect(loadStatus).toBe(LOAD_STATUS.INVOICED)
+  //     .toContain(): ONLY for alert/dialog message content (ALERT_PATTERNS) or partial string matching.
+  //              Example: expect(confirmDialog).toContain(ALERT_PATTERNS.CONFIRM_CHANGE_TO_DELIVERED_FINAL)
   //     .not.toBe(): For verifying a value is NOT a specific value.
+  //     RULE: Status checks → .toBe(),  Message/alert checks → .toContain()
   //     NEVER use .toBeTruthy() to validate message text or specific values.
+  //     NEVER use .toContain() for status value checks — use .toBe() for exact match.
   ASSERTION_METHOD_RULES: true,
+
+  // 15b. NO navigateToBaseUrl AFTER LOGIN — After BTMSLogin (and optional user switch),
+  //      the application is already on the home page. Calling navigateToBaseUrl() is redundant.
+  //      The next step should directly hover/click the target header menu.
+  //      navigateToBaseUrl() is ONLY valid for mid-flow navigation (e.g., returning from
+  //      Admin > Office Search to navigate to Customer > Search).
+  NO_NAVIGATE_AFTER_LOGIN: true,
 
   // 16. FORBIDDEN PATTERNS — Patterns that must NEVER appear in generated code.
   //     selfCheckAndFix automatically detects and replaces these.

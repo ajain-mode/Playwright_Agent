@@ -2850,6 +2850,48 @@ ${stepCode}
       });
     }
 
+    // ── 32b. Assertion method enforcement: .toBe() for status/value checks, .toContain() for messages/alerts ──
+    // Status values (LOAD_STATUS, CARRIER_STATUS, toggle values, etc.) should use .toBe() for exact match.
+    // Alert/dialog messages (ALERT_PATTERNS, capturedDialogs, confirmDialog) should use .toContain() for partial match.
+    {
+      let assertionFixCount = 0;
+      const statusConstants = [
+        'LOAD_STATUS', 'CARRIER_STATUS', 'PAYABLE_TOGGLE_VALUE', 'INVOICE_PROCESS',
+        'AUTOPAY_STATUS', 'POST_STATUS', 'BILLING_TOGGLE_VALUE',
+      ];
+      const statusPattern = new RegExp(
+        `(expect(?:\\.soft)?\\([^)]+\\))\\s*\\.toContain\\(\\s*(${statusConstants.join('|')})\\.\\w+`,
+        'g'
+      );
+      fixed = fixed.replace(statusPattern, (fullMatch) => {
+        assertionFixCount++;
+        return fullMatch.replace('.toContain(', '.toBe(');
+      });
+
+      const toBeMsgPattern = /(expect(?:\.soft)?\(\s*(?:confirmDialog|capturedDialog|alertMessage|dialogMessage|alertText)[^)]*\))\s*\.toBe\(\s*(ALERT_PATTERNS\.\w+)/g;
+      fixed = fixed.replace(toBeMsgPattern, (fullMatch) => {
+        assertionFixCount++;
+        return fullMatch.replace('.toBe(', '.toContain(');
+      });
+
+      if (assertionFixCount > 0) {
+        console.log(`  🔧 Guardrail 32b: Fixed ${assertionFixCount} assertion method(s) — .toBe() for statuses, .toContain() for messages`);
+      }
+    }
+
+    // ── 32c. Remove navigateToBaseUrl() immediately after login step ──
+    // After BTMSLogin (+ optional user switch), the app is already on the home page.
+    // navigateToBaseUrl() is only valid for mid-flow navigation between different sections.
+    {
+      const simplePattern = /(BTMSLogin\([^)]*\);[\s\S]{0,500}?)await pages\.basePage\.navigateToBaseUrl\(\);\n/;
+      if (simplePattern.test(fixed)) {
+        fixed = fixed.replace(simplePattern, (_match, before) => {
+          console.log('  🔧 Guardrail 32c: Removed navigateToBaseUrl() after login — redundant after BTMSLogin');
+          return before;
+        });
+      }
+    }
+
     // ── 33. Redirect generic static utility calls from domain page objects to commonReusables ──
     // Detects patterns like ClassName.staticMethod(args) where the static method is a pure utility
     // (format, parse, normalize, convert, etc.) and rewrites to commonReusables.methodName(args)

@@ -481,3 +481,54 @@ Pending carrier invoice with price difference
 51. Validate via Hard assertion that Billing toggle should not set to Agent.
 51 Validate that NO checkboxes present under Billing Issues should be checked.
 52. Ensure after step 52 validate via hard assertion that Lumper checkbox should get checked.",,"aiteam,billingtoggle"
+67898,,FD-36116,Verify that the Billing toggle does not change to Billing when paperwork is received for an Invoiced load.,,"1. Login to BTMS application, click on profile icon and then click on Switch User. Once options are shown select BILLINGTOGGLE.USER
+2. Hover over Customers and click Search.
+3. Enter the Customer name ADVANCED COMPOSITES in the ""Customer"" field.
+4. Click the Search button.
+5. Click on the Customer detail row.
+6. Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*
+7. In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer [AGENT RESPONSE TEST CUSTOMER (192815)].
+8. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.
+9. Select the location from the ""Shipper"" field(DARRELL'S HOME (USE PU# 12345)).
+10. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields.
+11. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
+12. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
+13. Enter the ""Earliest Time"" (Eg. 09:00)
+14. Enter the ""Latest Time"" (Eg. 09:00)
+15. Select the location from the ""Consignee"" field.(TEST ADDRESS 3)
+16. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields.
+17. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
+18. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
+19. Enter the ""Earliest Time"" (Eg. 10:00)
+20. Enter the ""Latest Time"" (Eg. 10:00)
+21. No action here
+22. Enter the Quantity in the ""Qty"" field (Eg. 95)
+23. Select the ""UoM"" field (Eg. Case or Cases)
+24. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+25. Enter the weight in the ""Weight"" field (Eg. 8500)
+26. Select the ""Equipment"" field as ""FLATBED""
+27. Enter the ""length"" field (Eg. 54)
+28. Select the ""Mileage Engine"" field as ""Current""
+29. Select the ""Method"" as ""Practical""
+30. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
+31. Click on ""Create Load"" button.
+32. Under the load tab select Rate type as ""SPOT"" if no rate type is selected[ONLY IF this dropdown is visible]
+33. Click the ""Carrier tab"" in the ""Edit load"" page.
+34. Enter a valid value for the Offer Rate field on the load as ""1000"".
+35. Enter flat rate in Customer eg 500.
+36. Enter flat rate in Carrier eg 600
+37. Enter trailer length .
+38. Enter Expiration Date as future date.
+39. Enter Expiration Time  as 18:00
+40. Enter Email for notification : enter value as agentbulkchange@modeglobal.com
+41. Enter total miles  will be autopopulated
+42. On Carrier tab click on CHOOSE CARRIER and select any ACTIVE carrier by typing in XPO TRANS INC.
+43. Click on Save button. Status will be set to BOOKED.
+44. Now click on Edit button and change the status from BOOKED  to DELIVERED FINAL on the load tab.
+45. Click on SAVE button. [Are you sure you want to change this load to Delivered Final? alert will appear. Accept the alert by clicking OK button.]
+46. Under the Load Documents section, click the upload icon against Payable.
+47. Select the radio button Payables and select Document Type as Carrier Invoice.
+48. Enter Invoice Number (e.g.123456), enter Invoice Amount (e.g.1500), and click Attach — once attached, close the pop-up.
+49. Click on View Billing button.
+50. Observe the Billing Toggle.","45. Ensure after step 45 validate via hard assertion that status of LOAD should be INVOICED.
+50. Validate via Hard assertion that Billing toggle remains unchanged and does not switch to Billing.",,"aiteam,billingtoggle"
