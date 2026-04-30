@@ -125,7 +125,6 @@ export class EditLoadFormPage {
     }
   }
 
-
   /**
    * Click on Save Button
    * @author Aniket Nale

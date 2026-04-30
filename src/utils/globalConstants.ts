@@ -533,6 +533,16 @@ export class GlobalConstants {
   } as const;
 
   /**
+   * @author AI Agent
+   * @created 2026-04-30
+   * @description Labels shown in Agent USER ROLES section (view agent) for hard assertions.
+   */
+  static readonly AGENT_USER_ROLES = {
+    ADMIN: "ADMIN",
+    SYSTEM_ADMIN: "SYSTEM_ADMIN",
+  } as const;
+
+  /**
    * @author Rohit Singh
    * @created 2025-12-30
    * @description Global constants for carrier tabs for the test automation framework.
@@ -652,6 +662,17 @@ export class GlobalConstants {
       CARRIER_XPO_TRANS_AND: "XPO TRANS INC and select it once fully visible",
   } as const;
 
+  /**
+   * Fallback carrier-offer expiration for Edit Load carrier tab when CSV omits
+   * `carrierExpirationDaysAhead` / `carrierExpirationTime` (see billing toggle data row).
+   * @author AI Agent
+   * @created 2026-04-30
+   */
+  static readonly CARRIER_OFFER_EXPIRATION_DEFAULTS = {
+    DAYS_AHEAD: 7,
+    TIME: "18:00",
+  } as const;
+
 }
 /**
  * @author Deepak Bohra
@@ -706,6 +727,7 @@ declare global {
   const TOGGLE_OPTIONS: typeof GlobalConstants.TOGGLE_OPTIONS;
   const FINANCE_SUB_MENU: typeof GlobalConstants.FINANCE_SUB_MENU;
   const USER_ROLES: typeof GlobalConstants.USER_ROLES;
+  const AGENT_USER_ROLES: typeof GlobalConstants.AGENT_USER_ROLES;
   const AGENT_AUTH_LEVEL: typeof GlobalConstants.AGENT_AUTH_LEVEL;
   const AGENT_AUTH_ALLOWED: typeof GlobalConstants.AGENT_AUTH_ALLOWED;
   const CARRIER_TABS: typeof GlobalConstants.CARRIER_TABS;
@@ -783,6 +805,7 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).FINANCE_SUB_MENU = GlobalConstants.FINANCE_SUB_MENU;
   (globalThis as any).TOGGLE_OPTIONS = GlobalConstants.TOGGLE_OPTIONS;
   (globalThis as any).USER_ROLES = GlobalConstants.USER_ROLES;
+  (globalThis as any).AGENT_USER_ROLES = GlobalConstants.AGENT_USER_ROLES;
   (globalThis as any).CARRIER_TABS = GlobalConstants.CARRIER_TABS;
   (globalThis as any).POST_AUTOMATION_RULE = GlobalConstants.POST_AUTOMATION_RULE;  
   (globalThis as any).POST_AUTOMATION_COLUMNS = GlobalConstants.POST_AUTOMATION_COLUMNS;

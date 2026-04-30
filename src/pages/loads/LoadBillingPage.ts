@@ -34,8 +34,6 @@ class LoadBillingPage {
 
     // Billing Toggle locators
     private readonly billingToggleHiddenField_LOC: Locator;
-    private readonly billingToggleSliderInput_LOC: Locator;
-    private readonly billingToggleSliderSelection_LOC: Locator;
 
     // Payable Toggle locators (top slider)
     private readonly payableToggleHiddenField_LOC: Locator;
@@ -63,7 +61,8 @@ class LoadBillingPage {
     private readonly carrierRemainderAmount_LOC: Locator;
     private readonly carrierTotalInvoicesAmount_LOC: Locator;
 
-    // Billing Issues checkboxes (all inside #finance_issues_block)
+    // Billing Issues section root + checkboxes (inside #finance_issues_block)
+    private readonly financeIssuesBlock_LOC: Locator;
     private readonly allBillingIssueCheckboxes_LOC: Locator;
     private readonly lumperCheckbox_LOC: Locator;
     private readonly lumperLabel_LOC: Locator;
@@ -127,10 +126,9 @@ class LoadBillingPage {
         this.financeNotesValue_LOC = this.page.locator("//ul[@id='notes_section_bill']//div[@class='note-container']");
         this.financeNotesNewButton_LOC = this.page.locator("//ul[@id='notes_section_bill']//button[@value='new_note']");
 
-        // Billing Toggle
+        // Billing Issues "Waiting On" toggle — exact element IDs from BTMS PHP source as indexed for the agent
+        // (AppSourceIndexer: modetrans/mono.git → btms/php/src; same IDs listed in src/agent/config/PromptsConfig.ts pomLocators).
         this.billingToggleHiddenField_LOC = this.page.locator("#fi_waiting_on");
-        this.billingToggleSliderInput_LOC = this.page.locator("#waiting_on_select");
-        this.billingToggleSliderSelection_LOC = this.page.locator("div.slider-selection").last();
 
         // Payable Toggle — per-carrier slider. Hidden input has dynamic ID: payables_waiting_on-[lscarr_id]
         // Both the text slider input and hidden input share name="payables_waiting_on"
@@ -157,8 +155,9 @@ class LoadBillingPage {
         // View History — scoped to the payables note container
         this.viewHistoryLink_LOC = this.page.locator("div[id^='payables-note-container_'] a:has(small)");
 
-        // Billing Issues / Missing Paperwork checkboxes (hidden inputs, use labels to click)
-        this.allBillingIssueCheckboxes_LOC = this.page.locator("#finance_issues_block input.fi_ckb");
+        // Billing Issues / Missing Paperwork (#finance_issues_block — same block as fi_waiting_on slider region)
+        this.financeIssuesBlock_LOC = this.page.locator("#finance_issues_block");
+        this.allBillingIssueCheckboxes_LOC = this.financeIssuesBlock_LOC.locator("input.fi_ckb");
         this.lumperCheckbox_LOC = this.page.locator("#Lumpers");
         this.lumperLabel_LOC = this.page.locator("label[for='Lumpers'].ckb");
 
@@ -554,7 +553,8 @@ class LoadBillingPage {
     /**
      * Reads the Billing Issues "Waiting On" toggle value.
      * Returns 'Billing' (1), 'Neutral' (2), or 'Agent' (3).
-     * Reads from hidden input #fi_waiting_on which is the source of truth.
+     * Reads from hidden input `#fi_waiting_on` (source of truth; pairs with bootstrap-slider `#waiting_on_select`).
+     * Locator source: BTMS billing PHP as indexed — `#fi_waiting_on`, `#waiting_on_select` (see PromptsConfig pomLocators).
      * @author AI Agent
      * @created 17-Mar-2026
      */
@@ -570,6 +570,43 @@ class LoadBillingPage {
             console.error(`getBillingToggleValue: ${(err as Error).message}`);
             throw err;
         }
+    }
+
+    /**
+     * Scrolls `#finance_issues_block` into view (Billing Issues region containing `#fi_waiting_on` / `#waiting_on_select`).
+     * @author AI Agent
+     * @created 2026-04-30
+     */
+    async scrollBillingIssuesBlockIntoView(): Promise<void> {
+        await this.financeIssuesBlock_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await this.financeIssuesBlock_LOC.scrollIntoViewIfNeeded();
+    }
+
+    /**
+     * Ensures Billing Issues hidden source field is attached before reading movement/value.
+     * (`#fi_waiting_on` is the source-of-truth value behind the slider UI.)
+     * @author AI Agent
+     * @created 2026-04-30
+     */
+    async ensureBillingIssuesToggleSourceFieldAttached(): Promise<void> {
+        await this.billingToggleHiddenField_LOC.waitFor({ state: "attached", timeout: WAIT.LARGE });
+    }
+
+    /**
+     * Hard assertion: Billing Issues toggle reads as Agent, Billing, or Neutral (via `#fi_waiting_on`).
+     * Use when the test case expects a human to set the slider manually; automation only validates the outcome.
+     *
+     * @author AI Agent
+     * @created 2026-04-30
+     */
+    async expectBillingIssuesToggleIsAgentBillingOrNeutral(): Promise<void> {
+        const toggleValue = await this.getBillingToggleValue();
+        console.log(`Billing Issues toggle (#fi_waiting_on → display): ${toggleValue}`);
+        expect(toggleValue, "Billing Issues toggle (#fi_waiting_on) must be resolved").not.toBe("unknown");
+        expect(
+            [PAYABLE_TOGGLE_VALUE.AGENT, PAYABLE_TOGGLE_VALUE.BILLING, PAYABLE_TOGGLE_VALUE.NEUTRAL],
+            "Billing Issues toggle must be Agent, Billing, or Neutral (Expected 50)"
+        ).toContain(toggleValue);
     }
 
     /**
