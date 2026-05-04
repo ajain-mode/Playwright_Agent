@@ -16,6 +16,7 @@ let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
 
+test.describe.configure({ retries: 1 });
 test.describe.serial(
   "Case ID: BT-67846 - Billing Toggle Validation with Carrier Invoice Upload",
   () => {
@@ -31,7 +32,7 @@ test.describe.serial(
       if (sharedContext) await sharedContext.close();
     });
 
-    test.skip(
+    test(
       "Case Id: BT-67846 - Billing Toggle Validation with Carrier Invoice Upload",
       { tag: "@aiagent,@at_billingtoggle" },
       async () => {

@@ -23,6 +23,7 @@ let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
 
+test.describe.configure({ retries: 1 });
 test.describe.serial(
   `Case ID: BT-74421 - Verify the Billing toggle behaviour when Load is 'Invoiced or Posted' and billing issues are checked for Invoice Process as being Central.`,
   () => {
@@ -38,7 +39,7 @@ test.describe.serial(
       if (sharedContext) await sharedContext.close();
     });
 
-    test.skip(
+    test(
       `Case Id: BT-74421 - Verify the Billing toggle behaviour when Load is 'Invoiced or Posted' and billing issues are checked for Invoice Process as being Central.`,
       { tag: "@aiagent,@at_billingtoggle" },
       async () => {

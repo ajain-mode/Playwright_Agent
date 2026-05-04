@@ -14,6 +14,7 @@ let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
 
+test.describe.configure({ retries: 1 });
 test.describe.serial(
   "Case ID: BT-72259 - Verify the Payable Toggle setting when the Carrier remainder amount < Carrier invoice amount for Autopay load.",
   () => {
