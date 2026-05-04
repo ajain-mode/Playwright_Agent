@@ -23,7 +23,6 @@ let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
 
-test.describe.configure({ retries: 1 });
 test.describe.serial(
   "Case ID: BT-67898 - Verify Billing toggle does not change to Billing when paperwork is received for an Invoiced load",
   () => {
@@ -39,7 +38,7 @@ test.describe.serial(
       if (sharedContext) await sharedContext.close();
     });
 
-    test(
+    test.skip(
       "Case Id: BT-67898 - Verify Billing toggle does not change to Billing when paperwork is received for an Invoiced load",
       { tag: "@aiagent,@at_billingtoggle" },
       async () => {

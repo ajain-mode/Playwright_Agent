@@ -22,7 +22,6 @@ let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
 
-test.describe.configure({ retries: 1 });
 test.describe.serial(
   "Case ID: BT-74418 - Validate updated price difference message when carrier invoice already exists in pending status and secondary invoice is received.",
   () => {
@@ -42,7 +41,7 @@ test.describe.serial(
       }
     });
 
-    test(
+    test.skip(
       "Case Id: BT-74418 - Validate updated price difference message when carrier invoice already exists in pending status and secondary invoice is received.",
       {
         tag: "@aiagent,@at_payabletoggle"

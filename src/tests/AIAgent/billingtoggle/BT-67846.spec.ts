@@ -16,7 +16,6 @@ let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
 
-test.describe.configure({ retries: 1 });
 test.describe.serial(
   "Case ID: BT-67846 - Billing Toggle Validation with Carrier Invoice Upload",
   () => {
