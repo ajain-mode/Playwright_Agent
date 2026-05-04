@@ -1475,8 +1475,8 @@ export default class ViewLoadPage {
    * @created 17-Mar-2026
    */
   async attachCarrierInvoiceFile(): Promise<void> {
-    // const filePath = path.resolve(process.cwd(), "src", "data", "bulkchange", "CarrierInvoice.pdf");
-    const filePath = path.resolve(__dirname, '../../../../src/data/bulkchange/CarrierInvoice.pdf');
+    const filePath = path.resolve(process.cwd(), "src", "data", "bulkchange", "CarrierInvoice.pdf");
+    //const filePath = path.resolve(__dirname, '../../../../src/data/bulkchange/CarrierInvoice.pdf');
     if (!fs.existsSync(filePath)) {
       throw new Error(`Carrier Invoice file not found at: ${filePath}`);
     }
