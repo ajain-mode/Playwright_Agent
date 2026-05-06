@@ -53,13 +53,11 @@ test.describe.serial(
         });
 
         await test.step("Step 2: Admin > Agent Search, search BILLINGTOGGLE.USER, open agent row", async () => {
-          await pages.basePage.navigateToBaseUrl();
           await pages.basePage.hoverOverHeaderByText(HEADERS.ADMIN);
           await pages.basePage.clickSubHeaderByText(ADMIN_SUB_MENU.AGENT_SEARCH);
           await commonReusables.waitForAllLoadStates(sharedPage);
           await pages.agentSearchPage.nameInputOnAgentPage(USER_ROLES.BILLINGTOGGLE_USER);
           await pages.agentSearchPage.clickOnSearchButton();
-          await commonReusables.waitForAllLoadStates(sharedPage);
           await pages.agentSearchPage.selectAgentByName(USER_ROLES.BILLINGTOGGLE_USER);
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
@@ -149,12 +147,12 @@ test.describe.serial(
         await test.step("Step 8: Verify Linehaul and Fuel Surcharge default to Flat Rate (CSV 34)", async () => {
           const linehaulDefault = await pages.editLoadFormPage.getLinehaulDefaultValue();
           pages.logger.info(`Linehaul default: ${linehaulDefault}`);
-          expect(linehaulDefault?.toLowerCase(), "Linehaul should default to Flat Rate").toContain(
+          expect.soft(linehaulDefault?.toLowerCase(), "Linehaul should default to Flat Rate").toContain(
             RATE_TYPE.FLAT.toLowerCase()
           );
           const fuelSurchargeDefault = await pages.editLoadFormPage.getFuelSurchargeDefaultValue();
           pages.logger.info(`Fuel Surcharge default: ${fuelSurchargeDefault}`);
-          expect(
+          expect.soft(
             fuelSurchargeDefault?.toLowerCase(),
             "Fuel Surcharge should default to Flat Rate"
           ).toContain(RATE_TYPE.FLAT.toLowerCase());
@@ -218,23 +216,22 @@ test.describe.serial(
           await pages.commonReusables.waitForPageStable(sharedPage);
         });
 
-        await test.step("Step 14 [CSV 50 / Expected 50]: Manual Billing Issues toggle — hard assert state only", async () => {
-          // Expected 50: tester manually moves the Billing Issues toggle to Agent, Neutral, or Billing; automation does not drive the slider.
+        await test.step("Step 14 [CSV 50]: Observe Billing Toggle", async () => {
           await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
+          const observedToggle = await pages.loadBillingPage.getBillingToggleValue();
+          pages.logger.info(`Observed Billing Issues toggle: ${observedToggle}`);
+        });
 
-          // source-of-truth hidden field must exist before polling for movement
-          await pages.loadBillingPage.ensureBillingIssuesToggleSourceFieldAttached();
-          const initialToggle = await pages.loadBillingPage.getBillingToggleValue();
-          pages.logger.info(`Initial Billing Issues toggle: ${initialToggle}`);
+        await test.step("Step 15 [CSV 51 / Expected 51]: Move Waiting On toggle to Billing and hard assert", async () => {
+          await pages.loadBillingPage.setAndAssertBillingIssuesToggle(PAYABLE_TOGGLE_VALUE.BILLING);
+        });
 
-          await expect
-            .poll(async () => await pages.loadBillingPage.getBillingToggleValue(), {
-              timeout: WAIT.XXLARGE,
-              message: "Billing Issues toggle value should change after manual movement",
-            })
-            .not.toBe(initialToggle);
+        await test.step("Step 16 [CSV 52 / Expected 52]: Move Waiting On toggle to Agent and hard assert", async () => {
+          await pages.loadBillingPage.setAndAssertBillingIssuesToggle(PAYABLE_TOGGLE_VALUE.AGENT);
+        });
 
-          await pages.loadBillingPage.expectBillingIssuesToggleIsAgentBillingOrNeutral();
+        await test.step("Step 17 [CSV 53 / Expected 53]: Move Waiting On toggle to Neutral and hard assert", async () => {
+          await pages.loadBillingPage.setAndAssertBillingIssuesToggle(PAYABLE_TOGGLE_VALUE.NEUTRAL);
         });
       }
     );

@@ -34,6 +34,8 @@ class LoadBillingPage {
 
     // Billing Toggle locators
     private readonly billingToggleHiddenField_LOC: Locator;
+    private readonly billingToggleTrack_LOC: Locator;
+    private readonly billingToggleHandle_LOC: Locator;
 
     // Payable Toggle locators (top slider)
     private readonly payableToggleHiddenField_LOC: Locator;
@@ -157,6 +159,8 @@ class LoadBillingPage {
 
         // Billing Issues / Missing Paperwork (#finance_issues_block — same block as fi_waiting_on slider region)
         this.financeIssuesBlock_LOC = this.page.locator("#finance_issues_block");
+        this.billingToggleTrack_LOC = this.financeIssuesBlock_LOC.locator(".slider-track").first();
+        this.billingToggleHandle_LOC = this.financeIssuesBlock_LOC.locator(".slider-handle").first();
         this.allBillingIssueCheckboxes_LOC = this.financeIssuesBlock_LOC.locator("input.fi_ckb");
         this.lumperCheckbox_LOC = this.page.locator("#Lumpers");
         this.lumperLabel_LOC = this.page.locator("label[for='Lumpers'].ckb");
@@ -583,30 +587,83 @@ class LoadBillingPage {
     }
 
     /**
-     * Ensures Billing Issues hidden source field is attached before reading movement/value.
-     * (`#fi_waiting_on` is the source-of-truth value behind the slider UI.)
+     * Sets Billing Issues "Waiting On" toggle to Billing, Agent, or Neutral.
+     * Clicks slider track and validates hidden source field (`#fi_waiting_on`) reaches target raw value.
      * @author AI Agent
-     * @created 2026-04-30
+     * @created 2026-05-06
+     * @param expectedToggle - One of PAYABLE_TOGGLE_VALUE.BILLING/AGENT/NEUTRAL
      */
-    async ensureBillingIssuesToggleSourceFieldAttached(): Promise<void> {
+    async setBillingIssuesToggle(expectedToggle: string): Promise<void> {
+        const targetRawValueMap: Record<string, string> = {
+            [PAYABLE_TOGGLE_VALUE.BILLING]: "1",
+            [PAYABLE_TOGGLE_VALUE.NEUTRAL]: "2",
+            [PAYABLE_TOGGLE_VALUE.AGENT]: "3",
+        };
+
+        const targetRawValue = targetRawValueMap[expectedToggle];
+        if (!targetRawValue) {
+            throw new Error(`Unsupported billing toggle target: ${expectedToggle}`);
+        }
+
+        await this.scrollBillingIssuesBlockIntoView();
         await this.billingToggleHiddenField_LOC.waitFor({ state: "attached", timeout: WAIT.LARGE });
+        await this.billingToggleTrack_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await this.billingToggleHandle_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+
+        let currentRawValue = await this.billingToggleHiddenField_LOC.inputValue();
+        if (currentRawValue === targetRawValue) return;
+
+        const trackBox = await this.billingToggleTrack_LOC.boundingBox();
+        if (!trackBox || trackBox.width <= 4 || trackBox.height <= 2) {
+            throw new Error("Billing toggle track is not clickable");
+        }
+
+        const maxMoves = 2;
+        for (let move = 0; move < maxMoves && currentRawValue !== targetRawValue; move++) {
+            const handleBox = await this.billingToggleHandle_LOC.boundingBox();
+            if (!handleBox) {
+                throw new Error("Billing toggle handle is not clickable");
+            }
+
+            const moveLeft = Number(currentRawValue) > Number(targetRawValue);
+            const handleCenterXInTrack = handleBox.x + handleBox.width / 2 - trackBox.x;
+            const clickX = moveLeft
+                ? Math.max(2, Math.round(handleCenterXInTrack - 12))
+                : Math.min(trackBox.width - 2, Math.round(handleCenterXInTrack + 12));
+            const clickY = Math.max(1, Math.round(trackBox.height / 2));
+
+            await this.billingToggleTrack_LOC.click({ position: { x: clickX, y: clickY } });
+            await commonReusables.waitForPageStable(this.page);
+
+            const beforeRawValue = currentRawValue;
+            currentRawValue = await this.billingToggleHiddenField_LOC.inputValue();
+            if (currentRawValue === beforeRawValue) {
+                throw new Error(`Billing toggle did not move from raw value ${beforeRawValue}`);
+            }
+        }
+
+        await expect
+            .poll(async () => await this.billingToggleHiddenField_LOC.inputValue(), {
+                timeout: WAIT.LARGE,
+                message: `Billing toggle raw value should become ${targetRawValue}`,
+            })
+            .toBe(targetRawValue);
     }
 
     /**
-     * Hard assertion: Billing Issues toggle reads as Agent, Billing, or Neutral (via `#fi_waiting_on`).
-     * Use when the test case expects a human to set the slider manually; automation only validates the outcome.
-     *
+     * Hard assertion helper: set Billing Issues toggle and verify resulting state.
      * @author AI Agent
-     * @created 2026-04-30
+     * @created 2026-05-06
+     * @param expectedToggle - Expected resolved display value.
      */
-    async expectBillingIssuesToggleIsAgentBillingOrNeutral(): Promise<void> {
-        const toggleValue = await this.getBillingToggleValue();
-        console.log(`Billing Issues toggle (#fi_waiting_on → display): ${toggleValue}`);
-        expect(toggleValue, "Billing Issues toggle (#fi_waiting_on) must be resolved").not.toBe("unknown");
-        expect(
-            [PAYABLE_TOGGLE_VALUE.AGENT, PAYABLE_TOGGLE_VALUE.BILLING, PAYABLE_TOGGLE_VALUE.NEUTRAL],
-            "Billing Issues toggle must be Agent, Billing, or Neutral (Expected 50)"
-        ).toContain(toggleValue);
+    async setAndAssertBillingIssuesToggle(expectedToggle: string): Promise<void> {
+        await this.setBillingIssuesToggle(expectedToggle);
+        await expect
+            .poll(async () => await this.getBillingToggleValue(), {
+                timeout: WAIT.LARGE,
+                message: `Billing toggle should resolve to ${expectedToggle}`,
+            })
+            .toBe(expectedToggle);
     }
 
     /**
