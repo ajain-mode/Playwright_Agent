@@ -649,7 +649,10 @@ export class GlobalConstants {
     CARRIER_9: "VICTOR LOGISTICS INC (256395)",
     CARRIER_18_KING: "18 KING TRUCKING LLC",
     CARRIER_XPO_TRANS: "XPO TRANS INC",
-      CARRIER_XPO_TRANS_AND: "XPO TRANS INC and select it once fully visible",
+    CARRIER_XPO_TRANS_AND: "XPO TRANS INC and select it once fully visible",
+  } as const;
+  static readonly CARRIER_ID = {
+    CARRIER_XPO_TRANS: "01039257"
   } as const;
 
 }
@@ -722,6 +725,7 @@ declare global {
   const MILEAGE_ENGINE: typeof GlobalConstants.MILEAGE_ENGINE;
   const MILEAGE_METHOD: typeof GlobalConstants.MILEAGE_METHOD;
   const SUCCESS_MESSAGES: typeof GlobalConstants.SUCCESS_MESSAGES;
+  const CARRIER_ID: typeof GlobalConstants.CARRIER_ID;
 }
 /**
  * @author Deepak Bohra
@@ -797,4 +801,5 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).MILEAGE_ENGINE = GlobalConstants.MILEAGE_ENGINE;
   (globalThis as any).MILEAGE_METHOD = GlobalConstants.MILEAGE_METHOD;
   (globalThis as any).SUCCESS_MESSAGES = GlobalConstants.SUCCESS_MESSAGES;
+  (globalThis as any).CARRIER_ID = GlobalConstants.CARRIER_ID;
 }
