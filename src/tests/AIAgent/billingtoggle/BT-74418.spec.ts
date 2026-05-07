@@ -159,8 +159,10 @@ test.describe.serial(
       });
 
       await test.step("Step 15 [CSV 41]: Choose carrier", async () => {
-        await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_NAME.CARRIER_XPO_TRANS);
-        pages.logger.info(`Carrier: ${CARRIER_NAME.CARRIER_XPO_TRANS}`);
+          //@ModfiedBy Akshada Ghaytadkar - 04-Dec-2025: Updated carrier selection to use CARRIER_ID instead of CARRIER_NAME for better reliability
+          // await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_NAME.CARRIER_XPO_TRANS);
+          await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_ID.CARRIER_XPO_TRANS);
+          pages.logger.info(`Carrier: ${CARRIER_ID.CARRIER_XPO_TRANS}`);
       });
 
       await test.step("Step 16 [CSV 42]: Click Save and accept BOOKED alert", async () => {
