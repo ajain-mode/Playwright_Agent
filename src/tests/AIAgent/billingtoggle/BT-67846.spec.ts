@@ -191,7 +191,7 @@ test.describe.serial(
           await sharedPage.reload();
           await commonReusables.waitForAllLoadStates(sharedPage);
 
-          await pages.viewLoadPage.scrollToBillingIssuesSection();
+          await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
 
           // Validate: Toggle should still be "Agent" after reload
           const toggleValue = await pages.loadBillingPage.getBillingToggleValue();

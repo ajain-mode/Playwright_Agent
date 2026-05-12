@@ -542,6 +542,27 @@ export class CodeGenerator {
   }
 
   /**
+   * Public API for the Feedback Loop (Agent 4): generate a formatted test.step block
+   * for a single CSV step using the standard 3-priority pipeline (pattern library →
+   * declarative mappings → POM method matching).
+   *
+   * @param stepAction  Raw step text from the CSV
+   * @param stepNumber  Original CSV step number
+   * @param testCase    Full test case (provides data context)
+   */
+  async generatePublicStepBlock(
+    stepAction: string,
+    stepNumber: number,
+    testCase: TestCaseInput,
+  ): Promise<string> {
+    const code = await this.generateCodeFromAction(stepAction, testCase.testData as any);
+    const labelText =
+      stepAction.length > 80 ? stepAction.substring(0, 77) + '...' : stepAction;
+    const stepLabel = `Step ${stepNumber}: ${labelText}`;
+    return `await test.step("${stepLabel}", async () => {\n${this.formatStepCode(code)}      });`;
+  }
+
+  /**
    * Analyze generated code and ensure all referenced page object methods
    * actually exist in the page files. If a method is missing, generate and
    * add a reusable locator function to the respective page object file.
@@ -1983,13 +2004,13 @@ ${stepCode}
     if (!fs.existsSync(filePath)) return map;
     const content = fs.readFileSync(filePath, 'utf-8');
     // Match entries like: CARRIER_XPO_TRANS: "XPO TRANS INC",
-    const entryPattern = /(\w+):\s*["']([^"']+)["']/g;
+    const entryPattern = /(\w+):\s*(["'])(.*?)\2/g;
     // Find the CARRIER_NAME block
     const blockMatch = content.match(/static readonly CARRIER_NAME\s*=\s*\{([^}]+)\}/s);
     if (!blockMatch) return map;
     let m;
     while ((m = entryPattern.exec(blockMatch[1])) !== null) {
-      map.set(m[2].toLowerCase(), m[1]); // value → key
+      map.set(m[3].toLowerCase(), m[1]); // value → key
     }
     return map;
   }
@@ -2697,14 +2718,14 @@ ${stepCode}
       // Extract carrier value from test data or from the generated code itself
       let carrierValue = '';
       if (testData) {
-        carrierValue = (testData as Record<string, string>)['Carrier']
-          || (testData as Record<string, string>)['carrierName']
+        carrierValue = (testData as Record<string, string>)['carrierName']
+          || (testData as Record<string, string>)['Carrier']
           || '';
       }
       // Also check testCase.explicitValues or testCase.testData
       if (!carrierValue && testCase.testData) {
-        carrierValue = (testCase.testData as Record<string, string>)['Carrier']
-          || (testCase.testData as Record<string, string>)['carrierName']
+        carrierValue = (testCase.testData as Record<string, string>)['carrierName']
+          || (testCase.testData as Record<string, string>)['Carrier']
           || '';
       }
 

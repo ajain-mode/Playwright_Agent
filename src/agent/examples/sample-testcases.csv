@@ -588,3 +588,68 @@ Pending carrier invoice with price difference
 51.Validate via hard assertion Billing toggle state chaged to Billing
 52..Validate via hard assertion Billing toggle state chaged to Agent.
 53. .Validate via hard assertion Billing toggle state chaged to Neutral.",,"aiteam,at_billingtoggle"
+74454,,FD-36711,Verify the toggle behaviour when the load status is Delivered Final and price difference is resolved.,,"1.Login to BTMS in any valid environment.(http://brokerage.stage.suntecktts.com/) 
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6.Hover to Customers and click Search.
+7.Enter the Customer name in the """"Customer"""" field (BRANDON INDUSTRIES)
+8. Click on """"Search"""" button.
+9. Click on Customer detail row .
+10. Scroll down in the """"VIEW CUSTOMER"""" page and click the hyperlink """"CREATE TL *NEW*
+11. In """"ENTER NEW LOAD"""" page """"Customer"""" field is already selected and if not select AGENT RESPONSE TEST CUSTOMER (192815)
+12. """"Salesperson"""" and """"Dispatcher"""" field has preselected values, if not we need to select.
+13.Select the location from the """"Shipper"""" field( TEST ADDRESS 1).
+14. Once the location is selected from the """"Shipper"""" field then """"Name"""",""""Address"""",""""City"""",""""State"""",""""Zip"""",""""Country"""" will be automatically update the values in the corresponding fields. 
+15. Select the """"Earliest Date"""" (Future date need to select)(select tomorrow date)
+16. Select the """"Latest Date"""" (Future date need to select)(select tomorrow date)
+17. Enter the """"Earliest Time"""" (Eg. 09:00)
+18. Enter the """"Latest Time"""" (Eg. 09:00)
+19. Select the location from the """"Consignee"""" field.(DARRELL'S HOME (USE PU# 12345))
+20. Once the location is selected from the """"Consignee"""" field then """"Name"""",""""Address"""",""""City"""",""""State"""",""""Zip"""",""""Country"""" will be automatically update the values in the corresponding fields. 
+21. Select the """"Earliest Date"""" (Future date need to select)(select tomorrow dayafter)
+22. Select the """"Latest Date"""" (Future date need to select)(select tomorrow dayafter)
+23. Enter the """"Earliest Time"""" (Eg. 10:00)
+24. Enter the """"Latest Time"""" (Eg. 10:00)
+25. In the field Whose Instructions enter value as TestData
+26. Enter the Quantity in the """"Qty"""" field (Eg. 10)
+27. Select the """"UoM"""" field (Eg. Case or Cases)
+28. Enter the description in the """"Description"""" field (Eg. Total 10 cases)
+29. Enter the weight in the """"Weight"""" field (Eg. 1000). 
+30. Select the """"Equipment"""" field as """"FLATBED""""
+31. Enter the """"length"""" field (Eg. 54)
+32. Select the """"Mileage Engine"""" field as """"Current""""
+33. Select the """"Method"""" as """"Practical""""
+34. """"Linehaul"""" and Fuel Surcharge"""" default value will be """"Flat Rate"""". 
+35. Click on """"Create Load"""" button.
+36. Click the """"Carrier tab"""" in the """"Edit load"""" page.
+37. Enter a valid value for the Offer Rate field on the load as """"1000"""".
+38. Enter flat rate in Customer as 500
+39. Enter flat rate in Carrier as 600 .
+40. Enter trailer length 10 if value not filled.
+41. Enter total miles  eg 100
+42. Now click on choose a carrier button and enter value as ZONA TRUCKING LLC and once it is visible fully select it.
+43.Click on Save button [STATUS HAS BEEN SET TO BOOKED alert should get displayed]. Accept the alert.
+44. On Load tab click on View Billing button.
+45. Under load documents section click on upload icon against Payables.
+46. Upload the carrier invoice document.
+47. Select radio button Payables and Select Document Type as carrier Invoice.
+48. Enter invoice number e.g 123456 and Enter Invoice Amount e.g. 700 and click on attach. Accept the alert[Payable Status has been updated to INVOICE RECEIVED] and close the pop up.
+48. Reload the page and validate the Waiting on toggle and Not Deliv Final checkbox ubder BILLING ISSUES.
+49. Click On View Load Button on view billing page.
+50. Click On Edit Button on View Load Page.
+51. Under load tab chaged the status to DELIVERED FINAL and Click on Save Button [Are you sure you want to change this  load to Delivered Final? alert get displayed ]. Accept the alert.
+52. Validate the Load tab, under Billing section ensure that the “Not Deliv. Final” tag is not available and only the “Price Difference” tag is available.
+53. Click on View Billing Button.
+54.Click On View Load Button.
+55.Click On Edit Button on View Load Page.
+56. Click the """"Carrier tab"""" in the """"Edit load"""" page.
+57. Enter flat rate in Carrier eg 700.
+58. Click on Save Button on Edit Load Page.
+59.Verify load tab under View Load Page.
+60. Click on View Billing Button and observe billing toggle.","48. After step 48,  1. Hard Assert Billing toggle button at """"View Billing"""" screen should be set to """"Agent"""". 2. Validate Not Deliv. Final checkbox should be checked.
+49. After completing Step 49, validate the Load tab to ensure that the “Not Deliv. Final” and “Price Difference” tags are available, and verify that the Waiting On value is set to ""Agent"" under Billing.
+53. After step 53. Validate Not Deliv.Final checkbox is unchecked now.
+59. Validate with hard assertion  that the Waiting On value is set to ""Billing"" under Billing section on load tab.
+60. After step 60, Validate with Hard assertion Billing toggle is set to value ""Billing"".",,"aiteam,billingtoggle"

@@ -254,7 +254,7 @@ test.describe.serial(
             "Billing toggle should NOT be set to 'Agent'"
           ).not.toBe(PAYABLE_TOGGLE_VALUE.AGENT);
 
-          await pages.viewLoadPage.scrollToBillingIssuesSection();
+          await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
           const noneChecked = await pages.loadBillingPage.areNoBillingIssuesChecked();
           pages.logger.info(`No billing issue checkboxes checked: ${noneChecked}`);
           expect(

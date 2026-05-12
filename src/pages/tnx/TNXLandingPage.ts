@@ -60,7 +60,7 @@ class TNXLandingPage {
       "//*[text()='1 Available Loads']"
     );
     this.loadOfferRateValue_LOC = page.locator(
-      "//*[contains(@class,'Tender__price')]//div[contains(@class,'Spacing__spacing')]//p"
+      "//*[contains(@class,'Tender__price')]//p[contains(@class,'Typography__is-primary') and contains(@class,'Typography__is-bold')]"
     );
     this.temporaryDelayPopUp_LOC = page.locator("//*[text()='Got it!']");
     this.availableJobsText_LOC = page.locator(

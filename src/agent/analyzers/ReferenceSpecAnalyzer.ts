@@ -60,6 +60,7 @@ const REFERENCE_SPECS: Record<string, string[]> = {
     'src/tests/AIAgent/dfb/DFB-97741.spec.ts',
   ],
   billingtoggle: [
+    'src/tests/AIAgent/billingtoggle/BT-74454.spec.ts',
     'src/tests/AIAgent/billingtoggle/BT-67846.spec.ts',
   ],
   commission: [

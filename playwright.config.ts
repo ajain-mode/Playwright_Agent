@@ -67,7 +67,8 @@ export default defineConfig({
       use: {
         //viewport: { width: 1920, height: 1080 },
         channel: 'chrome',
-        headless: true, // Set to true to run in headless mode
+        // Launches installed Google Chrome (headed locally; headless in CI).
+        headless: !!process.env.CI,
       },
     },
   ],

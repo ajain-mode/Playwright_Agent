@@ -60,6 +60,13 @@ export const FIELD_REGISTRY: FieldDefinition[] = [
     extractionSources: ['formFields.offerRate'],
   },
   {
+    canonicalKey: 'linehaulRate',
+    formFieldId: 'linehaul_rate',
+    stepPatterns: [/linehaul\s*rate/i, /\blh\s*rate\b/i],
+    csvAliases: ['linehaulrate', 'lhrate'],
+    extractionSources: ['formFields.linehaulRate', 'formFields.lhRate'],
+  },
+  {
     canonicalKey: 'officeCode',
     formFieldId: 'office_code',
     stepPatterns: [/office\s*code/i],
@@ -70,7 +77,7 @@ export const FIELD_REGISTRY: FieldDefinition[] = [
     canonicalKey: 'carrierName',
     formFieldId: 'carrier_name',
     stepPatterns: [/carrier\s*name/i],
-    csvAliases: ['carrier'],
+    csvAliases: ['carrier', 'carriername'],
     extractionSources: ['formFields.carrierName', 'precondition.carrierName'],
   },
   {

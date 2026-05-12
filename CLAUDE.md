@@ -298,6 +298,8 @@ Tests can span three applications via `appManager` (`MultiAppManager`):
 
 Reference example for multi-app tests: `DFB-97739.spec.ts`. Reference for BTMS-only: `DFB-25103.spec.ts`.
 
+For **billingtoggle** end-to-end structure (View Load vs View Billing Waiting On, nested `test.step` aligned to CSV steps, no skipped expected validations), use **`src/tests/AIAgent/billingtoggle/BT-74454.spec.ts`** as the primary reference (`REFERENCE_SPECS.billingtoggle` / `ReferenceSpecAnalyzer` lists it first). Snippet catalog: `PromptsConfig.REFERENCE_PATTERNS.BILLING_TOGGLE_VIEW_LOAD_VS_VIEW_BILLING`. Workspace rule: `.cursor/rules/agent-architecture.mdc` (sections *Billing toggle: View Load vs View Billing* and *Test execution structure*).
+
 ### Generated Test Structure
 
 ```typescript

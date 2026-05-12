@@ -1587,14 +1587,14 @@ export class SpecValidator {
       }
     });
 
-    const carrierValues = Object.values(GlobalConstants.CARRIER_NAME) as string[];
-    for (const val of carrierValues) {
+    const carrierEntries = Object.entries(GlobalConstants.CARRIER_NAME) as [string, string][];
+    for (const [carrierKey, val] of carrierEntries) {
       if (val.length < 4) {
         continue;
       }
       const escaped = val.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const re = new RegExp(`['"]${escaped}['"]`);
-      if (re.test(specCode) && !specCode.includes(`CARRIER_NAME`)) {
+      if (re.test(specCode) && !specCode.includes(`CARRIER_NAME.${carrierKey}`)) {
         violations.push({
           ruleId: 'DATA-002',
           severity: 'error',
@@ -1760,8 +1760,10 @@ export class SpecValidator {
     for (let i = 0; i < lines.length; i++) {
       if (!/hoverOverHeaderByText\s*\(/.test(lines[i])) continue;
       const precedingLines = lines.slice(Math.max(0, i - 5), i).join('\n');
+      const postLoginWindow = lines.slice(Math.max(0, i - 25), i).join('\n');
       if (/navigateToBaseUrl/.test(precedingLines)) continue;
       if (/hoverOverHeaderByText/.test(precedingLines)) continue;
+      if (/BTMSLogin\s*\(/.test(postLoginWindow)) continue;
 
       violations.push({
         ruleId: 'NAV-001',
@@ -1914,7 +1916,12 @@ export class SpecValidator {
       for (let i = 0; i < lines.length; i++) {
         if (/await\s+pages\.basePage\.hoverOverHeaderByText\s*\(/.test(lines[i])) {
           const preceding = lines.slice(Math.max(0, i - 5), i).join('\n');
-          if (!/navigateToBaseUrl/.test(preceding) && !/hoverOverHeaderByText/.test(preceding)) {
+          const postLoginWindow = lines.slice(Math.max(0, i - 25), i).join('\n');
+          if (
+            !/navigateToBaseUrl/.test(preceding) &&
+            !/hoverOverHeaderByText/.test(preceding) &&
+            !/BTMSLogin\s*\(/.test(postLoginWindow)
+          ) {
             const indent = lines[i].match(/^(\s*)/)?.[1] || '          ';
             result.push(`${indent}await pages.basePage.navigateToBaseUrl();`);
           }

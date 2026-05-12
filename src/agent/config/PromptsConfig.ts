@@ -224,9 +224,7 @@ export const ACTION_MAPPINGS: ActionMapping[] = [
     keywords: ['accept terms'],
     pageObject: 'btmsAcceptTermPage',
     method: 'acceptTermsAndConditions',
-    codeTemplate: `if (await pages.btmsAcceptTermPage.validateOnBTMSAcceptTermPage()) {
-  await pages.btmsAcceptTermPage.acceptTermsAndConditions();
-}`,
+    codeTemplate: `// Accept Terms handling is covered inside BTMSLogin; no separate step required.`,
   },
 
   // Navigation Actions
@@ -902,7 +900,6 @@ export const GENERATION_RULES = {
   //    Existing helpers to use:
   REUSE_HELPERS: {
     login:            'pages.btmsLoginPage.BTMSLogin(userSetup.globalUser)',
-    acceptTerms:      'pages.btmsAcceptTermPage.acceptTermsAndConditions()',
     setupOffice:      'dfbHelpers.setupOfficePreConditions(pages, testData.officeName, toggleSettingsValue, verifyConfig)',
     switchUser:       'pages.adminPage.switchUser(testData.salesAgent)',
     navigateHome:     'pages.basePage.hoverOverHeaderByText(HEADERS.HOME)',
@@ -1134,6 +1131,8 @@ export const GENERATION_RULES = {
       'src/tests/AIAgent/dfb/DFB-97741.spec.ts',
     ],
     billingtoggle: [
+      // Primary: multi-step View Load ↔ Edit ↔ View Billing, fi_waiting_on layer split, CSV-aligned test.step
+      'src/tests/AIAgent/billingtoggle/BT-74454.spec.ts',
       'src/tests/AIAgent/billingtoggle/BT-67846.spec.ts',
     ],
     commission: [
@@ -1241,6 +1240,36 @@ export const GENERATION_RULES = {
     NEGATIVE_CARRIER_CONTACT: `
       // Deliberately NOT selecting carrier contact — testing missing contact scenario
       console.log("Skipped carrier contact selection — testing missing contact");`,
+
+    /**
+     * Billing toggle / load finance — canonical execution style (see BT-74454.spec.ts).
+     * Locator layer: View Load Load tab uses select#fi_waiting_on (ViewLoadPage); View Billing uses hidden #fi_waiting_on (LoadBillingPage).
+     * Structure: nested test.step titles reference CSV step / expected; do not skip validations from the expected column.
+     */
+    BILLING_TOGGLE_VIEW_LOAD_VS_VIEW_BILLING: `
+      // --- View Load, Load tab: Waiting On + billing issue tags (string select values Agent/Billing) ---
+      const viewLoadVl = new ViewLoadPage(viewWorkPage);
+      await viewLoadVl.clickloadTab();
+      await viewLoadVl.scrollWaitingOnIntoView();
+      const waitingOnLabel = await viewLoadVl.getBillingIssuesWaitingOnDisplayLabel();
+      expect.soft(waitingOnLabel, "Waiting On on View Load Load tab").toBe(PAYABLE_TOGGLE_VALUE.AGENT);
+      // Tags in same billing table region as Waiting On — use ViewLoadPage helpers, not raw locators in spec
+
+      // --- View Billing (#finance_issues_block): hidden fi_waiting_on + checkboxes ---
+      const loadBillingVl = new LoadBillingPage(viewWorkPage);
+      await viewLoadVl.clickViewBillingButton();
+      await loadBillingVl.scrollBillingIssuesBlockIntoView();
+      const toggleOnBilling = await loadBillingVl.getBillingToggleValue();
+      expect(toggleOnBilling, "Waiting On on View Billing").toBe(PAYABLE_TOGGLE_VALUE.BILLING);
+      // Use loadBillingVl.isNotDeliveredFinalChecked() etc. for checkbox expectations from testcase
+
+      // --- After Save on Edit returns to View Load: assert Waiting On again via ViewLoadPage, not getBillingToggleValue ---
+      await viewLoadVl.clickloadTab();
+      await viewLoadVl.scrollWaitingOnIntoView();
+      const waitingOnAfterSave = await viewLoadVl.getBillingIssuesWaitingOnDisplayLabel();
+      expect(waitingOnAfterSave).toBe(PAYABLE_TOGGLE_VALUE.BILLING);
+
+      // --- test.step naming: align to testcase (e.g. "CSV 59 expected: …", "Step 5 [CSV 44-48]: …") so no step/validation is implied but missing ---`,
   },
 };
 
@@ -1255,10 +1284,7 @@ export const MANDATORY_STEPS = {
   // Login step - always injected as the first step in every test
   LOGIN: {
     stepName: 'Login BTMS',
-    code: `await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
-        if (await pages.btmsAcceptTermPage.validateOnBTMSAcceptTermPage()) {
-          await pages.btmsAcceptTermPage.acceptTermsAndConditions();
-        }`,
+    code: `await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);`,
   },
 
   // Category-specific precondition steps
@@ -1331,12 +1357,6 @@ export const MANDATORY_STEPS = {
       loadCreation: {
         stepName: 'Login and Search Customer for Billing Toggle',
         code: `await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
-        if (await pages.btmsAcceptTermPage.validateOnBTMSAcceptTermPage()) {
-          await pages.btmsAcceptTermPage.acceptTermsAndConditions();
-        }
-        const btmsBaseUrl = new URL(sharedPage.url()).origin;
-        await sharedPage.goto(btmsBaseUrl);
-        await commonReusables.waitForAllLoadStates(sharedPage);
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
         await pages.searchCustomerPage.enterCustomerName(testData.customerName);
@@ -1350,12 +1370,6 @@ export const MANDATORY_STEPS = {
       default: {
         stepName: 'Login and Search Customer for Billing Toggle',
         code: `await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
-        if (await pages.btmsAcceptTermPage.validateOnBTMSAcceptTermPage()) {
-          await pages.btmsAcceptTermPage.acceptTermsAndConditions();
-        }
-        const btmsBaseUrl = new URL(sharedPage.url()).origin;
-        await sharedPage.goto(btmsBaseUrl);
-        await commonReusables.waitForAllLoadStates(sharedPage);
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
         await pages.searchCustomerPage.enterCustomerName(testData.customerName);

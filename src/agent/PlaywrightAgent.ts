@@ -27,6 +27,7 @@ import { TestTemplates } from './templates/TestTemplates';
 import { LLMService } from './services/LLMService';
 import { TestCaseMatcher, MatchResult } from './analyzers/TestCaseMatcher';
 import { SpecValidator } from './validators/SpecValidator';
+import { SpecFeedbackLoop } from './validators/SpecFeedbackLoop';
 import { ProcessedStep } from './analyzers/StepProcessor';
 import { RepoCloneManager } from './services/RepoCloneManager';
 import { AppSourceIndexer } from './analyzers/AppSourceIndexer';
@@ -47,6 +48,7 @@ export class PlaywrightAgent {
   private batchMode: boolean = false;
   private pendingCompilationFiles: string[] = [];
   private specValidator: SpecValidator;
+  private feedbackLoop: SpecFeedbackLoop;
   private csvService: CsvDataService;
   private appSourceIndexerReady = false;
 
@@ -60,6 +62,7 @@ export class PlaywrightAgent {
     this.templates = new TestTemplates();
     this.matcher = new TestCaseMatcher();
     this.specValidator = new SpecValidator();
+    this.feedbackLoop = new SpecFeedbackLoop(this.generator);
     this.csvService = new CsvDataService(this.config.dataDir);
   }
 
@@ -148,7 +151,7 @@ export class PlaywrightAgent {
         scripts.push(script);
 
         // Save the script
-        await this.saveScript(script);
+        await this.saveScript(script, testCase);
         console.log(`✅ Generated: ${script.fileName}`);
       }
 
@@ -209,7 +212,7 @@ export class PlaywrightAgent {
 
         const script = await this.generator.generateScript(testCase, testData, match?.specPath || undefined, match?.score);
         scripts.push(script);
-        await this.saveScript(script);
+        await this.saveScript(script, testCase);
         console.log(`✅ Generated: ${script.fileName}`);
       }
     } catch (error: any) {
@@ -293,7 +296,7 @@ export class PlaywrightAgent {
         const testData = testDataMap?.get(testCase.id);
         const script = await this.generator.generateScript(testCase, testData, match?.specPath || undefined, match?.score);
         scripts.push(script);
-        await this.saveScript(script);
+        await this.saveScript(script, testCase);
         console.log(`✅ Generated: ${script.fileName}`);
 
         // After generating, exclude this ID from future matching in this batch
@@ -381,7 +384,7 @@ export class PlaywrightAgent {
       };
 
       scripts.push(script);
-      await this.saveScript(script);
+      await this.saveScript(script, testCase);
       console.log(`✅ Generated from template: ${script.fileName}`);
     } catch (error: any) {
       errors.push(`Error generating from template: ${error.message}`);
@@ -469,10 +472,11 @@ export class PlaywrightAgent {
   }
 
   /**
-   * Save generated script to file after SpecValidator (Agent 3) validation and correction.
+   * Save generated script to file after SpecValidator (Agent 3) validation and
+   * SpecFeedbackLoop (Agent 4) cross-checking against the original CSV steps.
    * Post-write: compile check (batch or per-file).
    */
-  private async saveScript(script: GeneratedScript): Promise<void> {
+  private async saveScript(script: GeneratedScript, testCase: TestCaseInput): Promise<void> {
     const dir = path.dirname(script.filePath);
     
     if (!fs.existsSync(dir)) {
@@ -495,20 +499,42 @@ export class PlaywrightAgent {
     console.log(`   📊 Validation: ${report.summary.stepsImplemented}/${report.summary.stepsTotal} steps, `
       + `${report.summary.hardBlocks} blocks, ${report.summary.errors} errors, ${report.summary.warnings} warnings`);
 
+    // Agent 4: Feedback Loop — cross-check generated spec against original CSV steps.
+    // Injects code for missing steps and annotates low-confidence steps for review.
+    const feedbackResult = await this.feedbackLoop.run(finalCode, testCase, processedSteps);
+    const outputCode = feedbackResult.correctedContent;
+
+    if (feedbackResult.report.stepsMissing.length > 0) {
+      feedbackResult.report.stepsMissing.forEach(s => {
+        if (s.generatedCode) {
+          console.log(`      ➕ Injected Step ${s.csvStepNumber}: ${s.csvStepText.substring(0, 55)}...`);
+        } else {
+          console.log(`      ⚠️  Step ${s.csvStepNumber} missing but code gen failed: ${s.csvStepText.substring(0, 55)}...`);
+        }
+      });
+    }
+    if (feedbackResult.report.stepsLowMatch.length > 0) {
+      feedbackResult.report.stepsLowMatch.forEach(s => {
+        console.log(
+          `      🔍 Step ${s.csvStepNumber} flagged (${(s.similarityScore * 100).toFixed(0)}% match): ${s.csvStepText.substring(0, 55)}...`,
+        );
+      });
+    }
+
     if (report.passed) {
-      fs.writeFileSync(script.filePath, finalCode, 'utf-8');
+      fs.writeFileSync(script.filePath, outputCode, 'utf-8');
       console.log(`   ✅ Generated: ${script.testCaseId}.spec.ts`);
     } else if (report.summary.hardBlocks > 0) {
       // Save as draft — NOT a production spec
       const draftPath = script.filePath.replace('.spec.ts', '.draft.spec.ts');
-      fs.writeFileSync(draftPath, finalCode, 'utf-8');
+      fs.writeFileSync(draftPath, outputCode, 'utf-8');
       console.log(`   ⚠️ Draft saved: ${path.basename(draftPath)} — ${report.summary.hardBlocks} unresolved hard-block(s)`);
       for (const v of report.violations.filter(v => v.severity === 'hard-block')) {
         console.log(`      ❌ ${v.ruleId}: ${v.message}`);
       }
     } else {
       // Errors but no hard-blocks — write as spec but warn
-      fs.writeFileSync(script.filePath, finalCode, 'utf-8');
+      fs.writeFileSync(script.filePath, outputCode, 'utf-8');
       console.log(`   ⚠️ Generated with warnings: ${script.testCaseId}.spec.ts`);
       for (const v of report.violations.filter(v => v.severity === 'error')) {
         console.log(`      ⚠️ ${v.ruleId}: ${v.message}`);

@@ -615,6 +615,16 @@ export class GlobalConstants {
     CARRIER_OVER_INVOICED: "over the total charge",
   } as const;
 
+  /**
+   * Billing Issues tag labels on View Load / billing (BTMS UI copy).
+   * @author AI Agent
+   * @created 2026-05-11
+   */
+  static readonly BILLING_ISSUE_TAGS = {
+    NOT_DELIV_FINAL: "Not Deliv. Final",
+    PRICE_DIFFERENCE: "Price Difference",
+  } as const;
+
   static readonly CARRIER_PAYABLE_STATUS = {
     IN_PROCESS: "IN PROCESS",
     INVOICE_RECEIVED: "INVOICE RECEIVED",
@@ -739,6 +749,7 @@ declare global {
   const INVOICE_PROCESS: typeof GlobalConstants.INVOICE_PROCESS;
   const AUTOPAY_STATUS: typeof GlobalConstants.AUTOPAY_STATUS;
   const FINANCE_MESSAGES: typeof GlobalConstants.FINANCE_MESSAGES;
+  const BILLING_ISSUE_TAGS: typeof GlobalConstants.BILLING_ISSUE_TAGS;
   const CARRIER_PAYABLE_STATUS: typeof GlobalConstants.CARRIER_PAYABLE_STATUS;
   const DEFAULT_ITEM_DIMENSIONS: typeof GlobalConstants.DEFAULT_ITEM_DIMENSIONS;
   const MILEAGE_ENGINE: typeof GlobalConstants.MILEAGE_ENGINE;
@@ -815,6 +826,7 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).INVOICE_PROCESS = GlobalConstants.INVOICE_PROCESS;
   (globalThis as any).AUTOPAY_STATUS = GlobalConstants.AUTOPAY_STATUS;
   (globalThis as any).FINANCE_MESSAGES = GlobalConstants.FINANCE_MESSAGES;
+  (globalThis as any).BILLING_ISSUE_TAGS = GlobalConstants.BILLING_ISSUE_TAGS;
   (globalThis as any).CARRIER_PAYABLE_STATUS = GlobalConstants.CARRIER_PAYABLE_STATUS;
   (globalThis as any).DEFAULT_ITEM_DIMENSIONS = GlobalConstants.DEFAULT_ITEM_DIMENSIONS;
   (globalThis as any).MILEAGE_ENGINE = GlobalConstants.MILEAGE_ENGINE;

@@ -62,6 +62,31 @@ await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
 
 The constant `USER_ROLES.BILLINGTOGGLE_USER` is defined in `globalConstants.ts`. NEVER hardcode the username string directly. Reference spec: BT-74421.
 
+## Billing toggle: View Load vs View Billing (Waiting On / finance)
+
+When generating or editing **billingtoggle** (and similar load-finance) tests, follow the **same POM layer and order as the canonical spec** `src/tests/AIAgent/billingtoggle/BT-74454.spec.ts` (also listed first in `REFERENCE_SPECS.billingtoggle` / `ReferenceSpecAnalyzer`).
+
+| Surface | DOM / source | POM | Read Waiting On |
+|--------|----------------|-----|------------------|
+| **View Load → Load tab** | `loadform.php`: **`select#fi_waiting_on`** (option values `Agent` / `Billing`, strings) | `ViewLoadPage` | `clickloadTab()`, `scrollWaitingOnIntoView()`, `getBillingIssuesWaitingOnDisplayLabel()` — assert with `PAYABLE_TOGGLE_VALUE.*` |
+| **View Billing** | `billing.php`: **`#finance_issues_block`**, hidden `#fi_waiting_on` (numeric 1/2/3) + slider | `LoadBillingPage` | `scrollBillingIssuesBlockIntoView()`, `getBillingToggleValue()`, `isNotDeliveredFinalChecked()`, finance message helpers |
+
+**Rules**
+
+1. **After Save on Edit Load** when the testcase says **View Load** (or the app returns to View Load): validate Waiting On with **`ViewLoadPage`**, not `LoadBillingPage.getBillingToggleValue()`.
+2. **After View Billing** is open: use **`LoadBillingPage`** for `#fi_waiting_on` / billing issues block.
+3. **View Load from View Billing** may open a **new tab** — resolve the active `Page` (see `resolveViewLoadPageAfterBillingClick` in BT-74454) before constructing `ViewLoadPage` / `LoadBillingPage`.
+4. Billing issue **tags** (e.g. Not Deliv. Final, Price Difference) on View Load use **`ViewLoadPage`** helpers scoped to the Waiting On table — do not use `sharedPage.locator` in specs.
+
+`PromptsConfig.REFERENCE_PATTERNS.BILLING_TOGGLE_VIEW_LOAD_VS_VIEW_BILLING` documents the same split for template/snippets.
+
+## Test execution structure (no skipped steps / validations)
+
+1. **Preserve testcase order** — actions and **expected** outcomes from the source sheet (e.g. CSV) appear in the same sequence in generated code.
+2. **Every explicit expected** gets an **`expect` / `expect.soft`** or structured alert handling (`validateAlert` / `acceptAllDialogsDuringAction` + assertion on dialog text) — not `console.log` alone.
+3. Use **nested `test.step(...)`** titles that reference **step numbers and/or expected text** (e.g. `CSV 53: …`, `Step 5 [CSV 44-48]: …`) so reports map 1:1 to the written case and reviewers can see no step was dropped.
+4. Prefer **`PAYABLE_TOGGLE_VALUE`**, **`BILLING_ISSUE_TAGS`**, **`LOAD_STATUS`**, **`ALERT_PATTERNS`** over hardcoded strings in assertions.
+
 ## Assertion Values
 
 Never hardcode expected values in assertions. Use:
