@@ -18,6 +18,16 @@ export class GlobalConstants {
     XXLARGE: 120000,
   } as const;
 
+  /**
+   * Seconds for `commonReusables.validateAlert` (third argument is seconds, not ms).
+   * @author AI Agent
+   * @created 2026-05-11
+   */
+  static readonly DIALOG_TIMEOUT_SECONDS = {
+    /** DFB-97788 step 67 — Post load + waterfall validation dialog. */
+    POST_LOAD_VALIDATION: 60,
+  } as const;
+
   // Navigation Header Menu Items
   static readonly HEADERS = {
     ADMIN: "Admin",
@@ -669,7 +679,7 @@ export class GlobalConstants {
     CARRIER_9: "VICTOR LOGISTICS INC (256395)",
     CARRIER_18_KING: "18 KING TRUCKING LLC",
     CARRIER_XPO_TRANS: "XPO TRANS INC",
-      CARRIER_XPO_TRANS_AND: "XPO TRANS INC and select it once fully visible",
+    CARRIER_XPO_TRANS_AND: "XPO TRANS INC and select it once fully visible",
   } as const;
 
   /**
@@ -692,6 +702,7 @@ export class GlobalConstants {
  */
 // Global declarations - makes constants available without imports
 declare global {
+  const DIALOG_TIMEOUT_SECONDS: typeof GlobalConstants.DIALOG_TIMEOUT_SECONDS;
   const HEADERS: typeof GlobalConstants.HEADERS;
   const ADMIN_SUB_MENU: typeof GlobalConstants.ADMIN_SUB_MENU;
   const AGENT_SUB_MENU: typeof GlobalConstants.AGENT_SUB_MENU;
@@ -764,6 +775,8 @@ declare global {
  */
 // Make constants globally available
 if (typeof globalThis !== "undefined") {
+  (globalThis as any).DIALOG_TIMEOUT_SECONDS =
+    GlobalConstants.DIALOG_TIMEOUT_SECONDS;
   (globalThis as any).HEADERS = GlobalConstants.HEADERS;
   (globalThis as any).ADMIN_SUB_MENU = GlobalConstants.ADMIN_SUB_MENU;
   (globalThis as any).AGENT_SUB_MENU = GlobalConstants.AGENT_SUB_MENU;

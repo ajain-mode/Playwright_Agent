@@ -152,29 +152,28 @@ class NonTabularLoadPage {
      * @created 19-Mar-2026
      */
     async selectFromSelect2Dropdown(select2ContainerId: string, searchValue: string): Promise<void> {
-        // Click the Select2 container to open the dropdown
-        const container = this.select2ContainerById_LOC(select2ContainerId);
-        await container.waitFor({ state: 'visible', timeout: WAIT.LARGE });
-        await container.click();
+        await this.selectFromSelect2Container(this.select2ContainerById_LOC(select2ContainerId), searchValue);
         console.log(`Clicked Select2 container: #${select2ContainerId}`);
+    }
 
-        // Extract a short search term: first word before any special chars like '(, #
-        // Ship point options are pipe-delimited (isVerified|name|city|state),
-        // so Select2 default matcher searches the full pipe string.
-        // Using a short alphanumeric prefix avoids issues with special characters.
+    /**
+     * Selects a value from a Select2 dropdown using a pre-declared container locator.
+     * @author AI Agent
+     * @created 2026-05-18
+     */
+    private async selectFromSelect2Container(select2ContainerLoc: Locator, searchValue: string): Promise<void> {
+        await select2ContainerLoc.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        await select2ContainerLoc.click();
+
         const shortSearch = searchValue.split(/[('#|,]/)[0].trim();
         const searchTerm = shortSearch.length >= 3 ? shortSearch : searchValue.substring(0, Math.min(10, searchValue.length));
 
-        // Use pressSequentially to trigger Select2's input event on each keystroke
-        // (.fill() sets the value instantly without firing per-key events that Select2 needs for filtering)
         await this.select2SearchField_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
         await this.select2SearchField_LOC.pressSequentially(searchTerm, { delay: 30 });
         console.log(`Typed search term: "${searchTerm}" (from: "${searchValue}")`);
 
-        // Wait for filtered results, then find the option that contains the search value name
         await this.select2ResultsOption_LOC.first().waitFor({ state: 'visible', timeout: WAIT.LARGE });
 
-        // Try to find an exact match by checking option text contains the full name
         const matchingOption = this.select2ResultsOption_LOC.filter({ hasText: shortSearch });
         const matchCount = await matchingOption.count();
 
@@ -182,13 +181,11 @@ class NonTabularLoadPage {
             await matchingOption.first().click();
             console.log(`Selected matching option for: "${searchValue}"`);
         } else {
-            // Fallback: click the highlighted (first) result
             await this.select2HighlightedOption_LOC.first().waitFor({ state: 'visible', timeout: WAIT.LARGE });
             await this.select2HighlightedOption_LOC.first().click();
             console.log(`Selected first highlighted option for: "${searchValue}"`);
         }
 
-        // Wait for onShipPointChange AJAX to populate address fields
         await this.page.waitForLoadState("networkidle");
     }
 
@@ -1706,14 +1703,14 @@ class NonTabularLoadPage {
    * @created 2026-04-30
    */
   private async selectEnterNewLoadAgentField(
-    select2ContainerId: string,
+    select2ContainerLoc: Locator,
     expectedLabel: string
   ): Promise<void> {
     const normalized = expectedLabel.trim();
     if (!normalized) {
       return;
     }
-    await this.selectFromSelect2Dropdown(select2ContainerId, normalized);
+    await this.selectFromSelect2Container(select2ContainerLoc, normalized);
   }
 
   /**
@@ -1759,7 +1756,7 @@ class NonTabularLoadPage {
     if (salespersonInitial.length === 0) {
       const salespersonToSelect = await this.getFirstSelectableAgentOptionLabel(this.enterNewLoadSalespersonSelect_LOC);
       if (salespersonToSelect.length > 0) {
-        await this.selectEnterNewLoadAgentField("select2-form_salesperson-container", salespersonToSelect);
+        await this.selectEnterNewLoadAgentField(this.enterNewLoadSalespersonContainer_LOC, salespersonToSelect);
         salespersonAutoSelected = true;
       }
     }
@@ -1767,7 +1764,7 @@ class NonTabularLoadPage {
     if (dispatcherInitial.length === 0) {
       const dispatcherToSelect = await this.getFirstSelectableAgentOptionLabel(this.enterNewLoadDispatcherSelect_LOC);
       if (dispatcherToSelect.length > 0) {
-        await this.selectEnterNewLoadAgentField("select2-form_dispatcher-container", dispatcherToSelect);
+        await this.selectEnterNewLoadAgentField(this.enterNewLoadDispatcherContainer_LOC, dispatcherToSelect);
         dispatcherAutoSelected = true;
       }
     }

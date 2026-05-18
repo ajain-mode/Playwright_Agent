@@ -5,11 +5,7 @@ import dataConfig from "@config/dataConfig";
 import { PageManager } from "@utils/PageManager";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
 import commonReusables from "@utils/commonReusables";
-import LoadBillingPage from "@pages/loads/LoadBillingPage";
 import ViewLoadPage from "@pages/loads/viewLoadPage/ViewLoadPage";
-import EditLoadFormPage from "@pages/loads/editLoadPage/EditLoadFormPage";
-import EditLoadPage from "@pages/loads/editLoadPage/EditLoadPage";
-import EditLoadCarrierTabPage from "@pages/loads/editLoadPage/EditLoadCarrierTabPage";
 
 const testcaseID = "BT-74454";
 const testData = dataConfig.getTestDataFromCsv(dataConfig.billingtoggleData, testcaseID);
@@ -45,27 +41,10 @@ test.describe.serial(
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
-        /** View Load from billing may open a new tab; otherwise same tab. Then {@link ViewLoadPage.validateViewLoadHeading}. */
-        const resolveViewLoadPageAfterBillingClick = async (billingHostPage: Page): Promise<Page> => {
-          try {
-            const [newPage] = await Promise.all([
-              billingHostPage.context().waitForEvent("page", { timeout: WAIT.XLARGE }),
-              new LoadBillingPage(billingHostPage).clickOnViewLoadBtn(),
-            ]);
-            await newPage.waitForLoadState("load");
-            await new ViewLoadPage(newPage).validateViewLoadHeading();
-            return newPage;
-          } catch {
-            await pages.commonReusables.waitForPageStable(billingHostPage);
-            await new ViewLoadPage(billingHostPage).validateViewLoadHeading();
-            return billingHostPage;
-          }
-        };
-
         await test.step("Step 1 [CSV 1-5]: Login and switch to BILLINGTOGGLE_USER", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
-          await pages.homePage.clickSwitchAccountButton();
-          await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
+          //await pages.homePage.clickSwitchAccountButton();
+          //await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
 
@@ -174,31 +153,29 @@ test.describe.serial(
         await test.step(
           "Step 6 [CSV 49-53]: View Load — Load tab (exp. 49); Delivered Final (51-52); View Billing (53)",
           async () => {
-          viewWorkPage = await resolveViewLoadPageAfterBillingClick(sharedPage);
-          const loadBillingVl = new LoadBillingPage(viewWorkPage);
-          const viewLoadVl = new ViewLoadPage(viewWorkPage);
-          const editFormVl = new EditLoadFormPage(viewWorkPage);
+          viewWorkPage = await ViewLoadPage.resolveViewLoadPageAfterBillingClick(sharedPage);
+          const vl = new PageManager(viewWorkPage);
 
           await test.step("CSV 49 expected: Load tab — Waiting On Agent; Not Deliv. Final + Price Difference tags", async () => {
-            await viewLoadVl.clickloadTab();
-            await viewLoadVl.scrollWaitingOnIntoView();
-            const waitingOnOnViewLoad = await viewLoadVl.getBillingIssuesWaitingOnDisplayLabel();
+            await vl.viewLoadPage.clickloadTab();
+            await vl.viewLoadPage.scrollWaitingOnIntoView();
+            const waitingOnOnViewLoad = await vl.viewLoadPage.getBillingIssuesWaitingOnDisplayLabel();
             expect.soft(waitingOnOnViewLoad, "Waiting On on Load tab should be Agent").toBe(PAYABLE_TOGGLE_VALUE.AGENT);
-            const notDelivFinalTagVisible = await viewLoadVl.isBillingIssuesNotDelivFinalTagSpanVisible();
+            const notDelivFinalTagVisible = await vl.viewLoadPage.isBillingIssuesNotDelivFinalTagSpanVisible();
             expect.soft(notDelivFinalTagVisible, "Not Deliv. Final tag should be visible on Load tab").toBe(true);
-            const hasPriceDiffOnViewLoad = await viewLoadVl.isBillingIssuesPriceDifferenceTagSpanVisible();
+            const hasPriceDiffOnViewLoad = await vl.viewLoadPage.isBillingIssuesPriceDifferenceTagSpanVisible();
             expect.soft(hasPriceDiffOnViewLoad, "Price Difference tag should be visible on Load tab").toBe(true);
           });
 
           await test.step("CSV 50-51: Open Edit; set status DELIVERED FINAL; Save (confirm alert)", async () => {
-            await viewLoadVl.clickEditButton();
-            await pages.commonReusables.waitForPageStable(viewWorkPage);
+            await vl.viewLoadPage.clickEditButton();
+            await vl.commonReusables.waitForPageStable(viewWorkPage);
 
-            await editFormVl.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
+            await vl.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
 
-            const deliveredDialogs = await pages.commonReusables.acceptAllDialogsDuringAction(
+            const deliveredDialogs = await vl.commonReusables.acceptAllDialogsDuringAction(
               viewWorkPage,
-              () => editFormVl.clickOnSaveBtn(),
+              () => vl.editLoadFormPage.clickOnSaveBtn(),
               WAIT.DEFAULT
             );
             const hasDeliveredFinalConfirm = deliveredDialogs.some((msg) =>
@@ -206,24 +183,24 @@ test.describe.serial(
             );
             expect(hasDeliveredFinalConfirm, "Delivered Final confirmation alert should appear").toBeTruthy();
 
-            await pages.commonReusables.waitForPageStable(viewWorkPage);
+            await vl.commonReusables.waitForPageStable(viewWorkPage);
           });
 
           await test.step("CSV 52 expected: Load tab — Not Deliv. Final tag absent; Price Difference tag visible", async () => {
-            await viewLoadVl.clickloadTab();
-            await viewLoadVl.scrollWaitingOnIntoView();
-            const notDelivTagVisible = await viewLoadVl.isBillingIssuesNotDelivFinalTagSpanVisible();
+            await vl.viewLoadPage.clickloadTab();
+            await vl.viewLoadPage.scrollWaitingOnIntoView();
+            const notDelivTagVisible = await vl.viewLoadPage.isBillingIssuesNotDelivFinalTagSpanVisible();
             expect.soft(notDelivTagVisible, "Not Deliv. Final tag should not be available on Load tab").toBe(false);
-            const priceDiffTagVisible = await viewLoadVl.isBillingIssuesPriceDifferenceTagSpanVisible();
+            const priceDiffTagVisible = await vl.viewLoadPage.isBillingIssuesPriceDifferenceTagSpanVisible();
             expect.soft(priceDiffTagVisible, "Price Difference tag should be visible on Load tab").toBe(true);
           });
 
           await test.step("CSV 53: View Billing — expected: Not Deliv. Final checkbox unchecked", async () => {
-            await viewLoadVl.clickViewBillingButton();
-            await pages.commonReusables.waitForPageStable(viewWorkPage);
-            await loadBillingVl.scrollBillingIssuesBlockIntoView();
+            await vl.viewLoadPage.clickViewBillingButton();
+            await vl.commonReusables.waitForPageStable(viewWorkPage);
+            await vl.loadBillingPage.scrollBillingIssuesBlockIntoView();
 
-            const notDeliveredFinalNow = await loadBillingVl.isNotDeliveredFinalChecked();
+            const notDeliveredFinalNow = await vl.loadBillingPage.isNotDeliveredFinalChecked();
             expect(
               notDeliveredFinalNow,
               "Not Deliv. Final checkbox should be unchecked on View Billing after Delivered Final"
@@ -234,31 +211,27 @@ test.describe.serial(
         await test.step(
           "Step 7 [CSV 54-60]: View Load → Edit → carrier rate; assert Billing on Load tab and on View Billing",
           async () => {
-            viewWorkPage = await resolveViewLoadPageAfterBillingClick(viewWorkPage);
-            const loadBillingVl = new LoadBillingPage(viewWorkPage);
-            const viewLoadVl = new ViewLoadPage(viewWorkPage);
-            const editFormVl = new EditLoadFormPage(viewWorkPage);
-            const editLoadVl = new EditLoadPage(viewWorkPage);
-            const carrierTabVl = new EditLoadCarrierTabPage(viewWorkPage);
+            viewWorkPage = await ViewLoadPage.resolveViewLoadPageAfterBillingClick(viewWorkPage);
+            const vl = new PageManager(viewWorkPage);
 
             await test.step("CSV 54-55: From View Billing open View Load, then Edit", async () => {
-              await viewLoadVl.clickEditButton();
-              await pages.commonReusables.waitForPageStable(viewWorkPage);
+              await vl.viewLoadPage.clickEditButton();
+              await vl.commonReusables.waitForPageStable(viewWorkPage);
             });
 
             await test.step("CSV 56-58: Carrier tab — set carrier flat rate to invoice amount; Save", async () => {
-              await editLoadVl.clickOnTab(TABS.CARRIER);
-              await carrierTabVl.enterCarrierRate(testData.carrierInvoiceAmount1);
-              await editFormVl.clickOnSaveBtn();
-              await pages.commonReusables.waitForPageStable(viewWorkPage);
+              await vl.editLoadPage.clickOnTab(TABS.CARRIER);
+              await vl.editLoadCarrierTabPage.enterCarrierRate(testData.carrierInvoiceAmount1);
+              await vl.editLoadFormPage.clickOnSaveBtn();
+              await vl.commonReusables.waitForPageStable(viewWorkPage);
             });
 
             await test.step(
               "CSV 59 expected: View Load — Load tab — Waiting On Billing via #fi_waiting_on (ViewLoadPage)",
               async () => {
-                await viewLoadVl.clickloadTab();
-                await viewLoadVl.scrollWaitingOnIntoView();
-                const waitingOnOnLoad = await viewLoadVl.getBillingIssuesWaitingOnDisplayLabel();
+                await vl.viewLoadPage.clickloadTab();
+                await vl.viewLoadPage.scrollWaitingOnIntoView();
+                const waitingOnOnLoad = await vl.viewLoadPage.getBillingIssuesWaitingOnDisplayLabel();
                 expect(
                   waitingOnOnLoad,
                   "Waiting On on View Load Load tab should be Billing"
@@ -267,10 +240,10 @@ test.describe.serial(
             );
 
             await test.step("CSV 60 expected: View Billing — hard assert Billing toggle is Billing", async () => {
-              await viewLoadVl.clickViewBillingButton();
-              await pages.commonReusables.waitForPageStable(viewWorkPage);
-              await loadBillingVl.scrollBillingIssuesBlockIntoView();
-              const waitingOnOnBilling = await loadBillingVl.getBillingToggleValue();
+              await vl.viewLoadPage.clickViewBillingButton();
+              await vl.commonReusables.waitForPageStable(viewWorkPage);
+              await vl.loadBillingPage.scrollBillingIssuesBlockIntoView();
+              const waitingOnOnBilling = await vl.loadBillingPage.getBillingToggleValue();
               expect(
                 waitingOnOnBilling,
                 "Billing toggle should be Billing on View Billing page"

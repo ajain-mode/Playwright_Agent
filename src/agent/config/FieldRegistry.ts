@@ -158,6 +158,13 @@ export const FIELD_REGISTRY: FieldDefinition[] = [
     extractionSources: ['precondition.switchToUser', 'formFields.salesperson'],
   },
   {
+    canonicalKey: 'agentName',
+    formFieldId: 'agent_name',
+    stepPatterns: [/agent\s*field/i, /agent\s*search/i],
+    csvAliases: ['agentname'],
+    extractionSources: [],
+  },
+  {
     canonicalKey: 'shipperName',
     formFieldId: 'shipper_name',
     stepPatterns: [/shipper\s*name/i, /pick\s*(?:up\s*)?location/i],

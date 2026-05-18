@@ -1,4 +1,5 @@
 import { expect, Locator, Page } from "@playwright/test";
+import LoadBillingPage from "@pages/loads/LoadBillingPage";
 import commonReusables from "@utils/commonReusables";
 import * as fs from 'fs';
 import * as path from 'path';
@@ -89,9 +90,15 @@ export default class ViewLoadPage {
    * @author AI Agent
    */
   private readonly viewLoadBillingTableContainingWaitingOn_LOC: Locator;
-  /** Span `BILLING_ISSUE_TAGS.NOT_DELIV_FINAL` within the billing table around Waiting On. */
+  /**
+   * Billing issue tags on Load tab — `font` nodes scoped to the Waiting On block
+   * (`select#fi_waiting_on` → ancestor table[2]).
+   * @author AI Agent
+   */
+  private readonly viewLoadBillingIssueTagFontBase_LOC: Locator;
+  /** `font` tag for `BILLING_ISSUE_TAGS.NOT_DELIV_FINAL` within the billing block around Waiting On. */
   private readonly billingIssuesNotDelivFinalTagSpan_LOC: Locator;
-  /** Span `BILLING_ISSUE_TAGS.PRICE_DIFFERENCE` within the billing table around Waiting On. */
+  /** `font` tag for `BILLING_ISSUE_TAGS.PRICE_DIFFERENCE` within the billing block around Waiting On. */
   private readonly billingIssuesPriceDifferenceTagSpan_LOC: Locator;
   private readonly dfbLoadBoardSection_LOC: Locator;
   private readonly autoAcceptCheckbox_LOC: Locator;
@@ -212,10 +219,15 @@ export default class ViewLoadPage {
     this.viewLoadBillingTableContainingWaitingOn_LOC = this.page.locator(
       'xpath=//select[@id="fi_waiting_on"]/ancestor::table[1]'
     );
-    this.billingIssuesNotDelivFinalTagSpan_LOC = this.page.locator("span")
-      .filter({ hasText: BILLING_ISSUE_TAGS.NOT_DELIV_FINAL });
-    this.billingIssuesPriceDifferenceTagSpan_LOC = this.page.locator("span")
-      .filter({ hasText: BILLING_ISSUE_TAGS.PRICE_DIFFERENCE });
+    this.viewLoadBillingIssueTagFontBase_LOC = this.page.locator(
+      'xpath=//select[@id="fi_waiting_on"]/ancestor::table[2]//font'
+    );
+    this.billingIssuesNotDelivFinalTagSpan_LOC = this.viewLoadBillingIssueTagFontBase_LOC.filter({
+      hasText: BILLING_ISSUE_TAGS.NOT_DELIV_FINAL,
+    });
+    this.billingIssuesPriceDifferenceTagSpan_LOC = this.viewLoadBillingIssueTagFontBase_LOC.filter({
+      hasText: BILLING_ISSUE_TAGS.PRICE_DIFFERENCE,
+    });
     this.dfbLoadBoardSection_LOC = this.page.locator("#tnx_load_board");
     this.autoAcceptCheckbox_LOC = this.page.locator("//input[@id='form_auto_accept']");
     this.carrierContactDropdown_LOC = this.page.locator("//select[@id='form_accept_as_user']");
@@ -491,6 +503,30 @@ export default class ViewLoadPage {
       state: "visible",
       timeout: WAIT.XLARGE,
     });
+  }
+
+  /**
+   * View Load from billing may open a new tab; otherwise reuses the billing host tab.
+   * Validates View Load heading on the resolved page.
+   * @author AI Agent
+   * @created 2026-05-18
+   * @param billingHostPage - Page hosting View Billing when View Load is clicked
+   * @returns Page that displays View Load
+   */
+  static async resolveViewLoadPageAfterBillingClick(billingHostPage: Page): Promise<Page> {
+    try {
+      const [newPage] = await Promise.all([
+        billingHostPage.context().waitForEvent("page", { timeout: WAIT.XLARGE }),
+        new LoadBillingPage(billingHostPage).clickOnViewLoadBtn(),
+      ]);
+      await newPage.waitForLoadState("load");
+      await new ViewLoadPage(newPage).validateViewLoadHeading();
+      return newPage;
+    } catch {
+      await commonReusables.waitForPageStable(billingHostPage);
+      await new ViewLoadPage(billingHostPage).validateViewLoadHeading();
+      return billingHostPage;
+    }
   }
 
   /**
@@ -1598,7 +1634,7 @@ export default class ViewLoadPage {
   }
 
   /**
-   * True if a `span` shows `BILLING_ISSUE_TAGS.NOT_DELIV_FINAL` in the billing table around Waiting On (View Load tag, not `#Delivs` checkbox).
+   * True if a `font` tag shows `BILLING_ISSUE_TAGS.NOT_DELIV_FINAL` in the billing block around Waiting On (View Load tag, not `#Delivs` checkbox).
    * @author AI Agent
    * @created 2026-05-11
    */
@@ -1608,7 +1644,7 @@ export default class ViewLoadPage {
   }
 
   /**
-   * True if a `span` under Billing Issues shows `BILLING_ISSUE_TAGS.PRICE_DIFFERENCE`.
+   * True if a `font` tag under Billing Issues shows `BILLING_ISSUE_TAGS.PRICE_DIFFERENCE`.
    * @author AI Agent
    * @created 2026-05-11
    */
@@ -1618,7 +1654,7 @@ export default class ViewLoadPage {
   }
 
   /**
-   * Count of `span` nodes matching `BILLING_ISSUE_TAGS.PRICE_DIFFERENCE` in the billing table around Waiting On.
+   * Count of `font` nodes matching `BILLING_ISSUE_TAGS.PRICE_DIFFERENCE` in the billing block around Waiting On.
    * @author AI Agent
    * @created 2026-05-11
    */

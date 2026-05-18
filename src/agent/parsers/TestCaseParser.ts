@@ -209,30 +209,41 @@ export class TestCaseParser {
   private extractSteps(text: string): TestStep[] {
     const steps: TestStep[] = [];
 
-    // First, normalize semicolon-separated numbered steps (common in CSV)
-    // Pattern: "1. Action;2. Action;3. Action"
-    const semicolonSteps = text.split(/;/).map(s => s.trim()).filter(s => s);
-    const hasNumberedSemicolonSteps = semicolonSteps.some(s => /^\d+[\.\):\s]/.test(s));
-    
-    if (hasNumberedSemicolonSteps && semicolonSteps.length > 1) {
-      semicolonSteps.forEach((step, index) => {
-        // Remove the number prefix if present
-        const actionMatch = step.match(/^\d+[\.\):\s]+(.+)/);
+    // Semicolon-separated numbered steps (e.g. "1. Action;2. Action" on one line).
+    // Do NOT treat as semicolon-format when only 1–2 fragments look numbered but the text is
+    // clearly newline-numbered (sample-testcases DFB-97788 step 62 contains "500); once" which
+    // would otherwise split the whole column into two bogus "steps").
+    const semicolonFragments = text.split(/;/).map((s) => s.trim()).filter(Boolean);
+    const numberedSemicolonFragments = semicolonFragments.filter((s) =>
+      /^\s*\d+[\.\):\s]/.test(s)
+    );
+    const newlineNumberedLineCount = (text.match(/^\s*\d+[\.\):\s]/gm) || []).length;
+
+    if (numberedSemicolonFragments.length > 0 && semicolonFragments.length > 1) {
+      const semicolonSteps: TestStep[] = [];
+      numberedSemicolonFragments.forEach((step, index) => {
+        const actionMatch = step.match(/^\s*\d+[\.\):\s]+(.+)/);
         const action = actionMatch ? actionMatch[1].trim() : step.trim();
         if (action && action.length > 0) {
-          steps.push({
+          semicolonSteps.push({
             stepNumber: index + 1,
-            action: action
+            action,
           });
         }
       });
-      if (steps.length > 0) return steps;
+      const trustSemicolonFormat =
+        semicolonSteps.length >= 3 ||
+        (semicolonSteps.length >= 2 && newlineNumberedLineCount < 3);
+      if (trustSemicolonFormat && semicolonSteps.length > 0) {
+        return semicolonSteps;
+      }
     }
 
     // Try numbered steps with newlines.
     // IMPORTANT: anchored to line start (^) so numbers embedded mid-line
     // (e.g. zip codes "44215" in data descriptions) don't get matched as step numbers.
-    const numberedSteps = text.match(/^[\t ]*(?:step\s*)?(\d+)[\.\):\s]+([^\n;]+)/gim);
+    // Use [^\n]+ so a single step may contain semicolons (e.g. long DFB prose in sample-testcases.csv).
+    const numberedSteps = text.match(/^[\t ]*(?:step\s*)?(\d+)[\.\):\s]+([^\n]+)/gim);
     if (numberedSteps && numberedSteps.length > 0) {
       for (const match of numberedSteps) {
         const actionMatch = match.match(/^[\t ]*(?:step\s*)?(\d+)[\.\):\s]+(.+)/im);
@@ -246,7 +257,7 @@ export class TestCaseParser {
 
             steps.push({
               stepNumber: steps.length + 1,
-              action: action
+              action: action,
             });
           }
         }

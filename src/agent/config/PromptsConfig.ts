@@ -438,6 +438,14 @@ await pages.dmeDashboardPage.verifyLoadExists(loadNumber);`,
 ];
 
 /**
+ * Lines above each `hoverOverHeaderByText()` scanned for `BTMSLogin` — exempts `navigateToBaseUrlBeforeHeaderNav`
+ * and SpecValidator NAV-001 when still in the post-login precondition window (dashboard shell already exposes
+ * the main header). Reference: DFB-97739 / DFB-97788 (e.g. HOME hover after `switchUser` without a preceding
+ * `navigateToBaseUrl`). Must stay in sync with SpecValidator NAV-001.
+ */
+export const NAV_BTMS_LOGIN_LOOKBACK_LINES = 40;
+
+/**
  * Guardrail Rules
  * Validation rules to ensure quality code generation
  */
@@ -843,21 +851,24 @@ export const GUARDRAIL_RULES: GuardrailRule[] = [
   },
   {
     name: 'navigateToBaseUrlBeforeHeaderNav',
-    description: 'Generated code must call navigateToBaseUrl() before hoverOverHeaderByText() to ensure the main nav header is visible — detail/form pages (Office View, Customer View, Edit Load, etc.) do not render the main navigation buttons',
+    description:
+      'Call navigateToBaseUrl() before hoverOverHeaderByText() when the browser may still be on a detail/form surface (Office View, Customer View, Edit Load, etc.) where the main nav header is missing. Exception: do not require navigate immediately after BTMSLogin on the default dashboard, nor within the post-login precondition band (BTMSLogin within the prior N lines — see NAV_BTMS_LOGIN_LOOKBACK_LINES).',
     validate: (input) => {
       if (!input._generatedCode) return true;
       const lines = input._generatedCode.split('\n');
       for (let i = 0; i < lines.length; i++) {
-        if (/hoverOverHeaderByText\s*\(/.test(lines[i])) {
-          const context = lines.slice(Math.max(0, i - 5), i).join('\n');
-          if (!/navigateToBaseUrl/.test(context) && !/hoverOverHeaderByText/.test(context)) {
-            return false;
-          }
-        }
+        if (!/hoverOverHeaderByText\s*\(/.test(lines[i])) continue;
+        const precedingLines = lines.slice(Math.max(0, i - 5), i).join('\n');
+        const postLoginWindow = lines.slice(Math.max(0, i - NAV_BTMS_LOGIN_LOOKBACK_LINES), i).join('\n');
+        if (/navigateToBaseUrl/.test(precedingLines)) continue;
+        if (/hoverOverHeaderByText/.test(precedingLines)) continue;
+        if (/BTMSLogin\s*\(/.test(postLoginWindow)) continue;
+        return false;
       }
       return true;
     },
-    errorMessage: 'hoverOverHeaderByText() called without navigateToBaseUrl() in preceding lines. Detail/form pages (Office View, Customer View, Edit Load) do not render the main nav buttons. Always call pages.basePage.navigateToBaseUrl() before header navigation.',
+    errorMessage:
+      'hoverOverHeaderByText() without navigateToBaseUrl() in the preceding lines and outside the post-login BTMS window. After BTMSLogin the dashboard already shows the header; mid-flow, call pages.basePage.navigateToBaseUrl() before header navigation when returning from detail/form pages.',
   },
   {
     name: 'noModifyHumanAuthoredPOM',
@@ -1100,6 +1111,16 @@ export const GENERATION_RULES = {
       replacement: 'commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.*)',
       reason: 'Agent-created duplicate — use the existing production function',
     },
+    {
+      pattern: 'new ViewLoadPage(viewWorkPage)',
+      replacement: 'const vl = new PageManager(viewWorkPage); vl.viewLoadPage',
+      reason: 'Specs must not instantiate POMs — PageManager accepts any Page and exposes all getters (see BT-74454 Steps 6–7)',
+    },
+    {
+      pattern: 'new LoadBillingPage(viewWorkPage)',
+      replacement: 'vl.loadBillingPage (after const vl = new PageManager(viewWorkPage))',
+      reason: 'Use PageManager(viewWorkPage) instead of per-POM new ...() in specs',
+    },
   ],
 
   // 13b. DIRECT LOCATOR FALLBACK — When no POM method exists for a step,
@@ -1247,26 +1268,28 @@ export const GENERATION_RULES = {
      * Structure: nested test.step titles reference CSV step / expected; do not skip validations from the expected column.
      */
     BILLING_TOGGLE_VIEW_LOAD_VS_VIEW_BILLING: `
+      // After ViewLoadPage.resolveViewLoadPageAfterBillingClick(viewWorkPage) — one PageManager for the active tab:
+      const vl = new PageManager(viewWorkPage);
+      // NEVER: new ViewLoadPage(viewWorkPage) / new LoadBillingPage(...) in specs — PageManager lazy-creates all POMs.
+
       // --- View Load, Load tab: Waiting On + billing issue tags (string select values Agent/Billing) ---
-      const viewLoadVl = new ViewLoadPage(viewWorkPage);
-      await viewLoadVl.clickloadTab();
-      await viewLoadVl.scrollWaitingOnIntoView();
-      const waitingOnLabel = await viewLoadVl.getBillingIssuesWaitingOnDisplayLabel();
+      await vl.viewLoadPage.clickloadTab();
+      await vl.viewLoadPage.scrollWaitingOnIntoView();
+      const waitingOnLabel = await vl.viewLoadPage.getBillingIssuesWaitingOnDisplayLabel();
       expect.soft(waitingOnLabel, "Waiting On on View Load Load tab").toBe(PAYABLE_TOGGLE_VALUE.AGENT);
-      // Tags in same billing table region as Waiting On — use ViewLoadPage helpers, not raw locators in spec
+      // Tags in same billing table region as Waiting On — use vl.viewLoadPage helpers, not raw locators in spec
 
       // --- View Billing (#finance_issues_block): hidden fi_waiting_on + checkboxes ---
-      const loadBillingVl = new LoadBillingPage(viewWorkPage);
-      await viewLoadVl.clickViewBillingButton();
-      await loadBillingVl.scrollBillingIssuesBlockIntoView();
-      const toggleOnBilling = await loadBillingVl.getBillingToggleValue();
+      await vl.viewLoadPage.clickViewBillingButton();
+      await vl.loadBillingPage.scrollBillingIssuesBlockIntoView();
+      const toggleOnBilling = await vl.loadBillingPage.getBillingToggleValue();
       expect(toggleOnBilling, "Waiting On on View Billing").toBe(PAYABLE_TOGGLE_VALUE.BILLING);
-      // Use loadBillingVl.isNotDeliveredFinalChecked() etc. for checkbox expectations from testcase
+      // Use vl.loadBillingPage.isNotDeliveredFinalChecked() etc. for checkbox expectations from testcase
 
-      // --- After Save on Edit returns to View Load: assert Waiting On again via ViewLoadPage, not getBillingToggleValue ---
-      await viewLoadVl.clickloadTab();
-      await viewLoadVl.scrollWaitingOnIntoView();
-      const waitingOnAfterSave = await viewLoadVl.getBillingIssuesWaitingOnDisplayLabel();
+      // --- After Save on Edit returns to View Load: assert Waiting On again via vl.viewLoadPage, not getBillingToggleValue ---
+      await vl.viewLoadPage.clickloadTab();
+      await vl.viewLoadPage.scrollWaitingOnIntoView();
+      const waitingOnAfterSave = await vl.viewLoadPage.getBillingIssuesWaitingOnDisplayLabel();
       expect(waitingOnAfterSave).toBe(PAYABLE_TOGGLE_VALUE.BILLING);
 
       // --- test.step naming: align to testcase (e.g. "CSV 59 expected: …", "Step 5 [CSV 44-48]: …") so no step/validation is implied but missing ---`,

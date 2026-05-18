@@ -2,6 +2,7 @@ import { ProcessedStep } from '../analyzers/StepProcessor';
 import { POMMethodMatcher } from '../generators/POMMethodMatcher';
 import { GlobalConstants, OFFER_RATE_INPUT_ID } from '../../utils/globalConstants';
 import { ALERT_PATTERNS } from '../../utils/alertPatterns';
+import { NAV_BTMS_LOGIN_LOOKBACK_LINES } from '../config/PromptsConfig';
 
 export interface ValidationViolation {
   ruleId: string;
@@ -954,6 +955,42 @@ const SANITIZER_RULES: GuardrailRule[] = [
       });
     },
   },
+  // SAN-024: Remove test.step blocks whose body contains only comments and no executable statements.
+  // A comment-only async body compiles but is a silent no-op that masks unimplemented steps.
+  {
+    id: 'SAN-024',
+    description: 'Replace comment-only test.step bodies with a waitForMultipleLoadStates stub so the step is executable',
+    severity: 'warning',
+    category: 'structural',
+    detect: (code) => {
+      // Match test.step blocks and check if all non-empty lines are comments
+      const stepRe = /await test\.step\("[^"]*",\s*async\s*\(\)\s*=>\s*\{([^}]*)\}\s*\);/g;
+      for (const m of code.matchAll(stepRe)) {
+        const body = m[1];
+        const executableLines = body.split('\n').filter(l => {
+          const t = l.trim();
+          return t.length > 0 && !t.startsWith('//');
+        });
+        if (executableLines.length === 0) return true;
+      }
+      return false;
+    },
+    fix: (code) => {
+      return code.replace(
+        /(await test\.step\("[^"]*",\s*async\s*\(\)\s*=>\s*\{)(([^}]*)(\})(\s*\);))/g,
+        (_full, open, _rest, body, close, semi) => {
+          const executableLines = body.split('\n').filter((l: string) => {
+            const t = l.trim();
+            return t.length > 0 && !t.startsWith('//');
+          });
+          if (executableLines.length === 0) {
+            return `${open}${body}        await pages.basePage.waitForMultipleLoadStates(sharedPage); // TODO: implement step\n      ${close}${semi}`;
+          }
+          return _full;
+        },
+      );
+    },
+  },
 ];
 
 export class SpecValidator {
@@ -1378,6 +1415,24 @@ export class SpecValidator {
       });
     }
 
+    const directPomInSpecRe =
+      /new\s+(?:ViewLoadPage|LoadBillingPage|EditLoadFormPage|EditLoadPage|EditLoadCarrierTabPage|NonTabularLoadPage|DFBLoadFormPage)\s*\(/g;
+    let dpMatch: RegExpExecArray | null;
+    while ((dpMatch = directPomInSpecRe.exec(specCode)) !== null) {
+      violations.push({
+        ruleId: 'HARD-007',
+        severity: 'error',
+        message:
+          'Do not instantiate page objects in specs — use `const vl = new PageManager(viewWorkPage)` and `vl.<getter>.<method>()`.',
+        category: 'guardrail',
+        autoFixable: false,
+        line: lineNumberAt(specCode, dpMatch.index),
+        affectedCode: dpMatch[0],
+        correctionHint:
+          'After resolveViewLoadPageAfterBillingClick (if needed), assign `const vl = new PageManager(viewWorkPage)`; reference BT-74454.spec.ts Steps 6–7.',
+      });
+    }
+
     if (/(?:^|[^\w.])(?:sharedPage|page)\.waitForTimeout\s*\(/m.test(specCode)) {
       violations.push({
         ruleId: 'HARD-005',
@@ -1760,7 +1815,7 @@ export class SpecValidator {
     for (let i = 0; i < lines.length; i++) {
       if (!/hoverOverHeaderByText\s*\(/.test(lines[i])) continue;
       const precedingLines = lines.slice(Math.max(0, i - 5), i).join('\n');
-      const postLoginWindow = lines.slice(Math.max(0, i - 25), i).join('\n');
+      const postLoginWindow = lines.slice(Math.max(0, i - NAV_BTMS_LOGIN_LOOKBACK_LINES), i).join('\n');
       if (/navigateToBaseUrl/.test(precedingLines)) continue;
       if (/hoverOverHeaderByText/.test(precedingLines)) continue;
       if (/BTMSLogin\s*\(/.test(postLoginWindow)) continue;
@@ -1768,11 +1823,13 @@ export class SpecValidator {
       violations.push({
         ruleId: 'NAV-001',
         severity: 'error',
-        message: 'hoverOverHeaderByText() without preceding navigateToBaseUrl(). Detail/form pages do not render the main nav header.',
+        message:
+          'hoverOverHeaderByText() without preceding navigateToBaseUrl() (and outside post-login BTMS window). Detail/form pages do not render the main nav header.',
         category: 'structural',
         autoFixable: true,
         line: i + 1,
-        correctionHint: 'Insert await pages.basePage.navigateToBaseUrl(); before the hoverOverHeaderByText call.',
+        correctionHint:
+          'Insert await pages.basePage.navigateToBaseUrl(); before hoverOverHeaderByText when not on the post-login dashboard (see NAV_BTMS_LOGIN_LOOKBACK_LINES / DFB-97739).',
       });
       break;
     }
@@ -1916,7 +1973,7 @@ export class SpecValidator {
       for (let i = 0; i < lines.length; i++) {
         if (/await\s+pages\.basePage\.hoverOverHeaderByText\s*\(/.test(lines[i])) {
           const preceding = lines.slice(Math.max(0, i - 5), i).join('\n');
-          const postLoginWindow = lines.slice(Math.max(0, i - 25), i).join('\n');
+          const postLoginWindow = lines.slice(Math.max(0, i - NAV_BTMS_LOGIN_LOOKBACK_LINES), i).join('\n');
           if (
             !/navigateToBaseUrl/.test(preceding) &&
             !/hoverOverHeaderByText/.test(preceding) &&

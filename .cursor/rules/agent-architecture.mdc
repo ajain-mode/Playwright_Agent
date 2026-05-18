@@ -5,6 +5,12 @@ alwaysApply: true
 
 # Agent Architecture & Code Generation Rules
 
+## Canonical testcase step prose
+
+**Manual step text and expected results** for alignment with generated or hand-maintained specs live in **`src/agent/examples/sample-testcases.csv`** (per-row `Case ID`, `Test Steps`, `Expected`). Category CSVs under `src/data/<category>/` supply **runtime test data** (`testData.*`), not the full numbered step document. When analyzing a spec against its testcase, read the matching `sample-testcases.csv` row first.
+
+When steps describe a **full BTMS precondition path** (office, agent, switch user, post automation, customer, new load), align **each segment to POMs** — use `setupOfficePreConditions` for office-only; avoid replacing the entire path with `setupDFBTestPreConditions` unless the testcase explicitly allows a bundled shortcut. Reference: `DFB-97739.spec.ts`, `DFB-97788.spec.ts`.
+
 ## 3-Agent Pipeline (LLM Disabled)
 
 Generation is rule-based. The pipeline is:
@@ -26,20 +32,26 @@ The `AppSourceIndexer` scans cloned repos (`modetrans/mono.git`, `modetrans/dme.
 
 **Detail/form pages** (View Office Info, View Customer, Edit Load, View Carrier, Edit Office, etc.) do NOT render the main navigation header buttons (Admin, Customers, Loads, Finance, Home, etc.).
 
-**Rule**: ALWAYS call `pages.basePage.navigateToBaseUrl()` BEFORE `pages.basePage.hoverOverHeaderByText()`. This is enforced at three levels:
+**Rule**: Call `pages.basePage.navigateToBaseUrl()` **before** `pages.basePage.hoverOverHeaderByText()` when the browser may still be on a **detail or form** surface from a prior step so the main header exists. **Do not** add `navigateToBaseUrl()` immediately after `BTMSLogin` / on the default post-login dashboard before the first header action — the landing shell already exposes the header (same pattern as `DFB-97739.spec.ts` Step 2 → office without a preceding navigate).
+
+This is enforced at three levels:
 1. **StepMappings** — all HOVER and NAVIGATION entries prepend `navigateToBaseUrl()`
-2. **SpecValidator (NAV-001)** — detects and auto-fixes missing `navigateToBaseUrl()` before `hoverOverHeaderByText()`
-3. **PromptsConfig guardrail** — `navigateToBaseUrlBeforeHeaderNav` rule flags violations at generation time
+2. **SpecValidator (NAV-001)** — detects and auto-fixes missing `navigateToBaseUrl()` before `hoverOverHeaderByText()`; skips when `BTMSLogin` appears within the prior `NAV_BTMS_LOGIN_LOOKBACK_LINES` (post-login precondition band; same value as PromptsConfig)
+3. **PromptsConfig guardrail** — `navigateToBaseUrlBeforeHeaderNav` flags violations at generation time (same lookback logic as NAV-001)
 
 The call is idempotent — safe even if already on the base URL. Reference specs: BT-67846, BT-74418, DFB-97739.
 
 ```typescript
-// CORRECT — always navigateToBaseUrl before header nav
+// CORRECT — after login on dashboard: first header nav may omit navigate (header visible)
+await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
+await pages.basePage.hoverOverHeaderByText(HEADERS.ADMIN);
+
+// CORRECT — after office / view customer / edit load: restore shell before header nav
 await pages.basePage.navigateToBaseUrl();
 await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
 await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
 
-// WRONG — will fail if browser is on a detail/form page
+// WRONG — will fail if browser is on a detail/form page without navigateToBaseUrl first
 await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
 ```
 
@@ -75,7 +87,7 @@ When generating or editing **billingtoggle** (and similar load-finance) tests, f
 
 1. **After Save on Edit Load** when the testcase says **View Load** (or the app returns to View Load): validate Waiting On with **`ViewLoadPage`**, not `LoadBillingPage.getBillingToggleValue()`.
 2. **After View Billing** is open: use **`LoadBillingPage`** for `#fi_waiting_on` / billing issues block.
-3. **View Load from View Billing** may open a **new tab** — resolve the active `Page` (see `resolveViewLoadPageAfterBillingClick` in BT-74454) before constructing `ViewLoadPage` / `LoadBillingPage`.
+3. **View Load from View Billing** may open a **new tab** — resolve the active `Page` via `ViewLoadPage.resolveViewLoadPageAfterBillingClick`, then use **`const vl = new PageManager(viewWorkPage)`** for all POM calls (`vl.viewLoadPage`, `vl.loadBillingPage`, etc.). Do **not** `new ViewLoadPage(...)` / `new LoadBillingPage(...)` in specs (BT-74454 Steps 6–7).
 4. Billing issue **tags** (e.g. Not Deliv. Final, Price Difference) on View Load use **`ViewLoadPage`** helpers scoped to the Waiting On table — do not use `sharedPage.locator` in specs.
 
 `PromptsConfig.REFERENCE_PATTERNS.BILLING_TOGGLE_VIEW_LOAD_VS_VIEW_BILLING` documents the same split for template/snippets.

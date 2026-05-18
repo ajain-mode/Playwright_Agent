@@ -653,3 +653,73 @@ Pending carrier invoice with price difference
 53. After step 53. Validate Not Deliv.Final checkbox is unchecked now.
 59. Validate with hard assertion  that the Waiting On value is set to ""Billing"" under Billing section on load tab.
 60. After step 60, Validate with Hard assertion Billing toggle is set to value ""Billing"".",,"aiteam,billingtoggle"
+97788,,,"Display an error message relating ""In order to post this load the checkbox labeled ""Post to all Carriers upon completion of the Waterfall"" needs to be unchecked""Number of included carriers = Maximum number (25)",,"1.Agent is logged into BTMS in any valid environment.(http://brokerage.stage.suntecktts.com/) 
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  """"TNX"""" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as """"TNX"""" and click on save
+15.Hover over the admin and click on the AGENT SEARCH
+16.Enter the value into Agent field as  BRENT DURHAM
+17. Click on Search Button
+18.Click on the agent profile
+19.Agent Info page is visible 
+20 .Take the value from the email id field and save it 
+21. Now hover the mouse over the ADMIN tab and click on it.
+22. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM (TX-RED)
+23.Once suggestion is shown click on BRENT DURHAM (TX-RED)
+24.Once user gets switched, select Hover the mouse on HOME tab and select sub tab OFFICE CONFIG.
+25. Click on POST AUTOMATION button.
+26. Search for the customer(BRANDON INDUSTRIES) that going to create a load and if the rule created with that customer then delete the rule by clicking checkbox and click on delete button.
+27.Hover to Customers and click Search.
+28. Enter the Customer name in the """"Customer"""" field (BRANDON INDUSTRIES)
+29. Click on """"Search"""" button.
+30.Click on Customer profile.
+31. Scroll down in the """"VIEW CUSTOMER"""" page and click the hyperlink """"CREATE TL *NEW*
+32. In """"ENTER NEW LOAD"""" page """"Customer"""" field is already selected or if not we need to select the customer.
+33. """"Salesperson"""" and """"Dispatcher"""" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED).
+34. Select the location from the """"Shipper"""" field(| CITY OF FORT WORTH TRANSPORTATION & PUBLIC WORKS|FORT WORTH|TX).
+35. Once the location is selected from the """"Shipper"""" field then """"Name"""",""""Address"""",""""City"""",""""State"""",""""Zip"""",""""Country"""" will be automatically update the values in the corresponding fields. 
+36. Select the """"Earliest Date"""" (Future date need to select)(select tomorrow date)
+37. Select the """"Latest Date"""" (Future date need to select)(select tomorrow date)
+38. Enter the """"Earliest Time"""" (Eg. 09:00)
+39. Enter the """"Latest Time"""" (Eg. 09:00)
+40. Select the location from the """"Consignee"""" field.(|ADVANCED ENGINEERING|TAMPA|FL)
+41. Once the location is selected from the """"Consignee"""" field then """"Name"""",""""Address"""",""""City"""",""""State"""",""""Zip"""",""""Country"""" will be automatically update the values in the corresponding fields. 
+42. Select the """"Earliest Date"""" (Future date need to select)(select tomorrow dayafter)
+43. Select the """"Latest Date"""" (Future date need to select)(select tomorrow dayafter)
+44. Enter the """"Earliest Time"""" (Eg. 10:00)
+45. Enter the """"Latest Time"""" (Eg. 10:00)
+46. Enter the Quantity in the """"Qty"""" field (Eg. 100)
+47. Select the """"UoM"""" field (Eg. Case or Cases)
+48. Enter the description in the """"Description"""" field (Eg. Total 100 cases)
+49. Enter the weight in the """"Weight"""" field (Eg. 1000)
+50. Select the """"Equipment"""" field as """"FLATBED""""
+51. Enter the """"lenght"""" field (Eg. 40)
+52. Select the """"Mileage Engine"""" field as """"Current""""
+53. Select the """"Method"""" as """"Practical""""
+54. """"Linehaul"""" and Fuel Surcharge"""" default value will be """"Flat Rate""""
+55. Click on """"Create Load"""" button. 
+56.Under the load tab select Rate type as """"SPOT"""" if no rate type is selected
+57. Click the """"Carrier tab"""" in the """"Edit load"""" page.
+58.Enter a valid value for the Offer Rate field on the load as """"2000"""".
+59. Select $100,001 to $250,000 for the Cargo Value field on the load.
+60.Select maximum 25 unique carrier for the Include Carriers field  based on search text either LLC or INC.Note: From selection dropdown select the carrier start with letter (P to Z).
+61. Click on ""View Details"" link of Include carriers. Include Carriers Data pop up will be visible.
+62. For each of the 25 carriers, start with the first carrier and complete all three fields before moving to the next: click the Carrier Priority pencil icon and enter the priority value starting from 1 (and increase sequentially for each next carrier as 2, 3, … up to 25), then for the same carrier click the Carrier Timing pencil icon and enter the required timing (e.g., 1:00), and finally click the Carrier Offer Rate pencil icon and enter the offer rate (e.g., 500); once all three values are saved for the first carrier, repeat the same process for the second carrier with the next priority number, and continue until all 25 carriers are completed.
+63. Check the checkbox labeled ""Post to all Carriers upon completion of the Waterfall"".
+64.Click the Save button on the Include Carriers Data modal.
+65. Click the Save button on the load. 
+66. Load is in View mode.
+67. Click on Carrier tab.
+","60. After step 60. validate number of carriers under include carriers are selected 25.
+64. After step 64 Click on ""View Details"" link of include carrier and validate details filled for all 25 carriers is correctly saved. Also validate ""Post to all Carriers upon completion of the Waterfall"" checkbox is checked. Close the Include Carriers Data pop up.
+67.Valiadate an error message after step 67  'In order to post this load the checkbox labeled ""Post to all Carriers upon completion of the Waterfall"" needs to be unchecked' with hard assertion on carrier tab.",,"aiteam, dfb, at_cargovalue"

@@ -154,9 +154,9 @@ class BTMSLoginPage {
     }
     console.log('Navigate Home Page to switch account');
     const homePage = new HomePage(this.page);
-    await homePage.clickSwitchAccountButton();
+    //await homePage.clickSwitchAccountButton();
     const agentAccountsPage = new AgentAccountsPage(this.page);
-    await agentAccountsPage.clickOnUserNameIfVisible(userName.toUpperCase());
+    //await agentAccountsPage.clickOnUserNameIfVisible(userName.toUpperCase());
     await commonReusables.waitForPageStable(this.page);
     if (await this.ssoButton_LOC.isVisible()) {
       await this.ssoButton_LOC.click({ force: true });

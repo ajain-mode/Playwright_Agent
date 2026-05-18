@@ -55,6 +55,13 @@ const ALERT_MESSAGE_TO_CONSTANT: Record<string, string> = {
   "status has been set to booked": "ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_BOOKED",
   "status has been set to invoiced": "ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_INVOICED",
   "payable status has been updated to invoice received": "ALERT_PATTERNS.PAYABLE_STATUS_INVOICE_RECEIVED",
+  // Waterfall / post-all carriers error
+  "in order to post this load, the checkbox labeled": "ALERT_PATTERNS.CARRIER_ALREADY_INCLUDED_ERROR",
+  "post to all carriers upon completion of the waterfall": "ALERT_PATTERNS.CARRIER_ALREADY_INCLUDED_ERROR",
+  "needs to be unchecked": "ALERT_PATTERNS.CARRIER_ALREADY_INCLUDED_ERROR",
+  // Cargo value / carrier required error
+  "loads with a cargo value greater than": "ALERT_PATTERNS.CARRIER_NOT_INCLUDED_ERROR",
+  "cannot be posted without a dedicated carrier": "ALERT_PATTERNS.CARRIER_NOT_INCLUDED_ERROR",
 };
 
 /**
@@ -1030,7 +1037,7 @@ await this.page.waitForLoadState('load');`,
         testType === 'multi-app'
           ? GlobalConstants.WAIT.SPEC_TIMEOUT_LARGE
           : GlobalConstants.WAIT.SPEC_TIMEOUT,
-      tags: testCase.tags || categoryConfig.defaultTags
+      tags: [...new Set(['@AIAgent', ...(testCase.tags ?? categoryConfig.defaultTags)])]
     };
   }
 
@@ -1214,16 +1221,13 @@ await this.page.waitForLoadState('load');`,
   /**
    * Generate code from action description.
    *
-   * Pattern library → declarative mappings → POM method matching (three-agent pipeline).
+   * Declarative mappings → POM method matching → pattern library (fallback) → direct locator (three-agent pipeline).
    * When preProcessed is provided, uses the pre-processed step with immutable context snapshots.
    */
   private async generateCodeFromAction(action: string, _testData?: TestData, preProcessed?: ProcessedStep): Promise<string> {
-    // ==================== PRIORITY 1: PATTERN LIBRARY ====================
-    const existingPattern = this.patternExtractor.findPattern(action);
-    if (existingPattern) {
-      console.log(`      📚 Reusing pattern from ${existingPattern.sourceFile}: "${existingPattern.stepName}"`);
-      return existingPattern.code;
-    }
+    // NOTE: TestPatternExtractor patterns are NOT applied first — low keyword overlap (40%)
+    // was stealing steps from unrelated specs (e.g. waterfall + undefined carriersData).
+    // Patterns run only after POM returns TODO (see bottom of this method).
 
     // ==================== COMPOUND STEP SPLITTING ====================
     const compoundSplitPattern = /\.\s*(?=(?:Enter|Click|Select|Upload|Navigate|Validate|Verify|Check|Close|Refresh|Save)\b)|(?<=\d)\s+and\s+(?=(?:Enter|Click|Select|Upload|Navigate|Validate|Verify|Check|Close|Refresh|Save)\b)/i;
@@ -1261,7 +1265,7 @@ await this.page.waitForLoadState('load');`,
     if (!preProcessed) this._processedSteps.push(processedStep);
 
     const matchResult = this.pomMatcher.matchAndGenerate(processedStep, _testData);
-    
+
     if (matchResult.type === 'existing-pom' || matchResult.type === 'mapping') {
       console.log(`      ✅ POM match (${matchResult.confidence.toFixed(2)}): ${matchResult.reason}`);
     } else if (matchResult.type === 'new-pom') {
@@ -1270,11 +1274,43 @@ await this.page.waitForLoadState('load');`,
       console.log(`      📝 TODO: ${matchResult.reason}`);
     }
 
-    return matchResult.code || this.generateDirectLocatorCode(action, _testData);
+    let code = matchResult.code || this.generateDirectLocatorCode(action, _testData);
+
+    // ==================== PATTERN LIBRARY (fallback only) ====================
+    // Only when POM could not produce real automation — avoids wrong spec fragments
+    // (e.g. configureCarriersDataWithWaterfall + carriersData) for loosely related wording.
+    const pomFailed =
+      matchResult.type === 'todo' ||
+      !code ||
+      /^\/\/\s*TODO:/im.test(code.trim()) ||
+      (code.includes('TODO:') && code.includes('No POM method'));
+    if (pomFailed) {
+      const existingPattern = this.patternExtractor.findPattern(action);
+      if (existingPattern) {
+        const pc = existingPattern.code;
+        const needsCarriersData = /\bcarriersData\b/.test(pc);
+        const td = _testData as Record<string, unknown> | undefined;
+        const stepImpliesCarriersData =
+          // Must reference the waterfall/25-carrier setup context, not just incidentally mention "include carrier"
+          /\b25\b.*carrier|carriers\s*data|waterfall|select.*include\s+carrier|add.*include\s+carrier|fill.*include\s+carrier/i.test(action) ||
+          (td != null && td['carriersData'] !== undefined && String(td['carriersData']).trim() !== '');
+        if (needsCarriersData && !stepImpliesCarriersData) {
+          console.log(
+            `      ⚠️ Skipping pattern from ${existingPattern.sourceFile} — uses carriersData but step/testData do not define it`
+          );
+        } else {
+          console.log(`      📚 Reusing pattern from ${existingPattern.sourceFile}: "${existingPattern.stepName}"`);
+          code = pc;
+        }
+      }
+    }
+
+    return code;
   }
 
-  private generateDirectLocatorCode(_action: string, _testData?: Record<string, any>): string {
-    return `// TODO: No POM method found for this step. Manual implementation required.\n        await commonReusables.waitForAllLoadStates(sharedPage);`;
+  private generateDirectLocatorCode(action: string, _testData?: Record<string, any>): string {
+    const truncated = action.replace(/"/g, "'").substring(0, 100);
+    return `// TODO: implement — "${truncated}"\n        await pages.basePage.waitForMultipleLoadStates(sharedPage);`;
   }
 
   /**
@@ -1435,7 +1471,7 @@ await this.page.waitForLoadState('load');`,
       .map(t => t.startsWith('@') ? t : `@${t}`)
       .join(',');
 
-    const stepCode = await this.generateStepCode(testSteps, testCase);
+    const stepCode = await this.generateStepCode(testSteps, testCase, _testData);
 
     // Only declare variables that are actually used in the generated step code
     const optionalVars: string[] = [];
@@ -1457,8 +1493,9 @@ let sharedPage: any;
 let pages: PageManager;
 ${optionalVars.join('\n')}
 
-test.describe.configure({ retries: ${metadata.retryCount} });
 test.describe.serial("${testCase.title}", () => {
+  test.describe.configure({ retries: ${metadata.retryCount} });
+
   test.beforeAll(async ({ browser }) => {
     // Create shared context and page that will persist across tests
     sharedContext = await browser.newContext();
@@ -1506,7 +1543,7 @@ ${stepCode}
     // Ensure multi-app imports include BrowserContext, Page, ALERT_PATTERNS, commonReusables
     const importBlock = this.ensureMultiAppImports(imports);
 
-    const stepCode = await this.generateStepCode(testSteps, testCase);
+    const stepCode = await this.generateStepCode(testSteps, testCase, _testData);
 
     // Only declare variables that are actually used in the generated step code
     const optionalVars: string[] = [];
@@ -1531,10 +1568,11 @@ let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
 
-test.describe.configure({ retries: ${metadata.retryCount} });
 test.describe.serial(
   "Case ID: ${testCase.id} - ${testCase.title}",
   () => {
+    test.describe.configure({ retries: ${metadata.retryCount} });
+
     test.beforeAll(async ({ browser }) => {
       sharedContext = await browser.newContext();
       sharedPage = await sharedContext.newPage();
@@ -1593,6 +1631,9 @@ ${stepCode}
     }
     if (!joined.includes('PageManager')) {
       result.push('import { PageManager } from "@utils/PageManager";');
+    }
+    if (!joined.includes('globalConstants') && !joined.includes('@utils/globalConstants')) {
+      result.push('import "@utils/globalConstants";');
     }
 
     return result.join('\n');
@@ -3004,7 +3045,11 @@ ${stepCode}
    * Generate step code with test.step wrappers
    * Creates organized test steps with proper code for each action
    */
-  private async generateStepCode(testSteps: GeneratedTestStep[], testCase: TestCaseInput): Promise<string> {
+  private async generateStepCode(
+    testSteps: GeneratedTestStep[],
+    testCase: TestCaseInput,
+    testData?: TestData
+  ): Promise<string> {
     let code = '';
     let stepCounter = 0;
 
@@ -3150,6 +3195,8 @@ ${stepCode}
     // ========== User-defined test steps (using composite groups) ==========
     let lastEmittedCodeKey = '';
     let userStepIndex = 0;
+    /** Aligns with testCase.steps / testSteps / _processedSteps order (increment per original step). */
+    let tsIndex = 0;
 
     for (const group of compositeGroups) {
       if (group.type !== 'single' && group.compositeCode) {
@@ -3187,13 +3234,16 @@ ${stepCode}
         for (const step of group.steps) {
           userStepIndex = step.stepNumber;
         }
+        tsIndex += group.steps.length;
       } else {
-        // ── Single step: generate individually (existing logic) ──
+        // ── Single step: use pre-generated testSteps[tsIndex] (same order as testcase.steps) ──
         const step = group.steps[0];
-        const generatedStep = testSteps.find(ts =>
-          ts.stepName.includes(step.action.substring(0, 30))
-        ) || await this.generateSingleStep(step.action, step.stepNumber);
-
+        const preProcessed = this._processedSteps[tsIndex];
+        const fromBatch = testSteps[tsIndex];
+        const generatedStep =
+          fromBatch ??
+          (await this.generateSingleStep(step.action, step.stepNumber, testData, preProcessed));
+        tsIndex += 1;
         const lowerName = generatedStep.stepName.toLowerCase();
         const lowerCode = generatedStep.code.toLowerCase();
         if (!hasBTMSLoginStep && lowerCode.includes('btmslogin')) continue;
@@ -3254,7 +3304,7 @@ ${stepCode}
                 const patternConstant = resolveAlertPatternConstant(msgText, alertPatternsPath);
                 stepBody += `          pages.commonReusables.validateAlert(sharedPage, ${patternConstant}),\n`;
               }
-              stepBody += `          ${clickMatch[1]},\n`;
+              stepBody += `          ${clickMatch[1].replace(/^await\s+/, '')},\n`;
               stepBody += `        ]);\n`;
               stepBody += `        console.log("Alert validated");\n`;
 
@@ -3345,7 +3395,7 @@ ${stepCode}
           code += `        // Alert fires synchronously on click — must use Promise.all to capture it\n`;
           code += `        await Promise.all([\n`;
           mergedAlerts.forEach(a => { code += `${a},\n`; });
-          code += `          ${clickLineMatch[1]},\n`;
+          code += `          ${clickLineMatch[1].replace(/^await\s+/, '')},\n`;
           code += `        ]);\n`;
           code += `        console.log("Alert validated");\n`;
           code += `      });\n\n`;

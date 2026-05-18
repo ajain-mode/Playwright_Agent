@@ -311,3 +311,23 @@ test.describe('SpecValidator.sanitize()', () => {
     });
   });
 });
+
+test.describe('SpecValidator HARD-007: no direct POM instantiation in specs', () => {
+  const validator = new SpecValidator();
+
+  test('flags new ViewLoadPage(...) in generated spec code', () => {
+    const report = validator.validate(
+      'const viewLoadVl = new ViewLoadPage(viewWorkPage);\nawait viewLoadVl.clickloadTab();',
+      [],
+    );
+    expect(report.violations.some((v) => v.ruleId === 'HARD-007')).toBe(true);
+  });
+
+  test('allows ViewLoadPage.resolveViewLoadPageAfterBillingClick static call', () => {
+    const report = validator.validate(
+      'viewWorkPage = await ViewLoadPage.resolveViewLoadPageAfterBillingClick(sharedPage);\nconst vl = new PageManager(viewWorkPage);',
+      [],
+    );
+    expect(report.violations.some((v) => v.ruleId === 'HARD-007')).toBe(false);
+  });
+});
