@@ -165,6 +165,8 @@ export class CodeGenerator {
   private _activeRefStructure: SpecStructure | null = null;
   /** Raw content of the active reference spec (passed to LLM as context) */
   private _activeRefSpecCode: string | null = null;
+  /** Parsed test.step() blocks from the reference spec — built once, reused per step */
+  private _refStepBlocks: Array<{ label: string; code: string }> | null = null;
   /** Raw content of secondary reference spec for POM method discovery */
   // Removed: _secondaryRefSpecCode (was only used by LLM code path)
   /** Match score from TestCaseMatcher — controls reference adoption aggressiveness */
@@ -342,8 +344,9 @@ export class CodeGenerator {
       refStructure = this.referenceAnalyzer.findBestReference(testCase.category);
     }
 
-    // Load raw reference spec code for LLM context
+    // Load raw reference spec code for LLM context and reference step extraction
     this._activeRefSpecCode = null;
+    this._refStepBlocks = null; // reset; rebuilt in generateTestSteps()
     if (dynamicRefSpecPath && fs.existsSync(dynamicRefSpecPath)) {
       try {
         this._activeRefSpecCode = fs.readFileSync(dynamicRefSpecPath, 'utf-8');
@@ -372,6 +375,73 @@ export class CodeGenerator {
       }
     }
     void _secondaryRefSpecCode;
+
+    // ── TIER 1: UNIVERSAL FULL-SPEC LLM — tried for ALL test cases first ──
+    // Uses the reference spec as a structural template and generates ALL steps
+    // from the new test case in one LLM pass. Bypasses step-by-step generation
+    // entirely when successful, giving the LLM full cross-step context.
+    if (!this.llmService?.isAvailable()) {
+      console.log(`\n⏭️  Tier 1 LLM skipped — LLM service not available (claude --version check failed at startup or llmEnabled=false)`);
+    } else if (!this._activeRefSpecCode) {
+      console.log(`\n⏭️  Tier 1 LLM skipped — no reference spec loaded for category '${testCase.category}' (check ReferenceSpecAnalyzer.REFERENCE_SPECS)`);
+    }
+    if (this.llmService?.isAvailable() && this._activeRefSpecCode) {
+      console.log(`\n🤖 Full-spec LLM generation for ${testCase.id} (${testCase.steps.length} steps)`);
+      const schemaCtx = this.getSchemaContext();
+      const testDataObj: Record<string, string> = testData
+        ? Object.fromEntries(
+            Object.entries(testData).filter(([, v]) => v && String(v).trim()).map(([k, v]) => [k, String(v)])
+          )
+        : {};
+      const preconditions = testCase.preconditions || [];
+      const steps = testCase.steps.map(s => ({
+        stepNumber: s.stepNumber,
+        action: s.action,
+        expectedResult: s.expectedResult,
+      }));
+      const expectedResults = testCase.steps
+        .filter(s => s.expectedResult)
+        .map(s => s.expectedResult!);
+
+      const fullSpecCode = await this.llmService.generateFullSpecFromReference(
+        this._activeRefSpecCode,
+        testCase.id,
+        testCase.title || testCase.description,
+        testCase.category,
+        preconditions,
+        steps,
+        expectedResults,
+        testDataObj,
+        schemaCtx,
+        'generate',
+      );
+
+      if (fullSpecCode) {
+        let content = this.cleanUnusedImports(fullSpecCode);
+        content = this.validatePostGenerationGuardrails(content, testCase, testData);
+        content = this.ensurePageObjectMethodsExist(content, testCase);
+
+        const metadata = this.generateMetadata(testCase, testType);
+        console.log(`   ✅ Full-spec LLM generation completed for ${testCase.id}`);
+        return {
+          testCaseId: testCase.id,
+          fileName,
+          filePath,
+          content,
+          imports: content.split('\n').filter(l => l.trim().startsWith('import ')),
+          pageObjectsUsed: this.determinePageObjects(testCase),
+          constantsUsed: this.determineConstants(testCase),
+          testSteps: testCase.steps.map(s => ({
+            stepName: `Step ${s.stepNumber}: ${s.action.substring(0, 80)}`,
+            code: '// Full-spec LLM generation',
+            pageObjects: [],
+            assertions: [],
+          })),
+          metadata,
+        };
+      }
+      console.log(`   ⚠️ Full-spec LLM failed — falling back to hybrid/step-by-step`);
+    }
 
     // ── HIGH-MATCH HYBRID: CLONE + LLM FOR DIFFERING STEPS ──
     // When matchScore >= 0.7 and we have a reference spec:
@@ -419,9 +489,11 @@ export class CodeGenerator {
       // Fallback: generate the COMPLETE spec in one LLM call (300s timeout, single request)
       if (this.llmService && this.llmService.isAvailable()) {
         const schemaCtx = this.getSchemaContext();
-        const testDataFields = testData
-          ? Object.keys(testData).filter(k => testData[k] && String(testData[k]).trim())
-          : [];
+        const testDataObj: Record<string, string> = testData
+          ? Object.fromEntries(
+              Object.entries(testData).filter(([, v]) => v && String(v).trim()).map(([k, v]) => [k, String(v)])
+            )
+          : {};
         const preconditions = testCase.preconditions || [];
         const steps = testCase.steps.map(s => ({
           stepNumber: s.stepNumber,
@@ -440,8 +512,9 @@ export class CodeGenerator {
           preconditions,
           steps,
           expectedResults,
-          testDataFields,
+          testDataObj,
           schemaCtx,
+          'adapt',
         );
 
         if (fullSpecCode) {
@@ -534,6 +607,9 @@ export class CodeGenerator {
     // If any are missing, generate reusable locator functions in the respective page files
     // Generic utility methods are auto-redirected to CommonReusables
     content = this.ensurePageObjectMethodsExist(content, testCase);
+
+    // Second pass: re-clean imports after ensurePageObjectMethodsExist may have changed method references
+    content = this.cleanUnusedImports(content);
 
     return {
       testCaseId: testCase.id,
@@ -1183,6 +1259,13 @@ await this.page.waitForLoadState('load');`,
     );
     this._processedSteps = processedSteps;
 
+    // Build reference step blocks cache once before the loop.
+    // Each step generation call will consult this for Jaccard-based lookup.
+    this._refStepBlocks = this._activeRefSpecCode ? this.buildRefStepBlocks() : [];
+    if (this._refStepBlocks.length > 0) {
+      console.log(`   📚 Reference spec parsed: ${this._refStepBlocks.length} test.step() blocks available for step-by-step lookup`);
+    }
+
     const steps: GeneratedTestStep[] = [];
 
     for (let index = 0; index < testCase.steps.length; index++) {
@@ -1244,6 +1327,32 @@ await this.page.waitForLoadState('load');`,
       }
     }
 
+    // ==================== PRIORITY 1.5: REFERENCE STEP LOOKUP ====================
+    // Before declarative mappings, check the reference spec's test.step() blocks.
+    // Reuse reference code when Jaccard similarity >= 0.5 — it's already validated,
+    // uses correct POM methods, and follows the same testData field conventions.
+    // Skip SSO sub-steps (they should stay as "handled by BTMSLogin" comments).
+    // Skip login steps — the StepMappings BTMSLogin mapping must fire instead of
+    // inheriting potentially wrong login code from the reference spec.
+    const isLoginStep = /\b(login|log\s*in|btms\s*login|sign\s*in)\b/i.test(action);
+    if (!isLoginStep && this._refStepBlocks && this._refStepBlocks.length > 0) {
+      let bestSim = 0;
+      let bestCode = '';
+      let bestLabel = '';
+      for (const block of this._refStepBlocks) {
+        const sim = this.jaccardSimilarity(action, block.label);
+        if (sim > bestSim) { bestSim = sim; bestCode = block.code; bestLabel = block.label; }
+      }
+      if (bestSim >= 0.5 && bestCode) {
+        // Sanity check: skip if the reference code is just a waitFor / placeholder
+        const isNonTrivial = bestCode.includes('pages.') || bestCode.includes('appManager.') || bestCode.includes('await ');
+        if (isNonTrivial) {
+          console.log(`      🔗 Reference step match (Jaccard ${bestSim.toFixed(2)}) for "${action.substring(0, 60)}" → "${bestLabel.substring(0, 60)}" — reusing reference code`);
+          return bestCode;
+        }
+      }
+    }
+
     // ==================== PRIORITY 2: DECLARATIVE STEP MAPPINGS ====================
     const mapping = matchStepMapping(action);
     if (mapping && mapping.confidence >= 0.8) {
@@ -1283,6 +1392,7 @@ await this.page.waitForLoadState('load');`,
       matchResult.type === 'todo' ||
       !code ||
       /^\/\/\s*TODO:/im.test(code.trim()) ||
+      /\/\*\s*TODO:/i.test(code) ||
       (code.includes('TODO:') && code.includes('No POM method'));
     if (pomFailed) {
       const existingPattern = this.patternExtractor.findPattern(action);
@@ -1305,12 +1415,84 @@ await this.page.waitForLoadState('load');`,
       }
     }
 
+    // ==================== PRIORITY 4: LLM GENERATION (final fallback) ====================
+    // When declarative mappings, POM matching, and pattern library all fail to produce real code,
+    // ask the LLM to generate a step using the full framework schema + POM method list.
+    const stillTodo =
+      !code ||
+      /^\/\/\s*TODO:/im.test(code.trim()) ||
+      (code.includes('TODO:') && code.includes('No POM method'));
+    if (stillTodo && this.llmService && this.llmService.isAvailable()) {
+      console.log(`      🤖 Falling back to LLM for: "${action.substring(0, 80)}"`);
+      const schemaCtx = this.getSchemaContext();
+      const testDataFields = _testData
+        ? Object.keys(_testData).filter(k => _testData[k] && String(_testData[k]).trim())
+        : [];
+      const llmCode = await this.llmService.generateStepCode(action, {
+        schema: schemaCtx,
+        testDataFields,
+        referenceSpecCode: this._activeRefSpecCode || undefined,
+      });
+      if (llmCode) {
+        console.log(`      ✅ LLM generated step code for: "${action.substring(0, 60)}"`);
+        code = llmCode;
+      }
+    }
+
     return code;
   }
 
   private generateDirectLocatorCode(action: string, _testData?: Record<string, any>): string {
     const truncated = action.replace(/"/g, "'").substring(0, 100);
-    return `// TODO: implement — "${truncated}"\n        await pages.basePage.waitForMultipleLoadStates(sharedPage);`;
+    return `// TODO: implement — "${truncated}"\n        await pages.basePage.waitForMultipleLoadStates();`;
+  }
+
+  /**
+   * Parse test.step() blocks from the reference spec into label+code pairs.
+   * Uses brace-depth counting to handle nested curly braces inside step bodies.
+   * Result is cached in _refStepBlocks — call once before the step generation loop.
+   */
+  private buildRefStepBlocks(): Array<{ label: string; code: string }> {
+    if (!this._activeRefSpecCode) return [];
+    const blocks: Array<{ label: string; code: string }> = [];
+    const src = this._activeRefSpecCode;
+    // Match the opening of each test.step() call — captures the label
+    const stepOpenRe = /await\s+test\.step\(\s*["'`]([^"'`]+)["'`]\s*,\s*async\s*\(\)\s*=>\s*\{/g;
+    let m: RegExpExecArray | null;
+    while ((m = stepOpenRe.exec(src)) !== null) {
+      const label = m[1];
+      const bodyStart = m.index + m[0].length;
+      // Walk forward counting brace depth to find the matching closing brace
+      let depth = 1;
+      let i = bodyStart;
+      while (i < src.length && depth > 0) {
+        const ch = src[i];
+        if (ch === '{') depth++;
+        else if (ch === '}') depth--;
+        i++;
+      }
+      const body = src.slice(bodyStart, i - 1).trim();
+      if (body.length > 10) {
+        blocks.push({ label, code: body });
+      }
+    }
+    return blocks;
+  }
+
+  /**
+   * Jaccard similarity on word tokens (case-insensitive, min 3 chars).
+   * Returns 0..1. Used to match new step actions against reference step labels.
+   */
+  private jaccardSimilarity(a: string, b: string): number {
+    const tokenize = (s: string): Set<string> => new Set(
+      s.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length >= 3),
+    );
+    const setA = tokenize(a);
+    const setB = tokenize(b);
+    if (setA.size === 0 || setB.size === 0) return 0;
+    let intersection = 0;
+    for (const w of setA) { if (setB.has(w)) intersection++; }
+    return intersection / (setA.size + setB.size - intersection);
   }
 
   /**
@@ -1549,7 +1731,8 @@ ${stepCode}
     const optionalVars: string[] = [];
     if (stepCode.includes('cargoValue')) optionalVars.push('// eslint-disable-next-line @typescript-eslint/no-unused-vars\nlet cargoValue: string;');
     if (stepCode.includes('loadNumber')) optionalVars.push('let loadNumber: string;');
-    if (stepCode.includes('agentEmail')) optionalVars.push('let agentEmail: string;');
+    if (stepCode.includes('agentEmail')) optionalVars.push('let agentEmail = \'\';');
+    if (stepCode.includes('carriersData')) optionalVars.push('const carriersData: any[] = [];');
 
     return `${importBlock}
 
@@ -1614,8 +1797,9 @@ ${stepCode}
     const result: string[] = [];
 
     for (const imp of imports) {
-      // Upgrade playwright import to include BrowserContext and Page
-      if (imp.includes('@playwright/test') && !imp.includes('BrowserContext')) {
+      // Ensure playwright import always includes BrowserContext and Page — unconditional
+      // replacement so cleanUnusedImports can never strip Page before it's evaluated.
+      if (imp.includes('@playwright/test')) {
         result.push('import { BrowserContext, expect, Page, test } from "@playwright/test";');
       } else {
         result.push(imp);
@@ -2269,8 +2453,16 @@ ${stepCode}
           'A_CARRIER_CONTACT_FOR_AUTO_ACCEPT_MUST_BE_SELECTED', 'CARRIER_CAUTIONARY_SAFETY_RATING',
           'IN_VIEW_MODE', 'UNKNOWN_MESSAGE', 'FOR_SECONDARY_INVOICE',
           'STATING_STATUS_HAS_MOVED_TO_THE_INVOICE_SHOULD_APPEAR_ON_THE',
-          'STATUS_HAS_BEEN_SET_TO_BOOKED', 'PAYABLE_STATUS_INVOICE_RECEIVED',
-          'UNRECOGNISED_ZIP_CODE_ENTERED'
+          'STATUS_HAS_BEEN_SET_TO_BOOKED', 'STATUS_HAS_BEEN_SET_TO_INVOICED',
+          'PAYABLE_STATUS_INVOICE_RECEIVED', 'UNRECOGNISED_ZIP_CODE_ENTERED',
+          'YOUR_BID_HAS_BEEN_PLACED', 'INCOMPLETE_DATA_FOR',
+          'THE_255_CHARACTER_LIMIT_OF_THE_EMAIL_FOR_NOTIFICATIONS_FIELD',
+          'OFFER_RATE_MUST_BE_WITHIN_THE_RANGE_OF_200_AND_20000',
+          'CAUTION_CARRIER_HAS_A_CAUTIONARY_SAFETY_RATING',
+          'CONFIRM_CHANGE_TO_DELIVERED_FINAL', 'CARRIER_WHITELIST_CONFIRM',
+          'CARRIER_VISIBILITY_UPDATED', 'AGENT',
+          'IN_ORDER_TO_POST_THIS_LOAD_THE_CHECKBOX_LABELED',
+          'TO_UNCHECKING_POST_TO_ALL_CARRIERS_UPON_COMPLETION_OF_THE_WA'
         ],
         parentName: 'ALERT_PATTERNS'
       },
@@ -3015,8 +3207,9 @@ ${stepCode}
       const defaultMatch = line.match(/^import\s+(\w+)\s+from\s+/);
       if (defaultMatch) {
         const name = defaultMatch[1];
-        // Check if the identifier is used in code body (not just the import line)
-        const usage = new RegExp(`\\b${name}\\b`);
+        // Use negative lookbehind to avoid matching "pages.foo.*" where foo is accessed via PageManager.
+        // We want standalone usage like "foo.method()" but NOT "pages.foo.method()".
+        const usage = new RegExp(`(?<!\\.)\\b${name}\\b`);
         if (!usage.test(codeAfterImports)) {
           toRemove.add(index);
           continue;
@@ -3212,6 +3405,12 @@ ${stepCode}
         );
 
         let stepBody = this.formatStepCode(group.compositeCode);
+
+        // Inject billingtoggle user switch immediately after BTMSLogin in login-group
+        if (group.type === 'login-group' && testCase.category === 'billingtoggle') {
+          stepBody += `        await pages.homePage.clickSwitchAccountButton();\n`;
+          stepBody += `        await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);\n`;
+        }
 
         // Inline expected results mapped to any step within this group
         for (const step of group.steps) {
@@ -3806,12 +4005,9 @@ ${stepCode}
         await commonReusables.waitForAllLoadStates(sharedPage);
         const agentInfoEmail = await pages.agentInfoPage.getAgentEmail();
         agentEmail = agentInfoEmail?.trim() || "";
-        console.log(\`Captured agent email: "\${agentEmail}"\`);
         pages.logger.info(\`Agent email captured: \${agentEmail}\`);
-        const btmsBaseUrl = new URL(sharedPage.url()).origin;
-        await sharedPage.goto(btmsBaseUrl);
-        await commonReusables.waitForAllLoadStates(sharedPage);
-        await sharedPage.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });`,
+        await pages.basePage.navigateToBaseUrl();
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
           pageObjects: ['basePage', 'agentSearchPage', 'agentInfoPage'],
           assertions: []
         };
@@ -4249,12 +4445,12 @@ ${stepCode}
 
     // Offer rate validation (comparison)
     if (lowerExpected.includes('offer rate') || (lowerExpected.includes('rate') && lowerExpected.includes('match'))) {
-      return `        const displayedRate = await pages.dfbLoadFormPage.getOfferRate();\n        expect(displayedRate).toBe(testData.offerRate);\n        console.log("Offer rate validated:", displayedRate);\n`;
+      return `        const formValues = await pages.dfbLoadFormPage.getDFBFormFieldValues();\n        expect(formValues.offerRate).toBe(testData.offerRate);\n`;
     }
 
     // BIDS / Bid history (optional — wrap in try/catch)
     if (lowerExpected.includes('bids') || lowerExpected.includes('bid history')) {
-      return `        try {\n          const bidsValue = await pages.viewLoadCarrierTabPage.getBidsReportValue();\n          console.log("BIDS Reports value:", bidsValue);\n        } catch (e) {\n          console.log("Bid history check could not complete:", (e as Error).message);\n        }\n`;
+      return `        try {\n          await pages.viewLoadCarrierTabPage.getBidsReportValue();\n        } catch (e) {\n          console.log("Bid history check could not complete:", (e as Error).message);\n        }\n`;
     }
 
     // TNX-specific validations

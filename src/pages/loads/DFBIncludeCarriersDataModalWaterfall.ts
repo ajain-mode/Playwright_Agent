@@ -442,5 +442,98 @@ export class DFBIncludeCarriersDataModalWaterfall {
       throw error;
     }
   }
+
+  /**
+   * Normalizes H:MM timing for compare (UI may show `0:01` when test data uses `00:01`).
+   * @author AI Agent
+   * @created 2026-05-26
+   * @param timing - Timing string from test data or grid display
+   * @returns Normalized `H:MM` with zero-padded minutes
+   */
+  private normalizeCarrierTimingForCompare(timing: string): string {
+    const match = timing.trim().match(/^(\d{1,2}):(\d{1,2})$/);
+    if (!match) return timing.trim();
+    const hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    return `${hours}:${String(minutes).padStart(2, "0")}`;
+  }
+
+  /**
+   * Verifies carrier row values; timing compared after normalizing `00:01` vs `0:01`.
+   * @author AI Agent
+   * @created 2026-05-26
+   * @param carriersData - Array of carrier data with name and input values [priority, timing, offerRate]
+   */
+  async verifyCarrierInputValuesNormalized(
+    carriersData: Array<{ name: string; values: string[] }>
+  ): Promise<void> {
+    try {
+      console.log(`Starting verification of input values for ${carriersData.length} carrier(s)`);
+
+      for (const carrier of carriersData) {
+        const [priority, timing, offerRate] = carrier.values;
+
+        console.log(`Verifying input values for carrier: "${carrier.name}"`);
+        console.log(`Expected - Priority: ${priority}, Timing: ${timing}, Offer Rate: ${offerRate}`);
+
+        const carrierRow = this.carrierRowLocator(carrier.name);
+        await carrierRow.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
+
+        const carrierCells = carrierRow.locator("td");
+        const cellCount = await carrierCells.count();
+
+        if (cellCount < 4) {
+          throw new Error(
+            `Expected at least 4 cells for carrier "${carrier.name}", but found ${cellCount}`
+          );
+        }
+
+        const actualPriority = (await carrierCells.nth(1).textContent())?.trim() || "";
+        const actualTiming = (await carrierCells.nth(2).textContent())?.trim() || "";
+        const actualOfferRate = (await carrierCells.nth(3).textContent())?.trim() || "";
+
+        console.log(
+          `  Actual - Priority: "${actualPriority}", Timing: "${actualTiming}", Offer Rate: "${actualOfferRate}"`
+        );
+
+        if (actualPriority !== priority) {
+          throw new Error(
+            `❌ Priority mismatch for carrier "${carrier.name}": Expected "${priority}", but got "${actualPriority}"`
+          );
+        }
+        console.log(`✅ Priority verified for carrier "${carrier.name}": ${actualPriority}`);
+
+        const expectedTimingNorm = this.normalizeCarrierTimingForCompare(timing);
+        const actualTimingNorm = this.normalizeCarrierTimingForCompare(actualTiming);
+        if (actualTimingNorm !== expectedTimingNorm) {
+          throw new Error(
+            `❌ Timing mismatch for carrier "${carrier.name}": Expected "${timing}" (${expectedTimingNorm}), but got "${actualTiming}" (${actualTimingNorm})`
+          );
+        }
+        console.log(`✅ Timing verified for carrier "${carrier.name}": ${actualTiming}`);
+
+        const normalizedActualOfferRate = actualOfferRate.replace(/[$,]/g, "");
+        const normalizedExpectedOfferRate = offerRate.replace(/[$,]/g, "");
+
+        if (normalizedActualOfferRate !== normalizedExpectedOfferRate) {
+          const expectedWithDecimals = parseFloat(normalizedExpectedOfferRate).toFixed(2);
+          const actualWithDecimals = parseFloat(normalizedActualOfferRate).toFixed(2);
+
+          if (actualWithDecimals !== expectedWithDecimals) {
+            throw new Error(
+              `❌ Offer Rate mismatch for carrier "${carrier.name}": Expected "${offerRate}", but got "${actualOfferRate}"`
+            );
+          }
+        }
+        console.log(`✅ Offer Rate verified for carrier "${carrier.name}": ${actualOfferRate}`);
+        console.log(`✅ All input values verified successfully for carrier: "${carrier.name}"`);
+      }
+
+      console.log(`✅ Successfully verified input values for all ${carriersData.length} carrier(s)`);
+    } catch (error) {
+      console.error(`❌ Error verifying carrier input values: ${error}`);
+      throw error;
+    }
+  }
 }
  

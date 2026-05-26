@@ -69,9 +69,8 @@ class LoadBillingPage {
     private readonly lumperCheckbox_LOC: Locator;
     private readonly lumperLabel_LOC: Locator;
 
-    // View History popup selectors (used on the popup Page, not main page — cannot be Locator since popup doesn't exist at construction)
-    private readonly HISTORY_TABLE_DATA_ROWS_SELECTOR = 'table.hist tr:not(:first-child)';
-    private readonly HISTORY_MESSAGE_COLUMN_SELECTOR = 'td:nth-child(3)';
+    // View History popup (payables note): table.hist rows with cells (header row uses th).
+    private readonly HISTORY_TABLE_DATA_ROWS_SELECTOR = 'table.hist tr:has(td)';
 
     // locators copied from View Billing Page
     private readonly viewLoadButton_LOC: Locator;
@@ -810,7 +809,8 @@ class LoadBillingPage {
             this.page.context().waitForEvent('page'),
             this.viewHistoryLink_LOC.click(),
         ]);
-        await commonReusables.waitForPageStable(historyPopup);
+        await historyPopup.waitForLoadState("domcontentloaded", { timeout: WAIT.LARGE });
+        await commonReusables.waitForAllLoadStates(historyPopup);
         console.log("View History popup window opened");
         return historyPopup;
     }
@@ -891,8 +891,9 @@ class LoadBillingPage {
     }
 
     /**
-     * Opens View History popup, searches backwards through rows for the most recent
-     * message containing a dollar value (price difference), skipping toggle entries.
+     * Reads the price-difference message from View History: second-to-last data row, last column.
+     * Last row is typically a toggle audit entry (e.g. payables_waiting_on); the row above holds
+     * text like "XPO TRANS INC invoiced $2,900.00 over the total charge" in the rightmost cell.
      *
      * Expected price difference = Total Invoices - MODE Global Total Charges (carrier rate)
      *
@@ -906,40 +907,40 @@ class LoadBillingPage {
         totalCharges: string,
         invoiceAmounts: string[]
     ): Promise<{ lastMessage: string; priceDifference: number | null; expectedPriceDiff: number }> {
-        // Compute expected: Total Invoices - Total Charges = Price Difference
         const charges = parseFloat(totalCharges.replace(/,/g, ''));
         const totalInvoiced = invoiceAmounts.reduce((sum, a) => sum + parseFloat(a.replace(/,/g, '')), 0);
         const expectedPriceDiff = Math.abs(totalInvoiced - charges);
         console.log(`Expected price diff: Total Invoices(${totalInvoiced}) - Total Charges(${charges}) = ${expectedPriceDiff}`);
 
-        // Open View History popup and search for the price difference message.
-        // Table structure (from billing.php): Time | User | Message | Inactive Date
-        // So td:nth-child(3) = Message column.
-        // The history table contains both system messages AND toggle events (e.g. "payables_waiting_on").
-        // Iterate backwards to find the most recent row whose Message column contains a dollar value.
         const historyPopup = await this.clickViewHistoryAndGetPopup();
         const dataRows = historyPopup.locator(this.HISTORY_TABLE_DATA_ROWS_SELECTOR);
+        await dataRows.first().waitFor({ state: 'attached', timeout: WAIT.LARGE });
         const rowCount = await dataRows.count();
-
-        let lastMessage = '';
-        let priceDifference: number | null = null;
-        for (let i = rowCount - 1; i >= 0; i--) {
-            const msgText = ((await dataRows.nth(i).locator(this.HISTORY_MESSAGE_COLUMN_SELECTOR).textContent()) || '').trim();
-            const extracted = this.extractDollarValue(msgText);
-            if (extracted !== null) {
-                lastMessage = msgText;
-                priceDifference = extracted;
-                console.log(`View History row ${i} has price difference message: "${msgText}"`);
-                break;
-            }
+        if (rowCount < 2) {
+            throw new Error(`View History: expected at least 2 data rows, found ${rowCount}`);
         }
-        if (priceDifference === null && rowCount > 0) {
-            // Fallback: return the last row's message for diagnostics
-            lastMessage = ((await dataRows.nth(rowCount - 1).locator(this.HISTORY_MESSAGE_COLUMN_SELECTOR).textContent()) || '').trim();
-            console.log(`No price difference message found in View History. Last row: "${lastMessage}"`);
+
+        const priceRow = dataRows.nth(rowCount - 2);
+        const priceDiffCell = priceRow.locator('td').last();
+        await priceDiffCell.waitFor({ state: 'attached', timeout: WAIT.LARGE });
+        let lastMessage = ((await priceDiffCell.innerText()) || '').trim();
+        let priceDifference = this.extractDollarValue(lastMessage);
+
+        // Some builds add Inactive Date as a 5th column (empty on price rows); Message is then 4th.
+        if (priceDifference === null) {
+            const messageCell = priceRow.locator('td').nth(3);
+            lastMessage = ((await messageCell.innerText()) || '').trim();
+            priceDifference = this.extractDollarValue(lastMessage);
+            console.log(`View History second-last row, Message column (fallback): "${lastMessage}"`);
+        } else {
+            console.log(`View History second-last row, last column: "${lastMessage}"`);
+        }
+        if (priceDifference === null) {
+            console.log('No dollar amount parsed from second-last row');
         }
 
         await historyPopup.close();
+        await this.page.bringToFront();
         console.log(`Extracted price difference: ${priceDifference}, expected: ${expectedPriceDiff}`);
 
         return { lastMessage, priceDifference, expectedPriceDiff };

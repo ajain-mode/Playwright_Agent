@@ -41,14 +41,28 @@ test.describe.serial(
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
-        await test.step("Step 1 [CSV 1-5]: Login and switch to BILLINGTOGGLE_USER", async () => {
+        await test.step("Step 1 [CSV 1-5]: Login to BTMS", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
-          //await pages.homePage.clickSwitchAccountButton();
-          //await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
 
-        await test.step("Step 2 [CSV 6-10]: Navigate to Customer Search and open CREATE TL *NEW*", async () => {
+        await test.step("Step 2 [CSV 6-12]: Office CORP — ensure Invoice Process is Central", async () => {
+          await pages.basePage.hoverOverHeaderByText(HEADERS.ADMIN);
+          await pages.basePage.clickSubHeaderByText(ADMIN_SUB_MENU.OFFICE_SEARCH);
+          await pages.officePage.officeCodeSearchField(testData.officeName);
+          await pages.officePage.searchButtonClick();
+          await pages.officePage.officeSearchRow(testData.officeName);
+          await pages.officePage.ensureInvoiceProcess(INVOICE_PROCESS.CENTRAL);
+
+          const invoiceProcess = await pages.officePage.getInvoiceProcessValue();
+          expect(
+            invoiceProcess.toLowerCase(),
+            "Invoice Process should be Central after office setup"
+          ).toBe(INVOICE_PROCESS.CENTRAL.toLowerCase());
+        });
+
+        await test.step("Step 3 [CSV 13-17]: Navigate to Customer Search and open CREATE TL *NEW*", async () => {
+          await pages.basePage.navigateToBaseUrl();
           await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
           await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
           await pages.searchCustomerPage.enterCustomerName(testData.customerName);
@@ -58,10 +72,9 @@ test.describe.serial(
           await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         });
 
-        await test.step("Step 3 [CSV 11-34]: Fill Enter New Load and verify default rate type fields", async () => {
+        await test.step("Step 4 [CSV 18-41]: Fill Enter New Load and verify default rate type fields", async () => {
           const customerValue = testData["Customer Value"];
           await pages.nonTabularLoadPage.selectCustomerViaSelect2(customerValue);
-
           await pages.nonTabularLoadPage.ensureEnterNewLoadSalespersonDispatcherSelection();
           await pages.nonTabularLoadPage.createNonTabularLoad({
             shipperValue: testData.shipperName,
@@ -99,9 +112,8 @@ test.describe.serial(
           expect.soft(fuelSurchargeDefault?.toLowerCase()).toContain(RATE_TYPE.FLAT.toLowerCase());
         });
 
-        await test.step("Step 4 [CSV 35-43]: Create load, complete Carrier tab, and save to BOOKED", async () => {
+        await test.step("Step 5 [CSV 42-50]: Create load, complete Carrier tab, and save to BOOKED", async () => {
           await pages.nonTabularLoadPage.clickCreateLoadButton();
-          await pages.editLoadLoadTabPage.checkRateTypeIfPresent(testData.rateType, pages.editLoadFormPage);
           await pages.editLoadPage.validateEditLoadHeadingText();
           loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
           pages.logger.info(`Load number: ${loadNumber}`);
@@ -111,8 +123,6 @@ test.describe.serial(
           await pages.editLoadCarrierTabPage.enterCustomerRate(testData.customerRate);
           await pages.editLoadCarrierTabPage.enterCarrierRate(testData.carrierRate);
           await pages.editLoadCarrierTabPage.enterValueInTrailerLength(testData.trailerLength);
-          await pages.editLoadFormPage.enterFutureExpirationDateAndTime(7, "18:00");
-          await pages.editLoadCarrierTabPage.selectEmailNotificationViaSelect2(testData.saleAgentEmail);
           await pages.editLoadCarrierTabPage.enterMiles(testData.miles);
           await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_NAME.CARRIER_4);
 
@@ -121,7 +131,7 @@ test.describe.serial(
           await bookedAlert;
         });
 
-        await test.step("Step 5 [CSV 44-48]: View Billing, upload carrier invoice, and validate toggle/checkbox", async () => {
+        await test.step("Step 6 [CSV 51-56]: View Billing, upload carrier invoice (Payables), validate toggle/checkbox", async () => {
           await pages.editLoadPage.clickOnTab(TABS.LOAD);
           await pages.editLoadFormPage.clickOnViewBillingBtn();
           await pages.commonReusables.waitForPageStable(sharedPage);
@@ -139,8 +149,7 @@ test.describe.serial(
           await pages.viewLoadPage.clickSubmitRemote();
           await invoiceAlert;
 
-          await sharedPage.reload();
-          await commonReusables.waitForAllLoadStates(sharedPage);
+          await pages.commonReusables.reloadAndAcceptDialogs(sharedPage, WAIT.SMALL);
           await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
 
           const billingToggle = await pages.loadBillingPage.getBillingToggleValue();
@@ -151,7 +160,7 @@ test.describe.serial(
         });
 
         await test.step(
-          "Step 6 [CSV 49-53]: View Load — Load tab (exp. 49); Delivered Final (51-52); View Billing (53)",
+          "Step 7 [CSV 57-61]: View Load — Load tab (exp. 57); Delivered Final (58-59); View Billing (61)",
           async () => {
           viewWorkPage = await ViewLoadPage.resolveViewLoadPageAfterBillingClick(sharedPage);
           const vl = new PageManager(viewWorkPage);
@@ -178,7 +187,7 @@ test.describe.serial(
               () => vl.editLoadFormPage.clickOnSaveBtn(),
               WAIT.DEFAULT
             );
-            const hasDeliveredFinalConfirm = deliveredDialogs.some((msg) =>
+            const hasDeliveredFinalConfirm = deliveredDialogs.some((msg: string) =>
               msg.includes(ALERT_PATTERNS.CONFIRM_CHANGE_TO_DELIVERED_FINAL)
             );
             expect(hasDeliveredFinalConfirm, "Delivered Final confirmation alert should appear").toBeTruthy();
@@ -209,7 +218,7 @@ test.describe.serial(
         });
 
         await test.step(
-          "Step 7 [CSV 54-60]: View Load → Edit → carrier rate; assert Billing on Load tab and on View Billing",
+          "Step 8 [CSV 62-68]: View Load → Edit → carrier rate; assert Billing on Load tab and on View Billing",
           async () => {
             viewWorkPage = await ViewLoadPage.resolveViewLoadPageAfterBillingClick(viewWorkPage);
             const vl = new PageManager(viewWorkPage);

@@ -66,6 +66,8 @@ export const ALERT_PATTERNS = {
 
   TO_UNCHECKING_POST_TO_ALL_CARRIERS_UPON_COMPLETION_OF_THE_WA: "to unchecking Post to all Carriers upon completion of the Waterfall before posting when include carriers count is maximum (25)",
 
+  YOUR_BID_HAS_BEEN_PLACED: "Your bid has been placed!",
+
 };
 
 

@@ -249,6 +249,29 @@ export class CsvDataService {
   }
 
   /**
+   * Read the CSV row for a given test case ID and return it as a flat key→value map.
+   * Returns undefined if the file or row does not exist.
+   */
+  readTestDataForId(testCase: TestCaseInput): Record<string, string> | undefined {
+    const csvPath = this.getDataCsvPath(testCase.category);
+    if (!fs.existsSync(csvPath)) return undefined;
+    const lines = fs.readFileSync(csvPath, 'utf-8').split(/\r?\n/).filter(l => l.trim());
+    if (lines.length < 2) return undefined;
+    const headers = this.parseCsvLine(lines[0]);
+    const idCol = headers.findIndex(h => h.trim().toLowerCase().replace(/[\s_-]/g, '') === 'testscriptid');
+    if (idCol === -1) return undefined;
+    for (let i = 1; i < lines.length; i++) {
+      const values = this.parseCsvLine(lines[i]);
+      if (values[idCol]?.trim() === testCase.id) {
+        const result: Record<string, string> = {};
+        headers.forEach((h, idx) => { if (values[idx]) result[h.trim()] = values[idx].trim(); });
+        return result;
+      }
+    }
+    return undefined;
+  }
+
+  /**
    * Escape a CSV value (wrap in quotes if contains special characters).
    */
   escapeCsvValue(value: string): string {

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * NonTabularLoadPage - Page for managing non-tabular load operations and interactions.
  * @description This class provides methods to interact with the Non-Tabular Load page,
  * including load creation, field validation, editing, and other related operations.

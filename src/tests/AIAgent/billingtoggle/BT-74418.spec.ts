@@ -22,7 +22,7 @@ let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
 
-test.describe.configure({ retries: 1 });
+test.describe.configure({ retries: 0 });
 test.describe.serial(
   "Case ID: BT-74418 - Validate updated price difference message when carrier invoice already exists in pending status and secondary invoice is received.",
   () => {
@@ -45,7 +45,7 @@ test.describe.serial(
     test(
       "Case Id: BT-74418 - Validate updated price difference message when carrier invoice already exists in pending status and secondary invoice is received.",
       {
-        tag: "@aiagent,@at_payabletoggle"
+        tag: "@aiagent,@at_billingtoggle"
       },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE); // 15 minutes
@@ -61,22 +61,26 @@ test.describe.serial(
         pages.logger.info("BTMS Login Successfully");
       });
 
-      await test.step("Step 2 [CSV 2-5]: Search customer and navigate to CREATE TL *NEW*", async () => {
+      await test.step("Step 2-5 [CSV 2-5]: Search customer and navigate to CREATE TL *NEW*", async () => {
         await pages.basePage.navigateToBaseUrl();
         await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
         await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
         await pages.searchCustomerPage.enterCustomerName(testData.customerName);
         await pages.searchCustomerPage.selectActiveOnCustomerPage();
         await pages.searchCustomerPage.clickOnSearchCustomer();
-        await pages.searchCustomerPage.clickOnActiveCustomer();
-        await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         pages.logger.info("Navigated to Enter New Load page");
       });
 
-      await test.step("Step 3: Select customer value on Enter New Load form", async () => {
-        const customerName = testData['Customer Value'];
+      await test.step("Step 4 [CSV 4]: Click 3rd customer row (salesperson AGENT RESPONSE-TEST)", async () => {
+        await pages.searchCustomerPage.clickOnActiveCustomerRowByIndex(2);
+        await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
+        await commonReusables.waitForAllLoadStates(sharedPage);
+      });
 
+      await test.step("Step 6-7 [CSV 6-7]: Select customer; Salesperson / Dispatcher", async () => {
+        const customerName = testData["Customer Value"];
         await pages.nonTabularLoadPage.selectCustomerViaSelect2(customerName);
+        await pages.nonTabularLoadPage.ensureEnterNewLoadSalespersonDispatcherSelection();
       });
 
       await test.step("Step 4 [CSV 8-26]: Fill Enter New Load page details", async () => {

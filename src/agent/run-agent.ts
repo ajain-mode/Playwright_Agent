@@ -14,12 +14,15 @@
  * @created 2026-02-05
  */
 
+import dotenv from 'dotenv';
+import path from 'path';
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+
 import { PlaywrightAgent } from './PlaywrightAgent';
 import { runCLI } from './cli/AgentCLI';
 import { TestCaseParser } from './parsers/TestCaseParser';
 import { DataValidator } from './analyzers/DataValidator';
 import fs from 'fs';
-import path from 'path';
 
 /**
  * Default CSV file containing test cases.
@@ -44,9 +47,8 @@ async function main(): Promise<void> {
     return;
   }
 
-  // LLM is disabled — rule-based generation only (hybrid approach)
   const filteredArgs = args.filter(a => a !== '--no-llm');
-  const agentOptions: any = { llmEnabled: false };
+  const agentOptions: any = { llmEnabled: !args.includes('--no-llm') };
 
   // Default behavior (no arguments): read from sample-testcases.csv
   if (filteredArgs.length === 0) {

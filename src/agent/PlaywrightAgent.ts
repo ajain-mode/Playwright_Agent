@@ -146,8 +146,11 @@ export class PlaywrightAgent {
         // Ensure test data exists in the respective data CSV (uses corrected values)
         this.csvService.ensureTestDataInCsv(testCase);
 
+        // Read back the CSV row so the generator receives complete testData values
+        const csvTestData = this.csvService.readTestDataForId(testCase);
+
         // Generate the script (pass matched spec path and score for reference adoption)
-        const script = await this.generator.generateScript(testCase, undefined, match?.specPath || undefined, match?.score);
+        const script = await this.generator.generateScript(testCase, (csvTestData as any) || undefined, match?.specPath || undefined, match?.score);
         scripts.push(script);
 
         // Save the script
@@ -293,7 +296,9 @@ export class PlaywrightAgent {
         // Ensure test data exists in the respective data CSV (uses corrected values)
         this.csvService.ensureTestDataInCsv(testCase);
 
-        const testData = testDataMap?.get(testCase.id);
+        // Read back the CSV row for complete testData values (falls back to testDataMap)
+        const csvTestData = this.csvService.readTestDataForId(testCase);
+        const testData = (csvTestData as any) || testDataMap?.get(testCase.id);
         const script = await this.generator.generateScript(testCase, testData, match?.specPath || undefined, match?.score);
         scripts.push(script);
         await this.saveScript(script, testCase);
@@ -502,7 +507,7 @@ export class PlaywrightAgent {
     // Agent 4: Feedback Loop — cross-check generated spec against original CSV steps.
     // Injects code for missing steps and annotates low-confidence steps for review.
     const feedbackResult = await this.feedbackLoop.run(finalCode, testCase, processedSteps);
-    const outputCode = feedbackResult.correctedContent;
+    let outputCode = feedbackResult.correctedContent;
 
     if (feedbackResult.report.stepsMissing.length > 0) {
       feedbackResult.report.stepsMissing.forEach(s => {
@@ -521,22 +526,36 @@ export class PlaywrightAgent {
       });
     }
 
-    if (report.passed) {
+    // Re-run SpecValidator after feedback loop injections to catch any new violations
+    let finalReport = report;
+    if (feedbackResult.report.correctionsApplied) {
+      console.log(`   🔄 Re-validating after feedback loop corrections...`);
+      const { finalCode: finalCode2, report: report2 } = await this.specValidator.validateAndCorrect(
+        outputCode,
+        processedSteps,
+        this.generator.getPOMMethodMatcher(),
+        1,
+      );
+      outputCode = finalCode2;
+      finalReport = report2;
+    }
+
+    if (finalReport.passed) {
       fs.writeFileSync(script.filePath, outputCode, 'utf-8');
       console.log(`   ✅ Generated: ${script.testCaseId}.spec.ts`);
-    } else if (report.summary.hardBlocks > 0) {
+    } else if (finalReport.summary.hardBlocks > 0) {
       // Save as draft — NOT a production spec
       const draftPath = script.filePath.replace('.spec.ts', '.draft.spec.ts');
       fs.writeFileSync(draftPath, outputCode, 'utf-8');
-      console.log(`   ⚠️ Draft saved: ${path.basename(draftPath)} — ${report.summary.hardBlocks} unresolved hard-block(s)`);
-      for (const v of report.violations.filter(v => v.severity === 'hard-block')) {
+      console.log(`   ⚠️ Draft saved: ${path.basename(draftPath)} — ${finalReport.summary.hardBlocks} unresolved hard-block(s)`);
+      for (const v of finalReport.violations.filter(v => v.severity === 'hard-block')) {
         console.log(`      ❌ ${v.ruleId}: ${v.message}`);
       }
     } else {
       // Errors but no hard-blocks — write as spec but warn
       fs.writeFileSync(script.filePath, outputCode, 'utf-8');
       console.log(`   ⚠️ Generated with warnings: ${script.testCaseId}.spec.ts`);
-      for (const v of report.violations.filter(v => v.severity === 'error')) {
+      for (const v of finalReport.violations.filter(v => v.severity === 'error')) {
         console.log(`      ⚠️ ${v.ruleId}: ${v.message}`);
       }
     }
@@ -760,9 +779,9 @@ export class PlaywrightAgent {
   }
 
   /**
-   * Match a new test case against existing test cases to:
-   * 1. Find the most functionally similar existing spec (for code generation reference)
-   * 2. Inherit missing data fields from the matched test case's CSV row
+   * Match a new test case against existing test cases to find the most
+   * functionally similar existing spec for use as a code generation reference.
+   * Data values are always parsed from the input — never inherited from a match.
    *
    * Returns the MatchResult so CodeGenerator can use the matched spec as template.
    */
@@ -771,16 +790,8 @@ export class PlaywrightAgent {
     if (!match) return null;
 
     console.log(`   🔗 Similarity match: ${testCase.id} → ${match.matchedId} (score=${(match.score * 100).toFixed(0)}%, ${match.reasons.join(', ')})`);
-
-    // Inherit missing data from matched test case
-    if (testCase.testData && Object.keys(match.matchedData).length > 0) {
-      const { inherited, data } = this.matcher.inheritMissingData(
-        testCase.testData, match.matchedData, match.matchedId
-      );
-      if (inherited.length > 0) {
-        testCase.testData = data;
-      }
-    }
+    // Data inheritance removed — test data must always come from parsing the input,
+    // never from a matched test case (whose office/customer/agent values differ).
 
     return match;
   }

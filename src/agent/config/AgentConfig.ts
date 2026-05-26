@@ -148,8 +148,8 @@ export class AgentConfig {
     this.projectRoot = path.resolve(__dirname, '../../..');
     this.modelName = options.modelName || 'claude-sonnet-4-6';
     this.temperature = options.temperature ?? 0.3;
-    this.llmEnabled = options.llmEnabled ?? false;
-    this.llmMaxRetries = options.llmMaxRetries ?? 1;
+    this.llmEnabled = options.llmEnabled ?? true;
+    this.llmMaxRetries = options.llmMaxRetries ?? 0;
     this.llmCacheEnabled = options.llmCacheEnabled ?? true;
     
     this.outputDir = options.outputDir || path.join(this.projectRoot, 'src/tests/AIAgent');

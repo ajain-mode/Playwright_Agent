@@ -956,11 +956,13 @@ export class TestCaseParser {
         .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'");
 
       // ── Extract office code ──
-      // Patterns: "enter value as TX-STK", "office code (TX-STK)", "office code: TX-RED"
+      // Patterns: "enter value as TX-STK", "office code (TX-STK)", "office code: TX-RED",
+      //           "Enter the Office Code as TX-STK" (note: "as" not ":")
       const officeCodePatterns = [
         /enter\s+(?:the\s+)?(?:value\s+as|value)\s+([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
         /office\s+code\s*[\(:=]\s*([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
-        /office\s+code\s+([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
+        /office\s+code\s+(?:as\s+)?([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
+        /enter\s+(?:the\s+)?office\s+(?:code|id)\s+as\s+([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
       ];
       for (const pattern of officeCodePatterns) {
         const officeMatch = normalizedPre.match(pattern);
@@ -1062,7 +1064,8 @@ export class TestCaseParser {
       // ── Extract office code from test steps (if not already found in preconditions) ──
       if (!values.precondition.officeCode) {
         const stepOfficePatterns = [
-          /office\s+code\s+([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
+          /office\s+code\s+(?:as\s+)?([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
+          /enter\s+(?:the\s+)?office\s+(?:code|id)\s+as\s+([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
           /office\s+code\s+([A-Z][A-Z0-9 ]+?)\s+and\s+click/i,
           /office\s+code\s+([A-Z][A-Z0-9 ]+?)\s+(?:and|then|in)\b/i,
         ];
@@ -1083,6 +1086,8 @@ export class TestCaseParser {
           /customer\s+name\s+in\s+the\s+"?Customer"?\s+field\s*\(\s*([^)]+)\s*\)/i,
           /enter\s+the\s+Customer\s+name[^(]*\(\s*([^)]+)\s*\)/i,
           /enter\s+the\s+Customer\s+name\s+(.+?)\s+in\s+the\s+"?Customer"?\s+field/i,
+          /search\s+for\s+(?:the\s+)?customer\s+([A-Z][A-Za-z0-9\s&'.,()-]+?)(?:\s+in\s+(?:the\s+)?|\s+and\s+|\s*$)/i,
+          /enter\s+(?:the\s+)?customer\s+([A-Z][A-Za-z0-9\s&'.,()-]+?)\s+in\s+the\s+(?:"?Customer"?\s+)?field/i,
         ]},
         { key: 'pickLocation', patterns: [
           /(?:ShipperName|Pickup\s*Location|Pick)\s*(?:\/City)?\s*:\s*(.+)/i,
@@ -1294,9 +1299,11 @@ export class TestCaseParser {
           }
         }
 
-        // Salesperson / Dispatcher (FRISCO TL)
+        // Salesperson / Dispatcher / Agent field
         if (!values.formFields['salesperson']) {
-          const spMatch = trimmed.match(/"?Salesperson"?\s+(?:and\s+"?Dispatcher"?\s+)?[^(]*\(\s*([^)]+)\s*\)/i);
+          const spMatch = trimmed.match(/"?Salesperson"?\s+(?:and\s+"?Dispatcher"?\s+)?[^(]*\(\s*([^)]+)\s*\)/i)
+            || trimmed.match(/enter\s+([A-Z][A-Z0-9\s&'.,()-]+?)\s+in\s+the\s+(?:"?Agent"?|"?Sales\s*Agent"?)\s+field/i)
+            || trimmed.match(/(?:Agent|Sales\s*Agent)\s+(?:field\s+)?(?:as\s+|:\s*)([A-Z][A-Za-z0-9\s&'.,()-]+?)(?:\s+and\s+|\s*$)/i);
           if (spMatch) values.formFields['salesperson'] = spMatch[1].trim();
         }
       }

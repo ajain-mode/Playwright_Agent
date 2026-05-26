@@ -991,6 +991,36 @@ const SANITIZER_RULES: GuardrailRule[] = [
       );
     },
   },
+  {
+    id: 'SAN-025',
+    description: 'Fix embedded straight double-quotes in test.step() label strings — replace with single quotes to prevent TS1002',
+    severity: 'error',
+    category: 'structural',
+    detect: (code) => {
+      return code.split('\n').some(line => {
+        const testStepIdx = line.indexOf('await test.step("');
+        if (testStepIdx === -1) return false;
+        const labelStart = line.indexOf('"', testStepIdx + 'await test.step('.length) + 1;
+        const asyncIdx = line.indexOf('", async', labelStart);
+        if (asyncIdx === -1) return false;
+        return line.substring(labelStart, asyncIdx).includes('"');
+      });
+    },
+    fix: (code) => {
+      return code.split('\n').map(line => {
+        const testStepIdx = line.indexOf('await test.step("');
+        if (testStepIdx === -1) return line;
+        const openQuoteIdx = line.indexOf('"', testStepIdx + 'await test.step('.length);
+        const labelStart = openQuoteIdx + 1;
+        const asyncIdx = line.indexOf('", async', labelStart);
+        if (asyncIdx === -1) return line;
+        const label = line.substring(labelStart, asyncIdx);
+        if (!label.includes('"')) return line;
+        const fixedLabel = label.replace(/"/g, "'");
+        return line.substring(0, labelStart) + fixedLabel + line.substring(asyncIdx);
+      }).join('\n');
+    },
+  },
 ];
 
 export class SpecValidator {

@@ -45,7 +45,7 @@ test.describe.serial(
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
-        await test.step("Step 1: Login to BTMS application and switch to BILLINGTOGGLE_USER", async () => {
+        await test.step("Step 1 [CSV 1]: Login and switch to BILLINGTOGGLE_USER", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
           await pages.homePage.clickSwitchAccountButton();
           await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
@@ -58,7 +58,7 @@ test.describe.serial(
           await commonReusables.waitForAllLoadStates(sharedPage);
           await pages.agentSearchPage.nameInputOnAgentPage(USER_ROLES.BILLINGTOGGLE_USER);
           await pages.agentSearchPage.clickOnSearchButton();
-          await pages.agentSearchPage.selectAgentByName(USER_ROLES.BILLINGTOGGLE_USER);
+          await pages.agentSearchPage.selectAgentForBillingToggle(USER_ROLES.BILLINGTOGGLE_USER);
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
 

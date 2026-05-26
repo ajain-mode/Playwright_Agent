@@ -45,42 +45,47 @@ test.describe.serial(
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
-        await test.step("Step 1: Login to BTMS and switch to BILLINGTOGGLE_USER", async () => {
+        await test.step("Step 1 [CSV 1]: Login and switch to BILLINGTOGGLE_USER", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
           await pages.homePage.clickSwitchAccountButton();
           await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
 
-        await test.step("Step 2: Navigate to Customers > Search", async () => {
-          await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
-          await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
-          await commonReusables.waitForAllLoadStates(sharedPage);
+        await test.step("Step 2-8 [CSV 2-8]: Office CORP — ensure Invoice Process is Central", async () => {
+          await pages.basePage.hoverOverHeaderByText(HEADERS.ADMIN);
+          await pages.basePage.clickSubHeaderByText(ADMIN_SUB_MENU.OFFICE_SEARCH);
+          await pages.officePage.officeCodeSearchField(testData.officeName);
+          await pages.officePage.searchButtonClick();
+          await pages.officePage.officeSearchRow(testData.officeName);
+          await pages.officePage.ensureInvoiceProcess(INVOICE_PROCESS.CENTRAL);
+
+          const invoiceProcess = await pages.officePage.getInvoiceProcessValue();
+          expect(
+            invoiceProcess.toLowerCase(),
+            "Invoice Process should be Central after office setup"
+          ).toBe(INVOICE_PROCESS.CENTRAL.toLowerCase());
         });
 
-        await test.step("Step 3: Enter customer name ADVANCED COMPOSITES and click Search", async () => {
+        await test.step("Step 9-13 [CSV 9-13]: Customer search, open row, CREATE TL *NEW*", async () => {
+          await pages.basePage.navigateToBaseUrl();
+          await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
+          await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
           await pages.searchCustomerPage.enterCustomerName(testData.customerName);
           await pages.searchCustomerPage.selectActiveOnCustomerPage();
           await pages.searchCustomerPage.clickOnSearchCustomer();
-          await commonReusables.waitForAllLoadStates(sharedPage);
-        });
-
-        await test.step("Step 4: Click on the Customer detail row", async () => {
           await pages.searchCustomerPage.clickOnActiveCustomer();
-          await commonReusables.waitForAllLoadStates(sharedPage);
-        });
-
-        await test.step("Step 5: Click CREATE TL *NEW* on VIEW CUSTOMER page", async () => {
           await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
 
-        await test.step("Step 6: Select customer on ENTER NEW LOAD page", async () => {
-          const customerName = testData['Customer Value'];
+        await test.step("Step 14-15 [CSV 14-15]: Select customer on ENTER NEW LOAD page", async () => {
+          const customerName = testData["Customer Value"];
           await pages.nonTabularLoadPage.selectCustomerViaSelect2(customerName);
+          await pages.nonTabularLoadPage.ensureEnterNewLoadSalespersonDispatcherSelection();
         });
 
-        await test.step("Step 7: Fill shipper, consignee, dates, times, qty, weight, equipment, length", async () => {
+        await test.step("Step 16-27 [CSV 16-27]: Fill shipper, consignee, dates, times, qty, weight, equipment, length", async () => {
           await pages.nonTabularLoadPage.createNonTabularLoad({
             shipperValue: testData.shipperName,
             consigneeValue: testData.consigneeName,
@@ -175,7 +180,7 @@ test.describe.serial(
           pages.logger.info("Load saved — Status set to BOOKED");
         });
 
-        await test.step("Step 21: Edit, change status to DELIVERED FINAL, save and accept alert", async () => {
+        await test.step("Step 51-52 [CSV 51-52]: Edit — DELIVERED FINAL, Save; accept alert", async () => {
           await pages.viewLoadPage.clickEditButton();
           await pages.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
 
@@ -186,35 +191,37 @@ test.describe.serial(
           );
           pages.logger.info(`Total dialogs captured: ${capturedDialogs.length}`);
 
-          const confirmDialog = capturedDialogs.find(msg =>
+          const confirmDialog = capturedDialogs.find((msg) =>
             msg.includes(ALERT_PATTERNS.CONFIRM_CHANGE_TO_DELIVERED_FINAL)
           );
           expect(
             confirmDialog,
-            "Expected confirm dialog for Delivered Final status change"
+            "Delivered Final confirmation alert should appear"
           ).toContain(ALERT_PATTERNS.CONFIRM_CHANGE_TO_DELIVERED_FINAL);
 
           await pages.commonReusables.waitForPageStable(sharedPage);
 
-          const loadStatus = await pages.viewLoadPage.getLoadStatus();
-          pages.logger.info(`Load status after save: ${loadStatus}`);
-          expect(
-            loadStatus.toUpperCase(),
-            "Status should be set to INVOICED"
-          ).toBe(LOAD_STATUS.INVOICED);
+          await test.step("Expected [CSV 52]: Load status is INVOICED", async () => {
+            const loadStatus = await pages.viewLoadPage.getLoadStatus();
+            pages.logger.info(`Load status after save: ${loadStatus}`);
+            expect(
+              loadStatus.toUpperCase(),
+              "Expected [CSV 52]: Status should be set to INVOICED"
+            ).toBe(LOAD_STATUS.INVOICED);
+          });
         });
 
-        await test.step("Step 22: Open document upload dialog against Payable", async () => {
+        await test.step("Step 53 [CSV 53]: Open document upload dialog against Payable", async () => {
           await pages.viewLoadPage.openDocumentUploadDialog();
         });
 
-        await test.step("Step 23: Select Payables radio, Document Type as Carrier Invoice, and upload file", async () => {
+        await test.step("Step 54 [CSV 54]: Select Payables, Carrier Invoice, upload file", async () => {
           await pages.viewLoadPage.selectPayablesRadio();
           await pages.viewLoadPage.selectDocumentType(DOCUMENT_TYPE.CARRIER_INVOICE);
           await pages.viewLoadPage.attachCarrierInvoiceFile();
         });
 
-        await test.step("Step 24: Enter Invoice Number, Invoice Amount, click Attach and close popup", async () => {
+        await test.step("Step 55 [CSV 55]: Enter invoice details, attach, close popup", async () => {
           const invoiceNumber = pages.commonReusables.generateRandomInvoiceNumber();
           await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNumber);
           await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
@@ -224,17 +231,18 @@ test.describe.serial(
           await pages.viewLoadPage.closeDocumentUploadDialogSafe();
         });
 
-        await test.step("Step 25: Click View Billing button", async () => {
+        await test.step("Step 56 [CSV 56]: Click View Billing", async () => {
           await pages.editLoadFormPage.clickOnViewBillingBtn();
           await pages.commonReusables.waitForPageStable(sharedPage);
         });
 
-        await test.step("Step 26: Validate Billing Toggle does not change to Billing", async () => {
+        await test.step("Step 57 [CSV 57]: Observe Billing Toggle — not Billing", async () => {
+          await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
           const billingToggle = await pages.loadBillingPage.getBillingToggleValue();
           pages.logger.info(`Billing toggle: ${billingToggle}`);
           expect(
             billingToggle,
-            "Billing toggle should NOT switch to Billing when paperwork is received for an Invoiced load"
+            "Expected [CSV 57]: Billing toggle must not switch to Billing"
           ).not.toBe(PAYABLE_TOGGLE_VALUE.BILLING);
         });
 

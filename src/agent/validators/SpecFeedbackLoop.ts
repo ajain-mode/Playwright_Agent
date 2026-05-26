@@ -80,7 +80,6 @@ export class SpecFeedbackLoop {
     console.log(
       `   📊 Spec: ${specSteps.length} test.step blocks | CSV: ${testCase.steps.length} steps`,
     );
-
     const { missing, lowMatch } = this.classifySteps(testCase, specSteps);
 
     let correctedContent = specContent;
@@ -169,6 +168,16 @@ export class SpecFeedbackLoop {
       if (inStr) {
         if (ch === '\\') { i += 2; continue; }
         if (ch === strCh) inStr = false;
+      } else if (ch === '/' && content[i + 1] === '/') {
+        // Skip line comment — apostrophes in comments must not trigger string mode
+        const nl = content.indexOf('\n', i);
+        i = nl === -1 ? content.length : nl + 1;
+        continue;
+      } else if (ch === '/' && content[i + 1] === '*') {
+        // Skip block comment
+        const end = content.indexOf('*/', i + 2);
+        i = end === -1 ? content.length : end + 2;
+        continue;
       } else if (ch === '"' || ch === "'" || ch === '`') {
         inStr = true;
         strCh = ch;
@@ -203,6 +212,16 @@ export class SpecFeedbackLoop {
     const usedIndices = new Set<number>();
 
     for (const csvStep of testCase.steps) {
+      // If this step number falls inside a composite [CSV X-Y] range in the spec,
+      // it was absorbed by a FormStepGrouper composite group — count as matched.
+      const compositeIdx = specSteps.findIndex(s =>
+        this.isInCompositeRange(csvStep.stepNumber, s.label)
+      );
+      if (compositeIdx !== -1) {
+        // Do NOT add compositeIdx to usedIndices — multiple CSV steps share the same composite spec step
+        continue;
+      }
+
       const { score, idx } = this.bestSpecMatch(
         csvStep.action,
         csvStep.stepNumber,
@@ -213,14 +232,29 @@ export class SpecFeedbackLoop {
       if (score >= SpecFeedbackLoop.MATCHED_THRESHOLD) {
         usedIndices.add(idx);
       } else if (score >= SpecFeedbackLoop.MISSING_THRESHOLD) {
-        usedIndices.add(idx);
-        lowMatch.push({
-          csvStepNumber: csvStep.stepNumber,
-          csvStepText: csvStep.action,
-          specStepLabel: specSteps[idx]?.label,
-          similarityScore: score,
-          issueType: 'low-match',
-        });
+        // Before treating as low-match, verify that SpecValidator STEP-001 would accept
+        // the best-matching spec step as coverage for this CSV step. STEP-001 uses exact
+        // "Step N:" / [CSV X-Y] / keyword matching — not Jaccard. If none of those
+        // criteria are satisfied, a FEEDBACK comment won't prevent the hard block, so
+        // promote this step to missing so a proper test.step block gets injected instead.
+        if (this.wouldPassStepCoverage(csvStep.stepNumber, csvStep.action, specSteps)) {
+          usedIndices.add(idx);
+          lowMatch.push({
+            csvStepNumber: csvStep.stepNumber,
+            csvStepText: csvStep.action,
+            specStepLabel: specSteps[idx]?.label,
+            similarityScore: score,
+            issueType: 'low-match',
+          });
+        } else {
+          // Low-match but STEP-001 would still fire — inject a proper test.step block
+          missing.push({
+            csvStepNumber: csvStep.stepNumber,
+            csvStepText: csvStep.action,
+            similarityScore: score,
+            issueType: 'missing',
+          });
+        }
       } else {
         missing.push({
           csvStepNumber: csvStep.stepNumber,
@@ -232,6 +266,47 @@ export class SpecFeedbackLoop {
     }
 
     return { missing, lowMatch };
+  }
+
+  /** Returns true if csvStepNumber falls within the [CSV X-Y] range declared in a composite spec step label. */
+  private isInCompositeRange(csvStepNumber: number, specStepLabel: string): boolean {
+    const m = specStepLabel.match(/\[CSV\s+(\d+)[–\-](\d+)\]/i);
+    if (!m) return false;
+    const start = parseInt(m[1], 10);
+    const end = parseInt(m[2], 10);
+    return csvStepNumber >= start && csvStepNumber <= end;
+  }
+
+  /**
+   * Returns true if any spec step would satisfy SpecValidator STEP-001 for this CSV step.
+   * Mirrors SpecValidator.findStepBlockRange title-match logic: "Step N:", [CSV X-Y] range,
+   * or first-24-chars keyword match. Used to decide whether a low-match step needs a real
+   * test.step injection or if a FEEDBACK annotation is sufficient.
+   */
+  private wouldPassStepCoverage(
+    csvStepNumber: number,
+    csvAction: string,
+    specSteps: SpecStepBlock[],
+  ): boolean {
+    const needle = `Step ${csvStepNumber}:`;
+    const kwRaw = csvAction.replace(/['"`\\]/g, '').trim();
+    const kwSlice = kwRaw.length >= 6 ? kwRaw.slice(0, 48) : '';
+    const keyword = kwSlice.length >= 6 ? kwSlice.toLowerCase().slice(0, Math.min(24, kwSlice.length)) : '';
+
+    for (const s of specSteps) {
+      if (s.label.includes(needle)) return true;
+
+      const csvM = s.label.match(/\[CSV\s+(\d+)[-–](\d+)\]/i);
+      if (csvM) {
+        const rangeStart = parseInt(csvM[1], 10);
+        const rangeEnd = parseInt(csvM[2], 10);
+        if (csvStepNumber >= rangeStart && csvStepNumber <= rangeEnd) return true;
+      }
+
+      if (keyword.length >= 6 && s.label.toLowerCase().includes(keyword)) return true;
+    }
+
+    return false;
   }
 
   private bestSpecMatch(

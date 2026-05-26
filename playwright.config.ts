@@ -58,8 +58,8 @@ export default defineConfig({
         // "--disable-geolocation",
       ],
     },
-    //trace: 'on-first-retry'
-    trace: "on",
+    // Full trace on every test is very slow locally (especially on OneDrive paths).
+    trace: process.env.CI ? "on" : "retain-on-failure",
   },
   projects: [
     {
