@@ -1,4 +1,4 @@
-/// <reference types="node" />
+/ <reference types="node" />
 import "@utils/globalConstants";
 import "@utils/dfbUtils/dfbGlobalConstants";
 import "@utils/ediUtils/ediConstants";
