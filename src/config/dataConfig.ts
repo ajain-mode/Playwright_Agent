@@ -102,7 +102,30 @@ class DataConfig {
         const testData: Record<string, string> = {
             ...this.csvData,
         };
+        if (dataFile === this.dfbData) {
+            this.applyDfbCsvDerivedFields(testData);
+        }
         return testData;
+    }
+
+    /**
+     * When `agentName` is empty in `dfbdata.csv`, derive it from `salesAgent` on the same row
+     * (Agent Search uses the short name; Switch User uses the full `salesAgent` with office suffix).
+     * @author AI Agent
+     * @created 2026-05-12
+     */
+    private applyDfbCsvDerivedFields(testData: Record<string, string>): void {
+        const rawAgentName = (testData['agentName'] ?? '').trim();
+        if (rawAgentName) {
+            return;
+        }
+        const salesAgent = (testData['salesAgent'] ?? '').trim();
+        if (!salesAgent) {
+            return;
+        }
+        const withoutTrailingQualifier = salesAgent.replace(/\s*\([^)]*\)\s*$/, '').trim();
+        testData['agentName'] =
+            withoutTrailingQualifier.length > 0 ? withoutTrailingQualifier : salesAgent;
     }
     /**
     * @author Parth Rastogi

@@ -27,6 +27,8 @@ export class DFBGlobalConstants {
     OFFER_RATE_2: "1525",
     OFFER_RATE_3: "1550",
     OFFER_RATE_4: "2000.00",
+    /** Waterfall per-carrier pencil row (DFB-97788 step 62 example). */
+    OFFER_RATE_500: "500",
   } as const;
 
   // DFB Carrier Timing Constants
@@ -36,9 +38,20 @@ export class DFBGlobalConstants {
     TIMING_3: "00:03",
     TIMING_4: "00:04",
     TIMING_5: "00:05",
+    /** Example timing from DFB-97788 (1:00). */
+    TIMING_0100: "01:00",
   } as const;
 
   
+
+  /**
+   * Include Carriers multi-select (DFB-97788 step 60): search typeahead, max 25 selections.
+   * Manual case lists LLC/INC; automation uses INC then LLC for any shortfall.
+   */
+  static readonly INCLUDE_CARRIERS = {
+    MAX_COUNT: 25,
+    SEARCH_TERMS_INC_THEN_LLC: ["INC", "LLC"] as const,
+  } as const;
 
   static readonly DFB_FORM_FIELDS = {
     Include_Carriers: "Include Carriers",
@@ -112,6 +125,7 @@ declare global {
   const PRIORITY: typeof DFBGlobalConstants.PRIORITY;
   const CARRIER_TIMING: typeof DFBGlobalConstants.CARRIER_TIMING;
   const LOAD_OFFER_RATES: typeof DFBGlobalConstants.LOAD_OFFER_RATES;
+  const INCLUDE_CARRIERS: typeof DFBGlobalConstants.INCLUDE_CARRIERS;
   
   const DFB_FORM_FIELDS: typeof DFBGlobalConstants.DFB_FORM_FIELDS;
   const DFB_BID_HISTORY_FIELDS: typeof DFBGlobalConstants.DFB_BID_HISTORY_FIELDS;
@@ -125,14 +139,15 @@ declare global {
 }
 
 // Global exports for backward compatibility
-export const { PRIORITY, CARRIER_TIMING } = DFBGlobalConstants;
+export const { PRIORITY, CARRIER_TIMING, INCLUDE_CARRIERS } = DFBGlobalConstants;
 
 // Set global constants
 if (typeof globalThis !== "undefined") {
   (globalThis as any).PRIORITY = DFBGlobalConstants.PRIORITY;
   (globalThis as any).CARRIER_TIMING = DFBGlobalConstants.CARRIER_TIMING;
   (globalThis as any).LOAD_OFFER_RATES = DFBGlobalConstants.LOAD_OFFER_RATES;
-  
+  (globalThis as any).INCLUDE_CARRIERS = DFBGlobalConstants.INCLUDE_CARRIERS;
+
   (globalThis as any).DFB_FORM_FIELDS = DFBGlobalConstants.DFB_FORM_FIELDS;
   (globalThis as any).DFB_BID_HISTORY_FIELDS =
     DFBGlobalConstants.DFB_BID_HISTORY_FIELDS;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * NonTabularLoadPage - Page for managing non-tabular load operations and interactions.
  * @description This class provides methods to interact with the Non-Tabular Load page,
  * including load creation, field validation, editing, and other related operations.
@@ -10,7 +10,6 @@
 
 import { Locator, Page, Dialog } from "@playwright/test";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
-import commonReusables from "@utils/commonReusables";
 import { GlobalConstants } from "@utils/globalConstants";
 
 const { WAIT } = GlobalConstants;
@@ -63,6 +62,12 @@ class NonTabularLoadPage {
     private readonly select2SelectionBySelectId_LOC: (selectId: string) => Locator;
     private readonly select2ContainerById_LOC: (containerId: string) => Locator;
 
+    /** Enter New Load — Salesperson / Dispatcher (Select2 containers from UI screenshot). */
+    private readonly enterNewLoadSalespersonContainer_LOC: Locator;
+    private readonly enterNewLoadSalespersonSelect_LOC: Locator;
+    private readonly enterNewLoadDispatcherContainer_LOC: Locator;
+    private readonly enterNewLoadDispatcherSelect_LOC: Locator;
+
     constructor(private page: Page) {
         this.shipperDropdown_LOC = page.locator("//select[@id='form_shipper_ship_point']");
         this.consigneeDropdownValue_LOC = page.locator("//select[@id='form_consignee_ship_point']");
@@ -111,6 +116,11 @@ class NonTabularLoadPage {
         this.select2HighlightedOption_LOC = page.locator(".select2-results__option--highlighted");
         this.select2SelectionBySelectId_LOC = (selectId: string) => page.locator(`#${selectId} ~ .select2-container .select2-selection`);
         this.select2ContainerById_LOC = (containerId: string) => page.locator(`#${containerId}`);
+
+        this.enterNewLoadSalespersonContainer_LOC = page.locator("#select2-form_salesperson-container");
+        this.enterNewLoadSalespersonSelect_LOC = page.locator("#form_salesperson");
+        this.enterNewLoadDispatcherContainer_LOC = page.locator("#select2-form_dispatcher-container");
+        this.enterNewLoadDispatcherSelect_LOC = page.locator("#form_dispatcher");
     }
 
     /**
@@ -142,29 +152,28 @@ class NonTabularLoadPage {
      * @created 19-Mar-2026
      */
     async selectFromSelect2Dropdown(select2ContainerId: string, searchValue: string): Promise<void> {
-        // Click the Select2 container to open the dropdown
-        const container = this.select2ContainerById_LOC(select2ContainerId);
-        await container.waitFor({ state: 'visible', timeout: WAIT.LARGE });
-        await container.click();
+        await this.selectFromSelect2Container(this.select2ContainerById_LOC(select2ContainerId), searchValue);
         console.log(`Clicked Select2 container: #${select2ContainerId}`);
+    }
 
-        // Extract a short search term: first word before any special chars like '(, #
-        // Ship point options are pipe-delimited (isVerified|name|city|state),
-        // so Select2 default matcher searches the full pipe string.
-        // Using a short alphanumeric prefix avoids issues with special characters.
+    /**
+     * Selects a value from a Select2 dropdown using a pre-declared container locator.
+     * @author AI Agent
+     * @created 2026-05-18
+     */
+    private async selectFromSelect2Container(select2ContainerLoc: Locator, searchValue: string): Promise<void> {
+        await select2ContainerLoc.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        await select2ContainerLoc.click();
+
         const shortSearch = searchValue.split(/[('#|,]/)[0].trim();
         const searchTerm = shortSearch.length >= 3 ? shortSearch : searchValue.substring(0, Math.min(10, searchValue.length));
 
-        // Use pressSequentially to trigger Select2's input event on each keystroke
-        // (.fill() sets the value instantly without firing per-key events that Select2 needs for filtering)
         await this.select2SearchField_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
         await this.select2SearchField_LOC.pressSequentially(searchTerm, { delay: 30 });
         console.log(`Typed search term: "${searchTerm}" (from: "${searchValue}")`);
 
-        // Wait for filtered results, then find the option that contains the search value name
         await this.select2ResultsOption_LOC.first().waitFor({ state: 'visible', timeout: WAIT.LARGE });
 
-        // Try to find an exact match by checking option text contains the full name
         const matchingOption = this.select2ResultsOption_LOC.filter({ hasText: shortSearch });
         const matchCount = await matchingOption.count();
 
@@ -172,13 +181,11 @@ class NonTabularLoadPage {
             await matchingOption.first().click();
             console.log(`Selected matching option for: "${searchValue}"`);
         } else {
-            // Fallback: click the highlighted (first) result
             await this.select2HighlightedOption_LOC.first().waitFor({ state: 'visible', timeout: WAIT.LARGE });
             await this.select2HighlightedOption_LOC.first().click();
             console.log(`Selected first highlighted option for: "${searchValue}"`);
         }
 
-        // Wait for onShipPointChange AJAX to populate address fields
         await this.page.waitForLoadState("networkidle");
     }
 
@@ -1589,6 +1596,195 @@ class NonTabularLoadPage {
     }
   }
   /**
+   * @author AI Agent
+   * @created 2026-04-30
+   */
+  private async getSelect2ContainerTextOrSelectedOption(
+    select2ContainerLoc: Locator,
+    nativeSelectLoc: Locator
+  ): Promise<string> {
+    if ((await select2ContainerLoc.count()) > 0) {
+      await select2ContainerLoc.first().waitFor({ state: "attached", timeout: WAIT.DEFAULT }).catch(() => undefined);
+      const containerText = ((await select2ContainerLoc.first().innerText().catch(() => null)) ?? "")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (containerText.length > 0 && !/^select\b/i.test(containerText) && !/^choose\b/i.test(containerText)) {
+        return containerText;
+      }
+    }
+    if ((await nativeSelectLoc.count()) > 0) {
+      await nativeSelectLoc.first().waitFor({ state: "attached", timeout: WAIT.DEFAULT }).catch(() => undefined);
+      const selected = nativeSelectLoc.locator("option:checked").first();
+      const selectedLabel = ((await selected.textContent().catch(() => null)) ?? "").replace(/\s+/g, " ").trim();
+      if (selectedLabel.length > 0 && !/^select\b/i.test(selectedLabel) && !/^choose\b/i.test(selectedLabel)) {
+        return selectedLabel;
+      }
+      const selectedValue = ((await selected.getAttribute("value").catch(() => null)) ?? "").trim();
+      if (selectedValue.length > 0) {
+        return selectedValue;
+      }
+    }
+    return "";
+  }
+
+  /**
+   * Visible selection for Salesperson on Enter New Load (CSV step 12).
+   * @author AI Agent
+   * @created 2026-04-30
+   */
+  async getEnterNewLoadSalespersonSelectionDisplayText(): Promise<string> {
+    return await this.getSelect2ContainerTextOrSelectedOption(
+      this.enterNewLoadSalespersonContainer_LOC,
+      this.enterNewLoadSalespersonSelect_LOC,
+    );
+  }
+
+  /**
+   * Visible selection for Dispatcher on Enter New Load (CSV step 12).
+   * @author AI Agent
+   * @created 2026-04-30
+   */
+  async getEnterNewLoadDispatcherSelectionDisplayText(): Promise<string> {
+    return await this.getSelect2ContainerTextOrSelectedOption(
+      this.enterNewLoadDispatcherContainer_LOC,
+      this.enterNewLoadDispatcherSelect_LOC,
+    );
+  }
+
+  /**
+   * Removes generic Select2 placeholder artifacts and normalizes spacing for robust checks.
+   * @author AI Agent
+   * @created 2026-04-30
+   */
+  private normalizeSelect2DisplayValue(value: string): string {
+    return value
+      .replace(/\u00d7/g, "")
+      .replace(/^\s*select2.*$/i, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  /**
+   * Gives UI-bound default Salesperson/Dispatcher values a brief chance to appear
+   * after customer selection, before fallback auto-selection.
+   * @author AI Agent
+   * @created 2026-04-30
+   */
+  private async waitForSalespersonDispatcherDefaults(
+    timeoutMs = 8000,
+    pollIntervalMs = 250
+  ): Promise<{ salesperson: string; dispatcher: string }> {
+    const startedAt = Date.now();
+    let salesperson = this.normalizeSelect2DisplayValue(
+      await this.getEnterNewLoadSalespersonSelectionDisplayText()
+    );
+    let dispatcher = this.normalizeSelect2DisplayValue(
+      await this.getEnterNewLoadDispatcherSelectionDisplayText()
+    );
+
+    while (Date.now() - startedAt < timeoutMs && (salesperson.length === 0 || dispatcher.length === 0)) {
+      await this.page.waitForTimeout(pollIntervalMs);
+      salesperson = this.normalizeSelect2DisplayValue(
+        await this.getEnterNewLoadSalespersonSelectionDisplayText()
+      );
+      dispatcher = this.normalizeSelect2DisplayValue(
+        await this.getEnterNewLoadDispatcherSelectionDisplayText()
+      );
+    }
+
+    return { salesperson, dispatcher };
+  }
+
+  /**
+   * Selects a value for Enter New Load Salesperson/Dispatcher field.
+   * Uses exact verified select IDs from BTMS loadform (`loadsh_sales_id` / `loadsh_disp_id`)
+   * through the existing Select2-by-selectId interaction helper.
+   * @author AI Agent
+   * @created 2026-04-30
+   */
+  private async selectEnterNewLoadAgentField(
+    select2ContainerLoc: Locator,
+    expectedLabel: string
+  ): Promise<void> {
+    const normalized = expectedLabel.trim();
+    if (!normalized) {
+      return;
+    }
+    await this.selectFromSelect2Container(select2ContainerLoc, normalized);
+  }
+
+  /**
+   * Picks the first meaningful option label from a native select element.
+   * Excludes empty/disabled options and generic placeholders like "Select".
+   * @author AI Agent
+   * @created 2026-04-30
+   */
+  private async getFirstSelectableAgentOptionLabel(nativeSelectLoc: Locator): Promise<string> {
+    const options = nativeSelectLoc.locator("option:not([disabled]):not([value=''])");
+    const count = await options.count();
+    for (let i = 0; i < count; i++) {
+      const label = ((await options.nth(i).textContent()) ?? "").replace(/\s+/g, " ").trim();
+      if (!label) continue;
+      if (/^select\b/i.test(label) || /^choose\b/i.test(label)) continue;
+      return label;
+    }
+    return "";
+  }
+
+  /**
+   * CSV step 12 behavior:
+   * - Check Salesperson/Dispatcher values
+   * - If empty, select first available option from dropdown
+   * - Return final values
+   *
+   * @author AI Agent
+   * @created 2026-04-30
+   */
+  async ensureEnterNewLoadSalespersonDispatcherSelection(): Promise<{
+    salespersonAutoSelected: boolean;
+    dispatcherAutoSelected: boolean;
+    salespersonFinal: string;
+    dispatcherFinal: string;
+  }> {
+    const defaults = await this.waitForSalespersonDispatcherDefaults();
+    const salespersonInitial = defaults.salesperson;
+    const dispatcherInitial = defaults.dispatcher;
+
+    let salespersonAutoSelected = false;
+    let dispatcherAutoSelected = false;
+
+    if (salespersonInitial.length === 0) {
+      const salespersonToSelect = await this.getFirstSelectableAgentOptionLabel(this.enterNewLoadSalespersonSelect_LOC);
+      if (salespersonToSelect.length > 0) {
+        await this.selectEnterNewLoadAgentField(this.enterNewLoadSalespersonContainer_LOC, salespersonToSelect);
+        salespersonAutoSelected = true;
+      }
+    }
+
+    if (dispatcherInitial.length === 0) {
+      const dispatcherToSelect = await this.getFirstSelectableAgentOptionLabel(this.enterNewLoadDispatcherSelect_LOC);
+      if (dispatcherToSelect.length > 0) {
+        await this.selectEnterNewLoadAgentField(this.enterNewLoadDispatcherContainer_LOC, dispatcherToSelect);
+        dispatcherAutoSelected = true;
+      }
+    }
+
+    const salespersonFinal = this.normalizeSelect2DisplayValue(
+      await this.getEnterNewLoadSalespersonSelectionDisplayText()
+    );
+    const dispatcherFinal = this.normalizeSelect2DisplayValue(
+      await this.getEnterNewLoadDispatcherSelectionDisplayText()
+    );
+
+    return {
+      salespersonAutoSelected,
+      dispatcherAutoSelected,
+      salespersonFinal,
+      dispatcherFinal,
+    };
+  }
+
+  /**
    * Selects a customer on the Enter New Load form.
    * Handles both Select2 widget and plain <select> dropdown.
    * After selection, waits for the shipper dropdown to populate.
@@ -1601,6 +1797,8 @@ class NonTabularLoadPage {
 
     // #form_customer is a single-select Select2 — use the correct interaction pattern
     await this.selectFromSelect2SingleDropdown("form_customer", customerName);
+    await this.page.waitForLoadState("networkidle");
+    await this.page.waitForTimeout(1000);
   }
 }
 export default NonTabularLoadPage;

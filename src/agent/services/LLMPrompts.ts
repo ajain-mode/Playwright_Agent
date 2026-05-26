@@ -244,7 +244,8 @@ export function buildCodeGenSystemPrompt(schema: SchemaContext): string {
     constantsDetailSection = `\n\n## Constants Reference (use these instead of hardcoding values)\n${detailLines}`;
   }
 
-  return `You are a Playwright test code generator for the SunTeck TMS QA Framework.
+  return `You are a Playwright test code generator for the SunTeck TMS QA Framework running in TEXT-OUTPUT-ONLY mode.
+CRITICAL: Output TypeScript code DIRECTLY as your text response. Do NOT use any Write, Edit, Bash, or other tools. Do NOT write files. Do NOT ask for permissions.
 You generate ONLY executable TypeScript code for a single test step — no markdown, no explanations, no wrapping.
 
 ## Available Page Objects (accessed via "pages.<getter>.<method>()")
@@ -479,19 +480,34 @@ export function buildFullSpecPrompt(
   preconditions: string[],
   steps: { stepNumber: number; action: string; expectedResult?: string }[],
   expectedResults: string[],
-  testDataFields: string[],
+  testData: Record<string, string> | string[],
   _schema: SchemaContext,
+  mode: 'adapt' | 'generate' = 'adapt',
 ): { system: string; user: string } {
   // LEAN prompt — no full POM schema or framework knowledge.
   // The reference spec already contains correct methods, imports, and patterns.
   // The LLM just needs to adapt it to the new test case.
 
-  const system = `You are a Playwright test code generator. You adapt an existing working test spec to a new test case.
+  // Normalise testData: both string[] (legacy) and Record<string,string> (new) are accepted
+  const testDataRecord: Record<string, string> =
+    Array.isArray(testData)
+      ? Object.fromEntries(testData.map(k => [k, '']))
+      : testData;
+  const testDataFields = Array.isArray(testData) ? testData : Object.keys(testData);
+
+  const generateModeRules = `2. Use the reference spec ONLY as a structural template (imports, beforeAll/afterAll, variable declarations, POM usage patterns). Do NOT copy reference test steps.
+3. Generate exactly ${steps.length} test.step() blocks — one per step in the list below, in order. Every step MUST have real executable code. NEVER emit // TODO or /* TODO */ in the output.
+4. For each step: first check the Available Page Objects for an existing method. If found, use it. If not found, generate pages.<getter>.<method>() with a descriptive name — the pipeline auto-creates it.`;
+
+  const adaptModeRule2 = `2. Keep ALL steps from the reference spec — do NOT skip, collapse, or remove any steps`;
+
+  const system = `You are a Playwright test code generator running in TEXT-OUTPUT-ONLY mode.
+CRITICAL: Output the TypeScript code DIRECTLY as your text response. Do NOT use any Write, Edit, Bash, or other tools. Do NOT attempt to write files. Do NOT ask for permissions. The TypeScript code must be your ONLY output — return it as plain text, nothing else.
 
 ## Rules
-1. Output ONLY the complete .spec.ts file — no markdown fences, no explanations, no commentary before or after
-2. Keep ALL steps from the reference spec — do NOT skip, collapse, or remove any steps
-3. Keep ALL imports, variable declarations, beforeAll/afterAll blocks from the reference
+1. Output ONLY the complete TypeScript code for the spec file — no markdown fences, no explanations, no commentary before or after
+${mode === 'generate' ? generateModeRules : adaptModeRule2}
+${mode === 'adapt' ? '3. Keep ALL imports, variable declarations, beforeAll/afterAll blocks from the reference' : '5. Keep ALL imports, variable declarations, beforeAll/afterAll blocks from the reference'}
 4. Keep ALL method calls exactly as they appear in the reference — do NOT invent new methods
 5. Only change: test case ID, title, and test-specific values (testData fields, constants)
 6. Every expected result MUST use expect() or expect.soft() — NEVER use console.log as a substitute for validation.
@@ -545,16 +561,30 @@ export function buildFullSpecPrompt(
     : '  (Same as reference spec)';
   const precondText = preconditions.length > 0 ? preconditions.join('\n  ') : 'Same as reference spec';
 
+  const testDataSection = (() => {
+    if (mode !== 'generate') return `- testData fields: ${testDataFields.join(', ') || 'same as reference'}`;
+    const nonEmpty = Object.entries(testDataRecord).filter(([, v]) => v && v.trim());
+    if (nonEmpty.length === 0) return `- testData fields: ${testDataFields.join(', ') || 'same as reference'}`;
+    return `- testData fields: ${testDataFields.join(', ') || 'same as reference'}
+
+Available testData (CSV values for this test case):
+${nonEmpty.map(([k, v]) => `  ${k}: "${v}"`).join('\n')}`;
+  })();
+
+  const refInstruction = mode === 'generate'
+    ? 'REFERENCE SPEC (use as structural template ONLY — do NOT copy test steps):'
+    : 'REFERENCE SPEC (keep this exact structure, all steps, all method calls):';
+
   const user = `Adapt this reference spec for test case ${testCaseId}.
 
-REFERENCE SPEC (keep this exact structure, all steps, all method calls):
+${refInstruction}
 ${referenceSpecCode}
 
 NEW TEST CASE:
 - ID: ${testCaseId}
 - Title: ${testCaseTitle}
 - Category: ${testCaseCategory}
-- testData fields: ${testDataFields.join(', ') || 'same as reference'}
+${testDataSection}
 
 Preconditions:
   ${precondText}

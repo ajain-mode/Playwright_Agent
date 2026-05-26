@@ -19,6 +19,7 @@ import {
   ExplicitValues
 } from '../types/TestCaseTypes';
 import { LLMService } from '../services/LLMService';
+import { csvHeaderToCanonicalKey } from '../config/FieldRegistry';
 
 export class TestCaseParser {
   private llmService: LLMService | null = null;
@@ -208,30 +209,41 @@ export class TestCaseParser {
   private extractSteps(text: string): TestStep[] {
     const steps: TestStep[] = [];
 
-    // First, normalize semicolon-separated numbered steps (common in CSV)
-    // Pattern: "1. Action;2. Action;3. Action"
-    const semicolonSteps = text.split(/;/).map(s => s.trim()).filter(s => s);
-    const hasNumberedSemicolonSteps = semicolonSteps.some(s => /^\d+[\.\):\s]/.test(s));
-    
-    if (hasNumberedSemicolonSteps && semicolonSteps.length > 1) {
-      semicolonSteps.forEach((step, index) => {
-        // Remove the number prefix if present
-        const actionMatch = step.match(/^\d+[\.\):\s]+(.+)/);
+    // Semicolon-separated numbered steps (e.g. "1. Action;2. Action" on one line).
+    // Do NOT treat as semicolon-format when only 1–2 fragments look numbered but the text is
+    // clearly newline-numbered (sample-testcases DFB-97788 step 62 contains "500); once" which
+    // would otherwise split the whole column into two bogus "steps").
+    const semicolonFragments = text.split(/;/).map((s) => s.trim()).filter(Boolean);
+    const numberedSemicolonFragments = semicolonFragments.filter((s) =>
+      /^\s*\d+[\.\):\s]/.test(s)
+    );
+    const newlineNumberedLineCount = (text.match(/^\s*\d+[\.\):\s]/gm) || []).length;
+
+    if (numberedSemicolonFragments.length > 0 && semicolonFragments.length > 1) {
+      const semicolonSteps: TestStep[] = [];
+      numberedSemicolonFragments.forEach((step, index) => {
+        const actionMatch = step.match(/^\s*\d+[\.\):\s]+(.+)/);
         const action = actionMatch ? actionMatch[1].trim() : step.trim();
         if (action && action.length > 0) {
-          steps.push({
+          semicolonSteps.push({
             stepNumber: index + 1,
-            action: action
+            action,
           });
         }
       });
-      if (steps.length > 0) return steps;
+      const trustSemicolonFormat =
+        semicolonSteps.length >= 3 ||
+        (semicolonSteps.length >= 2 && newlineNumberedLineCount < 3);
+      if (trustSemicolonFormat && semicolonSteps.length > 0) {
+        return semicolonSteps;
+      }
     }
 
     // Try numbered steps with newlines.
     // IMPORTANT: anchored to line start (^) so numbers embedded mid-line
     // (e.g. zip codes "44215" in data descriptions) don't get matched as step numbers.
-    const numberedSteps = text.match(/^[\t ]*(?:step\s*)?(\d+)[\.\):\s]+([^\n;]+)/gim);
+    // Use [^\n]+ so a single step may contain semicolons (e.g. long DFB prose in sample-testcases.csv).
+    const numberedSteps = text.match(/^[\t ]*(?:step\s*)?(\d+)[\.\):\s]+([^\n]+)/gim);
     if (numberedSteps && numberedSteps.length > 0) {
       for (const match of numberedSteps) {
         const actionMatch = match.match(/^[\t ]*(?:step\s*)?(\d+)[\.\):\s]+(.+)/im);
@@ -245,7 +257,7 @@ export class TestCaseParser {
 
             steps.push({
               stepNumber: steps.length + 1,
-              action: action
+              action: action,
             });
           }
         }
@@ -472,40 +484,65 @@ export class TestCaseParser {
    * Parse test data from CSV row data
    */
   parseTestDataFromCSV(csvRow: Record<string, string>): TestData {
+    const canonicalRow: Record<string, string> = {};
+    const normalizedHeaderMap: Record<string, string> = {};
+
+    for (const [rawHeader, rawValue] of Object.entries(csvRow)) {
+      const value = (rawValue ?? '').trim();
+      if (!value) continue;
+      const normalizedHeader = rawHeader.toLowerCase().replace(/[\s_-]/g, '');
+
+      if (!normalizedHeaderMap[normalizedHeader]) {
+        normalizedHeaderMap[normalizedHeader] = value;
+      }
+
+      const canonicalKey = csvHeaderToCanonicalKey(normalizedHeader);
+      if (canonicalKey && !canonicalRow[canonicalKey]) {
+        canonicalRow[canonicalKey] = value;
+      }
+    }
+
+    const mergedRow: Record<string, string> = { ...csvRow, ...canonicalRow };
+
     return {
-      testCaseId: csvRow['Test Script ID'] || csvRow['testCaseId'] || '',
-      officeName: csvRow['officeName'] || '',
-      customerName: csvRow['customerName'] || '',
-      shipperName: csvRow['shipperName'] || '',
-      consigneeName: csvRow['consigneeName'] || '',
-      salesAgent: csvRow['salesAgent'] || '',
-      equipmentType: csvRow['equipmentType'] || '',
-      shipperZip: csvRow['shipperZip'] || '',
-      consigneeZip: csvRow['consigneeZip'] || '',
-      shipperCity: csvRow['shipperCity'] || '',
-      consigneeCity: csvRow['consigneeCity'] || '',
-      shipperState: csvRow['shipperState'] || '',
-      consigneeState: csvRow['consigneeState'] || '',
-      shipperCountry: csvRow['shipperCountry'] || '',
-      consigneeCountry: csvRow['consigneeCountry'] || '',
-      offerRate: csvRow['offerRate'] || csvRow['Offer Rate'] || '',
-      bidRate: csvRow['bidRate'] || '',
-      rateType: csvRow['rateType'] || '',
-      loadMethod: csvRow['loadMethod'] || '',
-      shipperEarliestTime: csvRow['shipperEarliestTime'] || '',
-      shipperLatestTime: csvRow['shipperLatestTime'] || '',
-      consigneeEarliestTime: csvRow['consigneeEarliestTime'] || '',
-      consigneeLatestTime: csvRow['consigneeLatestTime'] || '',
-      shipmentCommodityQty: csvRow['shipmentCommodityQty'] || '',
-      shipmentCommodityUoM: csvRow['shipmentCommodityUoM'] || '',
-      shipmentCommodityDescription: csvRow['shipmentCommodityDescription'] || '',
-      shipmentCommodityWeight: csvRow['shipmentCommodityWeight'] || '',
-      equipmentLength: csvRow['equipmentLength'] || '',
-      Method: csvRow['Method'] || '',
-      saleAgentEmail: csvRow['saleAgentEmail'] || '',
-      shipperAddress: csvRow['shipperAddress'] || '',
-      consigneeAddress: csvRow['consigneeAddress'] || '',
-      ...csvRow
+      ...mergedRow,
+      testCaseId: mergedRow['Test Script ID'] || mergedRow['testCaseId'] || normalizedHeaderMap['testscriptid'] || normalizedHeaderMap['testcaseid'] || '',
+      officeName: mergedRow.officeName || normalizedHeaderMap['officename'] || '',
+      customerName: mergedRow.customerName || normalizedHeaderMap['customername'] || '',
+      shipperName: mergedRow.shipperName || normalizedHeaderMap['shippername'] || '',
+      consigneeName: mergedRow.consigneeName || normalizedHeaderMap['consigneename'] || '',
+      salesAgent: mergedRow.salesAgent || normalizedHeaderMap['salesagent'] || '',
+      equipmentType: mergedRow.equipmentType || normalizedHeaderMap['equipmenttype'] || '',
+      shipperZip: mergedRow.shipperZip || normalizedHeaderMap['shipperzip'] || '',
+      consigneeZip: mergedRow.consigneeZip || normalizedHeaderMap['consigneezip'] || '',
+      shipperCity: mergedRow.shipperCity || normalizedHeaderMap['shippercity'] || '',
+      consigneeCity: mergedRow.consigneeCity || normalizedHeaderMap['consigneecity'] || '',
+      shipperState: mergedRow.shipperState || normalizedHeaderMap['shipperstate'] || '',
+      consigneeState: mergedRow.consigneeState || normalizedHeaderMap['consigneestate'] || '',
+      shipperCountry: mergedRow.shipperCountry || normalizedHeaderMap['shippercountry'] || '',
+      consigneeCountry: mergedRow.consigneeCountry || normalizedHeaderMap['consigneecountry'] || '',
+      offerRate: mergedRow.offerRate || normalizedHeaderMap['offerrate'] || '',
+      bidRate: mergedRow.bidRate || normalizedHeaderMap['bidrate'] || '',
+      rateType: mergedRow.rateType || normalizedHeaderMap['ratetype'] || '',
+      loadMethod: mergedRow.loadMethod || normalizedHeaderMap['loadmethod'] || '',
+      shipperEarliestTime: mergedRow.shipperEarliestTime || normalizedHeaderMap['shipperearliesttime'] || '',
+      shipperLatestTime: mergedRow.shipperLatestTime || normalizedHeaderMap['shipperlatesttime'] || '',
+      consigneeEarliestTime: mergedRow.consigneeEarliestTime || normalizedHeaderMap['consigneeearliesttime'] || '',
+      consigneeLatestTime: mergedRow.consigneeLatestTime || normalizedHeaderMap['consigneelatesttime'] || '',
+      shipmentCommodityQty: mergedRow.shipmentCommodityQty || normalizedHeaderMap['shipmentcommodityqty'] || '',
+      shipmentCommodityUoM: mergedRow.shipmentCommodityUoM || normalizedHeaderMap['shipmentcommodityuom'] || '',
+      shipmentCommodityDescription: mergedRow.shipmentCommodityDescription || normalizedHeaderMap['shipmentcommoditydescription'] || '',
+      shipmentCommodityWeight: mergedRow.shipmentCommodityWeight || normalizedHeaderMap['shipmentcommodityweight'] || '',
+      equipmentLength: mergedRow.equipmentLength || normalizedHeaderMap['equipmentlength'] || '',
+      Method: mergedRow.Method || mergedRow.method || normalizedHeaderMap['method'] || '',
+      saleAgentEmail: mergedRow.saleAgentEmail || normalizedHeaderMap['saleagentemail'] || '',
+      shipperAddress: mergedRow.shipperAddress || normalizedHeaderMap['shipperaddress'] || '',
+      consigneeAddress: mergedRow.consigneeAddress || normalizedHeaderMap['consigneeaddress'] || '',
+      carrierName: mergedRow.carrierName || mergedRow.Carrier || normalizedHeaderMap['carriername'] || normalizedHeaderMap['carrier'] || '',
+      customerRate: mergedRow.customerRate || normalizedHeaderMap['customerrate'] || '',
+      carrierRate: mergedRow.carrierRate || normalizedHeaderMap['carrierrate'] || '',
+      linehaulRate: mergedRow.linehaulRate || mergedRow.lhRate || normalizedHeaderMap['linehaulrate'] || normalizedHeaderMap['lhrate'] || '',
+      miles: mergedRow.miles || normalizedHeaderMap['miles'] || '',
     };
   }
 
@@ -919,11 +956,13 @@ export class TestCaseParser {
         .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'");
 
       // ── Extract office code ──
-      // Patterns: "enter value as TX-STK", "office code (TX-STK)", "office code: TX-RED"
+      // Patterns: "enter value as TX-STK", "office code (TX-STK)", "office code: TX-RED",
+      //           "Enter the Office Code as TX-STK" (note: "as" not ":")
       const officeCodePatterns = [
         /enter\s+(?:the\s+)?(?:value\s+as|value)\s+([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
         /office\s+code\s*[\(:=]\s*([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
-        /office\s+code\s+([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
+        /office\s+code\s+(?:as\s+)?([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
+        /enter\s+(?:the\s+)?office\s+(?:code|id)\s+as\s+([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
       ];
       for (const pattern of officeCodePatterns) {
         const officeMatch = normalizedPre.match(pattern);
@@ -1025,7 +1064,8 @@ export class TestCaseParser {
       // ── Extract office code from test steps (if not already found in preconditions) ──
       if (!values.precondition.officeCode) {
         const stepOfficePatterns = [
-          /office\s+code\s+([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
+          /office\s+code\s+(?:as\s+)?([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
+          /enter\s+(?:the\s+)?office\s+(?:code|id)\s+as\s+([A-Z]{2,5}-[A-Z0-9]{2,5})\b/i,
           /office\s+code\s+([A-Z][A-Z0-9 ]+?)\s+and\s+click/i,
           /office\s+code\s+([A-Z][A-Z0-9 ]+?)\s+(?:and|then|in)\b/i,
         ];
@@ -1046,6 +1086,8 @@ export class TestCaseParser {
           /customer\s+name\s+in\s+the\s+"?Customer"?\s+field\s*\(\s*([^)]+)\s*\)/i,
           /enter\s+the\s+Customer\s+name[^(]*\(\s*([^)]+)\s*\)/i,
           /enter\s+the\s+Customer\s+name\s+(.+?)\s+in\s+the\s+"?Customer"?\s+field/i,
+          /search\s+for\s+(?:the\s+)?customer\s+([A-Z][A-Za-z0-9\s&'.,()-]+?)(?:\s+in\s+(?:the\s+)?|\s+and\s+|\s*$)/i,
+          /enter\s+(?:the\s+)?customer\s+([A-Z][A-Za-z0-9\s&'.,()-]+?)\s+in\s+the\s+(?:"?Customer"?\s+)?field/i,
         ]},
         { key: 'pickLocation', patterns: [
           /(?:ShipperName|Pickup\s*Location|Pick)\s*(?:\/City)?\s*:\s*(.+)/i,
@@ -1084,7 +1126,7 @@ export class TestCaseParser {
 
       const lines = normalizedSteps.split('\n');
       for (const line of lines) {
-        const trimmed = line.trim();
+        const trimmed = line.trim().replace(/"{2,}/g, '"');
         for (const fp of fieldPatterns) {
           for (const pattern of fp.patterns) {
             const match = trimmed.match(pattern);
@@ -1105,7 +1147,7 @@ export class TestCaseParser {
       //   'Select the "X" field as "VALUE"', 'Enter the X as "VALUE"',
       //   'Enter the X field (Eg. VALUE)', 'Select X as "VALUE"'
       for (const line of lines) {
-        const trimmed = line.trim();
+        const trimmed = line.trim().replace(/"{2,}/g, '"');
 
         // "Qty" field (Eg. 95)  or  "Qty" field as "95"
         if (!values.formFields['qty']) {
@@ -1158,22 +1200,31 @@ export class TestCaseParser {
         // "Mileage Engine" field as "Current"
         if (!values.formFields['mileageEngine']) {
           const mileMatch = trimmed.match(/"?Mileage\s+Engine"?\s+field\s+as\s+"([^"]+)"/i)
-            || trimmed.match(/select\s+(?:the\s+)?"?Mileage\s+Engine"?\s+(?:field\s+)?as\s+"([^"]+)"/i);
+            || trimmed.match(/select\s+(?:the\s+)?"?Mileage\s+Engine"?\s+(?:field\s+)?as\s+"([^"]+)"/i)
+            || trimmed.match(/mileage\s+engine\s+(?:field\s+)?as\s+([A-Za-z]+)/i);
           if (mileMatch) values.formFields['mileageEngine'] = mileMatch[1].trim();
         }
 
         // "Method" as "Practical"
         if (!values.formFields['method']) {
           const methodMatch = trimmed.match(/"?Method"?\s+(?:field\s+)?as\s+"([^"]+)"/i)
-            || trimmed.match(/select\s+(?:the\s+)?"?Method"?\s+as\s+"([^"]+)"/i);
+            || trimmed.match(/select\s+(?:the\s+)?"?Method"?\s+as\s+"([^"]+)"/i)
+            || trimmed.match(/\bmethod\b(?:\s+field)?\s+as\s+([A-Za-z]+)/i);
           if (methodMatch) values.formFields['method'] = methodMatch[1].trim();
         }
 
         // Rate type as "SPOT"
         if (!values.formFields['rateType']) {
           const rateMatch = trimmed.match(/Rate\s+type\s+as\s+"([^"]+)"/i)
-            || trimmed.match(/select\s+(?:the\s+)?Rate\s+type\s+as\s+"([^"]+)"/i);
+            || trimmed.match(/select\s+(?:the\s+)?Rate\s+type\s+as\s+"([^"]+)"/i)
+            || trimmed.match(/(?:select|set|check)\s+rate\s+type(?:\s+if\s+present)?(?:\s+as)?\s+([A-Z]+)/i);
           if (rateMatch) values.formFields['rateType'] = rateMatch[1].trim();
+        }
+
+        // Offer rate: "Enter a valid value for the Offer Rate field ... as 1000"
+        if (!values.formFields['offerRate']) {
+          const offerRateMatch = trimmed.match(/offer\s+rate(?:\s+field)?[^0-9]*(\d+(?:\.\d+)?)/i);
+          if (offerRateMatch) values.formFields['offerRate'] = offerRateMatch[1].trim();
         }
 
         // Carrier name: "Include Carriers field on the load.(Eg. 18 KING TRUCKING LLC)"
@@ -1183,7 +1234,40 @@ export class TestCaseParser {
           const carrierMatch = trimmed.match(/(?:Include\s+)?Carrier[s]?\s+field[^(]*\(\s*(?:Eg\.?\s*)?([^)]+)\s*\)/i)
             || trimmed.match(/select\s+a\s+carrier[^(]*\(\s*(?:Eg\.?\s*)?([^)]+)\s*\)/i)
             || trimmed.match(/choose\s+a?\s*carrier\b.*?(?:enter|type|typing)\s+(?:value\s+as\s+|in\s+)?([A-Z][A-Z0-9\s&,.'()-]+?)(?:\s+and\s+(?:\w+\s+)*once|\s*\.|\s*$)/i);
-          if (carrierMatch) values.formFields['carrierName'] = (carrierMatch[1] || '').trim();
+          if (carrierMatch) {
+            const carrierName = this.sanitizeCarrierName((carrierMatch[1] || '').trim());
+            if (carrierName) values.formFields['carrierName'] = carrierName;
+          }
+        }
+
+        // Customer flat rate: "Enter flat rate in Customer as 500"
+        if (!values.formFields['customerRate']) {
+          const customerRateMatch = trimmed.match(/flat\s+rate\s+in\s+customer\s+(?:as\s+)?(\d+(?:\.\d+)?)/i);
+          if (customerRateMatch) values.formFields['customerRate'] = customerRateMatch[1].trim();
+        }
+
+        // Carrier flat rate: "Enter flat rate in Carrier as 600"
+        if (!values.formFields['carrierRate']) {
+          const carrierRateMatch = trimmed.match(/flat\s+rate\s+in\s+carrier\s+(?:as\s+)?(\d+(?:\.\d+)?)/i);
+          if (carrierRateMatch) values.formFields['carrierRate'] = carrierRateMatch[1].trim();
+        }
+
+        // Total miles: "Enter total miles eg 100"
+        if (!values.formFields['totalMiles']) {
+          const milesMatch = trimmed.match(/total\s+miles?\s*(?:e\.?g\.?)?\s*(\d+(?:\.\d+)?)/i);
+          if (milesMatch) values.formFields['totalMiles'] = milesMatch[1].trim();
+        }
+
+        // Linehaul/LH rate: "enter LH Rate as 500"
+        if (!values.formFields['linehaulRate']) {
+          const linehaulRateMatch = trimmed.match(/(?:linehaul|lh)\s+rate\s*(?:as\s+)?(\d+(?:\.\d+)?)/i);
+          if (linehaulRateMatch) values.formFields['linehaulRate'] = linehaulRateMatch[1].trim();
+        }
+
+        // Expiration time: "... Time 18:00"
+        if (!values.formFields['expirationTime']) {
+          const expirationTimeMatch = trimmed.match(/expiration\s+(?:date\s+and\s+)?time[^0-9]*(\d{1,2}:\d{2})/i);
+          if (expirationTimeMatch) values.formFields['expirationTime'] = expirationTimeMatch[1].trim();
         }
 
         // Customer Value: "select the customer [CORP RECONCILIATION]"
@@ -1215,9 +1299,11 @@ export class TestCaseParser {
           }
         }
 
-        // Salesperson / Dispatcher (FRISCO TL)
+        // Salesperson / Dispatcher / Agent field
         if (!values.formFields['salesperson']) {
-          const spMatch = trimmed.match(/"?Salesperson"?\s+(?:and\s+"?Dispatcher"?\s+)?[^(]*\(\s*([^)]+)\s*\)/i);
+          const spMatch = trimmed.match(/"?Salesperson"?\s+(?:and\s+"?Dispatcher"?\s+)?[^(]*\(\s*([^)]+)\s*\)/i)
+            || trimmed.match(/enter\s+([A-Z][A-Z0-9\s&'.,()-]+?)\s+in\s+the\s+(?:"?Agent"?|"?Sales\s*Agent"?)\s+field/i)
+            || trimmed.match(/(?:Agent|Sales\s*Agent)\s+(?:field\s+)?(?:as\s+|:\s*)([A-Z][A-Za-z0-9\s&'.,()-]+?)(?:\s+and\s+|\s*$)/i);
           if (spMatch) values.formFields['salesperson'] = spMatch[1].trim();
         }
       }
@@ -1445,8 +1531,9 @@ export class TestCaseParser {
     if (form['rateType'] && !merged['rateType']) {
       merged['rateType'] = form['rateType'];
     }
-    if (form['carrierName'] && !merged['Carrier']) {
-      merged['Carrier'] = form['carrierName'];
+    if (form['carrierName']) {
+      if (!merged['carrierName']) merged['carrierName'] = form['carrierName'];
+      if (!merged['Carrier']) merged['Carrier'] = form['carrierName'];
     }
     if (form['shipperEarliestTime'] && !merged['shipperEarliestTime']) {
       merged['shipperEarliestTime'] = form['shipperEarliestTime'];
@@ -1464,8 +1551,9 @@ export class TestCaseParser {
       merged['salesAgent'] = form['salesperson'];
     }
     // Carrier name from precondition
-    if (pre.carrierName && !merged['Carrier']) {
-      merged['Carrier'] = pre.carrierName;
+    if (pre.carrierName) {
+      if (!merged['carrierName']) merged['carrierName'] = pre.carrierName;
+      if (!merged['Carrier']) merged['Carrier'] = pre.carrierName;
     }
     // Additional LLM-extracted fields
     if (form['customerRate'] && !merged['customerRate']) {
@@ -1477,8 +1565,9 @@ export class TestCaseParser {
     if (form['totalMiles'] && !merged['miles']) {
       merged['miles'] = form['totalMiles'];
     }
-    if (form['lhRate'] && !merged['lhRate']) {
-      merged['lhRate'] = form['lhRate'];
+    const linehaulRate = form['linehaulRate'] || form['lhRate'];
+    if (linehaulRate && !merged['linehaulRate']) {
+      merged['linehaulRate'] = linehaulRate;
     }
     if (form['expirationTime'] && !merged['expirationTime']) {
       merged['expirationTime'] = form['expirationTime'];
@@ -1560,7 +1649,35 @@ export class TestCaseParser {
       missing.push('offerRate');
     }
 
+    if (!values.formFields['customerRate'] && /flat\s+rate\s+in\s+customer\s+(?:as\s+)?\d+/i.test(testStepsText)) {
+      missing.push('customerRate');
+    }
+    if (!values.formFields['carrierRate'] && /flat\s+rate\s+in\s+carrier\s+(?:as\s+)?\d+/i.test(testStepsText)) {
+      missing.push('carrierRate');
+    }
+    if (!values.formFields['totalMiles'] && /total\s+miles?\s*(?:e\.?g\.?)?\s*\d+/i.test(testStepsText)) {
+      missing.push('totalMiles');
+    }
+    if (!values.formFields['linehaulRate'] && !values.formFields['lhRate'] && /(?:linehaul|lh)\s+rate\s*(?:as\s+)?\d+/i.test(testStepsText)) {
+      missing.push('linehaulRate');
+    }
+
     return missing;
+  }
+
+  private sanitizeCarrierName(rawCarrierName: string): string {
+    if (!rawCarrierName) return '';
+    const cleaned = rawCarrierName
+      .replace(/\b(and|then)\s+(?:click|select|choose|pick)\b.*$/i, '')
+      .replace(/\band\s+select\s+it(?:\s+once\s+fully\s+visible)?\b.*$/i, '')
+      .replace(/\bonce\s+fully\s+visible\b.*$/i, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (/\b(click|select|choose|visible|once|button)\b/i.test(cleaned)) {
+      return '';
+    }
+    return cleaned;
   }
 
   /**

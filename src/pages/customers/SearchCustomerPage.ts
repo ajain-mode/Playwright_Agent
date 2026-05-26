@@ -94,6 +94,18 @@ class SearchCustomerPage {
     await this.customerDetails_LOC.first().waitFor({ state: 'visible' });
     await this.customerDetails_LOC.first().click();
   }
+
+  /**
+   * Clicks the ACTIVE customer search result row at the given 0-based index (e.g. index 2 = 3rd row).
+   * @author AI Agent
+   * @created 2026-05-25
+   * @param rowIndex - 0-based index among ACTIVE result rows
+   */
+  async clickOnActiveCustomerRowByIndex(rowIndex: number): Promise<void> {
+    const row = this.customerDetails_LOC.nth(rowIndex);
+    await row.waitFor({ state: "visible" });
+    await row.click();
+  }
   /**
    * @author Rohit Singh
    * @description Enters the agent name into the search input field

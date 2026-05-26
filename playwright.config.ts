@@ -58,8 +58,8 @@ export default defineConfig({
         // "--disable-geolocation",
       ],
     },
-    //trace: 'on-first-retry'
-    trace: "on",
+    // Full trace on every test is very slow locally (especially on OneDrive paths).
+    trace: process.env.CI ? "on" : "retain-on-failure",
   },
   projects: [
     {
@@ -67,7 +67,8 @@ export default defineConfig({
       use: {
         //viewport: { width: 1920, height: 1080 },
         channel: 'chrome',
-        headless: true, // Set to true to run in headless mode
+        // Launches installed Google Chrome (headed locally; headless in CI).
+        headless: !!process.env.CI,
       },
     },
   ],

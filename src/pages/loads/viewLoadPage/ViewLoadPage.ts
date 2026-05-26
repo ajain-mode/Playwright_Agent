@@ -1,4 +1,5 @@
 import { expect, Locator, Page } from "@playwright/test";
+import LoadBillingPage from "@pages/loads/LoadBillingPage";
 import commonReusables from "@utils/commonReusables";
 import * as fs from 'fs';
 import * as path from 'path';
@@ -77,7 +78,28 @@ export default class ViewLoadPage {
   private readonly carrierInvoiceAmount_LOC: Locator;
   private readonly submitRemoteButton_LOC: Locator;
   private readonly bidsAvgRate_LOC: Locator;
-  private readonly billingIssuesSection_LOC: Locator;
+  /**
+   * View Load → Load tab: Waiting On — `loadform.php` renders a **&lt;select id="fi_waiting_on"&gt;** (FI_WAITING_ON)
+   * with **string** option values `Agent` / `Billing` (not numeric 1–3). View Billing (`billing.php`) uses a hidden
+   * `#fi_waiting_on` + slider; use {@link LoadBillingPage} there. Scope to `select` so we never read the wrong field.
+   * @author AI Agent
+   */
+  private readonly billingIssuesWaitingOn_LOC: Locator;
+  /**
+   * Nearest ancestor `table` of **`select#fi_waiting_on`** on the Load tab (Waiting On billing block).
+   * @author AI Agent
+   */
+  private readonly viewLoadBillingTableContainingWaitingOn_LOC: Locator;
+  /**
+   * Billing issue tags on Load tab — `font` nodes scoped to the Waiting On block
+   * (`select#fi_waiting_on` → ancestor table[2]).
+   * @author AI Agent
+   */
+  private readonly viewLoadBillingIssueTagFontBase_LOC: Locator;
+  /** `font` tag for `BILLING_ISSUE_TAGS.NOT_DELIV_FINAL` within the billing block around Waiting On. */
+  private readonly billingIssuesNotDelivFinalTagSpan_LOC: Locator;
+  /** `font` tag for `BILLING_ISSUE_TAGS.PRICE_DIFFERENCE` within the billing block around Waiting On. */
+  private readonly billingIssuesPriceDifferenceTagSpan_LOC: Locator;
   private readonly dfbLoadBoardSection_LOC: Locator;
   private readonly autoAcceptCheckbox_LOC: Locator;
   private readonly carrierContactDropdown_LOC: Locator;
@@ -193,7 +215,19 @@ export default class ViewLoadPage {
     this.submitRemoteButton_LOC = this.page.locator("#submit_remote");
     this.autoLoadTenderCheckbox_LOC = this.page.locator("//input[@id='loadsh_auto_edi204']");
     this.bidsAvgRate_LOC = this.page.locator("#bids-rate");
-    this.billingIssuesSection_LOC = this.page.locator("#finance_issues_block");
+    this.billingIssuesWaitingOn_LOC = this.page.locator("select#fi_waiting_on");
+    this.viewLoadBillingTableContainingWaitingOn_LOC = this.page.locator(
+      'xpath=//select[@id="fi_waiting_on"]/ancestor::table[1]'
+    );
+    this.viewLoadBillingIssueTagFontBase_LOC = this.page.locator(
+      'xpath=//select[@id="fi_waiting_on"]/ancestor::table[2]//font'
+    );
+    this.billingIssuesNotDelivFinalTagSpan_LOC = this.viewLoadBillingIssueTagFontBase_LOC.filter({
+      hasText: BILLING_ISSUE_TAGS.NOT_DELIV_FINAL,
+    });
+    this.billingIssuesPriceDifferenceTagSpan_LOC = this.viewLoadBillingIssueTagFontBase_LOC.filter({
+      hasText: BILLING_ISSUE_TAGS.PRICE_DIFFERENCE,
+    });
     this.dfbLoadBoardSection_LOC = this.page.locator("#tnx_load_board");
     this.autoAcceptCheckbox_LOC = this.page.locator("//input[@id='form_auto_accept']");
     this.carrierContactDropdown_LOC = this.page.locator("//select[@id='form_accept_as_user']");
@@ -470,6 +504,31 @@ export default class ViewLoadPage {
       timeout: WAIT.XLARGE,
     });
   }
+
+  /**
+   * View Load from billing may open a new tab; otherwise reuses the billing host tab.
+   * Validates View Load heading on the resolved page.
+   * @author AI Agent
+   * @created 2026-05-18
+   * @param billingHostPage - Page hosting View Billing when View Load is clicked
+   * @returns Page that displays View Load
+   */
+  static async resolveViewLoadPageAfterBillingClick(billingHostPage: Page): Promise<Page> {
+    try {
+      const [newPage] = await Promise.all([
+        billingHostPage.context().waitForEvent("page", { timeout: WAIT.XLARGE }),
+        new LoadBillingPage(billingHostPage).clickOnViewLoadBtn(),
+      ]);
+      await newPage.waitForLoadState("load");
+      await new ViewLoadPage(newPage).validateViewLoadHeading();
+      return newPage;
+    } catch {
+      await commonReusables.waitForPageStable(billingHostPage);
+      await new ViewLoadPage(billingHostPage).validateViewLoadHeading();
+      return billingHostPage;
+    }
+  }
+
   /**
    * @description Clicks the "Drop 3" tab.
    * @author Rohit Singh
@@ -1520,19 +1579,88 @@ export default class ViewLoadPage {
   }
 
   /**
-   * Scrolls to the Billing Issues section on the page.
+   * Scrolls the Load tab **Waiting On** control (`#fi_waiting_on`) into view.
+   * View Load does not render `#finance_issues_block`; use {@link LoadBillingPage.scrollBillingIssuesBlockIntoView} on View Billing.
    * @author AI Agent
    * @created 17-Mar-2026
    */
-  async scrollToBillingIssuesSection(): Promise<void> {
+  async scrollWaitingOnIntoView(): Promise<void> {
     try {
-      await this.billingIssuesSection_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
-      await this.billingIssuesSection_LOC.scrollIntoViewIfNeeded();
-      console.log("Scrolled to Billing Issues section");
+      await this.billingIssuesWaitingOn_LOC.waitFor({ state: "attached", timeout: WAIT.LARGE });
+      await this.billingIssuesWaitingOn_LOC.scrollIntoViewIfNeeded();
+      console.log("Scrolled #fi_waiting_on into view");
     } catch (err) {
-      console.error(`scrollToBillingIssuesSection: ${(err as Error).message}`);
+      console.error(`scrollWaitingOnIntoView: ${(err as Error).message}`);
       throw err;
     }
+  }
+
+  /**
+   * Raw Waiting On from the Load tab control: selected **&lt;option&gt; value** on View Load (`Agent` | `Billing` | ``
+   * per `loadform.php` selectbox FI_WAITING_ON), or numeric `1`/`2`/`3` if the DOM ever matches View Billing’s hidden field shape.
+   * @author AI Agent
+   * @created 2026-05-11
+   * @modifiedBy AI Agent
+   * @modified 2026-05-11
+   */
+  async getBillingIssuesWaitingOnRawValue(): Promise<string> {
+    await this.billingIssuesWaitingOn_LOC.waitFor({ state: "attached", timeout: WAIT.LARGE });
+    return (await this.billingIssuesWaitingOn_LOC.inputValue()).trim();
+  }
+
+  /**
+   * Normalized Billing / Neutral / Agent label for assertions (matches {@link PAYABLE_TOGGLE_VALUE} strings).
+   * View Load **select** uses string values; View Billing hidden field uses `1`/`2`/`3` — both are handled here.
+   * @author AI Agent
+   * @created 2026-05-11
+   * @modifiedBy AI Agent
+   * @modified 2026-05-11
+   */
+  async getBillingIssuesWaitingOnDisplayLabel(): Promise<string> {
+    const raw = await this.getBillingIssuesWaitingOnRawValue();
+    if (
+      raw === PAYABLE_TOGGLE_VALUE.AGENT ||
+      raw === PAYABLE_TOGGLE_VALUE.BILLING ||
+      raw === PAYABLE_TOGGLE_VALUE.NEUTRAL
+    ) {
+      return raw;
+    }
+    const numericToLabel: Record<string, string> = {
+      "1": PAYABLE_TOGGLE_VALUE.BILLING,
+      "2": PAYABLE_TOGGLE_VALUE.NEUTRAL,
+      "3": PAYABLE_TOGGLE_VALUE.AGENT,
+    };
+    return numericToLabel[raw] ?? "unknown";
+  }
+
+  /**
+   * True if a `font` tag shows `BILLING_ISSUE_TAGS.NOT_DELIV_FINAL` in the billing block around Waiting On (View Load tag, not `#Delivs` checkbox).
+   * @author AI Agent
+   * @created 2026-05-11
+   */
+  async isBillingIssuesNotDelivFinalTagSpanVisible(): Promise<boolean> {
+    await this.viewLoadBillingTableContainingWaitingOn_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    return await this.billingIssuesNotDelivFinalTagSpan_LOC.first().isVisible();
+  }
+
+  /**
+   * True if a `font` tag under Billing Issues shows `BILLING_ISSUE_TAGS.PRICE_DIFFERENCE`.
+   * @author AI Agent
+   * @created 2026-05-11
+   */
+  async isBillingIssuesPriceDifferenceTagSpanVisible(): Promise<boolean> {
+    await this.viewLoadBillingTableContainingWaitingOn_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    return await this.billingIssuesPriceDifferenceTagSpan_LOC.first().isVisible();
+  }
+
+  /**
+   * Count of `font` nodes matching `BILLING_ISSUE_TAGS.PRICE_DIFFERENCE` in the billing block around Waiting On.
+   * @author AI Agent
+   * @created 2026-05-11
+   */
+  async getBillingIssuesPriceDifferenceTagSpanCount(): Promise<number> {
+    await this.viewLoadBillingTableContainingWaitingOn_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    return await this.billingIssuesPriceDifferenceTagSpan_LOC.count();
   }
 
   /**

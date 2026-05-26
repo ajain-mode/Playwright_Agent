@@ -32,26 +32,42 @@ const VERB_TO_KEYWORDS: Record<string, string[]> = {
 };
 
 const PAGE_CONTEXT_TO_CLASSES: Record<string, string[]> = {
-  loadform: [
-    'EditLoadFormPage',
-    'EditLoadPage',
-    'DFBLoadFormPage',
-    'NonTabularLoadPage',
-    'ViewLoadPage',
-  ],
-  carrform: [
-    'CarrierSearch',
-    'ViewCarrier',
-    'EditLoadCarrierTabPage',
-    'ViewLoadCarrierTabPage',
-    'CarrierSearchPage',
-  ],
+  // ── Load form (new/edit) ────────────────────────────────────────────
+  loadform: ['EditLoadFormPage', 'EditLoadPage', 'DFBLoadFormPage', 'NonTabularLoadPage', 'ViewLoadPage'],
+  editload: ['EditLoadFormPage', 'EditLoadPage', 'NonTabularLoadPage', 'DFBLoadFormPage'],
+  dfbform:  ['DFBLoadFormPage', 'NonTabularLoadPage', 'EditLoadFormPage'],
+  newload:  ['NonTabularLoadPage', 'EditLoadFormPage', 'LoadsPage'],
+  // ── View load ───────────────────────────────────────────────────────
+  viewload: ['ViewLoadPage', 'ViewLoadCarrierTabPage', 'LoadBillingPage'],
+  // ── Tab pages ───────────────────────────────────────────────────────
+  pickform:    ['EditLoadPickTabPage'],
+  dropform:    ['EditLoadDropTabPage'],
+  carrierform: ['EditLoadCarrierTabPage', 'ViewLoadCarrierTabPage'],
+  carrform:    ['CarrierSearch', 'ViewCarrier', 'EditLoadCarrierTabPage', 'ViewLoadCarrierTabPage', 'CarrierSearchPage'],
+  // ── Billing ─────────────────────────────────────────────────────────
   billing: ['LoadBillingPage', 'ViewLoadPage'],
+  // ── Office / admin ──────────────────────────────────────────────────
   officeform: ['EditOfficeInfoPage', 'ViewOfficeInfoPage', 'OfficePage'],
-  custform: ['CustomerPage', 'EditCustomerPage', 'SearchCustomerPage', 'ViewCustomerPage'],
+  officelist: ['OfficePage', 'AdminPage'],
+  admin:      ['AdminPage', 'OfficePage'],
+  // ── Customer ────────────────────────────────────────────────────────
+  custform:   ['CustomerPage', 'EditCustomerPage', 'SearchCustomerPage', 'ViewCustomerPage'],
+  viewcustomer: ['ViewCustomerPage', 'CustomerPage'],
+  // ── Home / navigation ───────────────────────────────────────────────
   home: ['HomePage', 'BasePage', 'PostAutomationRulePage'],
-  admin: ['AdminPage', 'OfficePage'],
+  // ── Carrier search ──────────────────────────────────────────────────
+  carriersearch: ['CarrierSearchPage', 'ViewCarrierPage'],
+  // ── All loads / load search ─────────────────────────────────────────
+  allloads: ['AllLoadsSearchPage', 'LoadsPage', 'BasePage'],
+  loadsearch: ['AllLoadsSearchPage', 'LoadsPage'],
+  // ── Agent / user ────────────────────────────────────────────────────
+  agentaccounts: ['AgentAccountsPage', 'HomePage'],
+  agentsearch:   ['AgentSearchPage', 'AdminPage'],
+  // ── Finance ─────────────────────────────────────────────────────────
   finance: ['FinancePage', 'AccountsPayablePage'],
+  // ── TNX / DME ───────────────────────────────────────────────────────
+  tnx: ['TNXLandingPage', 'TNXRepLandingPage'],
+  dme: ['DMEDashboardPage'],
 };
 
 /**
@@ -570,7 +586,10 @@ export class POMMethodMatcher {
   ) {}
 
   private cacheKey(step: ProcessedStep): string {
-    return `${step.actionType}:${step.targetField ?? ''}:${step.context.currentPage}`;
+    // Include a normalized rawAction snippet to prevent different steps with the same
+    // actionType + targetField + page from sharing a wrong cached result.
+    const rawSnippet = step.rawAction.slice(0, 50).toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    return `${step.actionType}:${step.targetField ?? ''}:${step.context.currentPage}:${rawSnippet}`;
   }
 
   private tryStepMapping(step: ProcessedStep, testData?: Record<string, any>): MatchResult | null {

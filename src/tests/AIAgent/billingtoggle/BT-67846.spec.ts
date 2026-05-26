@@ -4,8 +4,6 @@ import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
 import { PageManager } from "@utils/PageManager";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
-import commonReusables from "@utils/commonReusables";
-
 const testcaseID = "BT-67846";
 const testData = dataConfig.getTestDataFromCsv(dataConfig.billingtoggleData, testcaseID);
 
@@ -36,15 +34,29 @@ test.describe.serial(
       "Case Id: BT-67846 - Billing Toggle Validation with Carrier Invoice Upload",
       { tag: "@aiagent,@at_billingtoggle" },
       async () => {
+
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
-        // Preconditions (informational): Load status = 'Delivered Final', Paperwork received date = delivered date
-
-        await test.step("Step 1: Login to BTMS application", async () => {
+        await test.step("Step 1 [CSV 1]: Login to BTMS application", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
         });
 
-        await test.step("Step 2: Search customer and navigate to CREATE TL *NEW*", async () => {
+        await test.step("Step 2-9 [CSV 2-9]: Office CORP — ensure Invoice Process is Central", async () => {
+          await pages.basePage.hoverOverHeaderByText(HEADERS.ADMIN);
+          await pages.basePage.clickSubHeaderByText(ADMIN_SUB_MENU.OFFICE_SEARCH);
+          await pages.officePage.officeCodeSearchField(testData.officeName);
+          await pages.officePage.searchButtonClick();
+          await pages.officePage.officeSearchRow(testData.officeName);
+          await pages.officePage.ensureInvoiceProcess(INVOICE_PROCESS.CENTRAL);
+
+          const invoiceProcess = await pages.officePage.getInvoiceProcessValue();
+          expect(
+            invoiceProcess.toLowerCase(),
+            "Invoice Process should be Central after office setup"
+          ).toBe(INVOICE_PROCESS.CENTRAL.toLowerCase());
+        });
+
+        await test.step("Step 10-14 [CSV 10-14]: Customer search and CREATE TL *NEW*", async () => {
           await pages.basePage.navigateToBaseUrl();
           await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
           await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
@@ -55,13 +67,13 @@ test.describe.serial(
           await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         });
 
-        await test.step("Step 3: Select customer on Enter New Load", async () => {
-          const customerName = testData['Customer Value'];
-
+        await test.step("Step 15-16 [CSV 15-16]: Select customer; Salesperson / Dispatcher", async () => {
+          const customerName = testData["Customer Value"];
           await pages.nonTabularLoadPage.selectCustomerViaSelect2(customerName);
+          await pages.nonTabularLoadPage.ensureEnterNewLoadSalespersonDispatcherSelection();
         });
 
-        await test.step("Step 4: Fill shipper, consignee, dates, and times", async () => {
+        await test.step("Step 17-28 [CSV 17-28]: Fill shipper, consignee, dates, and times", async () => {
           await pages.nonTabularLoadPage.createNonTabularLoad({
             shipperValue: testData.shipperName,
             consigneeValue: testData.consigneeName,
@@ -89,52 +101,33 @@ test.describe.serial(
           });
         });
 
-        // await test.step("Step 5: Enter Whse Instructions", async () => {
-        //   await pages.editLoadFormPage.fillWhseInstructions("TestData");
-        // });
-
-        await test.step("Step 6: Select Mileage Engine, Method, and enter LH Rate", async () => {
+        await test.step("Step 30-38 [CSV 30-38]: Qty, equipment, mileage, LH rate", async () => {
           await pages.editLoadFormPage.selectMileageEngine(testData.mileageEngine);
           await pages.editLoadFormPage.selectMileageMethod(testData.Method);
           await pages.editLoadFormPage.enterLinehaulRate(testData.linehaulRate);
+
+          const linehaulDefault = await pages.editLoadFormPage.getLinehaulDefaultValue();
+          expect.soft(linehaulDefault?.toLowerCase()).toContain(RATE_TYPE.FLAT.toLowerCase());
+          const fuelSurchargeDefault = await pages.editLoadFormPage.getFuelSurchargeDefaultValue();
+          expect.soft(fuelSurchargeDefault?.toLowerCase()).toContain(RATE_TYPE.FLAT.toLowerCase());
         });
 
-        await test.step("Step 7: Click Create Load and select Rate Type", async () => {
+        await test.step("Step 39-40 [CSV 39-40]: Create Load and select Rate Type SPOT if visible", async () => {
           await pages.nonTabularLoadPage.clickCreateLoadButton();
-
           await pages.editLoadLoadTabPage.checkRateTypeIfPresent(testData.rateType, pages.editLoadFormPage);
-
           await pages.editLoadPage.validateEditLoadHeadingText();
           loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
           pages.logger.info(`Load number: ${loadNumber}`);
         });
 
-        await test.step("Step 8: Click Carrier tab and enter Offer Rate", async () => {
+        await test.step("Step 41-51 [CSV 41-51]: Carrier tab, rates, carrier, Save to BOOKED", async () => {
           await pages.editLoadPage.clickOnTab(TABS.CARRIER);
           await pages.dfbLoadFormPage.enterOfferRate(testData.offerRate);
-        });
-
-        await test.step("Step 9: Enter Customer flat rate as 500", async () => {
           await pages.editLoadCarrierTabPage.enterCustomerRate(testData.customerRate);
-        });
-
-        await test.step("Step 10: Enter Carrier flat rate", async () => {
           await pages.editLoadCarrierTabPage.enterCarrierRate(testData.carrierRate);
-        });
-
-        await test.step("Step 11: Enter trailer length", async () => {
           await pages.editLoadCarrierTabPage.enterValueInTrailerLength(testData.trailerLength);
-        });
-
-        await test.step("Step 12: Enter Expiration Date and Time", async () => {
           await pages.editLoadFormPage.enterFutureExpirationDateAndTime(7, "18:00");
-        });
-
-        await test.step("Step 13: Enter Email for notification", async () => {
           await pages.editLoadCarrierTabPage.selectEmailNotificationViaSelect2(testData.saleAgentEmail);
-        });
-
-        await test.step("Step 14: Enter total miles", async () => {
           await pages.editLoadCarrierTabPage.enterMiles(testData.miles);
         });
 
@@ -145,34 +138,27 @@ test.describe.serial(
           pages.logger.info(`Carrier: ${CARRIER_ID.CARRIER_XPO_TRANS}`);
         });
 
-        await test.step("Step 16: Click Save and accept BOOKED alert", async () => {
-          const alertPromise = pages.commonReusables.validateAlert(
-            sharedPage,
-            ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_BOOKED
-          );
-          await pages.editLoadFormPage.clickOnSaveBtn();
-          await alertPromise;
-        });
+        const alertPromise = pages.commonReusables.validateAlert(
+          sharedPage,
+          ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_BOOKED
+        );
+        await pages.editLoadFormPage.clickOnSaveBtn();
+        await alertPromise;
 
-        await test.step("Step 17 [CSV 43]: Navigate to View Billing", async () => {
+
+        await test.step("Step 52 [CSV 52]: Navigate to View Billing", async () => {
           await pages.editLoadPage.clickOnTab(TABS.LOAD);
           await pages.editLoadFormPage.clickOnViewBillingBtn();
         });
 
-        await test.step("Step 18 [CSV 44]: Click upload icon against Customer in Load Documents", async () => {
+        await test.step("Step 53-55 [CSV 53-55]: Upload carrier invoice via Customer document icon", async () => {
           await pages.viewLoadPage.openDocumentUploadDialog();
-        });
-
-        await test.step("Step 19 [CSV 45]: Upload the carrier invoice document", async () => {
           await pages.viewLoadPage.attachCarrierInvoiceFile();
-        });
-
-        await test.step("Step 20 [CSV 46]: Select Payables and Document Type as Carrier Invoice", async () => {
           await pages.viewLoadPage.selectPayablesRadio();
-          await pages.viewLoadPage.selectDocumentType('Carrier Invoice');
+          await pages.viewLoadPage.selectDocumentType(DOCUMENT_TYPE.CARRIER_INVOICE);
         });
 
-        await test.step("Step 21 [CSV 47]: Enter invoice details, click attach, accept alert, and close pop up", async () => {
+        await test.step("Step 56 [CSV 56]: Enter invoice details, attach, accept alert", async () => {
           const invoiceNumber = pages.commonReusables.generateRandomInvoiceNumber();
           await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNumber);
           await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
@@ -184,29 +170,20 @@ test.describe.serial(
           );
           await pages.viewLoadPage.clickSubmitRemote();
           await alertPromise;
-
-          // Page navigates to billing.php after submit — dialog is already closed
           await pages.commonReusables.waitForPageStable(sharedPage);
         });
 
-        await test.step("Step 22 [CSV 48]: Reload and validate toggle and Not Deliv. Final checkbox", async () => {
-          await sharedPage.reload();
-          await commonReusables.waitForAllLoadStates(sharedPage);
+        await test.step("Step 57 [CSV 57]: Reload — Billing toggle Agent; Not Deliv. Final checked", async () => {
+          await pages.commonReusables.reloadAndAcceptDialogs(sharedPage, WAIT.SMALL);
+          await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
 
-          await pages.viewLoadPage.scrollToBillingIssuesSection();
-
-          // Validate: Toggle should still be "Agent" after reload
           const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
-          pages.logger.info(`Billing toggle after reload: ${toggleValue}`);
-          expect(toggleValue, "Billing Issues toggle should still be 'Agent' after reload").toBe(PAYABLE_TOGGLE_VALUE.AGENT);
+          expect(toggleValue, "Billing Issues toggle should still be Agent after reload").toBe(
+            PAYABLE_TOGGLE_VALUE.AGENT
+          );
 
-          // Validate: "Not Deliv. Final" checkbox should be checked
           const notDelivChecked = await pages.loadBillingPage.isNotDeliveredFinalChecked();
-          pages.logger.info(`Not Deliv. Final checked: ${notDelivChecked}`);
           expect(notDelivChecked, "Not Deliv. Final should be checked").toBeTruthy();
         });
-
-      }
-    );
-  }
-);
+      });
+  });
