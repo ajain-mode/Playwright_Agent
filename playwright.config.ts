@@ -1,4 +1,4 @@
-/ <reference types="node" />
+/// <reference types="node" />
 import "@utils/globalConstants";
 import "@utils/dfbUtils/dfbGlobalConstants";
 import "@utils/ediUtils/ediConstants";
@@ -59,7 +59,8 @@ export default defineConfig({
       ],
     },
     // Full trace on every test is very slow locally (especially on OneDrive paths).
-    trace: process.env.CI ? "on" : "retain-on-failure",
+    // trace: process.env.CI ? "on" : "retain-on-failure",
+    trace: "off",
   },
   projects: [
     {
