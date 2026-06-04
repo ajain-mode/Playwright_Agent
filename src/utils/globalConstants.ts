@@ -84,6 +84,7 @@ export class GlobalConstants {
   static readonly LOAD_SEARCH_COLUMNS = {
     BILLING_ISSUE: "BILLING ISSUE",
     BILLING_REASON: "BILLING REASON",
+    BILLING_ACTIVITY: "BILLING ACTIVITY",
   } as const;
 
   /** Billing Queue filter panel labels — ReportFilterManager.php */

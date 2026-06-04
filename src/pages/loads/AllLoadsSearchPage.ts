@@ -111,34 +111,28 @@ export default class AllLoadsSearchPage {
     }
 
     /**
-     * Clicks the first LOADSEARCH row whose Billing Issue and Billing Reason cells are both empty.
-     * Locator source: report_sizzle.phtml:1580 — `table tbody tr.dnd-moved`
+     * Clicks the first LOADSEARCH row whose BILLING ACTIVITY cell is empty.
+     * Locator source: loadsearch.inc.php — `BILLING ACTIVITY` column; report_sizzle.phtml:1580 `tr.dnd-moved`
      * @author AI Agent
      * @created 2026-06-04
      */
-    async clickLoadDetailRowWithEmptyBillingIssueAndReason(): Promise<void> {
+    async clickLoadDetailRowWithEmptyBillingActivity(): Promise<void> {
         await this.waitForSearchResults();
 
-        const billingIssueIdx = await this.getColumnIndex([
-            new RegExp(LOAD_SEARCH_COLUMNS.BILLING_ISSUE, "i"),
-        ]);
-        const billingReasonIdx = await this.getColumnIndex([
-            new RegExp(LOAD_SEARCH_COLUMNS.BILLING_REASON, "i"),
+        const billingActivityIdx = await this.getColumnIndex([
+            new RegExp(LOAD_SEARCH_COLUMNS.BILLING_ACTIVITY, "i"),
         ]);
 
         const rowCount = await this.resultsDataRows_LOC.count();
         for (let r = 0; r < rowCount; r++) {
             const row = this.resultsDataRows_LOC.nth(r);
-            const issueText = ((await row.locator("td").nth(billingIssueIdx).innerText()) || "")
-                .replace(/\s+/g, " ")
-                .trim();
-            const reasonText = ((await row.locator("td").nth(billingReasonIdx).innerText()) || "")
+            const activityText = ((await row.locator("td").nth(billingActivityIdx).innerText()) || "")
                 .replace(/\s+/g, " ")
                 .trim();
 
-            if (this.isReportCellEmpty(issueText) && this.isReportCellEmpty(reasonText)) {
+            if (this.isReportCellEmpty(activityText)) {
                 console.log(
-                    `LOADSEARCH: clicking row ${r + 1} with empty Billing Issue and Billing Reason`
+                    `LOADSEARCH: clicking row ${r + 1} with empty ${LOAD_SEARCH_COLUMNS.BILLING_ACTIVITY}`
                 );
                 await row.click();
                 await commonReusables.waitForPageStable(this.page);
@@ -147,7 +141,7 @@ export default class AllLoadsSearchPage {
         }
 
         throw new Error(
-            `No LOADSEARCH row found with empty ${LOAD_SEARCH_COLUMNS.BILLING_ISSUE} and ${LOAD_SEARCH_COLUMNS.BILLING_REASON}`
+            `No LOADSEARCH row found with empty ${LOAD_SEARCH_COLUMNS.BILLING_ACTIVITY}`
         );
     }
 

@@ -54,9 +54,9 @@ test.describe.serial(
         });
 
         await test.step(
-          "Step 4 [116907 9]: Click load row with empty Billing Issue and Billing Reason",
+          "Step 4 [116907 9]: Click load row with empty BILLING ACTIVITY",
           async () => {
-            await pages.allLoadsSearchPage.clickLoadDetailRowWithEmptyBillingIssueAndReason();
+            await pages.allLoadsSearchPage.clickLoadDetailRowWithEmptyBillingActivity();
           }
         );
 
