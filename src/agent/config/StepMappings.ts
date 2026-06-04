@@ -649,6 +649,18 @@ await pages.viewLoadCarrierTabPage.validateCarrierDispatchEmail(testData.dispatc
 
   // --- ALERT / MESSAGE ---
   {
+    pattern: /status\s+has\s+been\s+set\s+to\s+booked/i,
+    pageObject: 'editLoadFormPage',
+    method: 'clickOnSaveBtn',
+    code: `const bookedAlert = pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_BOOKED);
+await pages.editLoadFormPage.clickOnSaveBtn();
+await bookedAlert;
+await commonReusables.waitForAllLoadStates(sharedPage);`,
+    confidence: 0.98,
+    multiLine: true,
+    category: 'SAVE',
+  },
+  {
     pattern: /accept.*alert|alert.*accept|alert.*ok/i,
     pageObject: 'commonReusables',
     method: 'validateAlert',
@@ -899,6 +911,28 @@ await pages.dfbLoadFormPage.validateFieldsAreNotEditable([
   },
 
   // --- BILLING ---
+  {
+    pattern: /(?:click|clock)\s+on\s+view\s+load\s+button/i,
+    pageObject: 'loadBillingPage',
+    method: 'clickOnViewLoadBtn',
+    code: `await pages.loadBillingPage.clickOnViewLoadBtn();
+await commonReusables.waitForPageStable(sharedPage);`,
+    confidence: 0.95,
+    multiLine: true,
+    category: 'BILLING',
+  },
+  {
+    pattern: /change\s+the\s+status\s+to\s+dispatched/i,
+    pageObject: 'editLoadFormPage',
+    method: 'selectLoadStatus',
+    code: `await pages.editLoadPage.clickOnTab(TABS.LOAD);
+await pages.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DISPATCHED);
+await pages.editLoadPage.clickOnTab(TABS.CARRIER);
+await commonReusables.waitForAllLoadStates(sharedPage);`,
+    confidence: 0.95,
+    multiLine: true,
+    category: 'LOAD_STATUS',
+  },
   {
     pattern: /view\s*billing/i,
     pageObject: 'editLoadFormPage',

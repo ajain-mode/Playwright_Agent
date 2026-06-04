@@ -83,8 +83,23 @@ const FUNCTIONAL_PATTERNS: Record<string, RegExp[]> = {
   ],
   'customer-search': [
     /customer.*search/i,
+    /hover\s+to\s+customer/i,
     /view\s+customer/i,
     /customer\s+detail/i,
+    /create\s+tl\s+\*new\*/i,
+  ],
+  'office-config': [
+    /office\s+search/i,
+    /invoice\s+process/i,
+    /admin.*office/i,
+    /ensureinvoiceprocess/i,
+  ],
+  'dispatched-billing-flow': [
+    /status\s+to\s+dispatched/i,
+    /dispatched/i,
+    /view\s+billing/i,
+    /price\s+difference/i,
+    /waiting\s+on/i,
   ],
   'form-fill': [
     /shipper.*field/i,
@@ -190,11 +205,18 @@ export class TestCaseMatcher {
         reasons.push(`patterns=${(patternOverlap * 100).toFixed(0)}%`);
       }
 
-      // 5. Step-action keyword similarity (weight: 0.15)
+      // 5. Step-action keyword similarity (weight: 0.25) — primary signal for clone suitability
       const stepSimilarity = this.computeStepSimilarity(newStepsText, candidate.stepsText);
       if (stepSimilarity > 0) {
-        score += stepSimilarity * 0.15;
+        score += stepSimilarity * 0.25;
         reasons.push(`steps=${(stepSimilarity * 100).toFixed(0)}%`);
+      }
+
+      // 6. Flow fingerprint alignment — penalize office-template refs for customer-only cases (and vice versa)
+      const flowPenalty = this.computeFlowMismatchPenalty(newFingerprint, candidateFingerprint);
+      if (flowPenalty > 0) {
+        score -= flowPenalty;
+        reasons.push(`flow-penalty=${(flowPenalty * 100).toFixed(0)}%`);
       }
 
       // Small bonus for candidates with an existing spec file (prefer referenceable matches)
@@ -225,9 +247,53 @@ export class TestCaseMatcher {
 
     // Only return matches above threshold
     if (bestMatch && bestMatch.score >= 0.3) {
+      if (bestMatch.score < 0) bestMatch.score = 0;
       return bestMatch;
     }
     return null;
+  }
+
+  /**
+   * Returns false when the matched reference spec's functional flow clearly differs
+   * from the new testcase (e.g. office-setup template for customer-search-only cases).
+   */
+  isReferenceSuitable(newTestCase: TestCaseInput, match: MatchResult): boolean {
+    if (!match.specPath) return true;
+
+    const existing = this.loadExistingTestCases().find((e) => e.id === match.matchedId);
+    if (!existing) return true;
+
+    const newStepsText = newTestCase.steps.map((s) => s.action).join('\n');
+    const newFp = this.extractFunctionalFingerprint(
+      newStepsText + '\n' + (newTestCase.expectedResults || []).join('\n'),
+    );
+    const refFp = this.extractFunctionalFingerprint(
+      existing.stepsText + '\n' + existing.expectedText,
+    );
+
+    const stepSimilarity = this.computeStepSimilarity(newStepsText, existing.stepsText);
+    if (stepSimilarity < 0.55) {
+      return false;
+    }
+
+    return this.computeFlowMismatchPenalty(newFp, refFp) < 0.2;
+  }
+
+  /** Penalty when reference has office-config but new case is customer-search-only (or inverse). */
+  private computeFlowMismatchPenalty(newFp: Set<string>, refFp: Set<string>): number {
+    let penalty = 0;
+    const newIsCustomerFlow =
+      newFp.has('customer-search') && !newFp.has('office-config');
+    const refIsOfficeFlow =
+      refFp.has('office-config') && !refFp.has('customer-search');
+    const newIsOfficeFlow =
+      newFp.has('office-config') && !newFp.has('customer-search');
+    const refIsCustomerFlow =
+      refFp.has('customer-search') && !refFp.has('office-config');
+
+    if (newIsCustomerFlow && refIsOfficeFlow) penalty += 0.35;
+    if (newIsOfficeFlow && refIsCustomerFlow) penalty += 0.25;
+    return penalty;
   }
 
   /**

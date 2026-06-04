@@ -41,9 +41,11 @@ test.describe.serial(
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
-        await test.step("Step 1 [CSV 1-5]: Login to BTMS", async () => {
+        await test.step("Step 1 [CSV 1-5]: Login to BTMS and switch to billing toggle user", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
           await commonReusables.waitForAllLoadStates(sharedPage);
+          await pages.homePage.clickSwitchAccountButton();
+          await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
         });
 
         await test.step("Step 2 [CSV 6-12]: Office CORP — ensure Invoice Process is Central", async () => {
@@ -114,6 +116,7 @@ test.describe.serial(
 
         await test.step("Step 5 [CSV 42-50]: Create load, complete Carrier tab, and save to BOOKED", async () => {
           await pages.nonTabularLoadPage.clickCreateLoadButton();
+          await pages.editLoadLoadTabPage.checkLoadTabDetails(testData.rateType);
           await pages.editLoadPage.validateEditLoadHeadingText();
           loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
           pages.logger.info(`Load number: ${loadNumber}`);

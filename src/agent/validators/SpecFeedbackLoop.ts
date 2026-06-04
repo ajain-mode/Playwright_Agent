@@ -62,6 +62,11 @@ export class SpecFeedbackLoop {
   private static readonly MISSING_THRESHOLD = 0.25;
   /** CSV step is "matched" if best spec similarity >= this threshold */
   private static readonly MATCHED_THRESHOLD = 0.5;
+  /** Avoid mass-injecting low-quality blocks when hybrid clone left large gaps */
+  private static readonly MAX_MISSING_INJECTIONS = 8;
+
+  private static readonly STUB_READONLY =
+    /await\s+pages\.\w+\.(getRateTypeValue|getPostStatusText|getIncludeCarriersSelectedCarrierIds)\s*\(\s*\)/;
 
   constructor(private readonly generator: CodeGenerator) {}
 
@@ -80,7 +85,7 @@ export class SpecFeedbackLoop {
     console.log(
       `   📊 Spec: ${specSteps.length} test.step blocks | CSV: ${testCase.steps.length} steps`,
     );
-    const { missing, lowMatch } = this.classifySteps(testCase, specSteps);
+    let { missing, lowMatch } = this.classifySteps(testCase, specSteps);
 
     let correctedContent = specContent;
     const missingWithCode: StepFeedback[] = [];
@@ -92,6 +97,14 @@ export class SpecFeedbackLoop {
     }
 
     // Step 2: Generate + inject code for missing steps
+    if (missing.length > SpecFeedbackLoop.MAX_MISSING_INJECTIONS) {
+      console.log(
+        `   ⚠️  ${missing.length} missing step(s) — exceeds cap (${SpecFeedbackLoop.MAX_MISSING_INJECTIONS}); ` +
+          `skipping mass injection (regenerate with step-by-step pipeline)`,
+      );
+      missing = [];
+    }
+
     if (missing.length > 0) {
       console.log(`   ⚠️  ${missing.length} missing step(s) — generating code...`);
       const generated = await this.generateMissingCode(missing, testCase);
@@ -364,6 +377,13 @@ export class SpecFeedbackLoop {
           fb.csvStepNumber,
           testCase,
         );
+        if (SpecFeedbackLoop.STUB_READONLY.test(code)) {
+          console.warn(
+            `   ⚠️  Skipping injection for Step ${fb.csvStepNumber} — stub POM readback only`,
+          );
+          results.push(fb);
+          continue;
+        }
         results.push({ ...fb, generatedCode: code });
         console.log(
           `   ➕ Step ${fb.csvStepNumber} code generated: ${fb.csvStepText.substring(0, 60)}`,

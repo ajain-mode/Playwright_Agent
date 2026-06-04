@@ -190,7 +190,7 @@ const KNOWN_PAGE_GETTERS = new Set<string>([
 const KNOW_ALERT_STRING_TO_KEY: Record<string, string> = (() => {
   const out: Record<string, string> = {};
   for (const key of KNOWN_ALERT_PATTERN_KEYS) {
-    const v = (ALERT_PATTERNS as Record<string, string | RegExp>)[key];
+    const v = (ALERT_PATTERNS as unknown as Record<string, string | RegExp>)[key];
     if (typeof v === 'string' && v.length >= 12) {
       out[v] = key;
     }
@@ -1984,6 +1984,9 @@ export class SpecValidator {
     }
 
     if (ids.has('CAT-BT-001')) {
+      const switchBlock =
+        'await pages.homePage.clickSwitchAccountButton();\n' +
+        'await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);';
       const loginPattern = /(await\s+pages\.btmsLoginPage\.BTMSLogin\s*\([^)]*\)\s*;)/;
       const match = code.match(loginPattern);
       if (match) {
@@ -1992,8 +1995,22 @@ export class SpecValidator {
           ?.match(/^(\s*)/)?.[1] || '          ';
         code = code.replace(
           loginPattern,
-          `$1\n${indent}await pages.homePage.clickSwitchAccountButton();\n${indent}await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);`,
+          `$1\n${indent}${switchBlock.split('\n').join(`\n${indent}`)}\n`,
         );
+      } else {
+        // Insert login + switch at start of first test.step when generation missed BTMSLogin
+        const firstStep = code.search(/await\s+test\.step\s*\(/);
+        if (firstStep >= 0) {
+          const openBrace = code.indexOf('{', firstStep);
+          if (openBrace >= 0) {
+            const indent = '        ';
+            const injection =
+              `${indent}await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);\n` +
+              `${indent}await commonReusables.waitForAllLoadStates(sharedPage);\n` +
+              `${indent}${switchBlock.split('\n').join(`\n${indent}`)}\n`;
+            code = code.slice(0, openBrace + 1) + '\n' + injection + code.slice(openBrace + 1);
+          }
+        }
       }
     }
 
@@ -2085,6 +2102,8 @@ export class SpecValidator {
 
   private buildCorrectionRequests(report: ValidationReport, processedSteps: ProcessedStep[]): CorrectionRequest[] {
     const out: CorrectionRequest[] = [];
+    /** Violations without a CSV step must not trigger POM body replacement (would hit step 0 / login composite). */
+    const fileLevelRuleIds = new Set(['POM-006', 'STEP-002', 'CAT-BT-001', 'NAV-001']);
     for (const v of report.violations) {
       if (v.autoFixable) {
         continue;
@@ -2092,9 +2111,13 @@ export class SpecValidator {
       if (v.severity !== 'hard-block' && v.severity !== 'error') {
         continue;
       }
+      if (v.stepNumber == null && fileLevelRuleIds.has(v.ruleId)) {
+        continue;
+      }
       const stepIndex =
         v.stepNumber != null ? processedSteps.findIndex((s) => s.stepNumber === v.stepNumber) : -1;
       if (processedSteps.length === 0) continue;
+      if (v.stepNumber != null && stepIndex < 0) continue;
       const processedStep =
         stepIndex >= 0 ? processedSteps[stepIndex] : processedSteps[processedSteps.length - 1];
       const instruction = this.buildInstruction(v);
@@ -2122,6 +2145,31 @@ export class SpecValidator {
     if (!range) {
       return specCode;
     }
+
+    const titleStart = specCode.lastIndexOf('test.step', range.headerStart);
+    const titleStr = readStringLiteral(specCode, specCode.indexOf('(', titleStart >= 0 ? titleStart : range.headerStart) + 1);
+    const title = titleStr?.text ?? '';
+    const csvRangeRe = /\[CSV\s+(\d+)[-–](\d+)\]/i;
+    const csvM = title.match(csvRangeRe);
+    if (csvM) {
+      const rangeStart = parseInt(csvM[1], 10);
+      if (step.stepNumber !== rangeStart) {
+        return specCode;
+      }
+    }
+
+    const existingBody = specCode.slice(range.bodyStart, range.bodyEnd);
+    if (/BTMSLogin\s*\(/.test(existingBody) && !/BTMSLogin\s*\(/.test(newInnerCode)) {
+      return specCode;
+    }
+    if (
+      /await\s+pages\.\w+\.(getRateTypeValue|getPostStatusText|getIncludeCarriersSelectedCarrierIds|validateNotesFieldIsEmpty)\s*\(/.test(
+        newInnerCode,
+      )
+    ) {
+      return specCode;
+    }
+
     let inner = newInnerCode.trim();
     if (inner.startsWith('{') && inner.endsWith('}')) {
       inner = inner.slice(1, -1).trim();

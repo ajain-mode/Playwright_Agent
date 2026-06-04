@@ -112,6 +112,7 @@ import PostAutomationRulePageEditEntryModal from '@pages/home/PostAutomationRule
 import CarrierPortalPage from '@pages/carrierPortal/CarrierPortalPage';
 import BTMSAcceptTermPage from '@pages/login/BTMSAcceptTermPage';
 import BillingAdjustmentsQueue from '@pages/finance/BillingAdjustmentsQueue';
+import BillingQueuePage from '@pages/finance/BillingQueuePage';
 
 //Type definitions for better type safety
 type PageConstructor<T> = new (page: Page) => T;
@@ -882,5 +883,14 @@ export class PageManager {
 
   get billingAdjustmentsQueue(): BillingAdjustmentsQueue {
     return this.createPage('billingAdjustmentsQueue', BillingAdjustmentsQueue);
+  }
+
+  /**
+   * Gets BillingQueuePage instance with on-demand creation.
+   * @author AI Agent
+   * @created 2026-06-03
+   */
+  get billingQueuePage(): BillingQueuePage {
+    return this.createPage('billingQueuePage', BillingQueuePage);
   }
 }

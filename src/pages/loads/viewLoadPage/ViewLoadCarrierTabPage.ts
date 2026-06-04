@@ -1,6 +1,9 @@
 import { Locator, Page, expect } from "@playwright/test";
 import commonReusables from "@utils/commonReusables";
+import { GlobalConstants } from "@utils/globalConstants";
 import ViewLoadPage from "./ViewLoadPage";
+
+const { TNX } = GlobalConstants;
 /**
  * @author Rohit Singh
  * @created 2025-07-28
@@ -375,6 +378,68 @@ class ViewLoadCarrierTabPage {
       console.error(`❌ Failed to capture bids report value: ${error}`);
       throw error;
     }
+  }
+
+  /**
+   * Clicks the BIDS report count value on Carrier tab.
+   * Opens the Bid Results popup from the Source BIDS report section.
+   * Locator: #bids-num-reports.
+   * @author AI Agent
+   * @created 2026-05-28
+   */
+  async clickBidsReportValue(): Promise<void> {
+    await this.page.waitForLoadState("domcontentloaded");
+    await this.bidsReportValue_LOC.waitFor({
+      state: "visible",
+      timeout: WAIT.DEFAULT,
+    });
+    await expect(this.bidsReportValue_LOC).toBeEnabled({ timeout: WAIT.DEFAULT });
+    await this.bidsReportValue_LOC.click();
+    console.log("✅ Clicked BIDS report value");
+  }
+
+  /**
+   * Reads the BIDS report count from `#bids-num-reports` without a full networkidle wait.
+   * Locator source: loads.inc.php (`id="bids-num-reports"`).
+   * @author AI Agent
+   * @created 2026-05-28
+   * @returns Promise<number>
+   */
+  async readBidsReportCount(): Promise<number> {
+    await this.bidsReportValue_LOC.waitFor({
+      state: "visible",
+      timeout: WAIT.DEFAULT,
+    });
+    const text = (await this.bidsReportValue_LOC.textContent())?.trim() || "";
+    const count = parseInt(text, 10);
+    if (Number.isNaN(count)) {
+      throw new Error(`BIDS report count is not numeric: "${text}"`);
+    }
+    return count;
+  }
+
+  /**
+   * Polls until the BIDS report count (`#bids-num-reports`) increases by exactly 1.
+   * Call before opening Bid History — history must not be opened until this passes.
+   * @author AI Agent
+   * @created 2026-05-28
+   * @param previousCount BIDS report count before the new bid
+   * @returns Promise<number> The updated BIDS report count
+   */
+  async waitForBidsReportCountToIncreaseByOne(previousCount: number): Promise<number> {
+    const expectedCount = previousCount + 1;
+    await expect
+      .poll(async () => this.readBidsReportCount(), {
+        message: `BIDS report count should increment from ${previousCount} to ${expectedCount}`,
+        timeout: WAIT.SPEC_TIMEOUT_LARGE,
+      })
+      .toBe(expectedCount);
+
+    this.capturedBidsValue = String(expectedCount);
+    console.log(
+      `✅ BIDS report count incremented: ${previousCount} → ${expectedCount} (#bids-num-reports)`
+    );
+    return expectedCount;
   }
 
   /**
@@ -1188,6 +1253,30 @@ class ViewLoadCarrierTabPage {
   }
 
   /**
+   * Opens Bid History, validates the first row and avg rate, then closes the modal.
+   * Captures timestamp immediately before opening — call only after BIDS report +1 is confirmed.
+   * Does not assert Bid History total against `#bids-num-reports` (different metrics on some loads).
+   * @author AI Agent
+   * @created 2026-05-28
+   * @param expectedFirstRow Expected first-row values (timestamp is captured internally)
+   * @returns Promise<void>
+   */
+  async validateBidHistoryPopupWithAvgRate(
+    expectedFirstRow: BidHistoryFirstRowExpectations
+  ): Promise<void> {
+    await commonReusables.getCurrentDateTime();
+    const viewLoadPage = new ViewLoadPage(this.page);
+    const avgRateText = await viewLoadPage.getAvgRate();
+    await this.clickViewLoadPageLinks(TNX.BID_HISTORY);
+    await this.validateBidHistoryFirstRow({
+      ...expectedFirstRow,
+      timestamp: commonReusables.formattedDateTime,
+    });
+    await this.calculateAndValidateAvgRate(avgRateText);
+    await this.closeBidHistoryModal();
+  }
+
+  /**
    * Clicks on the close button to close the bid history modal
    * @author Parth Rastogi
    * @created 2025-12-23
@@ -1365,7 +1454,7 @@ class ViewLoadCarrierTabPage {
   }
 }
 
-// Interface for bid history row data
+/** Bid history first-row fields used by validateBidHistoryFirstRow. */
 interface BidHistoryRow {
   shipCity: string;
   shipState: string;
@@ -1380,5 +1469,8 @@ interface BidHistoryRow {
   equipment: string;
   source: string;
 }
+
+/** Expected first-row values for validateBidHistoryPopupWithAvgRate (timestamp captured at open). */
+export type BidHistoryFirstRowExpectations = Omit<BidHistoryRow, "timestamp">;
 
 export default ViewLoadCarrierTabPage;

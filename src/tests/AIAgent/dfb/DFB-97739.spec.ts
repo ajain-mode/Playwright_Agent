@@ -375,7 +375,7 @@ test.describe.serial(
             totalMiles: totalMilesValue,
             equipment: DFB_BID_HISTORY_FIELDS.EQUIPMENT_1,
             source: DFB_BID_HISTORY_FIELDS.SOURCE,
-            email: DFB_BID_HISTORY_FIELDS.TNX_SERVICE_EMAIL,
+            email: userSetup.tnxUser,
           });
 
           // Step 44.3: Paginate through ALL pages, sum ALL bid rates, validate entry count against BIDS, calculate avg

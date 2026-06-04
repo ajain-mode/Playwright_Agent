@@ -43,6 +43,7 @@ class LoadBillingPage {
 
     // Not Delivered Final checkbox locators
     private readonly notDeliveredFinalCheckbox_LOC: Locator;
+    private readonly priceDifferenceCheckbox_LOC: Locator;
 
     // Add New Carrier Invoice dialog locators
     private readonly addNewCarrierInvoiceBtn_LOC: Locator;
@@ -55,8 +56,10 @@ class LoadBillingPage {
     private readonly financeMessagesList_LOC: Locator;
     private readonly payableMessagesList_LOC: Locator;
 
-    // View History link
-    private readonly viewHistoryLink_LOC: Locator;
+    // View History links — payables vs billing issues (`#billing-note-container`)
+    private readonly payablesViewHistoryLink_LOC: Locator;
+    /** Billing Issues View History — billing.php `#billing-note-container` → `show_billing_messages_history` */
+    private readonly billingIssuesViewHistoryLink_LOC: Locator;
 
     // Carrier Payable Status dropdown and charge fields
     private readonly carrierPayableStatusSelect_LOC: Locator;
@@ -65,12 +68,16 @@ class LoadBillingPage {
 
     // Billing Issues section root + checkboxes (inside #finance_issues_block)
     private readonly financeIssuesBlock_LOC: Locator;
+    /** Billing Issues Messages — billing.php `#billing-note-container` inside `#finance_issues_block` */
+    private readonly billingIssuesMessagesList_LOC: Locator;
     private readonly allBillingIssueCheckboxes_LOC: Locator;
     private readonly lumperCheckbox_LOC: Locator;
     private readonly lumperLabel_LOC: Locator;
 
-    // View History popup (payables note): table.hist rows with cells (header row uses th).
-    private readonly HISTORY_TABLE_DATA_ROWS_SELECTOR = 'table.hist tr:has(td)';
+    // Billing Issues View History popup: table.hist rows with cells (header row uses th).
+    private readonly BILLING_ISSUES_HISTORY_TABLE_DATA_ROWS_SELECTOR = 'table.hist tr:has(td)';
+    /** Payables View History popup — same table structure, separate from billing issues history. */
+    private readonly PAYABLES_HISTORY_TABLE_DATA_ROWS_SELECTOR = 'table.hist tr:has(td)';
 
     // locators copied from View Billing Page
     private readonly viewLoadButton_LOC: Locator;
@@ -139,6 +146,8 @@ class LoadBillingPage {
 
         // Not Delivered Final checkbox
         this.notDeliveredFinalCheckbox_LOC = this.page.locator("#Delivs");
+        /** Price Difference billing issue — billing.php `#Differences` (value `price`) */
+        this.priceDifferenceCheckbox_LOC = this.page.locator("#Differences");
 
         // Add New Carrier Invoice dialog
         this.addNewCarrierInvoiceBtn_LOC = this.page.locator("#carr_invoice_add_new");
@@ -153,11 +162,17 @@ class LoadBillingPage {
         // Finance Messages — payables section (scoped to payables container)
         this.payableMessagesList_LOC = this.page.locator("div[id^='payables-note-container_'] .finance-messages .messages-list > .message");
 
-        // View History — scoped to the payables note container
-        this.viewHistoryLink_LOC = this.page.locator("div[id^='payables-note-container_'] a:has(small)");
+        // View History — payables note container (`show_payables_messages_and_toggle_history`)
+        this.payablesViewHistoryLink_LOC = this.page.locator("div[id^='payables-note-container_'] a:has(small)");
 
         // Billing Issues / Missing Paperwork (#finance_issues_block — same block as fi_waiting_on slider region)
         this.financeIssuesBlock_LOC = this.page.locator("#finance_issues_block");
+        this.billingIssuesMessagesList_LOC = this.financeIssuesBlock_LOC.locator(
+            "#billing-note-container .finance-messages .messages-list > .message"
+        );
+        this.billingIssuesViewHistoryLink_LOC = this.financeIssuesBlock_LOC.locator(
+            "#billing-note-container a:has(small)"
+        );
         this.billingToggleTrack_LOC = this.financeIssuesBlock_LOC.locator(".slider-track").first();
         this.billingToggleHandle_LOC = this.financeIssuesBlock_LOC.locator(".slider-handle").first();
         this.allBillingIssueCheckboxes_LOC = this.financeIssuesBlock_LOC.locator("input.fi_ckb");
@@ -586,6 +601,40 @@ class LoadBillingPage {
     }
 
     /**
+     * Reads Initial Toggle Date display text from `#finance_issues_block` (billing.php).
+     * @author AI Agent
+     * @created 2026-06-03
+     */
+    async getInitialToggleDateDisplayValue(): Promise<string> {
+        await this.scrollBillingIssuesBlockIntoView();
+        const blockText = (await this.financeIssuesBlock_LOC.innerText()) || "";
+        const match = blockText.match(/Initial Toggle Date:\s*([^\n]+)/i);
+        return (match?.[1] || "").trim();
+    }
+
+    /**
+     * Reads Current Toggle Date display text from `#finance_issues_block` (billing.php).
+     * @author AI Agent
+     * @created 2026-06-03
+     */
+    async getCurrentToggleDateDisplayValue(): Promise<string> {
+        await this.scrollBillingIssuesBlockIntoView();
+        const blockText = (await this.financeIssuesBlock_LOC.innerText()) || "";
+        const match = blockText.match(/Current Toggle Date:\s*([^\n]+)/i);
+        return (match?.[1] || "").trim();
+    }
+
+    /**
+     * Reloads View Billing and waits for the billing issues block.
+     * @author AI Agent
+     * @created 2026-06-03
+     */
+    async reloadBillingPageAndWaitForToggleBlock(): Promise<void> {
+        await commonReusables.reloadAndAcceptDialogs(this.page, WAIT.SMALL);
+        await this.scrollBillingIssuesBlockIntoView();
+    }
+
+    /**
      * Sets Billing Issues "Waiting On" toggle to Billing, Agent, or Neutral.
      * Clicks slider track and validates hidden source field (`#fi_waiting_on`) reaches target raw value.
      * @author AI Agent
@@ -796,23 +845,197 @@ class LoadBillingPage {
     }
 
     /**
-     * Clicks "View History" link on the billing page and returns the popup Page.
-     * View History opens a new browser window via window.open().
+     * Gets finance messages from the Billing Issues block (`#finance_issues_block` → `#billing-note-container`).
+     * billing.php:828-837 — `build_finance_messages_by_type('billing', ...)`.
+     * @author AI Agent
+     * @created 2026-06-03
+     */
+    async getBillingIssuesMessages(): Promise<string[]> {
+        await this.scrollBillingIssuesBlockIntoView();
+        const count = await this.billingIssuesMessagesList_LOC.count();
+        const messages: string[] = [];
+        for (let i = 0; i < count; i++) {
+            const text = await this.billingIssuesMessagesList_LOC.nth(i).textContent();
+            if (text?.trim()) {
+                messages.push(text.trim());
+            }
+        }
+        return messages;
+    }
+
+    /**
+     * Finds a message in the Billing Issues Messages list containing the given text (case-insensitive).
+     * Use for Expected validations after reload on View Billing (e.g. carrier over-invoiced in `#billing-note-container`).
+     * @author AI Agent
+     * @created 2026-06-03
+     * @param searchText - Substring to match (e.g. {@link FINANCE_MESSAGES.CARRIER_OVER_INVOICED})
+     */
+    async findBillingIssuesMessageContaining(searchText: string): Promise<string | null> {
+        const messages = await this.getBillingIssuesMessages();
+        const match = messages.find((msg) => msg.toLowerCase().includes(searchText.toLowerCase()));
+        return match ?? null;
+    }
+
+    /**
+     * Clicks Payables "View History" link and returns the popup Page.
+     * Scoped to `div[id^='payables-note-container_']` — `show_payables_messages_and_toggle_history`.
      * @author AI Agent
      * @created 17-Mar-2026
      */
-    async clickViewHistoryAndGetPopup(): Promise<import('@playwright/test').Page> {
-        await this.viewHistoryLink_LOC.scrollIntoViewIfNeeded();
-        await this.viewHistoryLink_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    async clickPayablesViewHistoryAndGetPopup(): Promise<import('@playwright/test').Page> {
+        await this.payablesViewHistoryLink_LOC.scrollIntoViewIfNeeded();
+        await this.payablesViewHistoryLink_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
 
         const [historyPopup] = await Promise.all([
             this.page.context().waitForEvent('page'),
-            this.viewHistoryLink_LOC.click(),
+            this.payablesViewHistoryLink_LOC.click(),
         ]);
         await historyPopup.waitForLoadState("domcontentloaded", { timeout: WAIT.LARGE });
         await commonReusables.waitForAllLoadStates(historyPopup);
-        console.log("View History popup window opened");
+        console.log("Payables View History popup window opened");
         return historyPopup;
+    }
+
+    /**
+     * Clicks Billing Issues "View History" in `#billing-note-container` and returns the popup Page.
+     * billing.php — `show_billing_messages_history`.
+     * @author AI Agent
+     * @created 2026-06-03
+     */
+    async clickBillingIssuesViewHistoryAndGetPopup(): Promise<import('@playwright/test').Page> {
+        await this.scrollBillingIssuesBlockIntoView();
+        await this.billingIssuesViewHistoryLink_LOC.scrollIntoViewIfNeeded();
+        await this.billingIssuesViewHistoryLink_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+
+        const [billingIssuesHistoryPopup] = await Promise.all([
+            this.page.context().waitForEvent('page'),
+            this.billingIssuesViewHistoryLink_LOC.click(),
+        ]);
+        await billingIssuesHistoryPopup.waitForLoadState("domcontentloaded", { timeout: WAIT.LARGE });
+        await commonReusables.waitForAllLoadStates(billingIssuesHistoryPopup);
+        console.log("Billing Issues View History popup window opened");
+        return billingIssuesHistoryPopup;
+    }
+
+    /** @deprecated Use {@link clickPayablesViewHistoryAndGetPopup} */
+    async clickViewHistoryAndGetPopup(): Promise<import('@playwright/test').Page> {
+        return this.clickPayablesViewHistoryAndGetPopup();
+    }
+
+    /**
+     * Parses one Billing Issues View History data row (`table.hist tr:has(td)`).
+     * billing.php: User, attachment time, Message, Inactive Date (last column).
+     * Newest over-invoice rows append at the bottom; prior row Inactive Date is set in the last column.
+     * @author AI Agent
+     * @created 2026-06-01
+     * @param row - A data row locator inside the View History popup
+     */
+    private async parseBillingIssuesViewHistoryDataRow(
+        row: Locator
+    ): Promise<{ message: string; user: string; attachmentTime: string; inactiveDate: string }> {
+        const cells = row.locator('td');
+        const cellCount = await cells.count();
+        if (cellCount < 2) {
+            throw new Error(`Billing Issues View History row has insufficient columns: ${cellCount}`);
+        }
+
+        const inactiveIdx = cellCount - 1;
+        const messageIdx = cellCount - 2;
+        const inactiveDate = ((await cells.nth(inactiveIdx).innerText()) || '').trim();
+        const message = ((await cells.nth(messageIdx).innerText()) || '').trim();
+        const user = ((await cells.nth(1).innerText()) || '').trim();
+
+        // Time column sits between User and Message when table has 4+ data cells (e.g. 5-column hist).
+        let attachmentTime = '';
+        if (cellCount >= 4 && messageIdx > 2) {
+            attachmentTime = ((await cells.nth(2).innerText()) || '').trim();
+        }
+
+        console.log(
+            `Billing Issues View History row: user=${user}, time=${attachmentTime}, message=${message}, inactiveDate=${inactiveDate}`
+        );
+        return { message, user, attachmentTime, inactiveDate };
+    }
+
+    /**
+     * Reads the message text from the second-to-last column of the last data row in
+     * Billing Issues View History popup (`table.hist`).
+     * @author AI Agent
+     * @created 2026-06-03
+     * @param billingIssuesHistoryPopup - Page returned by {@link clickBillingIssuesViewHistoryAndGetPopup}
+     */
+    async readViewHistoryLastRowMessage(billingIssuesHistoryPopup: import('@playwright/test').Page): Promise<string> {
+        const dataRows = billingIssuesHistoryPopup.locator(this.BILLING_ISSUES_HISTORY_TABLE_DATA_ROWS_SELECTOR);
+        await dataRows.first().waitFor({ state: 'attached', timeout: WAIT.LARGE });
+        const lastRow = dataRows.last();
+        const row = await this.parseBillingIssuesViewHistoryDataRow(lastRow);
+        console.log(`Billing Issues View History last row message: ${row.message}`);
+        return row.message;
+    }
+
+    /**
+     * Opens Billing Issues View History (`#billing-note-container`), reads the message from the
+     * second-to-last column of the last table row, closes popup.
+     * Uses {@link billingIssuesViewHistoryLink_LOC} → `show_billing_messages_history`.
+     * @author AI Agent
+     * @created 2026-06-03
+     */
+    async getViewHistoryLastRowMessage(): Promise<string> {
+        const billingIssuesHistoryPopup = await this.clickBillingIssuesViewHistoryAndGetPopup();
+        try {
+            return await this.readViewHistoryLastRowMessage(billingIssuesHistoryPopup);
+        } finally {
+            await billingIssuesHistoryPopup.close();
+            await this.page.bringToFront();
+        }
+    }
+
+    /**
+     * Reads the first {@link expectedRowCount} data rows from Billing Issues View History popup (`table.hist`).
+     * Uses the same column parsing as {@link readViewHistoryLastRowMessage}.
+     * @author AI Agent
+     * @created 2026-06-01
+     * @param billingIssuesHistoryPopup - Page returned by {@link clickBillingIssuesViewHistoryAndGetPopup}
+     * @param expectedRowCount - Number of history entries to read (must match table row count)
+     */
+    async readViewHistoryRows(
+        billingIssuesHistoryPopup: import('@playwright/test').Page,
+        expectedRowCount: number
+    ): Promise<Array<{ message: string; user: string; attachmentTime: string; inactiveDate: string }>> {
+        const dataRows = billingIssuesHistoryPopup.locator(this.BILLING_ISSUES_HISTORY_TABLE_DATA_ROWS_SELECTOR);
+        await dataRows.first().waitFor({ state: 'attached', timeout: WAIT.LARGE });
+        const rowCount = await dataRows.count();
+        if (rowCount !== expectedRowCount) {
+            throw new Error(
+                `Billing Issues View History: expected ${expectedRowCount} row(s), found ${rowCount}`
+            );
+        }
+        const rows: Array<{ message: string; user: string; attachmentTime: string; inactiveDate: string }> =
+            [];
+        for (let i = 0; i < expectedRowCount; i++) {
+            rows.push(await this.parseBillingIssuesViewHistoryDataRow(dataRows.nth(i)));
+        }
+        console.log(`Billing Issues View History: read ${rows.length} row(s)`);
+        return rows;
+    }
+
+    /**
+     * Opens Billing Issues View History via {@link billingIssuesViewHistoryLink_LOC},
+     * reads {@link expectedRowCount} table rows, closes popup, and restores billing page focus.
+     * @author AI Agent
+     * @created 2026-06-01
+     * @param expectedRowCount - Number of history entries expected in the popup
+     */
+    async getViewHistoryRows(
+        expectedRowCount: number
+    ): Promise<Array<{ message: string; user: string; attachmentTime: string; inactiveDate: string }>> {
+        const billingIssuesHistoryPopup = await this.clickBillingIssuesViewHistoryAndGetPopup();
+        try {
+            return await this.readViewHistoryRows(billingIssuesHistoryPopup, expectedRowCount);
+        } finally {
+            await billingIssuesHistoryPopup.close();
+            await this.page.bringToFront();
+        }
     }
     /**
      * Checks whether the "Not Deliv. Final" checkbox is checked.
@@ -829,6 +1052,24 @@ class LoadBillingPage {
             return checked;
         } catch (err) {
             console.error(`isNotDeliveredFinalChecked: ${(err as Error).message}`);
+            throw err;
+        }
+    }
+
+    /**
+     * Checks whether the Price Difference checkbox (`#Differences`) is checked on View Billing.
+     * billing.php:741 — `id="Differences"` / `value="price"`.
+     * @author AI Agent
+     * @created 2026-06-03
+     */
+    async isPriceDifferenceChecked(): Promise<boolean> {
+        try {
+            await this.priceDifferenceCheckbox_LOC.waitFor({ state: "attached", timeout: WAIT.DEFAULT });
+            const checked = await this.priceDifferenceCheckbox_LOC.isChecked();
+            console.log(`Price Difference checkbox is ${checked ? "checked" : "unchecked"}`);
+            return checked;
+        } catch (err) {
+            console.error(`isPriceDifferenceChecked: ${(err as Error).message}`);
             throw err;
         }
     }
@@ -912,8 +1153,8 @@ class LoadBillingPage {
         const expectedPriceDiff = Math.abs(totalInvoiced - charges);
         console.log(`Expected price diff: Total Invoices(${totalInvoiced}) - Total Charges(${charges}) = ${expectedPriceDiff}`);
 
-        const historyPopup = await this.clickViewHistoryAndGetPopup();
-        const dataRows = historyPopup.locator(this.HISTORY_TABLE_DATA_ROWS_SELECTOR);
+        const payablesHistoryPopup = await this.clickPayablesViewHistoryAndGetPopup();
+        const dataRows = payablesHistoryPopup.locator(this.PAYABLES_HISTORY_TABLE_DATA_ROWS_SELECTOR);
         await dataRows.first().waitFor({ state: 'attached', timeout: WAIT.LARGE });
         const rowCount = await dataRows.count();
         if (rowCount < 2) {
@@ -939,7 +1180,7 @@ class LoadBillingPage {
             console.log('No dollar amount parsed from second-last row');
         }
 
-        await historyPopup.close();
+        await payablesHistoryPopup.close();
         await this.page.bringToFront();
         console.log(`Extracted price difference: ${priceDifference}, expected: ${expectedPriceDiff}`);
 

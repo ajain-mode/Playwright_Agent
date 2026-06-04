@@ -36,8 +36,10 @@ test.describe.serial(
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
-        await test.step("Step 1 [CSV 1]: Login to BTMS application", async () => {
+        await test.step("Step 1 [CSV 1]: Login to BTMS and switch to billing toggle user", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
+          await pages.homePage.clickSwitchAccountButton();
+          await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
         });
 
         await test.step("Step 2-9 [CSV 2-9]: Office CORP — ensure Invoice Process is Central", async () => {
