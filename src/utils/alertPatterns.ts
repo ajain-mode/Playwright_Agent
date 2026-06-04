@@ -9,7 +9,9 @@ export const ALERT_PATTERNS = {
   INVALID_SHIPPER_ZIP_CODE_CA: "Invalid Canadian Postal Code! Format must by 6 alphanumeric characters, alternating letters and digits (ex: Y6Y 6Y6). Can not begin with W or Z, and can not contain D, F, I, O, Q or U",
   INVALID_SHIPPER_ZIP_CODE_MX: "Invalid Mexican Postal Code! Format must be 5 digits only (ex: 55555).",
   POST_AUTOMATION_RULE_MATCHED: /The load matched a post automation rule\.[\s\S]*The offer rate on this load has been set to the value of the offer rate[\s\S]*The other DFB fields on this load have been set to the values/,
-  CARRIER_ALREADY_INCLUDED_ERROR: "In order to post this load, the checkbox labeled \"Post to all Carriers upon completion of the Waterfall\" needs to be unchecked",
+  /** Shown on Carrier tab (`#carr_prexisting_errors`), not a browser alert — BTMS UI includes comma after "load". */
+  CARRIER_ALREADY_INCLUDED_ERROR:
+    'In order to post this load, the checkbox labeled "Post to all Carriers upon completion of the Waterfall" needs to be unchecked',
   CARRIER_NOT_INCLUDED_ERROR: "Loads with a cargo value greater than $100,000 cannot be posted without a dedicated carrier at this time",
 
   // Post Automation Rule form validation alerts
@@ -59,6 +61,12 @@ export const ALERT_PATTERNS = {
   CARRIER_VISIBILITY_UPDATED: /Carrier visibility has been updated/i,
 
   AGENT: "Agent",
+
+  IN_ORDER_TO_POST_THIS_LOAD_THE_CHECKBOX_LABELED: "In order to post this load the checkbox labeled",
+
+  TO_UNCHECKING_POST_TO_ALL_CARRIERS_UPON_COMPLETION_OF_THE_WA: "to unchecking Post to all Carriers upon completion of the Waterfall before posting when include carriers count is maximum (25)",
+
+  YOUR_BID_HAS_BEEN_PLACED: "Your bid has been placed!",
 
 };
 

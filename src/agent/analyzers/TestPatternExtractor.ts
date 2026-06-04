@@ -102,7 +102,7 @@ export class TestPatternExtractor {
 
     let bestMatch: ExtractedPattern | null = null;
     let bestScore = 0;
-    const threshold = 0.4; // at least 40% keyword overlap
+    const threshold = 0.52; // avoid weak keyword overlap picking unrelated spec fragments (was 0.4)
 
     for (const pattern of this.patterns) {
       const score = this.calculateMatchScore(actionWords, pattern.keywords);

@@ -160,7 +160,7 @@ export const STEP_MAPPINGS: StepMapping[] = [
     category: 'LOGIN',
   },
   {
-    pattern: /^.*\blogin\b/i,
+    pattern: /^.*\b(?:login|log\s+in)\b/i,
     pageObject: 'btmsLoginPage',
     method: 'BTMSLogin',
     code: `await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
@@ -169,6 +169,32 @@ if (await pages.btmsAcceptTermPage.validateOnBTMSAcceptTermPage()) {
 }`,
     confidence: 1,
     multiLine: true,
+    category: 'LOGIN',
+  },
+
+  // --- SSO sub-steps (part of the login flow already handled by BTMSLogin above) ---
+  {
+    pattern: /sign\s*in.*single\s*sign.?on|click.*sso|single\s*sign.?on/i,
+    pageObject: 'btmsLoginPage',
+    method: 'BTMSLogin',
+    code: `// SSO sub-step — handled by BTMSLogin above`,
+    confidence: 0.95,
+    category: 'LOGIN',
+  },
+  {
+    pattern: /enter.*user\s*id.*(?:click|next)|click.*next.*user\s*id/i,
+    pageObject: 'btmsLoginPage',
+    method: 'BTMSLogin',
+    code: `// SSO sub-step — handled by BTMSLogin above`,
+    confidence: 0.95,
+    category: 'LOGIN',
+  },
+  {
+    pattern: /enter.*password|click\s+sign\s+in/i,
+    pageObject: 'btmsLoginPage',
+    method: 'BTMSLogin',
+    code: `// SSO sub-step — handled by BTMSLogin above`,
+    confidence: 0.9,
     category: 'LOGIN',
   },
 
@@ -198,11 +224,8 @@ await commonReusables.waitForAllLoadStates(appManager.tnxPage);`,
     pageObject: 'MultiAppManager',
     method: 'switchToBTMS',
     code: `await appManager.switchToBTMS();
-await commonReusables.waitForAllLoadStates(sharedPage);
-const btmsBaseUrl = new URL(sharedPage.url()).origin;
-await sharedPage.goto(btmsBaseUrl);
-await commonReusables.waitForAllLoadStates(sharedPage);
-await sharedPage.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });`,
+await pages.basePage.navigateToBaseUrl();
+await commonReusables.waitForAllLoadStates(sharedPage);`,
     confidence: 1,
     multiLine: true,
     category: 'MULTI_APP',
@@ -674,7 +697,7 @@ loadNumber = await pages.dfbLoadFormPage.getLoadNumber();`,
     pageObject: 'loadsPage',
     method: 'clickNewLoadDropdown',
     code: `await pages.loadsPage.clickNewLoadDropdown();
-await pages.loadsPage.selectNonTabularTL();
+await pages.loadsPage.selectNonTabularTL(testData.loadType || 'TL');
 await pages.nonTabularLoadPage.createNonTabularLoad({
   shipperValue: testData.shipperName,
   consigneeValue: testData.consigneeName,
@@ -706,8 +729,8 @@ loadNumber = await pages.dfbLoadFormPage.getLoadNumber();`,
   {
     pattern: /search.*load/i,
     pageObject: 'allLoadsSearchPage',
-    method: 'searchByLoadNumber',
-    code: `await pages.allLoadsSearchPage.searchByLoadNumber(loadNumber);
+    method: 'searchMultipleLoads',
+    code: `await pages.allLoadsSearchPage.searchMultipleLoads([loadNumber], pages);
 await commonReusables.waitForAllLoadStates(sharedPage);`,
     confidence: 0.9,
     multiLine: true,
@@ -726,57 +749,62 @@ console.log("Load Number:", loadNumber);`,
 
   // --- TOGGLE / SETTINGS (office) ---
   {
-    pattern: /(?:toggle|enable|disable|set|ensure).*carrier\s*auto\s*accept.*(yes|no|on|off)/i,
-    pageObject: 'editOfficeInfoPage',
-    method: 'setToggle',
-    code: `await pages.editOfficeInfoPage.setToggle("Carrier Auto Accept", /^(yes|on|enable)$/i.test("{$1}"));`,
-    args: ['$1'],
+    pattern: /(?:toggle|enable|set|ensure).*carrier\s*auto\s*accept.*(?:yes|on)/i,
+    pageObject: 'officePage',
+    method: 'setToggleToYes',
+    code: `await pages.officePage.setToggleToYes("Carrier Auto Accept");`,
     confidence: 0.9,
     category: 'TOGGLE_SETTINGS',
   },
   {
-    pattern: /(?:toggle|enable|disable|set|ensure).*tnx\s*bid.*(yes|no|on|off)/i,
-    pageObject: 'editOfficeInfoPage',
-    method: 'setToggle',
-    code: `await pages.editOfficeInfoPage.setToggle("Enable TNX Bids", /^(yes|on|enable)$/i.test("{$1}"));`,
-    args: ['$1'],
+    pattern: /(?:toggle|enable|set|ensure).*tnx\s*bid.*(?:yes|on)/i,
+    pageObject: 'officePage',
+    method: 'setToggleToYes',
+    code: `await pages.officePage.setToggleToYes("Enable TNX Bids");`,
     confidence: 0.9,
     category: 'TOGGLE_SETTINGS',
   },
   {
-    pattern: /(?:toggle|enable|disable|set|ensure).*digital\s*matching.*(yes|no|on|off)/i,
-    pageObject: 'editOfficeInfoPage',
-    method: 'setToggle',
-    code: `await pages.editOfficeInfoPage.setToggle("Enable Digital Matching Engine", /^(yes|on|enable)$/i.test("{$1}"));`,
-    args: ['$1'],
+    pattern: /(?:toggle|enable|set|ensure).*digital\s*matching.*(?:yes|on)/i,
+    pageObject: 'officePage',
+    method: 'setToggleToYes',
+    code: `await pages.officePage.setToggleToYes("Enable Digital Matching Engine");`,
     confidence: 0.9,
     category: 'TOGGLE_SETTINGS',
   },
   {
-    pattern: /(?:toggle|enable|disable|set|ensure).*auto\s*post.*(yes|no|on|off)/i,
-    pageObject: 'editOfficeInfoPage',
-    method: 'setToggle',
-    code: `await pages.editOfficeInfoPage.setToggle("Auto Post", /^(yes|on|enable)$/i.test("{$1}"));`,
-    args: ['$1'],
+    pattern: /(?:toggle|enable|set|ensure).*auto\s*post.*(?:yes|on)/i,
+    pageObject: 'officePage',
+    method: 'setToggleToYes',
+    code: `await pages.officePage.setToggleToYes("Auto Post");`,
     confidence: 0.9,
     category: 'TOGGLE_SETTINGS',
   },
   {
-    pattern: /(?:toggle|enable|disable|set|ensure).*greenscreen.*(yes|no|on|off)/i,
-    pageObject: 'editOfficeInfoPage',
-    method: 'setToggle',
-    code: `await pages.editOfficeInfoPage.setToggle("Greenscreen", /^(yes|on|enable)$/i.test("{$1}"));`,
-    args: ['$1'],
+    pattern: /(?:toggle|enable|set|ensure).*greenscreen.*(?:yes|on)/i,
+    pageObject: 'officePage',
+    method: 'setToggleToYes',
+    code: `await pages.officePage.setToggleToYes("Greenscreen");`,
     confidence: 0.9,
     category: 'TOGGLE_SETTINGS',
   },
 
   // --- OFFICE ---
   {
+    pattern: /enter.*office\s*code|office\s*code.*search.*field|navigate.*office\s*code.*search/i,
+    pageObject: 'officePage',
+    method: 'officeCodeSearchField',
+    code: `await pages.officePage.officeCodeSearchField(testData.officeCode);
+await commonReusables.waitForAllLoadStates(sharedPage);`,
+    confidence: 0.92,
+    multiLine: true,
+    category: 'OFFICE',
+  },
+  {
     pattern: /office\s*profile|office\s*info/i,
-    pageObject: 'editOfficeInfoPage',
-    method: 'clickOnOfficeProfile',
-    code: `await pages.editOfficeInfoPage.clickOnOfficeProfile();
+    pageObject: 'officePage',
+    method: 'officeSearchRow',
+    code: `await pages.officePage.officeSearchRow(testData.officeName);
 await commonReusables.waitForAllLoadStates(sharedPage);`,
     confidence: 0.9,
     multiLine: true,
@@ -1326,6 +1354,16 @@ await pages.dmeDashboardPage.verifyLoadExists(loadNumber);`,
     category: 'MULTI_APP',
   },
   {
+    pattern: /enter\s+.+\s+in\s+the\s+customer\s+(?:name\s+)?field|enter\s+customer\s+(?:name|value)\s+in/i,
+    pageObject: 'searchCustomerPage',
+    method: 'enterCustomerName',
+    code: `await pages.searchCustomerPage.enterCustomerName(testData.customerName);
+await commonReusables.waitForAllLoadStates(sharedPage);`,
+    confidence: 0.9,
+    multiLine: true,
+    category: 'CUSTOMER',
+  },
+  {
     pattern: /search\s+customer|find\s+customer/i,
     pageObject: 'searchCustomerPage',
     method: 'searchCustomerAndClickDetails',
@@ -1542,7 +1580,7 @@ await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNumber);`,
     pageObject: 'loadsPage',
     method: 'clickNewLoadDropdown',
     code: `await pages.loadsPage.clickNewLoadDropdown();
-await pages.loadsPage.selectNonTabularTL();`,
+await pages.loadsPage.selectNonTabularTL(testData.loadType || 'TL');`,
     confidence: 0.8,
     multiLine: true,
     category: 'LOAD_FORM',
@@ -1662,7 +1700,7 @@ await pages.dfbLoadFormPage.selectCarreirContactForRateConfirmation(matchedConta
     pageObject: 'loadsPage',
     method: 'createNonTabularLoad',
     code: `await pages.loadsPage.clickNewLoadDropdown();
-await pages.loadsPage.selectNonTabularTL();
+await pages.loadsPage.selectNonTabularTL(testData.loadType || 'TL');
 await pages.nonTabularLoadPage.createNonTabularLoad({
   shipperValue: testData.shipperName,
   consigneeValue: testData.consigneeName,

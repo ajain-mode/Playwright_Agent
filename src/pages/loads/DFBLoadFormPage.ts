@@ -35,6 +35,7 @@ export class DFBLoadFormPage {
   private readonly dataTableRows_LOC: Locator;
   private readonly includeCarriersInput_LOC: Locator;
   private readonly carrierHighlighted_LOC: Locator;
+  private readonly includeCarriersTypeaheadOption_LOC: Locator;
   private readonly optionSelectedDropdown_LOC: string;
   private readonly carrierErrorMessage_LOC: Locator;  
   private readonly carrierAutoAcceptCheckBox_LOC: Locator;
@@ -83,6 +84,9 @@ export class DFBLoadFormPage {
     );
     this.carrierHighlighted_LOC = page.locator(
       "//*[@class='select2-results__option select2-results__option--highlighted']"
+    );
+    this.includeCarriersTypeaheadOption_LOC = page.locator(
+      "li.select2-results__option:not(.select2-results__option--disabled)"
     );
     this.optionSelectedDropdown_LOC = "option[selected]";
     this.carrierErrorMessage_LOC = page.locator("#carr_prexisting_errors");
@@ -167,6 +171,114 @@ export class DFBLoadFormPage {
       await this.page.waitForTimeout(WAIT.DEFAULT);
       await this.carrierHighlighted_LOC.click();
     }
+  }
+
+  /**
+   * Fills Include Carriers by searching each term and selecting the first typeahead result
+   * until `targetCount` is reached (e.g. search INC, then LLC for any remainder — DFB-97788 step 60).
+   *
+   * @author AI Agent
+   * @created 2026-05-15
+   * @see monotrans `LoadBoardFormType.php` — `carriers_whitelist` / `#form_carriers_whitelist`
+   */
+  async selectIncludeCarriersBySearchTerms(
+    searchTerms: readonly string[],
+    targetCount: number
+  ): Promise<void> {
+    const maxAttemptsPerTerm = targetCount + 5;
+
+    for (const term of searchTerms) {
+      let attempts = 0;
+      while (
+        (await this.getIncludeCarriersSelectedOptionCount()) < targetCount &&
+        attempts < maxAttemptsPerTerm
+      ) {
+        attempts += 1;
+        const before = await this.getIncludeCarriersSelectedOptionCount();
+        await this.includeCarriersInput_LOC.click();
+        await this.includeCarriersInput_LOC.fill(term);
+        await this.page.waitForLoadState("domcontentloaded");
+
+        const hasResult = await this.includeCarriersTypeaheadOption_LOC
+          .first()
+          .waitFor({ state: "visible", timeout: WAIT.DEFAULT })
+          .then(() => true)
+          .catch(() => false);
+        if (!hasResult || (await this.includeCarriersTypeaheadOption_LOC.count()) === 0) {
+          console.log(`No Include Carriers typeahead results for search "${term}"`);
+          break;
+        }
+
+        await this.includeCarriersTypeaheadOption_LOC.first().click();
+        await this.page.waitForTimeout(WAIT.DEFAULT / 4);
+
+        const after = await this.getIncludeCarriersSelectedOptionCount();
+        if (after <= before) {
+          console.log(
+            `Include Carriers count unchanged after selecting first result for "${term}" (${before} → ${after})`
+          );
+          break;
+        }
+      }
+
+      if ((await this.getIncludeCarriersSelectedOptionCount()) >= targetCount) {
+        return;
+      }
+    }
+
+    const final = await this.getIncludeCarriersSelectedOptionCount();
+    if (final < targetCount) {
+      throw new Error(
+        `Expected ${targetCount} include carriers after searches [${searchTerms.join(", ")}] but selected ${final}.`
+      );
+    }
+  }
+
+  /**
+   * Display labels for carriers currently selected on Include Carriers (`#form_carriers_whitelist`).
+   *
+   * @author AI Agent
+   * @created 2026-05-15
+   */
+  async getIncludeCarriersSelectedCarrierNames(): Promise<string[]> {
+    await this.includeCarriersValue_LOC.waitFor({ state: "attached" });
+    return await this.includeCarriersValue_LOC.evaluate((el) => {
+      const tag = el.tagName.toLowerCase();
+      if (tag === "select") {
+        return Array.from((el as HTMLSelectElement).selectedOptions)
+          .map((o) => o.text.trim())
+          .filter(Boolean);
+      }
+      const raw = el.getAttribute("value")?.trim() ?? "";
+      if (!raw) {
+        return [];
+      }
+      return raw.split(",").map((s) => s.trim()).filter(Boolean);
+    });
+  }
+
+  /**
+   * Returns how many carriers are currently selected on the Include Carriers control
+   * (multi-select option count or comma-separated hidden value count).
+   *
+   * @author AI Agent
+   * @created 2026-05-12
+   * @see monotrans `btms/php/src/classes/Sunteck/Brokerage/Form/Type/LoadBoardFormType.php` — field
+   *      `carriers_whitelist` (`#form_carriers_whitelist`). DME: not applicable (whitelist UI is BTMS).
+   */
+  async getIncludeCarriersSelectedOptionCount(): Promise<number> {
+    await this.includeCarriersValue_LOC.waitFor({ state: "attached" });
+    return await this.includeCarriersValue_LOC.evaluate((el) => {
+      const tag = el.tagName.toLowerCase();
+      if (tag === "select") {
+        return (el as HTMLSelectElement).selectedOptions.length;
+      }
+      const raw = el.getAttribute("value")?.trim() ?? "";
+      if (!raw) {
+        return 0;
+      }
+      return raw.split(",").map((s) => s.trim()).filter(Boolean).length;
+    });
   }
 
   /**

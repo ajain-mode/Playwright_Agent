@@ -146,4 +146,18 @@ export default class AgentInfoPage {
     console.log(`Got Agent Email: ${text}`);
     return text;
   }
+
+  /**
+   * Returns visible USER ROLES / role assignment text from the agent view page.
+   * Uses the same role container as {@link validateBulkChangeRole} (td.viewww).
+   *
+   * @author AI Agent
+   * @created 2026-04-30
+   * @returns Normalized inner text from the roles display cell
+   */
+  async getDisplayedUserRolesText(): Promise<string> {
+    await this.bulkChangeRole_LOC.first().waitFor({ state: "visible", timeout: WAIT.SMALL });
+    const raw = (await this.bulkChangeRole_LOC.first().innerText()) ?? "";
+    return raw.replace(/\u00A0/g, " ").trim();
+  }
 }

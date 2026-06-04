@@ -7,13 +7,13 @@ import { ALERT_PATTERNS } from "@utils/alertPatterns";
 import commonReusables from "@utils/commonReusables";
 
 /**
- * Test Case: BT-67898 - Verify that the Billing toggle does not change to
- * Billing when paperwork is received for an Invoiced load.
+ * Test Case: BT-67877 — Admin + system admin billing-toggle user; agent roles; load to BOOKED;
+ * DELIVERED FINAL; View Billing; observe Billing Issues toggle.
  * @author AI Agent
- * @date 2026-04-29
+ * @date 2026-04-30
  * @category billingtoggle
  */
-const testcaseID = "BT-67898";
+const testcaseID = "BT-67877";
 const testData = dataConfig.getTestDataFromCsv(dataConfig.billingtoggleData, testcaseID);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -25,7 +25,7 @@ let pages: PageManager;
 
 test.describe.configure({ retries: 1 });
 test.describe.serial(
-  "Case ID: BT-67898 - Verify Billing toggle does not change to Billing when paperwork is received for an Invoiced load",
+  "Case ID: BT-67877 - Validating the scenario when the user is an admin user w/ system admin role, and the billing toggle is set to any state ...",
   () => {
     test.beforeAll(async ({ browser }) => {
       sharedContext = await browser.newContext();
@@ -40,7 +40,7 @@ test.describe.serial(
     });
 
     test(
-      "Case Id: BT-67898 - Verify Billing toggle does not change to Billing when paperwork is received for an Invoiced load",
+      "Case Id: BT-67877 - Validating the scenario when the user is an admin user w/ system admin role, and the billing toggle is set to any state ...",
       { tag: "@aiagent,@at_billingtoggle" },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
@@ -52,22 +52,30 @@ test.describe.serial(
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
 
-        await test.step("Step 2-8 [CSV 2-8]: Office CORP — ensure Invoice Process is Central", async () => {
+        await test.step("Step 2: Admin > Agent Search, search BILLINGTOGGLE.USER, open agent row", async () => {
           await pages.basePage.hoverOverHeaderByText(HEADERS.ADMIN);
-          await pages.basePage.clickSubHeaderByText(ADMIN_SUB_MENU.OFFICE_SEARCH);
-          await pages.officePage.officeCodeSearchField(testData.officeName);
-          await pages.officePage.searchButtonClick();
-          await pages.officePage.officeSearchRow(testData.officeName);
-          await pages.officePage.ensureInvoiceProcess(INVOICE_PROCESS.CENTRAL);
-
-          const invoiceProcess = await pages.officePage.getInvoiceProcessValue();
-          expect(
-            invoiceProcess.toLowerCase(),
-            "Invoice Process should be Central after office setup"
-          ).toBe(INVOICE_PROCESS.CENTRAL.toLowerCase());
+          await pages.basePage.clickSubHeaderByText(ADMIN_SUB_MENU.AGENT_SEARCH);
+          await commonReusables.waitForAllLoadStates(sharedPage);
+          await pages.agentSearchPage.nameInputOnAgentPage(USER_ROLES.BILLINGTOGGLE_USER);
+          await pages.agentSearchPage.clickOnSearchButton();
+          await pages.agentSearchPage.selectAgentForBillingToggle(USER_ROLES.BILLINGTOGGLE_USER);
+          await commonReusables.waitForAllLoadStates(sharedPage);
         });
 
-        await test.step("Step 9-13 [CSV 9-13]: Customer search, open row, CREATE TL *NEW*", async () => {
+        await test.step("Step 3: USER ROLES — hard assert ADMIN and SYSTEM_ADMIN", async () => {
+          const rolesText = (await pages.agentInfoPage.getDisplayedUserRolesText()).toUpperCase();
+          pages.logger.info(`Agent USER ROLES text: ${rolesText}`);
+          expect(
+            rolesText,
+            "Agent should have ADMIN role in USER ROLES section"
+          ).toContain(AGENT_USER_ROLES.ADMIN);
+          expect(
+            rolesText,
+            "Agent should have SYSTEM_ADMIN role in USER ROLES section"
+          ).toContain(AGENT_USER_ROLES.SYSTEM_ADMIN);
+        });
+
+        await test.step("Step 4: Customers > Search, ADVANCED COMPOSITES, open customer, CREATE TL *NEW*", async () => {
           await pages.basePage.navigateToBaseUrl();
           await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
           await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
@@ -79,13 +87,30 @@ test.describe.serial(
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
 
-        await test.step("Step 14-15 [CSV 14-15]: Select customer on ENTER NEW LOAD page", async () => {
+        await test.step("Step 5: Select customer on Enter New Load", async () => {
           const customerName = testData["Customer Value"];
           await pages.nonTabularLoadPage.selectCustomerViaSelect2(customerName);
-          await pages.nonTabularLoadPage.ensureEnterNewLoadSalespersonDispatcherSelection();
+          await commonReusables.waitForPageStable(sharedPage);
         });
 
-        await test.step("Step 16-27 [CSV 16-27]: Fill shipper, consignee, dates, times, qty, weight, equipment, length", async () => {
+        await test.step("CSV step 12: Salesperson / Dispatcher — fill from UI default or first dropdown (soft)", async () => {
+          const csv12 = await pages.nonTabularLoadPage.ensureEnterNewLoadSalespersonDispatcherSelection();
+          pages.logger.info(
+            `CSV12 => spAutoSelected=${csv12.salespersonAutoSelected}, dpAutoSelected=${csv12.dispatcherAutoSelected}, ` +
+            `Salesperson="${csv12.salespersonFinal}", Dispatcher="${csv12.dispatcherFinal}"`
+          );
+
+          expect.soft(
+            csv12.salespersonFinal.length,
+            "[Soft CSV 12] Salesperson should have a value (preselected or auto-selected)"
+          ).toBeGreaterThan(0);
+          expect.soft(
+            csv12.dispatcherFinal.length,
+            "[Soft CSV 12] Dispatcher should have a value (preselected or auto-selected)"
+          ).toBeGreaterThan(0);
+        });
+
+        await test.step("Step 6: Fill shipper, consignee, dates, times, commodity, equipment", async () => {
           await pages.nonTabularLoadPage.createNonTabularLoad({
             shipperValue: testData.shipperName,
             consigneeValue: testData.consigneeName,
@@ -99,25 +124,32 @@ test.describe.serial(
             shipmentCommodityWeight: testData.shipmentCommodityWeight,
             equipmentType: testData.equipmentType,
             equipmentLength: testData.equipmentLength,
+            shipperCountry: testData.shipperCountry,
+            shipperZip: testData.shipperZip,
+            shipperAddress: testData.shipperAddress,
+            shipperNameNew: testData.shipperNameNew,
+            shipperCity: testData.shipperCity,
+            shipperState: testData.shipperState,
+            consigneeCountry: testData.consigneeCountry,
+            consigneeZip: testData.consigneeZip,
+            consigneeAddress: testData.consigneeAddress,
+            consigneeCity: testData.consigneeCity,
+            consigneeState: testData.consigneeState,
           });
         });
 
-        await test.step("Step 8: Select Mileage Engine as Current", async () => {
-          await pages.editLoadFormPage.selectMileageEngine(MILEAGE_ENGINE.CURRENT);
+        await test.step("Step 7: Mileage Engine, Method, LH rate", async () => {
+          await pages.editLoadFormPage.selectMileageEngine(testData.mileageEngine);
+          await pages.editLoadFormPage.selectMileageMethod(testData.Method);
+          await pages.editLoadFormPage.enterLinehaulRate(testData.linehaulRate);
         });
 
-        await test.step("Step 9: Select Method as Practical", async () => {
-          await pages.editLoadFormPage.selectMileageMethod(MILEAGE_METHOD.PRACTICAL);
-        });
-
-        await test.step("Step 10: Verify Linehaul and Fuel Surcharge defaults are Flat Rate", async () => {
+        await test.step("Step 8: Verify Linehaul and Fuel Surcharge default to Flat Rate (CSV 34)", async () => {
           const linehaulDefault = await pages.editLoadFormPage.getLinehaulDefaultValue();
           pages.logger.info(`Linehaul default: ${linehaulDefault}`);
-          expect.soft(
-            linehaulDefault?.toLowerCase(),
-            "Linehaul should default to Flat Rate"
-          ).toContain(RATE_TYPE.FLAT.toLowerCase());
-
+          expect.soft(linehaulDefault?.toLowerCase(), "Linehaul should default to Flat Rate").toContain(
+            RATE_TYPE.FLAT.toLowerCase()
+          );
           const fuelSurchargeDefault = await pages.editLoadFormPage.getFuelSurchargeDefaultValue();
           pages.logger.info(`Fuel Surcharge default: ${fuelSurchargeDefault}`);
           expect.soft(
@@ -126,63 +158,37 @@ test.describe.serial(
           ).toContain(RATE_TYPE.FLAT.toLowerCase());
         });
 
-        await test.step("Step 11: Click Create Load and select Rate Type SPOT if visible", async () => {
+        await test.step("Step 9: Create Load, rate type SPOT if shown", async () => {
           await pages.nonTabularLoadPage.clickCreateLoadButton();
           await pages.editLoadLoadTabPage.checkRateTypeIfPresent(testData.rateType, pages.editLoadFormPage);
           await pages.editLoadPage.validateEditLoadHeadingText();
           loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
           pages.logger.info(`Load number: ${loadNumber}`);
-          await pages.editLoadPage.validateCurrentTabValue(TABS.LOAD);
-          pages.logger.info("Load created successfully");
         });
 
-        await test.step("Step 12: Click Carrier tab and enter Offer Rate", async () => {
+        await test.step("Step 10: Carrier tab — offer, customer, carrier rates, trailer, expiration, email, miles, carrier", async () => {
           await pages.editLoadPage.clickOnTab(TABS.CARRIER);
           await pages.dfbLoadFormPage.enterOfferRate(testData.offerRate);
-        });
-
-        await test.step("Step 13: Enter Customer flat rate", async () => {
           await pages.editLoadCarrierTabPage.enterCustomerRate(testData.customerRate);
-        });
-
-        await test.step("Step 14: Enter Carrier flat rate", async () => {
           await pages.editLoadCarrierTabPage.enterCarrierRate(testData.carrierRate);
-        });
-
-        await test.step("Step 15: Enter trailer length", async () => {
           await pages.editLoadCarrierTabPage.enterValueInTrailerLength(testData.trailerLength);
-        });
-
-        await test.step("Step 16: Enter Expiration Date and Time", async () => {
           await pages.editLoadFormPage.enterFutureExpirationDateAndTime(7, "18:00");
-        });
-
-        await test.step("Step 17: Enter Email for notification", async () => {
           await pages.editLoadCarrierTabPage.selectEmailNotificationViaSelect2(testData.saleAgentEmail);
-        });
-
-        await test.step("Step 18: Total miles will be auto-populated", async () => {
           await pages.editLoadCarrierTabPage.enterMiles(testData.miles);
+          await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_NAME.CARRIER_XPO_TRANS);
+          pages.logger.info(`Carrier: ${CARRIER_NAME.CARRIER_XPO_TRANS}`);
         });
 
-        await test.step("Step 19: Choose carrier XPO TRANS INC", async () => {
-          //@ModfiedBy Akshada Ghaytadkar - 04-Dec-2025: Updated carrier selection to use CARRIER_ID instead of CARRIER_NAME for better reliability
-          // await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_NAME.CARRIER_XPO_TRANS);
-          await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_ID.CARRIER_XPO_TRANS);
-          pages.logger.info(`Carrier: ${CARRIER_ID.CARRIER_XPO_TRANS}`);
-        });
-
-        await test.step("Step 20: Click Save — Status set to BOOKED", async () => {
+        await test.step("Step 11: Save — status BOOKED", async () => {
           const alertPromise = pages.commonReusables.validateAlert(
             sharedPage,
             ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_BOOKED
           );
           await pages.editLoadFormPage.clickOnSaveBtn();
           await alertPromise;
-          pages.logger.info("Load saved — Status set to BOOKED");
         });
 
-        await test.step("Step 51-52 [CSV 51-52]: Edit — DELIVERED FINAL, Save; accept alert", async () => {
+        await test.step("Step 12: Edit, set status DELIVERED FINAL, save and accept confirmation (CSV 48)", async () => {
           await pages.viewLoadPage.clickEditButton();
           await pages.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
 
@@ -191,63 +197,42 @@ test.describe.serial(
             () => pages.editLoadFormPage.clickOnSaveBtn(),
             WAIT.DEFAULT
           );
-          pages.logger.info(`Total dialogs captured: ${capturedDialogs.length}`);
+          pages.logger.info(`Dialogs captured: ${capturedDialogs.length}`);
 
           const confirmDialog = capturedDialogs.find((msg) =>
             msg.includes(ALERT_PATTERNS.CONFIRM_CHANGE_TO_DELIVERED_FINAL)
           );
           expect(
             confirmDialog,
-            "Delivered Final confirmation alert should appear"
+            "Expected Delivered Final confirmation after status change"
           ).toContain(ALERT_PATTERNS.CONFIRM_CHANGE_TO_DELIVERED_FINAL);
 
           await pages.commonReusables.waitForPageStable(sharedPage);
-
-          await test.step("Expected [CSV 52]: Load status is INVOICED", async () => {
-            const loadStatus = await pages.viewLoadPage.getLoadStatus();
-            pages.logger.info(`Load status after save: ${loadStatus}`);
-            expect(
-              loadStatus.toUpperCase(),
-              "Expected [CSV 52]: Status should be set to INVOICED"
-            ).toBe(LOAD_STATUS.INVOICED);
-          });
         });
 
-        await test.step("Step 53 [CSV 53]: Open document upload dialog against Payable", async () => {
-          await pages.viewLoadPage.openDocumentUploadDialog();
-        });
-
-        await test.step("Step 54 [CSV 54]: Select Payables, Carrier Invoice, upload file", async () => {
-          await pages.viewLoadPage.selectPayablesRadio();
-          await pages.viewLoadPage.selectDocumentType(DOCUMENT_TYPE.CARRIER_INVOICE);
-          await pages.viewLoadPage.attachCarrierInvoiceFile();
-        });
-
-        await test.step("Step 55 [CSV 55]: Enter invoice details, attach, close popup", async () => {
-          const invoiceNumber = pages.commonReusables.generateRandomInvoiceNumber();
-          await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNumber);
-          await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
-
-          await pages.viewLoadPage.clickSubmitRemote();
-          await pages.viewLoadPage.waitForUploadSuccess();
-          await pages.viewLoadPage.closeDocumentUploadDialogSafe();
-        });
-
-        await test.step("Step 56 [CSV 56]: Click View Billing", async () => {
+        await test.step("Step 13: View Billing (CSV 49)", async () => {
+          await pages.editLoadPage.clickOnTab(TABS.LOAD);
           await pages.editLoadFormPage.clickOnViewBillingBtn();
           await pages.commonReusables.waitForPageStable(sharedPage);
         });
 
-        await test.step("Step 57 [CSV 57]: Observe Billing Toggle — not Billing", async () => {
+        await test.step("Step 14 [CSV 50]: Observe Billing Toggle", async () => {
           await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
-          const billingToggle = await pages.loadBillingPage.getBillingToggleValue();
-          pages.logger.info(`Billing toggle: ${billingToggle}`);
-          expect(
-            billingToggle,
-            "Expected [CSV 57]: Billing toggle must not switch to Billing"
-          ).not.toBe(PAYABLE_TOGGLE_VALUE.BILLING);
+          const observedToggle = await pages.loadBillingPage.getBillingToggleValue();
+          pages.logger.info(`Observed Billing Issues toggle: ${observedToggle}`);
         });
 
+        await test.step("Step 15 [CSV 51 / Expected 51]: Move Waiting On toggle to Billing and hard assert", async () => {
+          await pages.loadBillingPage.setAndAssertBillingIssuesToggle(PAYABLE_TOGGLE_VALUE.BILLING);
+        });
+
+        await test.step("Step 16 [CSV 52 / Expected 52]: Move Waiting On toggle to Agent and hard assert", async () => {
+          await pages.loadBillingPage.setAndAssertBillingIssuesToggle(PAYABLE_TOGGLE_VALUE.AGENT);
+        });
+
+        await test.step("Step 17 [CSV 53 / Expected 53]: Move Waiting On toggle to Neutral and hard assert", async () => {
+          await pages.loadBillingPage.setAndAssertBillingIssuesToggle(PAYABLE_TOGGLE_VALUE.NEUTRAL);
+        });
       }
     );
   }

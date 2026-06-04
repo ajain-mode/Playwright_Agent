@@ -263,10 +263,11 @@ class CommonReusables {
     const dialogHandler = async (dialog: { accept: () => Promise<void> }) => { await dialog.accept(); };
     page.on("dialog", dialogHandler);
     await page.reload();
-    await page.waitForLoadState("load");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load").catch(() => {});
+    // BTMS billing pages keep background requests open — do not block on networkidle.
+    await page.waitForLoadState("networkidle", { timeout: WAIT.LARGE }).catch(() => {});
     page.off("dialog", dialogHandler);
-    await this.waitForPageStable(page);
+    await this.waitForAllLoadStates(page);
   }
 
   async getElementText(element: Locator): Promise<string> {

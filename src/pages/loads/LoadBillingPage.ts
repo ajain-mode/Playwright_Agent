@@ -34,8 +34,8 @@ class LoadBillingPage {
 
     // Billing Toggle locators
     private readonly billingToggleHiddenField_LOC: Locator;
-    private readonly billingToggleSliderInput_LOC: Locator;
-    private readonly billingToggleSliderSelection_LOC: Locator;
+    private readonly billingToggleTrack_LOC: Locator;
+    private readonly billingToggleHandle_LOC: Locator;
 
     // Payable Toggle locators (top slider)
     private readonly payableToggleHiddenField_LOC: Locator;
@@ -63,14 +63,14 @@ class LoadBillingPage {
     private readonly carrierRemainderAmount_LOC: Locator;
     private readonly carrierTotalInvoicesAmount_LOC: Locator;
 
-    // Billing Issues checkboxes (all inside #finance_issues_block)
+    // Billing Issues section root + checkboxes (inside #finance_issues_block)
+    private readonly financeIssuesBlock_LOC: Locator;
     private readonly allBillingIssueCheckboxes_LOC: Locator;
     private readonly lumperCheckbox_LOC: Locator;
     private readonly lumperLabel_LOC: Locator;
 
-    // View History popup selectors (used on the popup Page, not main page — cannot be Locator since popup doesn't exist at construction)
-    private readonly HISTORY_TABLE_DATA_ROWS_SELECTOR = 'table.hist tr:not(:first-child)';
-    private readonly HISTORY_MESSAGE_COLUMN_SELECTOR = 'td:nth-child(3)';
+    // View History popup (payables note): table.hist rows with cells (header row uses th).
+    private readonly HISTORY_TABLE_DATA_ROWS_SELECTOR = 'table.hist tr:has(td)';
 
     // locators copied from View Billing Page
     private readonly viewLoadButton_LOC: Locator;
@@ -127,10 +127,9 @@ class LoadBillingPage {
         this.financeNotesValue_LOC = this.page.locator("//ul[@id='notes_section_bill']//div[@class='note-container']");
         this.financeNotesNewButton_LOC = this.page.locator("//ul[@id='notes_section_bill']//button[@value='new_note']");
 
-        // Billing Toggle
+        // Billing Issues "Waiting On" toggle — exact element IDs from BTMS PHP source as indexed for the agent
+        // (AppSourceIndexer: modetrans/mono.git → btms/php/src; same IDs listed in src/agent/config/PromptsConfig.ts pomLocators).
         this.billingToggleHiddenField_LOC = this.page.locator("#fi_waiting_on");
-        this.billingToggleSliderInput_LOC = this.page.locator("#waiting_on_select");
-        this.billingToggleSliderSelection_LOC = this.page.locator("div.slider-selection").last();
 
         // Payable Toggle — per-carrier slider. Hidden input has dynamic ID: payables_waiting_on-[lscarr_id]
         // Both the text slider input and hidden input share name="payables_waiting_on"
@@ -157,8 +156,11 @@ class LoadBillingPage {
         // View History — scoped to the payables note container
         this.viewHistoryLink_LOC = this.page.locator("div[id^='payables-note-container_'] a:has(small)");
 
-        // Billing Issues / Missing Paperwork checkboxes (hidden inputs, use labels to click)
-        this.allBillingIssueCheckboxes_LOC = this.page.locator("#finance_issues_block input.fi_ckb");
+        // Billing Issues / Missing Paperwork (#finance_issues_block — same block as fi_waiting_on slider region)
+        this.financeIssuesBlock_LOC = this.page.locator("#finance_issues_block");
+        this.billingToggleTrack_LOC = this.financeIssuesBlock_LOC.locator(".slider-track").first();
+        this.billingToggleHandle_LOC = this.financeIssuesBlock_LOC.locator(".slider-handle").first();
+        this.allBillingIssueCheckboxes_LOC = this.financeIssuesBlock_LOC.locator("input.fi_ckb");
         this.lumperCheckbox_LOC = this.page.locator("#Lumpers");
         this.lumperLabel_LOC = this.page.locator("label[for='Lumpers'].ckb");
 
@@ -554,7 +556,8 @@ class LoadBillingPage {
     /**
      * Reads the Billing Issues "Waiting On" toggle value.
      * Returns 'Billing' (1), 'Neutral' (2), or 'Agent' (3).
-     * Reads from hidden input #fi_waiting_on which is the source of truth.
+     * Reads from hidden input `#fi_waiting_on` (source of truth; pairs with bootstrap-slider `#waiting_on_select`).
+     * Locator source: BTMS billing PHP as indexed — `#fi_waiting_on`, `#waiting_on_select` (see PromptsConfig pomLocators).
      * @author AI Agent
      * @created 17-Mar-2026
      */
@@ -570,6 +573,96 @@ class LoadBillingPage {
             console.error(`getBillingToggleValue: ${(err as Error).message}`);
             throw err;
         }
+    }
+
+    /**
+     * Scrolls `#finance_issues_block` into view (Billing Issues region containing `#fi_waiting_on` / `#waiting_on_select`).
+     * @author AI Agent
+     * @created 2026-04-30
+     */
+    async scrollBillingIssuesBlockIntoView(): Promise<void> {
+        await this.financeIssuesBlock_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await this.financeIssuesBlock_LOC.scrollIntoViewIfNeeded();
+    }
+
+    /**
+     * Sets Billing Issues "Waiting On" toggle to Billing, Agent, or Neutral.
+     * Clicks slider track and validates hidden source field (`#fi_waiting_on`) reaches target raw value.
+     * @author AI Agent
+     * @created 2026-05-06
+     * @param expectedToggle - One of PAYABLE_TOGGLE_VALUE.BILLING/AGENT/NEUTRAL
+     */
+    async setBillingIssuesToggle(expectedToggle: string): Promise<void> {
+        const targetRawValueMap: Record<string, string> = {
+            [PAYABLE_TOGGLE_VALUE.BILLING]: "1",
+            [PAYABLE_TOGGLE_VALUE.NEUTRAL]: "2",
+            [PAYABLE_TOGGLE_VALUE.AGENT]: "3",
+        };
+
+        const targetRawValue = targetRawValueMap[expectedToggle];
+        if (!targetRawValue) {
+            throw new Error(`Unsupported billing toggle target: ${expectedToggle}`);
+        }
+
+        await this.scrollBillingIssuesBlockIntoView();
+        await this.billingToggleHiddenField_LOC.waitFor({ state: "attached", timeout: WAIT.LARGE });
+        await this.billingToggleTrack_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await this.billingToggleHandle_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+
+        let currentRawValue = await this.billingToggleHiddenField_LOC.inputValue();
+        if (currentRawValue === targetRawValue) return;
+
+        const trackBox = await this.billingToggleTrack_LOC.boundingBox();
+        if (!trackBox || trackBox.width <= 4 || trackBox.height <= 2) {
+            throw new Error("Billing toggle track is not clickable");
+        }
+
+        const maxMoves = 2;
+        for (let move = 0; move < maxMoves && currentRawValue !== targetRawValue; move++) {
+            const handleBox = await this.billingToggleHandle_LOC.boundingBox();
+            if (!handleBox) {
+                throw new Error("Billing toggle handle is not clickable");
+            }
+
+            const moveLeft = Number(currentRawValue) > Number(targetRawValue);
+            const handleCenterXInTrack = handleBox.x + handleBox.width / 2 - trackBox.x;
+            const clickX = moveLeft
+                ? Math.max(2, Math.round(handleCenterXInTrack - 12))
+                : Math.min(trackBox.width - 2, Math.round(handleCenterXInTrack + 12));
+            const clickY = Math.max(1, Math.round(trackBox.height / 2));
+
+            await this.billingToggleTrack_LOC.click({ position: { x: clickX, y: clickY } });
+            await commonReusables.waitForPageStable(this.page);
+
+            const beforeRawValue = currentRawValue;
+            currentRawValue = await this.billingToggleHiddenField_LOC.inputValue();
+            if (currentRawValue === beforeRawValue) {
+                throw new Error(`Billing toggle did not move from raw value ${beforeRawValue}`);
+            }
+        }
+
+        await expect
+            .poll(async () => await this.billingToggleHiddenField_LOC.inputValue(), {
+                timeout: WAIT.LARGE,
+                message: `Billing toggle raw value should become ${targetRawValue}`,
+            })
+            .toBe(targetRawValue);
+    }
+
+    /**
+     * Hard assertion helper: set Billing Issues toggle and verify resulting state.
+     * @author AI Agent
+     * @created 2026-05-06
+     * @param expectedToggle - Expected resolved display value.
+     */
+    async setAndAssertBillingIssuesToggle(expectedToggle: string): Promise<void> {
+        await this.setBillingIssuesToggle(expectedToggle);
+        await expect
+            .poll(async () => await this.getBillingToggleValue(), {
+                timeout: WAIT.LARGE,
+                message: `Billing toggle should resolve to ${expectedToggle}`,
+            })
+            .toBe(expectedToggle);
     }
 
     /**
@@ -716,7 +809,8 @@ class LoadBillingPage {
             this.page.context().waitForEvent('page'),
             this.viewHistoryLink_LOC.click(),
         ]);
-        await commonReusables.waitForPageStable(historyPopup);
+        await historyPopup.waitForLoadState("domcontentloaded", { timeout: WAIT.LARGE });
+        await commonReusables.waitForAllLoadStates(historyPopup);
         console.log("View History popup window opened");
         return historyPopup;
     }
@@ -797,8 +891,9 @@ class LoadBillingPage {
     }
 
     /**
-     * Opens View History popup, searches backwards through rows for the most recent
-     * message containing a dollar value (price difference), skipping toggle entries.
+     * Reads the price-difference message from View History: second-to-last data row, last column.
+     * Last row is typically a toggle audit entry (e.g. payables_waiting_on); the row above holds
+     * text like "XPO TRANS INC invoiced $2,900.00 over the total charge" in the rightmost cell.
      *
      * Expected price difference = Total Invoices - MODE Global Total Charges (carrier rate)
      *
@@ -812,40 +907,40 @@ class LoadBillingPage {
         totalCharges: string,
         invoiceAmounts: string[]
     ): Promise<{ lastMessage: string; priceDifference: number | null; expectedPriceDiff: number }> {
-        // Compute expected: Total Invoices - Total Charges = Price Difference
         const charges = parseFloat(totalCharges.replace(/,/g, ''));
         const totalInvoiced = invoiceAmounts.reduce((sum, a) => sum + parseFloat(a.replace(/,/g, '')), 0);
         const expectedPriceDiff = Math.abs(totalInvoiced - charges);
         console.log(`Expected price diff: Total Invoices(${totalInvoiced}) - Total Charges(${charges}) = ${expectedPriceDiff}`);
 
-        // Open View History popup and search for the price difference message.
-        // Table structure (from billing.php): Time | User | Message | Inactive Date
-        // So td:nth-child(3) = Message column.
-        // The history table contains both system messages AND toggle events (e.g. "payables_waiting_on").
-        // Iterate backwards to find the most recent row whose Message column contains a dollar value.
         const historyPopup = await this.clickViewHistoryAndGetPopup();
         const dataRows = historyPopup.locator(this.HISTORY_TABLE_DATA_ROWS_SELECTOR);
+        await dataRows.first().waitFor({ state: 'attached', timeout: WAIT.LARGE });
         const rowCount = await dataRows.count();
-
-        let lastMessage = '';
-        let priceDifference: number | null = null;
-        for (let i = rowCount - 1; i >= 0; i--) {
-            const msgText = ((await dataRows.nth(i).locator(this.HISTORY_MESSAGE_COLUMN_SELECTOR).textContent()) || '').trim();
-            const extracted = this.extractDollarValue(msgText);
-            if (extracted !== null) {
-                lastMessage = msgText;
-                priceDifference = extracted;
-                console.log(`View History row ${i} has price difference message: "${msgText}"`);
-                break;
-            }
+        if (rowCount < 2) {
+            throw new Error(`View History: expected at least 2 data rows, found ${rowCount}`);
         }
-        if (priceDifference === null && rowCount > 0) {
-            // Fallback: return the last row's message for diagnostics
-            lastMessage = ((await dataRows.nth(rowCount - 1).locator(this.HISTORY_MESSAGE_COLUMN_SELECTOR).textContent()) || '').trim();
-            console.log(`No price difference message found in View History. Last row: "${lastMessage}"`);
+
+        const priceRow = dataRows.nth(rowCount - 2);
+        const priceDiffCell = priceRow.locator('td').last();
+        await priceDiffCell.waitFor({ state: 'attached', timeout: WAIT.LARGE });
+        let lastMessage = ((await priceDiffCell.innerText()) || '').trim();
+        let priceDifference = this.extractDollarValue(lastMessage);
+
+        // Some builds add Inactive Date as a 5th column (empty on price rows); Message is then 4th.
+        if (priceDifference === null) {
+            const messageCell = priceRow.locator('td').nth(3);
+            lastMessage = ((await messageCell.innerText()) || '').trim();
+            priceDifference = this.extractDollarValue(lastMessage);
+            console.log(`View History second-last row, Message column (fallback): "${lastMessage}"`);
+        } else {
+            console.log(`View History second-last row, last column: "${lastMessage}"`);
+        }
+        if (priceDifference === null) {
+            console.log('No dollar amount parsed from second-last row');
         }
 
         await historyPopup.close();
+        await this.page.bringToFront();
         console.log(`Extracted price difference: ${priceDifference}, expected: ${expectedPriceDiff}`);
 
         return { lastMessage, priceDifference, expectedPriceDiff };

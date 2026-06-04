@@ -27,6 +27,8 @@ import { TestStep } from '../types/TestCaseTypes';
 // ─────────────────────────── Types ───────────────────────────
 
 export type StepCategory =
+  | 'login-main'         // Primary BTMS login step
+  | 'sso-substep'        // SSO sub-step absorbed by BTMSLogin (Sign-In with SSO, User ID, Password, Sign In)
   | 'form-field'         // Enter/select a form field value
   | 'form-auto'          // Informational: field auto-populates
   | 'form-preselected'   // Informational: field already has value
@@ -55,7 +57,7 @@ export type StepCategory =
 
 export interface CompositeGroup {
   /** Composite group type */
-  type: 'load-form-fill' | 'create-load-and-rate' | 'carrier-tab-setup'
+  type: 'login-group' | 'load-form-fill' | 'create-load-and-rate' | 'carrier-tab-setup'
     | 'carrier-rate-and-details' | 'save-alert-fix' | 'dme-verification' | 'tnx-verification'
     | 'customer-to-create' | 'post-load' | 'btms-switch' | 'single';
   /** Original steps in this group */
@@ -73,9 +75,17 @@ export interface CompositeGroup {
 function classifyStep(action: string): StepCategory {
   const a = action.toLowerCase();
 
+  // ── Login / SSO sub-steps (must be checked before general patterns) ──
+  if (/log\s*in.*btms|log\s*in.*brokerage|log\s*in.*valid.*env/i.test(action)) return 'login-main';
+  if (/sign\s*in.*single\s*sign.?on|single\s*sign.?on|click.*sso\b/i.test(action)) return 'sso-substep';
+  if (/enter.*user\s*id.*(click|next|and)/i.test(action)) return 'sso-substep';
+  if (/^enter\s+(the\s+)?password\.?$/i.test(action)) return 'sso-substep';
+  if (/^click\s+sign\s+in\.?$/i.test(action)) return 'sso-substep';
+
   // ── Customer / Navigation ──
   if ((a.includes('hover') && a.includes('customer')) || (a.includes('click') && a.includes('search') && a.includes('customer'))) return 'customer-search';
   if (/enter.*(customer\s*name|name.*customer)/i.test(action)) return 'customer-search';
+  if (/enter\s+.+\s+in\s+the\s+customer\s+(?:name\s+)?field/i.test(action)) return 'customer-search';
   if (/click.*['"]?search['"]?\s*(button|btn)/i.test(action) && !a.includes('carrier') && !a.includes('office') && !a.includes('agent')) return 'customer-search';
   if (/click.*customer.*profile/i.test(action) || (a.includes('click') && a.includes('customer') && !a.includes('carrier'))) return 'customer-search';
   if (a.includes('create tl') || (a.includes('click') && a.includes('hyperlink') && a.includes('create'))) return 'navigate-create';
@@ -162,6 +172,7 @@ function classifyStep(action: string): StepCategory {
 // ─────────────────────────── Grouping Rules ───────────────────────────
 
 const GROUP_COMPATIBLE: Record<string, StepCategory[]> = {
+  'login-group': ['login-main', 'sso-substep'],
   'load-form-fill': ['form-field', 'form-auto', 'form-preselected'],
   'create-load-and-rate': ['create-load', 'rate-type'],
   'carrier-tab-setup': ['carrier-tab-click', 'offer-rate', 'include-carriers', 'auto-accept', 'carrier-contact'],
@@ -391,10 +402,8 @@ function generateTNXVerificationCode(): string {
 
 function generateCustomerToCreateCode(): string {
   const lines = [
-    'const btmsBaseUrl = new URL(sharedPage.url()).origin;',
-    'await sharedPage.goto(btmsBaseUrl);',
+    'await pages.basePage.navigateToBaseUrl();',
     'await commonReusables.waitForAllLoadStates(sharedPage);',
-    'await sharedPage.locator(\'#c-sitemenu-container\').waitFor({ state: \'visible\', timeout: 15000 });',
     'console.log("Navigated to BTMS Home");',
     'await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);',
     'await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);',
@@ -489,10 +498,8 @@ function generateCarrierRateAndDetailsCode(steps: TestStep[]): string {
 function generateBTMSSwitchCode(): string {
   const lines = [
     'await appManager.switchToBTMS();',
-    'const btmsBaseUrl = new URL(sharedPage.url()).origin;',
-    'await sharedPage.goto(btmsBaseUrl);',
+    'await pages.basePage.navigateToBaseUrl();',
     'await commonReusables.waitForAllLoadStates(sharedPage);',
-    'await sharedPage.locator(\'#c-sitemenu-container\').waitFor({ state: \'visible\', timeout: 15000 });',
     'console.log("Switched back to BTMS via URL-based navigation");',
   ];
   return lines.join('\n          ');
@@ -531,9 +538,26 @@ function generatePostLoadCode(steps: TestStep[]): string {
   return lines.join('\n          ');
 }
 
+function generateLoginGroupCode(): string {
+  const lines = [
+    'await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);',
+    'await commonReusables.waitForAllLoadStates(sharedPage);',
+    'console.log("SSO sub-steps (Sign-In with SSO, User ID, Password, Sign In) are handled internally by BTMSLogin");',
+  ];
+  return lines.join('\n          ');
+}
+
 // ─────────────────────────── Composite name generators ───────────────────────────
 
 const GROUP_NAMES: Record<string, (steps: TestStep[]) => string> = {
+  'login-group': (steps) => {
+    const first = steps[0].stepNumber;
+    const last = steps[steps.length - 1].stepNumber;
+    if (steps.length > 1) {
+      return `Log in to BTMS in a valid environment (SSO sub-steps ${first + 1}–${last} handled by BTMSLogin)`;
+    }
+    return `Log in to BTMS in a valid environment`;
+  },
   'load-form-fill': (steps) => {
     const first = steps[0].stepNumber;
     const last = steps[steps.length - 1].stepNumber;
@@ -641,6 +665,9 @@ export class FormStepGrouper {
 
         let compositeCode: string | null = null;
         switch (groupType) {
+          case 'login-group':
+            compositeCode = generateLoginGroupCode();
+            break;
           case 'load-form-fill':
             compositeCode = generateLoadFormFillCode();
             break;

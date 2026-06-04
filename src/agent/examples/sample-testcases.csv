@@ -39,55 +39,63 @@ Offer Rate $: enter any numeric value
 
 3. Click the Create button","A message is displayed relating ""Enter at least one email for notifications""",,"aiteam,dfb,nontabular,postautomationrules,rulefieldvalidation"
 67846,,FD-35847,"Validating the scenario when the load is not in ""Delivered Final"" status and the paperwork received date? delivered date.","1.Load status ? 'Delivered Final'
-2.Paperwork received date ? delivered date","1.Login to BTMS application and Hover to Customers and click Search.
-2. Enter the Customer name in the ""Customer"" field (FORD MOTOR C/O CASS INFO SYSTEMS)
-3. Click on ""Search"" button.
-4. Click on Customer detail row .
-5. Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*
-6. In ""ENTER NEW LOAD"" page ""Customer"" field is already selected and if not select AGENT RESPONSE TEST CUSTOMER (192815)
-7. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.
-8. Select the location from the ""Shipper"" field( DARRELL'S HOME (USE PU# 12345)).
-9. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
-10. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
-11. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
-12. Enter the ""Earliest Time"" (Eg. 09:00)
-13. Enter the ""Latest Time"" (Eg. 09:00)
-14. Select the location from the ""Consignee"" field.(DARRELL'S HOME (USE PU# 12345))
-15. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
-16. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
-17. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
-18. Enter the ""Earliest Time"" (Eg. 10:00)
-19. Enter the ""Latest Time"" (Eg. 10:00)
-20. In the field Whse Instructions enter value as TestData
-21. Enter the Quantity in the ""Qty"" field (Eg. 10)
-22. Select the ""UoM"" field (Eg. Case or Cases)
-23. Enter the description in the ""Description"" field (Eg. Total 10 cases)
-24. Enter the weight in the ""Weight"" field (Eg. 1000). 
-25. Select the ""Equipment"" field as ""FLATBED""
-26. Enter the ""length"" field (Eg. 54)
-27. Select the ""Mileage Engine"" field as ""Current""
-28. Select the ""Method"" as ""Practical""
-29. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate"". Also enter LH Rate as 500
-30. Click on ""Create Load"" button. 
-31.Under the load tab select Rate type as ""SPOT"" if no rate type is selected[Enter value only if the field is visible else ignore]
-32. Click the ""Carrier tab"" in the ""Edit load"" page.
-33. Enter a valid value for the Offer Rate field on the load as ""1000"".
-34. Enter flat rate in Customer as 500
-35. Enter flat rate in Carrier as 600 .
-36. Enter trailer length 10 if value not filled.
-37. Enter Expiration Date as future date.
-38. Enter Expiration Time  as 18:00
-39. Enter Email for notification : enter value as  aaron.gagnon@suntecktts.com
-40. Enter total miles  eg 100
-41. Now click on choose a carrier button and enter value as XPO TRANS INC and once it is visible fully select it.
-42.Click on Save button [STATUS HAS BEEN SET TO BOOKED alert should get displayed]. Accept the alert.
-43. On Load tab click on View Billing button.
-44. Under load documents section click on upload icon against Customer.
-45. Upload the carrier invoice document.
-46. Select radio button Payables and Select Document Type as carrier Invoice.
-47. Enter invoice number e.g 123456 and Enter Invoice Amount e.g. 1500 and click on attach. Accept the alert[Payable Status has been updated to INVOICE RECEIVED] and close the pop up.
-48. Reload the page and validate the toggle and Not Deliv Final checkbox.
-","1.Billing toggle button at ""View Billing"" screen should be set to ""Agent"".
+2.Paperwork received date ? delivered date","1. Login to BTMS application.
+2. Hover to ADMIN.
+3. Click on OFFICE SEARCH.
+4. Enter the office code (CORP)
+5. Click on Search.
+6. Click on Office profile.
+7. Check Invoice Process set as Central. (If set then skip step 8 and 9).
+8. Click on Edit.
+9. Set Invoice Process set as Central and Click On Save.
+10. Hover to Customers and click Search.
+11. Enter the Customer name in the ""Customer"" field AGENT RESPONSE TEST CUSTOMER
+12. Click on ""Search"" button.
+13. Click on Customer detail row.
+14. Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*""
+15. In ""ENTER NEW LOAD"" page ""Customer"" field is already selected and if not select AGENT RESPONSE TEST CUSTOMER.
+16. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.
+17. Select the location from the ""Shipper"" field (TEST).
+18. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields.
+19. Select the ""Earliest Date"" (Future date need to select) (select tomorrow date)
+20. Select the ""Latest Date"" (Future date need to select) (select tomorrow date)
+21. Enter the ""Earliest Time"" (Eg. 09:00)
+22. Enter the ""Latest Time"" (Eg. 09:00)
+23. Select the location from the ""Consignee"" field. (TEST LOAD)
+24. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields.
+25. Select the ""Earliest Date"" (Future date need to select) (select day after tomorrow)
+26. Select the ""Latest Date"" (Future date need to select) (select day after tomorrow)
+27. Enter the ""Earliest Time"" (Eg. 10:00)
+28. Enter the ""Latest Time"" (Eg. 10:00)
+29. In the field Whse Instructions enter value as TestData
+30. Enter the Quantity in the ""Qty"" field (Eg. 10)
+31. Select the ""UoM"" field (Eg. Case or Cases)
+32. Enter the description in the ""Description"" field (Eg. Total 10 cases)
+33. Enter the weight in the ""Weight"" field (Eg. 1000).
+34. Select the ""Equipment"" field as ""FLATBED""
+35. Enter the ""length"" field (Eg. 54)
+36. Select the ""Mileage Engine"" field as ""Current""
+37. Select the ""Method"" as ""Practical""
+38. ""Linehaul"" and ""Fuel Surcharge"" default value will be ""Flat Rate"". Also enter LH Rate as 500
+39. Click on ""Create Load"" button.
+40. Under the load tab select Rate type as ""SPOT"" if no rate type is selected [Enter value only if the field is visible else ignore]
+41. Click the ""Carrier tab"" in the ""Edit load"" page.
+42. Enter a valid value for the Offer Rate field on the load as ""1000"".
+43. Enter flat rate in Customer as 500
+44. Enter flat rate in Carrier as 600.
+45. Enter trailer length 10 if value not filled.
+46. Enter Expiration Date as future date.
+47. Enter Expiration Time as 18:00
+48. Enter Email for notification: enter value as aaron.gagnon@suntecktts.com
+49. Enter total miles eg 100
+50. Now click on choose a carrier button and enter value as XPO TRANS INC and once it is visible fully select it.
+51. Click on Save button [STATUS HAS BEEN SET TO BOOKED alert should get displayed]. Accept the alert.
+52. On Load tab click on View Billing button.
+53. Under load documents section click on upload icon against Customer.
+54. Upload the carrier invoice document.
+55. Select radio button Payables and Select Document Type as carrier Invoice.
+56. Enter invoice number e.g 123456 and Enter Invoice Amount e.g. 1500 and click on attach. Accept the alert [Payable Status has been updated to INVOICE RECEIVED] and close the pop up.
+57. Reload the page and validate the toggle and Not Deliv Final checkbox.","1.Billing toggle button at ""View Billing"" screen should be set to ""Agent"".
 2.Finance issue marked as ""Not Delivered Final"".",,"aiteam,billingtoggle"
 97739,,,Automatically book a load when it is manually postedDisplay a message when an active loadboard user is not selected for the Carrier Contact for Rate Confirmation field on the load," 1.Agent is logged into BTMS in any valid environment.(http://brokerage.stage.suntecktts.com/) 
 2. Click on Sign in with Single Sign- On
@@ -288,15 +296,15 @@ Pending carrier invoice with price difference
 3. Click on ""Search"" button.
 4. Click on Customer detail 3rd row where salesperson is AGENT RESPONSE-TEST .
 5. Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*
-6. In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer [AGENT RESPONSE TEST CUSTOMER (192815)].
+6. In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer [AGENT RESPONSE TEST CUSTOMER)].
 7. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.
-8. Select the location from the ""Shipper"" field(DARRELL'S HOME (USE PU# 12345)).
+8. Select the location from the ""Shipper"" field(TEST)).
 9. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
 10. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
 11. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
 12. Enter the ""Earliest Time"" (Eg. 09:00)
 13. Enter the ""Latest Time"" (Eg. 09:00)
-14. Select the location from the ""Consignee"" field.(DARRELL'S HOME (USE PU# 12345))
+14. Select the location from the ""Consignee"" field.(TEST DATA))
 15. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
 16. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
 17. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
@@ -425,25 +433,25 @@ Pending carrier invoice with price difference
 74421,,FD-36107,"Verify the Billing toggle behaviour when Load is ""Invoiced or Posted"" and billing issues are checked. for Invoice Process as being Central.","
 ","1. Login to BTMS application, click on profile icon and then click on Switch User. Once options are shown select BILLINGTOGGLE_USER.
 1.1 Hover over Admin and click on OFFICE SEARCH.
-2. Enter the office code NY OFFIC and click Search.
+2. Enter the office code CORP and click Search.
 3. Click on the row once details appear post search.
 4. Check Invoice Process is set to ""CENTRAL"" . If not then click on EDIT button.[If yes then skip step 5 to 6]
 5. Select value in dropdown as CENTRAL for Invoice Process.
 6. Click on SAVE button.
 7. Hover over Customers and click Search.
-8. Enter the Customer name ADVANCED COMPOSITES in the ""Customer"" field.
+8. Enter the Customer name AGENT RESPONSE TEST CUSTOMER in the ""Customer"" field.
 9. Click the Search button.
 10. Click on the Customer detail row.
 11. Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*
-12. In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer [AGENT RESPONSE TEST CUSTOMER (192815)].
+12. In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer [AGENT RESPONSE TEST CUSTOMER].
 13. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.
-14. Select the location from the ""Shipper"" field(DARRELL'S HOME (USE PU# 12345)).
+14. Select the location from the ""Shipper"" field(TEST).
 15. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
 16. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
 17. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
 18. Enter the ""Earliest Time"" (Eg. 09:00)
 19. Enter the ""Latest Time"" (Eg. 09:00)
-20. Select the location from the ""Consignee"" field.(TEST ADDRESS 3)
+20. Select the location from the ""Consignee"" field.(TEST LOAD)
 21. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
 22. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
 23. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
@@ -482,53 +490,565 @@ Pending carrier invoice with price difference
 51 Validate that NO checkboxes present under Billing Issues should be checked.
 52. Ensure after step 52 validate via hard assertion that Lumper checkbox should get checked.",,"aiteam,billingtoggle"
 67898,,FD-36116,Verify that the Billing toggle does not change to Billing when paperwork is received for an Invoiced load.,,"1. Login to BTMS application, click on profile icon and then click on Switch User. Once options are shown select BILLINGTOGGLE.USER
-2. Hover over Customers and click Search.
-3. Enter the Customer name ADVANCED COMPOSITES in the ""Customer"" field.
-4. Click the Search button.
-5. Click on the Customer detail row.
-6. Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*
-7. In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer [AGENT RESPONSE TEST CUSTOMER (192815)].
-8. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.
-9. Select the location from the ""Shipper"" field(DARRELL'S HOME (USE PU# 12345)).
-10. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields.
-11. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
-12. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
-13. Enter the ""Earliest Time"" (Eg. 09:00)
-14. Enter the ""Latest Time"" (Eg. 09:00)
-15. Select the location from the ""Consignee"" field.(TEST ADDRESS 3)
-16. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields.
-17. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
-18. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
-19. Enter the ""Earliest Time"" (Eg. 10:00)
-20. Enter the ""Latest Time"" (Eg. 10:00)
-21. No action here
-22. Enter the Quantity in the ""Qty"" field (Eg. 95)
-23. Select the ""UoM"" field (Eg. Case or Cases)
-24. Enter the description in the ""Description"" field (Eg. Total 95 cases)
-25. Enter the weight in the ""Weight"" field (Eg. 8500)
-26. Select the ""Equipment"" field as ""FLATBED""
-27. Enter the ""length"" field (Eg. 54)
-28. Select the ""Mileage Engine"" field as ""Current""
-29. Select the ""Method"" as ""Practical""
-30. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
-31. Click on ""Create Load"" button.
-32. Under the load tab select Rate type as ""SPOT"" if no rate type is selected[ONLY IF this dropdown is visible]
-33. Click the ""Carrier tab"" in the ""Edit load"" page.
-34. Enter a valid value for the Offer Rate field on the load as ""1000"".
-35. Enter flat rate in Customer eg 500.
-36. Enter flat rate in Carrier eg 600
-37. Enter trailer length .
-38. Enter Expiration Date as future date.
-39. Enter Expiration Time  as 18:00
-40. Enter Email for notification : enter value as agentbulkchange@modeglobal.com
-41. Enter total miles  will be autopopulated
-42. On Carrier tab click on CHOOSE CARRIER and select any ACTIVE carrier by typing in XPO TRANS INC.
-43. Click on Save button. Status will be set to BOOKED.
-44. Now click on Edit button and change the status from BOOKED  to DELIVERED FINAL on the load tab.
-45. Click on SAVE button. [Are you sure you want to change this load to Delivered Final? alert will appear. Accept the alert by clicking OK button.]
-46. Under the Load Documents section, click the upload icon against Payable.
-47. Select the radio button Payables and select Document Type as Carrier Invoice.
-48. Enter Invoice Number (e.g.123456), enter Invoice Amount (e.g.1500), and click Attach — once attached, close the pop-up.
+2. Click on OFFICE SEARCH.
+3. Enter the office code (CORP)
+4. Click on Search.
+5. Click on Office profile.
+6. Check Invoice Process set as Central. (If set then skip step 7 and 8).
+7. Click on Edit.
+8. Set Invoice Process set as Central and Click On Save.
+9. Hover over Customers and click Search.
+10. Enter the Customer name AGENT RESPONSE TEST CUSTOMER in the ""Customer"" field.
+11. Click the Search button.
+12. Click on the Customer detail row.
+13. Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*""
+14. In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer [AGENT RESPONSE TEST CUSTOMER].
+15. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.
+16. Select the location from the ""Shipper"" field (TEST).
+17. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields.
+18. Select the ""Earliest Date"" (Future date need to select) (select tomorrow date)
+19. Select the ""Latest Date"" (Future date need to select) (select tomorrow date)
+20. Enter the ""Earliest Time"" (Eg. 09:00)
+21. Enter the ""Latest Time"" (Eg. 09:00)
+22. Select the location from the ""Consignee"" field. (TEST LOAD)
+23. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields.
+24. Select the ""Earliest Date"" (Future date need to select) (select day after tomorrow)
+25. Select the ""Latest Date"" (Future date need to select) (select day after tomorrow)
+26. Enter the ""Earliest Time"" (Eg. 10:00)
+27. Enter the ""Latest Time"" (Eg. 10:00)
+28. No action here
+29. Enter the Quantity in the ""Qty"" field (Eg. 95)
+30. Select the ""UoM"" field (Eg. Case or Cases)
+31. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+32. Enter the weight in the ""Weight"" field (Eg. 8500)
+33. Select the ""Equipment"" field as ""FLATBED""
+34. Enter the ""length"" field (Eg. 54)
+35. Select the ""Mileage Engine"" field as ""Current""
+36. Select the ""Method"" as ""Practical""
+37. ""Linehaul"" and ""Fuel Surcharge"" default value will be ""Flat Rate""
+38. Click on ""Create Load"" button.
+39. Under the load tab select Rate type as ""SPOT"" if no rate type is selected [ONLY IF this dropdown is visible]
+40. Click the ""Carrier tab"" in the ""Edit load"" page.
+41. Enter a valid value for the Offer Rate field on the load as ""1000"".
+42. Enter flat rate in Customer eg 500.
+43. Enter flat rate in Carrier eg 600
+44. Enter trailer length.
+45. Enter Expiration Date as future date.
+46. Enter Expiration Time as 18:00
+47. Enter Email for notification: enter value as agentbulkchange@modeglobal.com
+48. Enter total miles will be autopopulated
+49. On Carrier tab click on CHOOSE CARRIER and select any ACTIVE carrier by typing in XPO TRANS INC.
+50. Click on Save button. Status will be set to BOOKED.
+51. Now click on Edit button and change the status from BOOKED to DELIVERED FINAL on the load tab.
+52. Click on SAVE button. [Are you sure you want to change this load to Delivered Final? alert will appear. Accept the alert by clicking OK button.]
+53. Under the Load Documents section, click the upload icon against Payable.
+54. Select the radio button Payables and select Document Type as Carrier Invoice.
+55. Enter Invoice Number (e.g.123456), enter Invoice Amount (e.g.1500), and click Attach — once attached, close the pop-up.
+56. Click on View Billing button.
+57. Observe the Billing Toggle.","52. Ensure after step 52 validate via hard assertion that status of LOAD should be INVOICED.
+57. Validate via Hard assertion that Billing toggle remains unchanged and does not switch to Billing.",,"aiteam,billingtoggle"
+67877,,FD-35865,"Validating the scenario when the user is an admin user w/ system admin role, and the billing toggle is set to any state and load is in any state.",,"""1. Login to BTMS application, click on profile icon and then click on Switch User. Once options are shown select BILLINGTOGGLE.USER
+2. Hover over Admin and click AGENT SEARCH.
+3. For the field AGENT enter the value as BILLINGTOGGLE.USER and click on Search Button. 
+4. Click on the Agent detail row.
+5. Navigate to the USER ROLES section and validate that user must have  ADMIN, SYSTEM_ADMIN role.
+6. Hover over Customers and click Search.
+7. Enter the Customer name AGENT RESPONSE TEST CUSTOMER in the """"Customer"""" field.
+8. Click the Search button.
+9. Click on the Customer detail row.
+10. Scroll down in the """"VIEW CUSTOMER"""" page and click the hyperlink """"CREATE TL *NEW*
+11. In """"ENTER NEW LOAD"""" page """"Customer"""" field is already selected or if not we need to select the customer [AGENT RESPONSE TEST CUSTOMER].
+12. """"Salesperson"""" and """"Dispatcher"""" field has preselected values, if not we need to select.
+13. Select the location from the """"Shipper"""" field(TEST).
+14. Once the location is selected from the """"Shipper"""" field then """"Name"""",""""Address"""",""""City"""",""""State"""",""""Zip"""",""""Country"""" will be automatically update the values in the corresponding fields.
+15. Select the """"Earliest Date"""" (Future date need to select)(select tommorw date)
+16. Select the """"Latest Date"""" (Future date need to select)(select tommorw date)
+17. Enter the """"Earliest Time"""" (Eg. 09:00)
+18. Enter the """"Latest Time"""" (Eg. 09:00)
+19. Select the location from the """"Consignee"""" field.(TEST DATA)
+20. Once the location is selected from the """"Consignee"""" field then """"Name"""",""""Address"""",""""City"""",""""State"""",""""Zip"""",""""Country"""" will be automatically update the values in the corresponding fields.
+21. Select the """"Earliest Date"""" (Future date need to select)(select tommorw daayafter)
+22. Select the """"Latest Date"""" (Future date need to select)(select tommorw daayafter)
+23. Enter the """"Earliest Time"""" (Eg. 10:00)
+24. Enter the """"Latest Time"""" (Eg. 10:00)
+25. No action here
+26. Enter the Quantity in the """"Qty"""" field (Eg. 95)
+27. Select the """"UoM"""" field (Eg. Case or Cases)
+28. Enter the description in the """"Description"""" field (Eg. Total 95 cases)
+29. Enter the weight in the """"Weight"""" field (Eg. 8500)
+30. Select the """"Equipment"""" field as """"FLATBED""""
+31. Enter the """"length"""" field (Eg. 54)
+32. Select the """"Mileage Engine"""" field as """"Current""""
+33. Select the """"Method"""" as """"Practical""""
+34. """"Linehaul"""" and Fuel Surcharge"""" default value will be """"Flat Rate""""
+35. Click on """"Create Load"""" button.
+36. Under the load tab select Rate type as """"SPOT"""" if no rate type is selected[ONLY IF this dropdown is visible]
+37. Click the """"Carrier tab"""" in the """"Edit load"""" page.
+38. Enter a valid value for the Offer Rate field on the load as """"1000"""".
+39. Enter flat rate in Customer eg 500.
+40. Enter flat rate in Carrier eg 600
+41. Enter trailer length .
+42. Enter Expiration Date as future date.
+43. Enter Expiration Time  as 18:00
+44. Enter Email for notification : enter value as agentbulkchange@modeglobal.com
+45. Enter total miles  will be autopopulated
+46. On Carrier tab click on CHOOSE CARRIER and select any ACTIVE carrier by typing in XPO TRANS INC.
+47. Click on Save button. Status will be set to BOOKED.
+48. Now click on Edit button and change the status from BOOKED  to DELIVERED FINAL on the load tab.
 49. Click on View Billing button.
-50. Observe the Billing Toggle.","45. Ensure after step 45 validate via hard assertion that status of LOAD should be INVOICED.
-50. Validate via Hard assertion that Billing toggle remains unchanged and does not switch to Billing.",,"aiteam,billingtoggle"
+50. Observe the Billing Toggle.
+51.  Move the Waiting On toggle towards the Billing side. Validate the toggle state reflects to Billing. 
+52. Move the Waiting On toggle towards the Agent side. Validate the toggle state reflects to Agent.
+53. Move the Waiting On toggle to the neutral (center/off) position. Validate the toggle state reflects to Neutral.","5. Ensure after step 5 validate via hard assertion that user must have user roles like ADMIN, SYSTEM_ADMIN.
+51.Validate via hard assertion Billing toggle state chaged to Billing
+52..Validate via hard assertion Billing toggle state chaged to Agent.
+53. .Validate via hard assertion Billing toggle state chaged to Neutral.",,"aiteam,at_billingtoggle"
+74454,,FD-36711,Verify the toggle behaviour when the load status is Delivered Final and price difference is resolved.,,"1. Login to BTMS in any valid environment. (http://brokerage.stage.suntecktts.com/)
+2. Click on Sign in with Single Sign-On
+3. Enter the User ID and Click Next
+4. Enter the Password
+5. Click Sign In.
+6. Click on OFFICE SEARCH.
+7. Enter the office code (CORP)
+8. Click on Search.
+9. Click on Office profile.
+10. Check Invoice Process set as Central. (If set then skip step 11 and 12).
+11. Click on Edit.
+12. Set Invoice Process set as Central and Click On Save.
+13. Hover to Customers and click Search.
+14. Enter the Customer name in the ""Customer"" field (AGENT RESPONSE TEST CUSTOMER)
+15. Click on ""Search"" button.
+16. Click on Customer detail row.
+17. Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*""
+18. In ""ENTER NEW LOAD"" page ""Customer"" field is already selected and if not select AGENT RESPONSE TEST CUSTOMER
+19. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.
+20. Select the location from the ""Shipper"" field (TEST).
+21. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields.
+22. Select the ""Earliest Date"" (Future date need to select) (select tomorrow date)
+23. Select the ""Latest Date"" (Future date need to select) (select tomorrow date)
+24. Enter the ""Earliest Time"" (Eg. 09:00)
+25. Enter the ""Latest Time"" (Eg. 09:00)
+26. Select the location from the ""Consignee"" field. (TEST LOAD)
+27. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields.
+28. Select the ""Earliest Date"" (Future date need to select) (select tomorrow dayafter)
+29. Select the ""Latest Date"" (Future date need to select) (select tomorrow dayafter)
+30. Enter the ""Earliest Time"" (Eg. 10:00)
+31. Enter the ""Latest Time"" (Eg. 10:00)
+32. In the field Whose Instructions enter value as TestData
+33. Enter the Quantity in the ""Qty"" field (Eg. 10)
+34. Select the ""UoM"" field (Eg. Case or Cases)
+35. Enter the description in the ""Description"" field (Eg. Total 10 cases)
+36. Enter the weight in the ""Weight"" field (Eg. 1000).
+37. Select the ""Equipment"" field as ""FLATBED""
+38. Enter the ""length"" field (Eg. 54)
+39. Select the ""Mileage Engine"" field as ""Current""
+40. Select the ""Method"" as ""Practical""
+41. ""Linehaul"" and ""Fuel Surcharge"" default value will be ""Flat Rate"".
+42. Click on ""Create Load"" button.
+43. Click the ""Carrier tab"" in the ""Edit load"" page.
+44. Enter a valid value for the Offer Rate field on the load as ""1000"".
+45. Enter flat rate in Customer as 500
+46. Enter flat rate in Carrier as 600.
+47. Enter trailer length 10 if value not filled.
+48. Enter total miles eg 100
+49. Now click on choose a carrier button and enter value as ZONA TRUCKING LLC and once it is visible fully select it.
+50. Click on Save button [STATUS HAS BEEN SET TO BOOKED alert should get displayed]. Accept the alert.
+51. On Load tab click on View Billing button.
+52. Under load documents section click on upload icon against Payables.
+53. Upload the carrier invoice document.
+54. Select radio button Payables and Select Document Type as carrier Invoice.
+55. Enter invoice number e.g 123456 and Enter Invoice Amount e.g. 700 and click on attach. Accept the alert [Payable Status has been updated to INVOICE RECEIVED] and close the pop up.
+56. Reload the page and validate the Waiting on toggle and Not Deliv Final checkbox under BILLING ISSUES.
+57. Click On View Load Button on view billing page.
+58. Click On Edit Button on View Load Page.
+59. Under load tab change the status to DELIVERED FINAL and Click on Save Button [Are you sure you want to change this load to Delivered Final? alert get displayed]. Accept the alert.
+60. Validate the Load tab, under Billing section ensure that the ""Not Deliv. Final"" tag is not available and only the ""Price Difference"" tag is available.
+61. Click on View Billing Button.
+62. Click On View Load Button.
+63. Click On Edit Button on View Load Page.
+64. Click the ""Carrier tab"" in the ""Edit load"" page.
+65. Enter flat rate in Carrier eg 700.
+66. Click on Save Button on Edit Load Page.
+67. Verify load tab under View Load Page.
+68. Click on View Billing Button and observe billing toggle.","56. After step 56,  1. Hard Assert Billing toggle button at """"View Billing"""" screen should be set to """"Agent"""". 2. Validate Not Deliv. Final checkbox should be checked.
+57. After completing Step 57, validate the Load tab to ensure that the “Not Deliv. Final” and “Price Difference” tags are available, and verify that the Waiting On value is set to ""Agent"" under Billing.
+61. After step 61. Validate Not Deliv.Final checkbox is unchecked now.
+67. Validate with hard assertion  that the Waiting On value is set to ""Billing"" under Billing section on load tab.
+68. After step 68, Validate with Hard assertion Billing toggle is set to value ""Billing"".",,"aiteam,billingtoggle"
+97788,,,"Display an error message relating ""In order to post this load the checkbox labeled ""Post to all Carriers upon completion of the Waterfall"" needs to be unchecked""Number of included carriers = Maximum number (25)",,"1.Agent is logged into BTMS in any valid environment.(http://brokerage.stage.suntecktts.com/) 
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  """"TNX"""" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as """"TNX"""" and click on save
+15.Hover over the admin and click on the AGENT SEARCH
+16.Enter the value into Agent field as  BRENT DURHAM
+17. Click on Search Button
+18.Click on the agent profile
+19.Agent Info page is visible 
+20 .Take the value from the email id field and save it 
+21. Now hover the mouse over the ADMIN tab and click on it.
+22. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM (TX-RED)
+23.Once suggestion is shown click on BRENT DURHAM (TX-RED)
+24.Once user gets switched, select Hover the mouse on HOME tab and select sub tab OFFICE CONFIG.
+25. Click on POST AUTOMATION button.
+26. Search for the customer(BRANDON INDUSTRIES) that going to create a load and if the rule created with that customer then delete the rule by clicking checkbox and click on delete button.
+27.Hover to Customers and click Search.
+28. Enter the Customer name in the """"Customer"""" field (BRANDON INDUSTRIES)
+29. Click on """"Search"""" button.
+30.Click on Customer profile.
+31. Scroll down in the """"VIEW CUSTOMER"""" page and click the hyperlink """"CREATE TL *NEW*
+32. In """"ENTER NEW LOAD"""" page """"Customer"""" field is already selected or if not we need to select the customer.
+33. """"Salesperson"""" and """"Dispatcher"""" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED).
+34. Select the location from the """"Shipper"""" field(| CITY OF FORT WORTH TRANSPORTATION & PUBLIC WORKS|FORT WORTH|TX).
+35. Once the location is selected from the """"Shipper"""" field then """"Name"""",""""Address"""",""""City"""",""""State"""",""""Zip"""",""""Country"""" will be automatically update the values in the corresponding fields. 
+36. Select the """"Earliest Date"""" (Future date need to select)(select tomorrow date)
+37. Select the """"Latest Date"""" (Future date need to select)(select tomorrow date)
+38. Enter the """"Earliest Time"""" (Eg. 09:00)
+39. Enter the """"Latest Time"""" (Eg. 09:00)
+40. Select the location from the """"Consignee"""" field.(|ADVANCED ENGINEERING|TAMPA|FL)
+41. Once the location is selected from the """"Consignee"""" field then """"Name"""",""""Address"""",""""City"""",""""State"""",""""Zip"""",""""Country"""" will be automatically update the values in the corresponding fields. 
+42. Select the """"Earliest Date"""" (Future date need to select)(select tomorrow dayafter)
+43. Select the """"Latest Date"""" (Future date need to select)(select tomorrow dayafter)
+44. Enter the """"Earliest Time"""" (Eg. 10:00)
+45. Enter the """"Latest Time"""" (Eg. 10:00)
+46. Enter the Quantity in the """"Qty"""" field (Eg. 100)
+47. Select the """"UoM"""" field (Eg. Case or Cases)
+48. Enter the description in the """"Description"""" field (Eg. Total 100 cases)
+49. Enter the weight in the """"Weight"""" field (Eg. 1000)
+50. Select the """"Equipment"""" field as """"FLATBED""""
+51. Enter the """"lenght"""" field (Eg. 40)
+52. Select the """"Mileage Engine"""" field as """"Current""""
+53. Select the """"Method"""" as """"Practical""""
+54. """"Linehaul"""" and Fuel Surcharge"""" default value will be """"Flat Rate""""
+55. Click on """"Create Load"""" button. 
+56.Under the load tab select Rate type as """"SPOT"""" if no rate type is selected
+57. Click the """"Carrier tab"""" in the """"Edit load"""" page.
+58.Enter a valid value for the Offer Rate field on the load as """"2000"""".
+59. Select $100,001 to $250,000 for the Cargo Value field on the load.
+60.Select maximum 25 unique carrier for the Include Carriers field  based on search text either LLC or INC.Note: From selection dropdown select the carrier start with letter (P to Z).
+61. Click on ""View Details"" link of Include carriers. Include Carriers Data pop up will be visible.
+62. For each of the 25 carriers, start with the first carrier and complete all three fields before moving to the next: click the Carrier Priority pencil icon and enter the priority value starting from 1 (and increase sequentially for each next carrier as 2, 3, … up to 25), then for the same carrier click the Carrier Timing pencil icon and enter the required timing (e.g., 1:00), and finally click the Carrier Offer Rate pencil icon and enter the offer rate (e.g., 500); once all three values are saved for the first carrier, repeat the same process for the second carrier with the next priority number, and continue until all 25 carriers are completed.
+63. Check the checkbox labeled ""Post to all Carriers upon completion of the Waterfall"".
+64.Click the Save button on the Include Carriers Data modal.
+65. Click the Save button on the load. 
+66. Load is in View mode.
+67. Click on Carrier tab.
+","60. After step 60. validate number of carriers under include carriers are selected 25.
+64. After step 64 Click on ""View Details"" link of include carrier and validate details filled for all 25 carriers is correctly saved. Also validate ""Post to all Carriers upon completion of the Waterfall"" checkbox is checked. Close the Include Carriers Data pop up.
+67.Valiadate an error message after step 67  'In order to post this load the checkbox labeled ""Post to all Carriers upon completion of the Waterfall"" needs to be unchecked' with hard assertion on carrier tab.",,"aiteam, dfb, at_cargovalue"
+89214,,,Enter a bid by the following carriers for a load that is automatically posted to the TNX:- each included carrier on a waterfall- non-included carriers   - after waterfall completion   - offer rate on loadNumber of included carriers:> Minimum number (1)< Maximum number (25),,"1. Log in to BTMS in a valid environment: http://brokerage.stage.suntecktts.com/
+2. Click Sign in with Single Sign-On.
+3. Enter the User ID and click Next.
+4. Enter the Password.
+5. Click Sign In.
+6. Hover over the ADMIN menu.
+7. Click OFFICE SEARCH.
+8. Enter the Office Code as TX-STK.
+9. Click Search.
+10. Click on the Office Profile.
+11. Verify the following configurations:
+12. Match Vendor is set to TNX.
+13. Enable Digital Matching Engine = YES.
+14. Enable Auto Post with Minimum Fields = YES.
+15. If all are already set correctly, skip steps 16-21.
+16. Click Edit.
+17.Set Match Vendor to TNX
+18. Set Enable Digital Matching Engine = YES.
+19. Set Enable Auto Post with Minimum Fields = YES.
+21. Click Save.
+22. Hover over ADMIN and click AGENT SEARCH.
+23. Enter FRISCO TL in the Agent field.
+24. Click Search.
+25. Click on the Agent Profile.
+26. Confirm the Agent Info page is displayed.
+27. Copy the Email ID value and save it for later use.
+28. Hover over ADMIN again and click it.
+29. On the ADMIN main page, enter FRISCO TL in the Switch User field.
+30. Select FRISCO TL from the suggestion list.
+31. After the user switch, hover over the HOME tab and select OFFICE CONFIG.
+32. Click the POST AUTOMATION button.
+33. Search for the customer MillerCoors Accessorial.
+34. If a rule already exists for this customer, select it using the checkbox and click Delete.
+35. Hover over Customers and click Search.
+36. Enter MillerCoors Accessorial in the Customer field.
+37. Click Search.
+38. Click the Customer Profile.
+39. Scroll down on the View Customer page and click the hyperlink ""CREATE TL *NEW*"".
+40. On the Enter New Load page, confirm the Customer field is selected.
+41. If the Customer field is not selected, select the customer.
+42. Ensure Salesperson and Dispatcher are preselected as FRISCO TL.
+43. If Salesperson and Dispatcher are not preselected as FRISCO TL, select them.
+44. Select the Shipper location: |COHO DIST|SANTA ROSA|CA.
+45. Confirm the Name, Address, City, State, Zip, and Country fields auto-populate.
+46. Select the Earliest Date as tomorrow.
+47. Select the Latest Date as tomorrow.
+48. Enter Earliest Time as 09:00.
+49. Enter Latest Time as 09:00.
+50. Select the Consignee location: |EUCLID BEVERAGE OF NORTH AURORA|NORTH AURORA|IL.
+51. Confirm the Name, Address, City, State, Zip, and Country fields auto-populate.
+52. Select the Earliest Date as day after tomorrow.
+53. Select the Latest Date as day after tomorrow.
+54. Enter Earliest Time as 10:00.
+55. Enter Latest Time as 10:00.
+56. Enter Qty as 95.
+57. Select UoM as Case/Cases.
+58. Enter Description as Total 95 cases.
+59. Enter Weight as 6500.
+60. Select Equipment as FLATBED.
+61. Enter Length as 54.
+62. Select Mileage Engine as Current.
+63. Select Method as Practical.
+64. Confirm Linehaul and Fuel Surcharge are set to Flat Rate.
+65. Click Create Load.
+66. Under the Load tab, select Rate Type as SPOT if not already selected.
+67. Click the Carrier tab on the Edit Load page.
+68. Enter 2000 in the Offer Rate field.
+69. Select three unique carriers in the Include Carriers field by searching  carrier with name ZZOO LOGISTICS LLC, VICTOR LOGISTICS INC, ZONA TRUCKING LLC  one by one.
+70. Click View Details for Include Carriers.
+71. The Include Carriers Data modal opens.
+72. For each of the three carriers, click the Carrier Priority pencil icon and enter priority values 1, 2, and 3 sequentially.
+73. For each of the three carriers, click the Carrier Timing pencil icon and enter the timing 00:01.
+74. For each of the three carriers, click the Carrier Offer Rate pencil icon and enter the offer rate 1500.
+75. Capture and save the three included carrier names with their priority order (1, 2, 3), timing, and offer rate.
+76. Check the checkbox Post to all Carriers upon completion of the Waterfall.
+77. Click Save on the Include Carriers Data pop-up.
+78. Click Save on the load.
+79. Capture the Load Number from the page header. On view load page Click on carrier tab.
+80. Log into DME (https://dme.stage.modetrans.com/login).
+81. Click on Loads.
+82. Enter the Load Number from step 79 and search it.
+83. Log into TNX (https://marketplace.modeglobal.com/).
+84. Enter the Email address and Password.
+85. Click Continue.
+86. Select the first included carrier from the dropdown (Priority 1 carrier from step 75) and log the carrier name.
+87. Click on the plus icon, search the load using the Load Number from step 79, open the load, click Bid, enter a bid value greater than the offer rate entered in step 68(eg., 2500).
+88. Click Bid Now.
+89. Switch back to the BTMS application.  Refresh / Reload the page, Click on carrier tab under  view load page and observe the value present in the reports section for the Source mentioned as BIDS.
+90. Click on the value present in the reports section for the Source mentioned as BIDS.Bid Results pop up will open.
+91.Close the Bid results pop-up
+92. Click on Bid History.
+93. Switch back to TNX and select the second included carrier from the dropdown (Priority 2 carrier from step 75) and log the carrier name.
+94. Click on the plus icon, search the load using the Load Number from step 79, open the load, click Bid, enter a bid value greater than the offer rate entered in step 68 (for example, 2300), and click Bid Now.
+95. Switch back to the BTMS application, refresh/reload the page, click the Carrier tab under the View Load page, observe the value present in the reports section for the Source mentioned as BIDS, click the BIDS report value to open Bid Results, close the Bid Results pop-up, and click Bid History.
+
+96. Switch back to TNX and select the third included carrier from the dropdown (Priority 3 carrier from step 75) and log the carrier name.
+97. Repeat the same bid flow and BTMS verification flow for the third included carrier as done in steps 94 to 95, and save the bid value.
+
+98. Switch back to TNX and select the first non-included carrier ""ZOOMY TRUCKING INC""  from the dropdown and log the carrier name.
+99. Repeat the same bid flow and BTMS verification flow for the first non-included carrier as done in steps 94 to 95, and save the bid value.
+
+100. Switch back to TNX and select the second non-included carrier ""SMART WAY TRANSPORT SYSTEMS LLC"" from the dropdown and log the carrier name.
+101. Repeat the same bid flow and BTMS verification flow for the second non-included carrier as done in steps 94 to 95, and save the bid value.
+
+102. Switch back to TNX and select the third non-included carrier ""18 KING TRUCKING LLC"" from the dropdown and log the carrier name.
+103. Repeat the same bid flow and BTMS verification flow for the third non-included carrier as done in steps 94 to 95, and save the bid value.","Ensure after Step 77:
+Click View Details for Include Carriers and validate details filled for all 3 carriers are correctly saved. Also validate ""Post to all Carriers upon completion of the Waterfall"" checkbox is checked. Close the Include Carriers Data pop-up.
+
+Ensure after Step 79:
+- The load is saved and is displayed in view mode.
+- The Offer Rate field is populated with the rate entered in step 68.
+- The Expiration Date field is auto-populated with the origin pick deadline date.
+- The Expiration Time field is auto-populated with the origin pick deadline time (09:00).
+- The Email for Notifications field is auto-populated with the agent's email address saved in step 27.
+- The Include Carriers field has 3 carriers selected.
+- All fields are not editable.
+- Post Status of the load is POSTED.
+- Post button is Deactivated.
+- Create Rule button is Activated.
+- Clear Form button is Activated.
+- Info icon near the POSTED status displays Origin Zip, Destination Zip, Equipment, Load Method, and Offer Rate.
+
+Ensure after Step 82:
+- The load is created in DME.
+- Vendor Statuses display BTMS REQUESTED.
+- Vendor Statuses display TNX REQUESTED.
+
+--- FIRST INCLUDED CARRIER (Priority 1) ---
+
+Ensure after Step 88:
+- The message ""Your bid has been placed!"" is displayed.
+
+Ensure after Step 89:
+- The Bid Number should get increased by one value increment. i.e. if the last value present under reports in the Carrier tab was 74, it should get incremented to 75.
+-Validate that Avg Rate should be accurately updated for the Source mentioned as BIDS. (To calculate Avg Rate -example -Sum of all BID RATES for 75 entries would come as 1,52,000.
+Now divide this value by number of entries appearing on the BID HISTORY POP UP i.e. 75 so avg rate would be 152000/75)
+
+Ensure after Step 90:
+- Lane Rates are visible and updated correctly.
+- Market Rates are visible and updated correctly.
+
+Ensure after Step 92:
+- A pop-up window with heading BID HISTORY appears on the screen containing (e.g., 75) entries, or we can say a dynamically updated entry count is shown.
+- Validate that count of entries on the pop-up window equals the count of reports in the reports section for Source mentioned as BIDS.
+- The Bid History pop-up displays entries for TNX-bidded carriers.
+- Ship Date matches the Shipper Earliest Date from step 46.
+- Ship City matches SANTA ROSA from step 44.
+- Ship State matches CA from step 44.
+- Consignee City matches NORTH AURORA from step 50.
+- Consignee State matches IL from step 50.
+- Carrier matches the Priority 1 carrier name saved in step 75.
+- Email matches the carrier email used during TNX bidding.
+- Bid Rate matches the bid value entered in step 87 (e.g., 2500).
+- Timestamp reflects the time the bid was placed.
+- Equipment matches FLATBED shown as F from step 60.
+- Miles matches the Total Miles value from the Carrier tab.
+- Source displays DFB.
+
+--- SECOND INCLUDED CARRIER (Priority 2) ---
+
+Ensure after Step 94:
+- The message ""Your bid has been placed!"" is displayed.
+
+Ensure after Step 95 (Switch back to BTMS and refresh):
+- The Bid Number should get increased by one value increment. i.e. if the last value present under reports in the Carrier tab was 75, it should get incremented to 76.
+- Validate that Avg Rate should be accurately updated for the Source mentioned as BIDS. (To calculate Avg Rate - Sum of all BID RATES for 76 entries and divide by number of entries appearing on the BID HISTORY POP UP i.e. 76)
+
+Ensure after Step 95 (Click on BIDS report value - Bid Results pop-up):
+- Lane Rates are visible and updated correctly.
+- Market Rates are visible and updated correctly.
+
+Ensure after Step 95 (Click Bid History):
+- A pop-up window with heading BID HISTORY appears on the screen containing (e.g., 76) entries, or we can say a dynamically updated entry count is shown.
+- Validate that count of entries on the pop-up window equals the count of reports in the reports section for Source mentioned as BIDS.
+- The Bid History pop-up displays entries for TNX-bidded carriers.
+- Ship Date matches the Shipper Earliest Date from step 46.
+- Ship City matches SANTA ROSA from step 44.
+- Ship State matches CA from step 44.
+- Consignee City matches NORTH AURORA from step 50.
+- Consignee State matches IL from step 50.
+- Carrier matches the Priority 2 carrier name saved in step 75.
+- Email matches the carrier email used during TNX bidding.
+- Bid Rate matches the bid value entered in step 94 (e.g., 2300).
+- Timestamp reflects the time the bid was placed.
+- Equipment matches FLATBED shown as F from step 60.
+- Miles matches the Total Miles value from the Carrier tab.
+- Source displays DFB.
+
+--- THIRD INCLUDED CARRIER (Priority 3) ---
+
+Ensure after Step 97 (Bid Now - same as step 94):
+- The message ""Your bid has been placed!"" is displayed.
+
+Ensure after Step 97 (Switch back to BTMS and refresh - same as step 95):
+- The Bid Number should get increased by one value increment. i.e. if the last value present under reports in the Carrier tab was 76, it should get incremented to 77.
+- Validate that Avg Rate should be accurately updated for the Source mentioned as BIDS. (To calculate Avg Rate - Sum of all BID RATES for 77 entries and divide by number of entries appearing on the BID HISTORY POP UP i.e. 77)
+
+Ensure after Step 97 (Click on BIDS report value - Bid Results pop-up):
+- Lane Rates are visible and updated correctly
+- Market Rates are visible and updated correctly.
+
+Ensure after Step 97 (Click Bid History):
+- A pop-up window with heading BID HISTORY appears on the screen containing (e.g., 77) entries, or we can say a dynamically updated entry count is shown.
+- Validate that count of entries on the pop-up window equals the count of reports in the reports section for Source mentioned as BIDS.
+- The Bid History pop-up displays entries for TNX-bidded carriers.
+- Ship Date matches the Shipper Earliest Date from step 46.
+- Ship City matches SANTA ROSA from step 44.
+- Ship State matches CA from step 44.
+- Consignee City matches NORTH AURORA from step 50.
+- Consignee State matches IL from step 50.
+- Carrier matches the Priority 3 carrier name saved in step 75.
+- Email matches the carrier email used during TNX bidding.
+- Bid Rate matches the bid value entered for Priority 3 carrier in step 97.
+- Timestamp reflects the time the bid was placed.
+- Equipment matches FLATBED shown as F from step 60.
+- Miles matches the Total Miles value from the Carrier tab.
+- Source displays DFB.
+
+--- FIRST NON-INCLUDED CARRIER ---
+
+Ensure after Step 99 (Bid Now - same as step 94):
+- The message ""Your bid has been placed!"" is displayed.
+
+Ensure after Step 99 (Switch back to BTMS and refresh - same as step 95):
+- The Bid Number should get increased by one value increment. i.e. if the last value present under reports in the Carrier tab was 77, it should get incremented to 78.
+- Validate that Avg Rate should be accurately updated for the Source mentioned as BIDS. (To calculate Avg Rate - Sum of all BID RATES for 78 entries and divide by number of entries appearing on the BID HISTORY POP UP i.e. 78)
+
+Ensure after Step 99 (Click on BIDS report value - Bid Results pop-up):
+- Lane Rates are visible and updated correctly.
+- Market Rates are visible and updated correctly.
+
+Ensure after Step 99 (Click Bid History):
+- A pop-up window with heading BID HISTORY appears on the screen containing (e.g., 78) entries, or we can say a dynamically updated entry count is shown.
+- Validate that count of entries on the pop-up window equals the count of reports in the reports section for Source mentioned as BIDS.
+- The Bid History pop-up displays entries for TNX-bidded carriers.
+- Ship Date matches the Shipper Earliest Date from step 46.
+- Ship City matches SANTA ROSA from step 44.
+- Ship State matches CA from step 44.
+- Consignee City matches NORTH AURORA from step 50.
+- Consignee State matches IL from step 50.
+- Carrier matches the first non-included carrier name logged in step 98.
+- Email matches the carrier email used during TNX bidding.
+- Bid Rate matches the bid value entered for the first non-included carrier in step 99.
+- Timestamp reflects the time the bid was placed.
+- Equipment matches FLATBED shown as F from step 60.
+- Miles matches the Total Miles value from the Carrier tab.
+- Source displays DFB.
+
+--- SECOND NON-INCLUDED CARRIER ---
+
+Ensure after Step 101 (Bid Now - same as step 94):
+- The message ""Your bid has been placed!"" is displayed.
+
+Ensure after Step 101 (Switch back to BTMS and refresh - same as step 95):
+- The Bid Number should get increased by one value increment. i.e. if the last value present under reports in the Carrier tab was 78, it should get incremented to 79.
+- Validate that Avg Rate should be accurately updated for the Source mentioned as BIDS. (To calculate Avg Rate - Sum of all BID RATES for 79 entries and divide by number of entries appearing on the BID HISTORY POP UP i.e. 79)
+
+Ensure after Step 101 (Click on BIDS report value - Bid Results pop-up):
+- Lane Rates are visible and updated correctly.
+- Market Rates are visible and updated correctly.
+
+Ensure after Step 101 (Click Bid History):
+- A pop-up window with heading BID HISTORY appears on the screen containing (e.g., 79) entries, or we can say a dynamically updated entry count is shown.
+- Validate that count of entries on the pop-up window equals the count of reports in the reports section for Source mentioned as BIDS.
+- The Bid History pop-up displays entries for TNX-bidded carriers.
+- Ship Date matches the Shipper Earliest Date from step 46.
+- Ship City matches SANTA ROSA from step 44.
+- Ship State matches CA from step 44.
+- Consignee City matches NORTH AURORA from step 50.
+- Consignee State matches IL from step 50.
+- Carrier matches the second non-included carrier name logged in step 100.
+- Email matches the carrier email used during TNX bidding.
+- Bid Rate matches the bid value entered for the second non-included carrier in step 101.
+- Timestamp reflects the time the bid was placed.
+- Equipment matches FLATBED shown as F from step 60.
+- Miles matches the Total Miles value from the Carrier tab.
+- Source displays DFB.
+
+--- THIRD NON-INCLUDED CARRIER ---
+
+Ensure after Step 103 (Bid Now - same as step 94):
+- The message ""Your bid has been placed!"" is displayed.
+
+Ensure after Step 103 (Switch back to BTMS and refresh - same as step 95):
+- The Bid Number should get increased by one value increment. i.e. if the last value present under reports in the Carrier tab was 79, it should get incremented to 80.
+- Validate that Avg Rate should be accurately updated for the Source mentioned as BIDS. (To calculate Avg Rate - Sum of all BID RATES for 80 entries and divide by number of entries appearing on the BID HISTORY POP UP i.e. 80)
+
+Ensure after Step 103 (Click on BIDS report value - Bid Results pop-up):
+- Lane Rates are visible and updated correctly.
+- Market Rates are visible and updated correctly.
+
+Ensure after Step 103 (Click Bid History):
+- A pop-up window with heading BID HISTORY appears on the screen containing (e.g., 80) entries, or we can say a dynamically updated entry count is shown.
+- Validate that count of entries on the pop-up window equals the count of reports in the reports section for Source mentioned as BIDS.
+- The Bid History pop-up displays entries for TNX-bidded carriers.
+- Ship Date matches the Shipper Earliest Date from step 46.
+- Ship City matches SANTA ROSA from step 44.
+- Ship State matches CA from step 44.
+- Consignee City matches NORTH AURORA from step 50.
+- Consignee State matches IL from step 50.
+- Carrier matches the third non-included carrier name logged in step 102.
+- Email matches the carrier email used during TNX bidding.
+- Bid Rate matches the bid value entered for the third non-included carrier in step 103.
+- Timestamp reflects the time the bid was placed.
+- Equipment matches FLATBED shown as F from step 60.
+- Miles matches the Total Miles value from the Carrier tab.
+- Source displays DFB.",,"aiteam, bidding, dfb, includecarrier, waterfallsetup"

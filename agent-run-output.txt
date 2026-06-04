@@ -1,0 +1,578 @@
+
+> suntecktmsplaywrightframework@1.0.0 agent
+> npx ts-node -r tsconfig-paths/register src/agent/run-agent.ts --no-llm
+
+[dotenv@17.2.3] injecting env (8) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+🔍 Scanning page object files...
+   Found 75 page object classes
+   📚 TestPatternExtractor: extracted 1360 reusable patterns from existing tests
+
+╔════════════════════════════════════════════════════════════╗
+║  🤖 Playwright Agent — Default CSV Mode                    ║
+╚════════════════════════════════════════════════════════════╝
+
+📄 Reading test cases from: C:\Users\Aman.Jain\OneDrive - R Systems International Ltd\OneDrive\Mode Global\Test cases\QA AI Agent\Playwright_Agent\src\agent\examples\sample-testcases.csv
+
+LLM Service disabled. Using rule-based generation only.
+🔍 Scanning page object files...
+   Found 75 page object classes
+   📚 TestPatternExtractor: extracted 1360 reusable patterns from existing tests
+📊 DataValidator learned values from apidata.csv: 
+📊 DataValidator learned values from banyandata.csv: 
+
+🔍 Validated banyan\banyandata.csv:
+
+╔══════════════════════════════════════════════════════╗
+║  📊 Data Validation Report                            ║
+╚══════════════════════════════════════════════════════╝
+
+❌ BANYAN-67933-36-39:
+   ❌ Field 'shipperCountry': "UnitedStates" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BANYAN-67934-37:
+   ❌ Field 'shipperCountry': "UnitedStates" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BANYAN-67935-38:
+   ❌ Field 'shipperCountry': "UnitedStates" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BANYAN-67940-43-46:
+   ❌ Field 'shipperCountry': "UnitedStates" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BANYAN-67941-44:
+   ❌ Field 'shipperCountry': "UnitedStates" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BANYAN-67942-45:
+   ❌ Field 'shipperCountry': "UnitedStates" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BANYAN-67947:
+   ❌ Field 'shipperCountry': "UnitedStates" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BANYAN-67951:
+   ❌ Field 'shipperCountry': "UnitedStates" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BANYAN-74510:
+   ❌ Field 'shipperCountry': "UnitedStates" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BANYAN-74503:
+   ❌ Field 'shipperCountry': "UnitedStates" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BANYAN-74517:
+   ❌ Field 'shipperCountry': "UnitedStates" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BANYAN-74496:
+   ❌ Field 'shipperCountry': "UnitedStates" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BANYAN-74522:
+   ❌ Field 'shipperCountry': "UnitedStates" is not a recognized value. Valid options: United States, Canada, Mexico
+
+   Summary: 0 auto-correction(s), 13 error(s)
+
+📊 DataValidator learned values from billingtoggledata.csv: shipmentCommodityUoM(1), equipmentType(1)
+📊 DataValidator learned values from bulkchangedata.csv: shipmentCommodityUoM(1), equipmentType(4)
+
+🔍 Validated bulkChange\bulkchangedata.csv:
+
+╔══════════════════════════════════════════════════════╗
+║  📊 Data Validation Report                            ║
+╚══════════════════════════════════════════════════════╝
+
+❌ BULKCHANGE-74481:
+   ❌ Field 'rateType': "pmford@avengerlogistics.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'mileageEngine': "United States" is not a recognized value. Valid options: Current, Practical, Shortest
+   ❌ Field 'shipperCountry': "40241" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "85621" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BULKCHANGE-61521:
+   ❌ Field 'rateType': "pmford@avengerlogistics.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'mileageEngine': "United States" is not a recognized value. Valid options: Current, Practical, Shortest
+   ❌ Field 'shipperCountry': "40241" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "85621" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BULKCHANGE-61525:
+   ❌ Field 'rateType': "pmford@avengerlogistics.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'mileageEngine': "United States" is not a recognized value. Valid options: Current, Practical, Shortest
+   ❌ Field 'shipperCountry': "40241" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "85621" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BULKCHANGE-82730:
+   ❌ Field 'rateType': "pmford@avengerlogistics.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'mileageEngine': "United States" is not a recognized value. Valid options: Current, Practical, Shortest
+   ❌ Field 'shipperCountry': "40241" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "85621" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ BULKCHANGE-82801:
+   ❌ Field 'rateType': "pmford@avengerlogistics.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'mileageEngine': "United States" is not a recognized value. Valid options: Current, Practical, Shortest
+   ❌ Field 'shipperCountry': "40241" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "85621" is not a recognized value. Valid options: United States, Canada, Mexico
+
+   Summary: 0 auto-correction(s), 25 error(s)
+
+📊 DataValidator learned values from carrierdata.csv: shipmentCommodityUoM(1), equipmentType(4)
+📊 DataValidator learned values from commissiondata.csv: shipmentCommodityUoM(3), equipmentType(5)
+📊 DataValidator learned values from datdata.csv: shipmentCommodityUoM(3), equipmentType(5)
+📊 DataValidator learned values from dfbdata.csv: shipmentCommodityUoM(5), equipmentType(7)
+
+🔍 Validated dfb\dfbdata.csv:
+
+╔══════════════════════════════════════════════════════╗
+║  📊 Data Validation Report                            ║
+╚══════════════════════════════════════════════════════╝
+
+❌ DFB-24951:
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'consigneeCountry': "62206" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-24962:
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "95357" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "72701" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-25008:
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'consigneeCountry': "62206" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-25101:
+   ❌ Field 'shipperCountry': "11112311111" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "72701" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-61626:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "78357" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "90731" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-61632:
+   ❌ Field 'shipperCountry': "4408" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "70546" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-61639:
+   ❌ Field 'shipperCountry': "76115" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "8083" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-61656:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "78357" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "90731" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-82754:
+   ❌ Field 'rateType': "natasha.tinsley@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "60007" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "60048" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-61662:
+   ❌ Field 'shipperCountry': "4408" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "70546" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-61668:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "85933" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "90731" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-61669:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "85933" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "90731" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-61680:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "85933" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "90731" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-61675:
+   ❌ Field 'rateType': "natasha.tinsley@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "60632" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "62521" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-61698:
+   ❌ Field 'rateType': "natasha.tinsley@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "60632" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "62521" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-61692:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "85933" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "90731" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-61699:
+   ❌ Field 'rateType': "natasha.tinsley@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "60632" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "62521" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-89162:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "85933" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "90731" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-89166:
+   ❌ Field 'rateType': "natasha.tinsley@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "60632" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "62521" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-89163:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "78357" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "90731" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-89167:
+   ❌ Field 'shipperCountry': "4408" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "70546" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-89165:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "78357" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "90731" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-89169:
+   ❌ Field 'shipperCountry': "4408" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "70546" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-89179:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "70112" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "38462" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-89183:
+   ❌ Field 'shipperCountry': "4408" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "71322" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-89164:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "85933" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "90731" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-89168:
+   ❌ Field 'rateType': "natasha.tinsley@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "60632" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "62521" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-89175:
+   ❌ Field 'rateType': "natasha.tinsley@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "60632" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "44137" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-89176:
+   ❌ Field 'rateType': "natasha.tinsley@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "60632" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "44137" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-89174:
+   ❌ Field 'rateType': "natasha.tinsley@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "60632" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "44137" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-97779:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "85933" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "90731" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-97795:
+   ❌ Field 'rateType': "natasha.tinsley@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "60632" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "44137" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-97778:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "78357" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "90731" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-97791:
+   ❌ Field 'shipperCountry': "4408" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "70546" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-97796:
+   ❌ Field 'shipperCountry': "4408" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "70546" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-97780-81-84-85-90:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "78357" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "90731" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-89191:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "78357" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "90731" is not a recognized value. Valid options: United States, Canada, Mexico
+❌ DFB-89192:
+   ❌ Field 'rateType': "brent.durham@suntecktts.com" is not a recognized value. Valid options: SPOT, CONTRACT, BID
+   ❌ Field 'loadMethod': "SPOT" is not a recognized value. Valid options: TL, LTL, Intermodal, Partial
+   ❌ Field 'shipperCountry': "85933" is not a recognized value. Valid options: United States, Canada, Mexico
+   ❌ Field 'consigneeCountry': "90731" is not a recognized value. Valid options: United States, Canada, Mexico
+
+   Summary: 0 auto-correction(s), 129 error(s)
+
+📊 DataValidator learned values from edidata.csv: shipmentCommodityUoM(5), equipmentType(7)
+📊 DataValidator learned values from nonoperationalloadsdata.csv: shipmentCommodityUoM(5), equipmentType(7)
+📊 DataValidator learned values from salesleaddata.csv: shipmentCommodityUoM(5), equipmentType(7)
+📋 Found 12 test case(s)
+
+   1. [DFB] DFB-25103 — Verify that a message is displayed when a value is not enter...
+      Precondition values: officeCode=TX-RED, switchToUser=BRENT DURHAM (TX-RED), customerName=BONDED CHEMICAL, matchVendors=TNX, enableDME=YES
+      Form values: customerName=BONDED CHEMICAL, pickLocation=ALCHEM - MEDINA, OH, shipperZip=44215, dropLocation=BLEACHTECH - PETERSBURG, VA, consigneeZip=23805, loadType=TL, equipmentType=FLATBED, offerRate=1000
+   2. [BILLINGTOGGLE] BT-67846 — Validating the scenario when the load is not in "Delivered F...
+      Form values: customerName=FORD MOTOR C/O CASS INFO SYSTEMS, pickLocation=DARRELL'S HOME (USE PU# 12345), dropLocation=DARRELL'S HOME (USE PU# 12345), equipmentType=FLATBED, offerRate=1000, shipperEarliestTime=09:00, shipperLatestTime=09:00, qty=10, uom=Case or Cases, description=Total 10 cases, weight=1000, equipmentLength=54, mileageEngine=Current, method=Practical, linehaulRate=500, rateType=SPOT, customerRate=500, carrierRate=600, trailerLength=10, expirationTime=18:00, emailNotification=aaron.gagnon@suntecktts.com, totalMiles=100, carrierName=XPO TRANS INC, consigneeEarliestTime=10:00, consigneeLatestTime=10:00
+   3. [DFB] DFB-97739 — Automatically book a load when it is manually postedDisplay ...
+      Precondition values: officeCode=TX-STK, switchToUser=FRISCO TL, customerName=MillerCoors Accessorial, carrierName=18 king trucking llc, matchVendors=TNX, enableDME=YES
+      Form values: customerName=MillerCoors Accessorial, pickLocation=|COHO DIST|SANTA ROSA|CA, dropLocation=|EUCLID BEVERAGE OF NORTH AURORA|NORTH AURORA|IL, equipmentType=FLATBED, offerRate=2000, salesperson=FRISCO TL, shipperEarliestTime=09:00, shipperLatestTime=09:00, qty=95, uom=Case or Cases, description=Total 95 cases, weight=8500, equipmentLength=54, mileageEngine=Current, method=Practical, rateType=SPOT, carrierName=18 KING TRUCKING LLC, expirationTime=10:10, emailNotification=Deepak.bohra@modeglobal.com, consigneeEarliestTime=10:00, consigneeLatestTime=10:00
+   4. [BILLINGTOGGLE] BT-74418 — Validate updated price difference message when carrier invoi...
+      Form values: customerName=AGENT RESPONSE TEST CUSTOMER, pickLocation=DARRELL'S HOME (USE PU# 12345), dropLocation=DARRELL'S HOME (USE PU# 12345), equipmentType=FLATBED, offerRate=1000, customerValue=AGENT RESPONSE TEST CUSTOMER (192815), shipperEarliestTime=09:00, shipperLatestTime=09:00, qty=95, uom=Case or Cases, description=Total 95 cases, weight=8500, equipmentLength=54, mileageEngine=Current, method=Practical, rateType=SPOT, expirationTime=18:00, emailNotification=agentbulkchange@modeglobal.com, totalMiles=100, carrierName=XPO TRANS INC, consigneeEarliestTime=10:00, consigneeLatestTime=10:00
+   5. [BILLINGTOGGLE] BT-72258 — Verify the Payable Toggle setting when the Carrier remainder...
+      Precondition values: officeCode=GA-LE790
+      Form values: customerName=AAK USA K1 LLC, loadType=LTL, carrierName=XPO TRANS INC, customerRate=500, carrierRate=600, carrierInvoiceAmount1=600
+   6. [BILLINGTOGGLE] BT-72259 — Verify the Payable Toggle setting when the Carrier remainder...
+      Precondition values: officeCode=GA-LE790
+      Form values: customerName=AAK USA K1 LLC, loadType=LTL, carrierName=XPO TRANS INC, customerRate=500, carrierRate=600, carrierInvoiceAmount1=900
+   7. [BILLINGTOGGLE] BT-74421 — Verify the Billing toggle behaviour when Load is "Invoiced o...
+      Precondition values: officeCode=NY OFFIC
+      Form values: customerName=ADVANCED COMPOSITES, pickLocation=DARRELL'S HOME (USE PU# 12345), dropLocation=TEST ADDRESS 3, equipmentType=FLATBED, offerRate=1000, customerValue=AGENT RESPONSE TEST CUSTOMER (192815), shipperEarliestTime=09:00, shipperLatestTime=09:00, qty=95, uom=Case or Cases, description=Total 95 cases, weight=8500, equipmentLength=54, mileageEngine=Current, method=Practical, rateType=SPOT, expirationTime=18:00, emailNotification=agentbulkchange@modeglobal.com, carrierName=XPO TRANS INC, consigneeEarliestTime=10:00, consigneeLatestTime=10:00
+   8. [BILLINGTOGGLE] BT-67898 — Verify that the Billing toggle does not change to Billing wh...
+      Form values: customerName=ADVANCED COMPOSITES, pickLocation=DARRELL'S HOME (USE PU# 12345), dropLocation=TEST ADDRESS 3, equipmentType=FLATBED, offerRate=1000, customerValue=AGENT RESPONSE TEST CUSTOMER (192815), shipperEarliestTime=09:00, shipperLatestTime=09:00, qty=95, uom=Case or Cases, description=Total 95 cases, weight=8500, equipmentLength=54, mileageEngine=Current, method=Practical, rateType=SPOT, expirationTime=18:00, emailNotification=agentbulkchange@modeglobal.com, carrierName=XPO TRANS INC, carrierInvoiceAmount1=1500, consigneeEarliestTime=10:00, consigneeLatestTime=10:00
+   9. [BILLINGTOGGLE] BT-67877 — Validating the scenario when the user is an admin user w/ sy...
+      Form values: customerName=ADVANCED COMPOSITES, pickLocation=DARRELL'S HOME (USE PU# 12345), dropLocation=TEST ADDRESS 3, equipmentType=FLATBED, offerRate=1000, customerValue=AGENT RESPONSE TEST CUSTOMER (192815), shipperEarliestTime=09:00, shipperLatestTime=09:00, qty=95, uom=Case or Cases, description=Total 95 cases, weight=8500, equipmentLength=54, mileageEngine=Current, method=Practical, rateType=SPOT, expirationTime=18:00, emailNotification=agentbulkchange@modeglobal.com, carrierName=XPO TRANS INC, consigneeEarliestTime=10:00, consigneeLatestTime=10:00
+   10. [BILLINGTOGGLE] BT-74454 — Verify the toggle behaviour when the load status is Delivere...
+      Form values: customerName=BRANDON INDUSTRIES, pickLocation=TEST ADDRESS 1, dropLocation=DARRELL'S HOME (USE PU# 12345), equipmentType=FLATBED, offerRate=1000, shipperEarliestTime=09:00, shipperLatestTime=09:00, qty=10, uom=Case or Cases, description=Total 10 cases, weight=1000, equipmentLength=54, mileageEngine=Current, method=Practical, customerRate=500, carrierRate=600, trailerLength=10, totalMiles=100, carrierName=ZONA TRUCKING LLC, consigneeEarliestTime=10:00, consigneeLatestTime=10:00
+   11. [DFB] DFB-97788 — Display an error message relating "In order to post this loa...
+      Form values: customerName=BRANDON INDUSTRIES, pickLocation=| CITY OF FORT WORTH TRANSPORTATION & PUBLIC WORKS|FORT WORTH|TX, dropLocation=|ADVANCED ENGINEERING|TAMPA|FL, equipmentType=FLATBED, offerRate=2000, salesperson=BRENT DURHAM, shipperEarliestTime=09:00, shipperLatestTime=09:00, qty=100, uom=Case or Cases, description=Total 100 cases, weight=1000, equipmentLength=40, mileageEngine=Current, method=Practical, rateType=SPOT, carrierName=P to Z, consigneeEarliestTime=10:00, consigneeLatestTime=10:00
+   12. [DFB] DFB-89214 — Enter a bid by the following carriers for a load that is aut...
+      Precondition values: officeCode=TX-STK
+      Form values: customerName=MillerCoors Accessorial, salesperson=FRISCO TL, mileageEngine=Current, method=Practical, rateType=SPOT, offerRate=1500
+
+⏳ Generating Playwright scripts...
+
+
+🚀 Starting generation for 12 test cases...
+
+
+🔍 Initializing application source indexer...
+✅ Using cached mono (pulled 2 hours ago)
+✅ Using cached dme (pulled 2 hours ago)
+   ✅ Loaded cached index (5942 elements) in 137ms
+   📊 App source indexer connected to code generator.
+
+   🔍 Batch mode: 12 test cases — similarity matching will exclude only already-generated siblings
+   🔍 TestCaseMatcher: Loaded 12 existing test case(s) for similarity matching
+⏭️  Skipping DFB-25103: Spec file (DFB-25103.spec.ts) and data CSV row both already exist for DFB-25103
+   🔗 Similarity match: BT-67846 → BT-74454 (score=73%, title=27%, tags=100%, same-category, patterns=100%, steps=68%, has-spec)
+⏭️  Skipping BT-67846: Spec file (BT-67846.spec.ts) and data CSV row both already exist for BT-67846
+   🔗 Similarity match: DFB-97739 → DFB-97788 (score=50%, title=7%, tags=50%, same-category, patterns=83%, steps=33%, has-spec)
+⏭️  Skipping DFB-97739: Spec file (DFB-97739.spec.ts) and data CSV row both already exist for DFB-97739
+   🔗 Similarity match: BT-74418 → BT-74421 (score=52%, title=4%, tags=33%, same-category, patterns=83%, steps=64%, has-spec)
+⏭️  Skipping BT-74418: Spec file (BT-74418.spec.ts) and data CSV row both already exist for BT-74418
+   🔗 Similarity match: BT-72258 → BT-72259 (score=100%, title=100%, tags=100%, same-category, patterns=100%, steps=99%, has-spec)
+⏭️  Skipping BT-72258: Spec file (BT-72258.spec.ts) and data CSV row both already exist for BT-72258
+   🔗 Similarity match: BT-72259 → BT-72258 (score=100%, title=100%, tags=100%, same-category, patterns=100%, steps=99%, has-spec)
+⏭️  Skipping BT-72259: Spec file (BT-72259.spec.ts) and data CSV row both already exist for BT-72259
+   🔗 Similarity match: BT-74421 → BT-67898 (score=73%, title=33%, tags=100%, same-category, patterns=83%, steps=80%, has-spec)
+⏭️  Skipping BT-74421: Spec file (BT-74421.spec.ts) and data CSV row both already exist for BT-74421
+   🔗 Similarity match: BT-67898 → BT-74421 (score=73%, title=33%, tags=100%, same-category, patterns=83%, steps=80%, has-spec)
+⏭️  Skipping BT-67898: Spec file (BT-67898.spec.ts) and data CSV row both already exist for BT-67898
+   🔗 Similarity match: BT-67877 → DFB-67877 (score=84%, title=100%, tags=100%, patterns=100%, steps=94%)
+⏭️  Skipping BT-67877: Spec file (BT-67877.spec.ts) and data CSV row both already exist for BT-67877
+   🔗 Similarity match: BT-74454 → BT-67846 (score=73%, title=27%, tags=100%, same-category, patterns=100%, steps=68%, has-spec)
+⏭️  Skipping BT-74454: Spec file (BT-74454.spec.ts) and data CSV row both already exist for BT-74454
+   🔗 Similarity match: DFB-97788 → DFB-97739 (score=50%, title=7%, tags=50%, same-category, patterns=83%, steps=33%, has-spec)
+⏭️  Skipping DFB-97788: Spec file (DFB-97788.spec.ts) and data CSV row both already exist for DFB-97788
+   🔗 Similarity match: DFB-89214 → DFB-97788 (score=53%, title=23%, tags=33%, same-category, patterns=80%, steps=44%, has-spec)
+   📊 Data CSV row exists but spec file missing — will generate spec
+📊 DataValidator learned values from dfbdata.csv: shipmentCommodityUoM(3), equipmentType(5)
+
+📂 Checking data CSV for category 'dfb': C:\Users\Aman.Jain\OneDrive - R Systems International Ltd\OneDrive\Mode Global\Test cases\QA AI Agent\Playwright_Agent\src\data\dfb\dfbdata.csv
+   ✅ Test ID 'DFB-89214' already exists in dfbdata.csv
+   📐 ReferenceSpecAnalyzer: Dynamically loaded structure from src\tests\AIAgent\dfb\DFB-97788.spec.ts
+   📐 Loaded reference spec code from DFB-97788.spec.ts for LLM context
+
+⏭️  Tier 1 LLM skipped — LLM service not available (claude --version check failed at startup or llmEnabled=false)
+   📐 Using reference imports from C:\Users\Aman.Jain\OneDrive - R Systems International Ltd\OneDrive\Mode Global\Test cases\QA AI Agent\Playwright_Agent\src\tests\AIAgent\dfb\DFB-97788.spec.ts
+   📚 Reference spec parsed: 12 test.step() blocks available for step-by-step lookup
+      🗺️ Matched mapping [LOGIN]: btmsLoginPage.BTMSLogin
+      🗺️ Matched mapping [LOGIN]: btmsLoginPage.BTMSLogin
+      🗺️ Matched mapping [LOGIN]: btmsLoginPage.BTMSLogin
+      🗺️ Matched mapping [LOGIN]: btmsLoginPage.BTMSLogin
+      🗺️ Matched mapping [LOGIN]: btmsLoginPage.BTMSLogin
+      🗺️ Matched mapping [HOVER]: basePage.hoverOverHeaderByText
+      ✅ POM match (0.86): Weighted POM score 0.865 (threshold 0.6)
+      🗺️ Matched mapping [OFFICE]: officePage.officeCodeSearchField
+      🗺️ Matched mapping [CLICK]: basePage.clickButtonByText
+      🗺️ Matched mapping [OFFICE]: officePage.officeSearchRow
+      ✅ POM match (0.91): Weighted POM score 0.915 (threshold 0.6)
+      ✅ POM match (0.85): Weighted POM score 0.855 (threshold 0.6)
+      🗺️ Matched mapping [TOGGLE_SETTINGS]: officePage.setToggleToYes
+      🗺️ Matched mapping [TOGGLE_SETTINGS]: officePage.setToggleToYes
+      ✅ POM match (0.65): Weighted POM score 0.655 (threshold 0.6)
+      ✅ POM match (0.86): Weighted POM score 0.865 (threshold 0.6)
+      ✅ POM match (0.65): Weighted POM score 0.655 (threshold 0.6)
+      🗺️ Matched mapping [TOGGLE_SETTINGS]: officePage.setToggleToYes
+      🗺️ Matched mapping [TOGGLE_SETTINGS]: officePage.setToggleToYes
+      🗺️ Matched mapping [SAVE]: editLoadFormPage.clickOnSaveBtn
+      🗺️ Matched mapping [HOVER]: basePage.hoverOverHeaderByText
+      ✅ POM match (0.80): Weighted POM score 0.800 (threshold 0.6)
+      🗺️ Matched mapping [CLICK]: basePage.clickButtonByText
+      ✅ POM match (0.86): Weighted POM score 0.865 (threshold 0.6)
+      ✅ POM match (0.91): Weighted POM score 0.915 (threshold 0.6)
+      🗺️ Matched mapping [SAVE]: editLoadFormPage.clickOnSaveBtn
+      🗺️ Matched mapping [HOVER]: basePage.hoverOverHeaderByText
+      🗺️ Matched mapping [SWITCH_USER]: adminPage.switchUser
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+      🗺️ Matched mapping [HOVER]: basePage.hoverOverHeaderByText
+      🗺️ Matched mapping [CLICK]: basePage.clickButtonByText
+      ✅ POM match (0.66): Weighted POM score 0.665 (threshold 0.6)
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+      🗺️ Matched mapping [HOVER]: basePage.hoverOverHeaderByText
+      🗺️ Matched mapping [CUSTOMER]: searchCustomerPage.enterCustomerName
+      🗺️ Matched mapping [CLICK]: basePage.clickButtonByText
+      ✅ POM match (0.86): Weighted POM score 0.865 (threshold 0.6)
+      ✅ POM match (0.86): Weighted POM score 0.865 (threshold 0.6)
+      🗺️ Matched mapping [LOAD_FORM]: loadsPage.clickNewLoadDropdown
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+      ✅ POM match (0.91): Weighted POM score 0.915 (threshold 0.6)
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+   ⚠️ buildInvocationArgs: value "09" is hardcoded — inferring testData.fieldById from method "fillFieldById"
+      ✅ POM match (0.70): Weighted POM score 0.700 (threshold 0.6)
+   ⚠️ buildInvocationArgs: value "09" is hardcoded — inferring testData.fieldById from method "fillFieldById"
+      ✅ POM match (0.70): Weighted POM score 0.700 (threshold 0.6)
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+      ✅ POM match (0.91): Weighted POM score 0.915 (threshold 0.6)
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+   ⚠️ buildInvocationArgs: value "10" is hardcoded — inferring testData.fieldById from method "fillFieldById"
+      ✅ POM match (0.70): Weighted POM score 0.700 (threshold 0.6)
+   ⚠️ buildInvocationArgs: value "10" is hardcoded — inferring testData.fieldById from method "fillFieldById"
+      ✅ POM match (0.70): Weighted POM score 0.700 (threshold 0.6)
+      ✅ POM match (0.70): Weighted POM score 0.700 (threshold 0.6)
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+   ⚠️ buildInvocationArgs: value "Total" is hardcoded — inferring testData.fieldById from method "fillFieldById"
+      ✅ POM match (0.70): Weighted POM score 0.700 (threshold 0.6)
+      ✅ POM match (0.70): Weighted POM score 0.700 (threshold 0.6)
+   ⚠️ buildInvocationArgs: value "FLATBED." is hardcoded — inferring testData.equipment from method "selectEquipment"
+      ✅ POM match (1.00): Weighted POM score 1.000 (threshold 0.6)
+   ⚠️ buildInvocationArgs: value "54." is hardcoded — inferring testData.fieldById from method "fillFieldById"
+      ✅ POM match (0.70): Weighted POM score 0.700 (threshold 0.6)
+      ✅ POM match (1.00): Weighted POM score 1.000 (threshold 0.6)
+      ✅ POM match (1.00): Weighted POM score 1.000 (threshold 0.6)
+      ✅ POM match (0.91): Weighted POM score 0.915 (threshold 0.6)
+      🗺️ Matched mapping [LOAD_FORM]: loadsPage.clickNewLoadDropdown
+      🗺️ Matched mapping [TAB]: editLoadPage.clickOnTab
+      🗺️ Matched mapping [CLICK]: editLoadPage.clickOnTab
+      🗺️ Matched mapping [DFB]: dfbLoadFormPage.enterOfferRate
+      🗺️ Matched mapping [CARRIER_SEARCH]: carrierSearchPage.nameInputOnCarrierPage
+      🗺️ Matched mapping [CARRIER_TAB]: dfbLoadFormPage.selectCarriersInIncludeCarriers
+      🗺️ Matched mapping [DFB]: dfbHelpers.configureCarriersDataWithWaterfall
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+      🗺️ Matched mapping [DFB]: dfbLoadFormPage.enterOfferRate
+      🗺️ Matched mapping [DFB]: dfbLoadFormPage.enterOfferRate
+      🗺️ Matched mapping [DFB]: dfbHelpers.configureCarriersDataWithWaterfall
+      🗺️ Matched mapping [DFB]: dfbHelpers.configureCarriersDataWithWaterfall
+      🗺️ Matched mapping [SAVE]: editLoadFormPage.clickOnSaveBtn
+      🗺️ Matched mapping [TAB]: editLoadPage.clickOnTab
+      🗺️ Matched mapping [LOGIN]: btmsLoginPage.BTMSLogin
+      ✅ POM match (0.86): Weighted POM score 0.865 (threshold 0.6)
+   ⚠️ buildInvocationArgs: value "79" is hardcoded — inferring testData.fieldById from method "fillFieldById"
+      ✅ POM match (0.70): Weighted POM score 0.700 (threshold 0.6)
+      ✅ POM match (0.66): Weighted POM score 0.660 (threshold 0.6)
+      🗺️ Matched mapping [LOGIN]: btmsLoginPage.BTMSLogin
+      ✅ POM match (0.86): Weighted POM score 0.865 (threshold 0.6)
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+      🗺️ Matched mapping [LOAD_FORM]: allLoadsSearchPage.searchMultipleLoads
+      ✅ POM match (0.86): Weighted POM score 0.865 (threshold 0.6)
+      📦 Splitting compound step into 2 sub-actions
+      ✅ POM match (0.65): Weighted POM score 0.655 (threshold 0.6)
+      🗺️ Matched mapping [CLICK]: editLoadPage.clickOnTab
+      ✅ POM match (0.86): Weighted POM score 0.865 (threshold 0.6)
+      ✅ POM match (0.66): Weighted POM score 0.660 (threshold 0.6)
+      🗺️ Matched mapping [DFB]: viewLoadCarrierTabPage.clickViewLoadPageLinks
+      🗺️ Matched mapping [MULTI_APP]: MultiAppManager.switchToTNX
+      🗺️ Matched mapping [LOAD_FORM]: allLoadsSearchPage.searchMultipleLoads
+      🗺️ Matched mapping [BILLING]: loadBillingPage.clickOnViewLoadBtn
+      🗺️ Matched mapping [MULTI_APP]: MultiAppManager.switchToTNX
+      🗺️ Matched mapping [SAVE]: editLoadFormPage.clickOnSaveBtn
+      🗺️ Matched mapping [MULTI_APP]: MultiAppManager.switchToTNX
+      🗺️ Matched mapping [SAVE]: editLoadFormPage.clickOnSaveBtn
+      🗺️ Matched mapping [MULTI_APP]: MultiAppManager.switchToTNX
+      🗺️ Matched mapping [SAVE]: editLoadFormPage.clickOnSaveBtn
+      🗺️ Matched mapping [MULTI_APP]: MultiAppManager.switchToTNX
+      🗺️ Matched mapping [SAVE]: editLoadFormPage.clickOnSaveBtn
+   📦 FormStepGrouper: 12 composite group(s) collapsing 36 CSV steps, 66 single step(s), 102 total
+      ├─ login-group: CSV steps 1-5 (5 steps → 1 composite)
+      ├─ post-load: CSV steps 31-31 (1 steps → 1 composite)
+      ├─ customer-to-create: CSV steps 33-35 (3 steps → 1 composite)
+      ├─ customer-to-create: CSV steps 37-38 (2 steps → 1 composite)
+      ├─ load-form-fill: CSV steps 41-42 (2 steps → 1 composite)
+      ├─ load-form-fill: CSV steps 45-48 (4 steps → 1 composite)
+      ├─ load-form-fill: CSV steps 51-55 (5 steps → 1 composite)
+      ├─ load-form-fill: CSV steps 57-58 (2 steps → 1 composite)
+      ├─ carrier-tab-setup: CSV steps 66-68 (3 steps → 1 composite)
+      ├─ dme-verification: CSV steps 79-81 (3 steps → 1 composite)
+      ├─ tnx-verification: CSV steps 82-85 (4 steps → 1 composite)
+      ├─ carrier-tab-setup: CSV steps 93-94 (2 steps → 1 composite)
+  🔧 Guardrail 32c: Removed navigateToBaseUrl() after login — redundant after BTMSLogin
+
+📋 Post-Generation Guardrail Results:
+   ⚠️  Guardrail: 78 console.log() call(s) appear to substitute for assertions. Use expect() or POM validation methods instead.
+   ⚠️  Guardrail: Replaced selectCustomerByName() → clickOnActiveCustomer() (exact name match fails when table appends customer ID)
+   ⚠️  Guardrail: Validation code wrapped in try/catch that swallows errors with console.log(). Use expect.soft() for non-blocking assertions instead of hiding failures.
+   🧹 Guardrail: Removed 118 narration console.log() call(s) from spec. Logging belongs in Page Object classes.
+   🔗 Guardrail: Replaced 4 hardcoded value(s) with global constant references.
+   ⚠️  Guardrail 33: Redirected 1 static utility call(s) from domain page objects to commonReusables
+   🔍 Running SpecValidator for DFB-89214...
+   🧹 Sanitizer pre-pass applied 4 rule(s): SAN-005, SAN-012, SAN-017, SAN-023
+   📊 Validation: 99/103 steps, 4 blocks, 9 errors, 0 warnings
+
+🔄 Running spec feedback loop for DFB-89214...
+   📊 Spec: 73 test.step blocks | CSV: 102 steps
+   ℹ️  11 low-match step(s) — adding review annotations
+   ⚠️  8 missing step(s) — generating code...
+      🗺️ Matched mapping [CLICK]: basePage.clickButtonByText
+   ➕ Step 31 code generated: Click the POST AUTOMATION button.
+      ✅ POM match (0.77): Weighted POM score 0.775 (threshold 0.6)
+   ➕ Step 43 code generated: Select the Shipper location: |COHO DIST|SANTA ROSA|CA.
+      🗺️ Matched mapping [DFB]: dfbLoadFormPage.enterOfferRate
+   ➕ Step 73 code generated: For each of the three carriers, click the Carrier Offer Rate
+      🗺️ Matched mapping [DFB]: dfbLoadFormPage.enterOfferRate
+   ➕ Step 74 code generated: Capture and save the three included carrier names with their
+      🗺️ Matched mapping [DFB]: dfbHelpers.configureCarriersDataWithWaterfall
+   ➕ Step 76 code generated: Click Save on the Include Carriers Data pop-up.
+      ✅ POM match (0.86): Weighted POM score 0.865 (threshold 0.6)
+   ➕ Step 89 code generated: Click on the value present in the reports section for the So
+      ✅ POM match (0.66): Weighted POM score 0.660 (threshold 0.6)
+   ➕ Step 90 code generated: Close the Bid results pop-up
+      🗺️ Matched mapping [MULTI_APP]: MultiAppManager.switchToTNX
+   ➕ Step 101 code generated: Switch back to TNX and select the third non-included carrier
+   📋 Feedback summary: 83/102 matched; 8 missing (code injected); 11 flagged for review
+      ➕ Injected Step 31: Click the POST AUTOMATION button....
+      ➕ Injected Step 43: Select the Shipper location: |COHO DIST|SANTA ROSA|CA....
+      ➕ Injected Step 73: For each of the three carriers, click the Carrier Offer...
+      ➕ Injected Step 74: Capture and save the three included carrier names with ...
+      ➕ Injected Step 76: Click Save on the Include Carriers Data pop-up....
+      ➕ Injected Step 89: Click on the value present in the reports section for t...
+      ➕ Injected Step 90: Close the Bid results pop-up...
+      ➕ Injected Step 101: Switch back to TNX and select the third non-included ca...
+      🔍 Step 71 flagged (38% match): For each of the three carriers, click the Carrier Prior...
+      🔍 Step 72 flagged (42% match): For each of the three carriers, click the Carrier Timin...
+      🔍 Step 86 flagged (32% match): Click on the plus icon, search the load using the Load ...
+      🔍 Step 88 flagged (30% match): Switch back to the BTMS application.  Refresh / Reload ...
+      🔍 Step 95 flagged (48% match): Switch back to TNX and select the third included carrie...
+      🔍 Step 96 flagged (38% match): Repeat the same bid flow and BTMS verification flow for...
+      🔍 Step 97 flagged (48% match): Switch back to TNX and select the first non-included ca...
+      🔍 Step 98 flagged (36% match): Repeat the same bid flow and BTMS verification flow for...
+      🔍 Step 99 flagged (43% match): Switch back to TNX and select the second non-included c...
+      🔍 Step 100 flagged (36% match): Repeat the same bid flow and BTMS verification flow for...
+      🔍 Step 102 flagged (36% match): Repeat the same bid flow and BTMS verification flow for...
+   🔄 Re-validating after feedback loop corrections...
+   🧹 Sanitizer pre-pass applied 2 rule(s): SAN-012, SAN-025
+   ⚠️ Generated with warnings: DFB-89214.spec.ts
+      ⚠️ STEP-002: Step numbering in test.step headers is not sequential (gaps or wrong order).
+      ⚠️ STEP-002: Duplicate step number 43 in test.step headers.
+      ⚠️ POM-001: Direct sharedPage.goto() must be replaced with pages.<getter>.<method>().
+      ⚠️ POM-006: try/catch that logs to console without rethrowing can hide failures.
+      ⚠️ ASSERT-004: Verify step 11 has no expect() call.
+      ⚠️ ASSERT-004: Verify step 25 has no expect() call.
+      ⚠️ ASSERT-004: Verify step 44 has no expect() call.
+      ⚠️ ASSERT-004: Verify step 50 has no expect() call.
+      ⚠️ ASSERT-004: Verify step 63 has no expect() call.
+      ⚠️ ASSERT-004: Verify step 75 has no expect() call.
+✅ Generated: DFB-89214.spec.ts
+
+🔍 Running batch TypeScript compilation check for 1 file(s)...
+   ✅ Batch compilation passed — no actionable TypeScript errors
+
+📊 Summary:
+   Total: 12
+   Generated: 1
+   Skipped (already exist): 11
+   Failed: 0
+   Time: 20531ms
+
+
+╔════════════════════════════════════════════════════════════╗
+║  📊 Generation Results                                     ║
+╠════════════════════════════════════════════════════════════╣
+║  Total:     12                                           ║
+║  Success:   1                                            ║
+║  Failed:    0                                            ║
+║  Time:      20531ms                                      ║
+╚════════════════════════════════════════════════════════════╝
+
+✅ Generated spec files:
+   📄 C:\Users\Aman.Jain\OneDrive - R Systems International Ltd\OneDrive\Mode Global\Test cases\QA AI Agent\Playwright_Agent\src\tests\AIAgent/dfb/DFB-89214.spec.ts

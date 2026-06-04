@@ -58,7 +58,7 @@ test.describe.serial(
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
 
-        await test.step("Step 2: Enter office code NY OFFIC and click Search", async () => {
+        await test.step("Step 2 [CSV 2]: Enter office code CORP and click Search", async () => {
           await pages.officePage.officeCodeSearchField(testData.officeName);
           await pages.officePage.searchButtonClick();
           await commonReusables.waitForAllLoadStates(sharedPage);
@@ -112,12 +112,13 @@ test.describe.serial(
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
 
-        await test.step("Step 12: Select customer on Enter New Load form", async () => {
-          const customerValue = testData['Customer Value'];
+        await test.step("Step 12-13 [CSV 12-13]: Select customer; Salesperson / Dispatcher", async () => {
+          const customerValue = testData["Customer Value"];
           await pages.nonTabularLoadPage.selectCustomerViaSelect2(customerValue);
+          await pages.nonTabularLoadPage.ensureEnterNewLoadSalespersonDispatcherSelection();
         });
 
-        await test.step("Step 13-25: Fill Enter New Load page details (Shipper, Consignee, dates, times)", async () => {
+        await test.step("Step 14-25 [CSV 14-25]: Fill Enter New Load page details (Shipper, Consignee, dates, times)", async () => {
           await pages.nonTabularLoadPage.createNonTabularLoad({
             shipperValue: testData.shipperName,
             consigneeValue: testData.consigneeName,
@@ -256,7 +257,7 @@ test.describe.serial(
             "Billing toggle should NOT be set to 'Agent'"
           ).not.toBe(PAYABLE_TOGGLE_VALUE.AGENT);
 
-          await pages.viewLoadPage.scrollToBillingIssuesSection();
+          await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
           const noneChecked = await pages.loadBillingPage.areNoBillingIssuesChecked();
           pages.logger.info(`No billing issue checkboxes checked: ${noneChecked}`);
           expect(

@@ -18,6 +18,16 @@ export class GlobalConstants {
     XXLARGE: 120000,
   } as const;
 
+  /**
+   * Seconds for `commonReusables.validateAlert` (third argument is seconds, not ms).
+   * @author AI Agent
+   * @created 2026-05-11
+   */
+  static readonly DIALOG_TIMEOUT_SECONDS = {
+    /** DFB-97788 step 67 — Post load + waterfall validation dialog. */
+    POST_LOAD_VALIDATION: 60,
+  } as const;
+
   // Navigation Header Menu Items
   static readonly HEADERS = {
     ADMIN: "Admin",
@@ -533,6 +543,16 @@ export class GlobalConstants {
   } as const;
 
   /**
+   * @author AI Agent
+   * @created 2026-04-30
+   * @description Labels shown in Agent USER ROLES section (view agent) for hard assertions.
+   */
+  static readonly AGENT_USER_ROLES = {
+    ADMIN: "ADMIN",
+    SYSTEM_ADMIN: "SYSTEM_ADMIN",
+  } as const;
+
+  /**
    * @author Rohit Singh
    * @created 2025-12-30
    * @description Global constants for carrier tabs for the test automation framework.
@@ -605,6 +625,16 @@ export class GlobalConstants {
     CARRIER_OVER_INVOICED: "over the total charge",
   } as const;
 
+  /**
+   * Billing Issues tag labels on View Load / billing (BTMS UI copy).
+   * @author AI Agent
+   * @created 2026-05-11
+   */
+  static readonly BILLING_ISSUE_TAGS = {
+    NOT_DELIV_FINAL: "Not Deliv. Final",
+    PRICE_DIFFERENCE: "Price Difference",
+  } as const;
+
   static readonly CARRIER_PAYABLE_STATUS = {
     IN_PROCESS: "IN PROCESS",
     INVOICE_RECEIVED: "INVOICE RECEIVED",
@@ -655,6 +685,17 @@ export class GlobalConstants {
     CARRIER_XPO_TRANS: "01039257"
   } as const;
 
+  /**
+   * Fallback carrier-offer expiration for Edit Load carrier tab when CSV omits
+   * `carrierExpirationDaysAhead` / `carrierExpirationTime` (see billing toggle data row).
+   * @author AI Agent
+   * @created 2026-04-30
+   */
+  static readonly CARRIER_OFFER_EXPIRATION_DEFAULTS = {
+    DAYS_AHEAD: 7,
+    TIME: "18:00",
+  } as const;
+
 }
 /**
  * @author Deepak Bohra
@@ -664,6 +705,7 @@ export class GlobalConstants {
  */
 // Global declarations - makes constants available without imports
 declare global {
+  const DIALOG_TIMEOUT_SECONDS: typeof GlobalConstants.DIALOG_TIMEOUT_SECONDS;
   const HEADERS: typeof GlobalConstants.HEADERS;
   const ADMIN_SUB_MENU: typeof GlobalConstants.ADMIN_SUB_MENU;
   const AGENT_SUB_MENU: typeof GlobalConstants.AGENT_SUB_MENU;
@@ -709,6 +751,7 @@ declare global {
   const TOGGLE_OPTIONS: typeof GlobalConstants.TOGGLE_OPTIONS;
   const FINANCE_SUB_MENU: typeof GlobalConstants.FINANCE_SUB_MENU;
   const USER_ROLES: typeof GlobalConstants.USER_ROLES;
+  const AGENT_USER_ROLES: typeof GlobalConstants.AGENT_USER_ROLES;
   const AGENT_AUTH_LEVEL: typeof GlobalConstants.AGENT_AUTH_LEVEL;
   const AGENT_AUTH_ALLOWED: typeof GlobalConstants.AGENT_AUTH_ALLOWED;
   const CARRIER_TABS: typeof GlobalConstants.CARRIER_TABS;
@@ -720,6 +763,7 @@ declare global {
   const INVOICE_PROCESS: typeof GlobalConstants.INVOICE_PROCESS;
   const AUTOPAY_STATUS: typeof GlobalConstants.AUTOPAY_STATUS;
   const FINANCE_MESSAGES: typeof GlobalConstants.FINANCE_MESSAGES;
+  const BILLING_ISSUE_TAGS: typeof GlobalConstants.BILLING_ISSUE_TAGS;
   const CARRIER_PAYABLE_STATUS: typeof GlobalConstants.CARRIER_PAYABLE_STATUS;
   const DEFAULT_ITEM_DIMENSIONS: typeof GlobalConstants.DEFAULT_ITEM_DIMENSIONS;
   const MILEAGE_ENGINE: typeof GlobalConstants.MILEAGE_ENGINE;
@@ -735,6 +779,8 @@ declare global {
  */
 // Make constants globally available
 if (typeof globalThis !== "undefined") {
+  (globalThis as any).DIALOG_TIMEOUT_SECONDS =
+    GlobalConstants.DIALOG_TIMEOUT_SECONDS;
   (globalThis as any).HEADERS = GlobalConstants.HEADERS;
   (globalThis as any).ADMIN_SUB_MENU = GlobalConstants.ADMIN_SUB_MENU;
   (globalThis as any).AGENT_SUB_MENU = GlobalConstants.AGENT_SUB_MENU;
@@ -787,6 +833,7 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).FINANCE_SUB_MENU = GlobalConstants.FINANCE_SUB_MENU;
   (globalThis as any).TOGGLE_OPTIONS = GlobalConstants.TOGGLE_OPTIONS;
   (globalThis as any).USER_ROLES = GlobalConstants.USER_ROLES;
+  (globalThis as any).AGENT_USER_ROLES = GlobalConstants.AGENT_USER_ROLES;
   (globalThis as any).CARRIER_TABS = GlobalConstants.CARRIER_TABS;
   (globalThis as any).POST_AUTOMATION_RULE = GlobalConstants.POST_AUTOMATION_RULE;  
   (globalThis as any).POST_AUTOMATION_COLUMNS = GlobalConstants.POST_AUTOMATION_COLUMNS;
@@ -796,6 +843,7 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).INVOICE_PROCESS = GlobalConstants.INVOICE_PROCESS;
   (globalThis as any).AUTOPAY_STATUS = GlobalConstants.AUTOPAY_STATUS;
   (globalThis as any).FINANCE_MESSAGES = GlobalConstants.FINANCE_MESSAGES;
+  (globalThis as any).BILLING_ISSUE_TAGS = GlobalConstants.BILLING_ISSUE_TAGS;
   (globalThis as any).CARRIER_PAYABLE_STATUS = GlobalConstants.CARRIER_PAYABLE_STATUS;
   (globalThis as any).DEFAULT_ITEM_DIMENSIONS = GlobalConstants.DEFAULT_ITEM_DIMENSIONS;
   (globalThis as any).MILEAGE_ENGINE = GlobalConstants.MILEAGE_ENGINE;

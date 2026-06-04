@@ -55,6 +55,13 @@ const ALERT_MESSAGE_TO_CONSTANT: Record<string, string> = {
   "status has been set to booked": "ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_BOOKED",
   "status has been set to invoiced": "ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_INVOICED",
   "payable status has been updated to invoice received": "ALERT_PATTERNS.PAYABLE_STATUS_INVOICE_RECEIVED",
+  // Waterfall / post-all carriers error
+  "in order to post this load, the checkbox labeled": "ALERT_PATTERNS.CARRIER_ALREADY_INCLUDED_ERROR",
+  "post to all carriers upon completion of the waterfall": "ALERT_PATTERNS.CARRIER_ALREADY_INCLUDED_ERROR",
+  "needs to be unchecked": "ALERT_PATTERNS.CARRIER_ALREADY_INCLUDED_ERROR",
+  // Cargo value / carrier required error
+  "loads with a cargo value greater than": "ALERT_PATTERNS.CARRIER_NOT_INCLUDED_ERROR",
+  "cannot be posted without a dedicated carrier": "ALERT_PATTERNS.CARRIER_NOT_INCLUDED_ERROR",
 };
 
 /**
@@ -158,6 +165,8 @@ export class CodeGenerator {
   private _activeRefStructure: SpecStructure | null = null;
   /** Raw content of the active reference spec (passed to LLM as context) */
   private _activeRefSpecCode: string | null = null;
+  /** Parsed test.step() blocks from the reference spec — built once, reused per step */
+  private _refStepBlocks: Array<{ label: string; code: string }> | null = null;
   /** Raw content of secondary reference spec for POM method discovery */
   // Removed: _secondaryRefSpecCode (was only used by LLM code path)
   /** Match score from TestCaseMatcher — controls reference adoption aggressiveness */
@@ -335,8 +344,9 @@ export class CodeGenerator {
       refStructure = this.referenceAnalyzer.findBestReference(testCase.category);
     }
 
-    // Load raw reference spec code for LLM context
+    // Load raw reference spec code for LLM context and reference step extraction
     this._activeRefSpecCode = null;
+    this._refStepBlocks = null; // reset; rebuilt in generateTestSteps()
     if (dynamicRefSpecPath && fs.existsSync(dynamicRefSpecPath)) {
       try {
         this._activeRefSpecCode = fs.readFileSync(dynamicRefSpecPath, 'utf-8');
@@ -365,6 +375,73 @@ export class CodeGenerator {
       }
     }
     void _secondaryRefSpecCode;
+
+    // ── TIER 1: UNIVERSAL FULL-SPEC LLM — tried for ALL test cases first ──
+    // Uses the reference spec as a structural template and generates ALL steps
+    // from the new test case in one LLM pass. Bypasses step-by-step generation
+    // entirely when successful, giving the LLM full cross-step context.
+    if (!this.llmService?.isAvailable()) {
+      console.log(`\n⏭️  Tier 1 LLM skipped — LLM service not available (claude --version check failed at startup or llmEnabled=false)`);
+    } else if (!this._activeRefSpecCode) {
+      console.log(`\n⏭️  Tier 1 LLM skipped — no reference spec loaded for category '${testCase.category}' (check ReferenceSpecAnalyzer.REFERENCE_SPECS)`);
+    }
+    if (this.llmService?.isAvailable() && this._activeRefSpecCode) {
+      console.log(`\n🤖 Full-spec LLM generation for ${testCase.id} (${testCase.steps.length} steps)`);
+      const schemaCtx = this.getSchemaContext();
+      const testDataObj: Record<string, string> = testData
+        ? Object.fromEntries(
+            Object.entries(testData).filter(([, v]) => v && String(v).trim()).map(([k, v]) => [k, String(v)])
+          )
+        : {};
+      const preconditions = testCase.preconditions || [];
+      const steps = testCase.steps.map(s => ({
+        stepNumber: s.stepNumber,
+        action: s.action,
+        expectedResult: s.expectedResult,
+      }));
+      const expectedResults = testCase.steps
+        .filter(s => s.expectedResult)
+        .map(s => s.expectedResult!);
+
+      const fullSpecCode = await this.llmService.generateFullSpecFromReference(
+        this._activeRefSpecCode,
+        testCase.id,
+        testCase.title || testCase.description,
+        testCase.category,
+        preconditions,
+        steps,
+        expectedResults,
+        testDataObj,
+        schemaCtx,
+        'generate',
+      );
+
+      if (fullSpecCode) {
+        let content = this.cleanUnusedImports(fullSpecCode);
+        content = this.validatePostGenerationGuardrails(content, testCase, testData);
+        content = this.ensurePageObjectMethodsExist(content, testCase);
+
+        const metadata = this.generateMetadata(testCase, testType);
+        console.log(`   ✅ Full-spec LLM generation completed for ${testCase.id}`);
+        return {
+          testCaseId: testCase.id,
+          fileName,
+          filePath,
+          content,
+          imports: content.split('\n').filter(l => l.trim().startsWith('import ')),
+          pageObjectsUsed: this.determinePageObjects(testCase),
+          constantsUsed: this.determineConstants(testCase),
+          testSteps: testCase.steps.map(s => ({
+            stepName: `Step ${s.stepNumber}: ${s.action.substring(0, 80)}`,
+            code: '// Full-spec LLM generation',
+            pageObjects: [],
+            assertions: [],
+          })),
+          metadata,
+        };
+      }
+      console.log(`   ⚠️ Full-spec LLM failed — falling back to hybrid/step-by-step`);
+    }
 
     // ── HIGH-MATCH HYBRID: CLONE + LLM FOR DIFFERING STEPS ──
     // When matchScore >= 0.7 and we have a reference spec:
@@ -412,9 +489,11 @@ export class CodeGenerator {
       // Fallback: generate the COMPLETE spec in one LLM call (300s timeout, single request)
       if (this.llmService && this.llmService.isAvailable()) {
         const schemaCtx = this.getSchemaContext();
-        const testDataFields = testData
-          ? Object.keys(testData).filter(k => testData[k] && String(testData[k]).trim())
-          : [];
+        const testDataObj: Record<string, string> = testData
+          ? Object.fromEntries(
+              Object.entries(testData).filter(([, v]) => v && String(v).trim()).map(([k, v]) => [k, String(v)])
+            )
+          : {};
         const preconditions = testCase.preconditions || [];
         const steps = testCase.steps.map(s => ({
           stepNumber: s.stepNumber,
@@ -433,8 +512,9 @@ export class CodeGenerator {
           preconditions,
           steps,
           expectedResults,
-          testDataFields,
+          testDataObj,
           schemaCtx,
+          'adapt',
         );
 
         if (fullSpecCode) {
@@ -528,6 +608,9 @@ export class CodeGenerator {
     // Generic utility methods are auto-redirected to CommonReusables
     content = this.ensurePageObjectMethodsExist(content, testCase);
 
+    // Second pass: re-clean imports after ensurePageObjectMethodsExist may have changed method references
+    content = this.cleanUnusedImports(content);
+
     return {
       testCaseId: testCase.id,
       fileName,
@@ -539,6 +622,27 @@ export class CodeGenerator {
       testSteps,
       metadata
     };
+  }
+
+  /**
+   * Public API for the Feedback Loop (Agent 4): generate a formatted test.step block
+   * for a single CSV step using the standard 3-priority pipeline (pattern library →
+   * declarative mappings → POM method matching).
+   *
+   * @param stepAction  Raw step text from the CSV
+   * @param stepNumber  Original CSV step number
+   * @param testCase    Full test case (provides data context)
+   */
+  async generatePublicStepBlock(
+    stepAction: string,
+    stepNumber: number,
+    testCase: TestCaseInput,
+  ): Promise<string> {
+    const code = await this.generateCodeFromAction(stepAction, testCase.testData as any);
+    const labelText =
+      stepAction.length > 80 ? stepAction.substring(0, 77) + '...' : stepAction;
+    const stepLabel = `Step ${stepNumber}: ${labelText}`;
+    return `await test.step("${stepLabel}", async () => {\n${this.formatStepCode(code)}      });`;
   }
 
   /**
@@ -1009,7 +1113,7 @@ await this.page.waitForLoadState('load');`,
         testType === 'multi-app'
           ? GlobalConstants.WAIT.SPEC_TIMEOUT_LARGE
           : GlobalConstants.WAIT.SPEC_TIMEOUT,
-      tags: testCase.tags || categoryConfig.defaultTags
+      tags: [...new Set(['@AIAgent', ...(testCase.tags ?? categoryConfig.defaultTags)])]
     };
   }
 
@@ -1155,6 +1259,13 @@ await this.page.waitForLoadState('load');`,
     );
     this._processedSteps = processedSteps;
 
+    // Build reference step blocks cache once before the loop.
+    // Each step generation call will consult this for Jaccard-based lookup.
+    this._refStepBlocks = this._activeRefSpecCode ? this.buildRefStepBlocks() : [];
+    if (this._refStepBlocks.length > 0) {
+      console.log(`   📚 Reference spec parsed: ${this._refStepBlocks.length} test.step() blocks available for step-by-step lookup`);
+    }
+
     const steps: GeneratedTestStep[] = [];
 
     for (let index = 0; index < testCase.steps.length; index++) {
@@ -1193,16 +1304,13 @@ await this.page.waitForLoadState('load');`,
   /**
    * Generate code from action description.
    *
-   * Pattern library → declarative mappings → POM method matching (three-agent pipeline).
+   * Declarative mappings → POM method matching → pattern library (fallback) → direct locator (three-agent pipeline).
    * When preProcessed is provided, uses the pre-processed step with immutable context snapshots.
    */
   private async generateCodeFromAction(action: string, _testData?: TestData, preProcessed?: ProcessedStep): Promise<string> {
-    // ==================== PRIORITY 1: PATTERN LIBRARY ====================
-    const existingPattern = this.patternExtractor.findPattern(action);
-    if (existingPattern) {
-      console.log(`      📚 Reusing pattern from ${existingPattern.sourceFile}: "${existingPattern.stepName}"`);
-      return existingPattern.code;
-    }
+    // NOTE: TestPatternExtractor patterns are NOT applied first — low keyword overlap (40%)
+    // was stealing steps from unrelated specs (e.g. waterfall + undefined carriersData).
+    // Patterns run only after POM returns TODO (see bottom of this method).
 
     // ==================== COMPOUND STEP SPLITTING ====================
     const compoundSplitPattern = /\.\s*(?=(?:Enter|Click|Select|Upload|Navigate|Validate|Verify|Check|Close|Refresh|Save)\b)|(?<=\d)\s+and\s+(?=(?:Enter|Click|Select|Upload|Navigate|Validate|Verify|Check|Close|Refresh|Save)\b)/i;
@@ -1216,6 +1324,32 @@ await this.page.waitForLoadState('load');`,
           codeParts.push(subCode);
         }
         return codeParts.join('\n        ');
+      }
+    }
+
+    // ==================== PRIORITY 1.5: REFERENCE STEP LOOKUP ====================
+    // Before declarative mappings, check the reference spec's test.step() blocks.
+    // Reuse reference code when Jaccard similarity >= 0.5 — it's already validated,
+    // uses correct POM methods, and follows the same testData field conventions.
+    // Skip SSO sub-steps (they should stay as "handled by BTMSLogin" comments).
+    // Skip login steps — the StepMappings BTMSLogin mapping must fire instead of
+    // inheriting potentially wrong login code from the reference spec.
+    const isLoginStep = /\b(login|log\s*in|btms\s*login|sign\s*in)\b/i.test(action);
+    if (!isLoginStep && this._refStepBlocks && this._refStepBlocks.length > 0) {
+      let bestSim = 0;
+      let bestCode = '';
+      let bestLabel = '';
+      for (const block of this._refStepBlocks) {
+        const sim = this.jaccardSimilarity(action, block.label);
+        if (sim > bestSim) { bestSim = sim; bestCode = block.code; bestLabel = block.label; }
+      }
+      if (bestSim >= 0.5 && bestCode) {
+        // Sanity check: skip if the reference code is just a waitFor / placeholder
+        const isNonTrivial = bestCode.includes('pages.') || bestCode.includes('appManager.') || bestCode.includes('await ');
+        if (isNonTrivial) {
+          console.log(`      🔗 Reference step match (Jaccard ${bestSim.toFixed(2)}) for "${action.substring(0, 60)}" → "${bestLabel.substring(0, 60)}" — reusing reference code`);
+          return bestCode;
+        }
       }
     }
 
@@ -1240,7 +1374,7 @@ await this.page.waitForLoadState('load');`,
     if (!preProcessed) this._processedSteps.push(processedStep);
 
     const matchResult = this.pomMatcher.matchAndGenerate(processedStep, _testData);
-    
+
     if (matchResult.type === 'existing-pom' || matchResult.type === 'mapping') {
       console.log(`      ✅ POM match (${matchResult.confidence.toFixed(2)}): ${matchResult.reason}`);
     } else if (matchResult.type === 'new-pom') {
@@ -1249,11 +1383,116 @@ await this.page.waitForLoadState('load');`,
       console.log(`      📝 TODO: ${matchResult.reason}`);
     }
 
-    return matchResult.code || this.generateDirectLocatorCode(action, _testData);
+    let code = matchResult.code || this.generateDirectLocatorCode(action, _testData);
+
+    // ==================== PATTERN LIBRARY (fallback only) ====================
+    // Only when POM could not produce real automation — avoids wrong spec fragments
+    // (e.g. configureCarriersDataWithWaterfall + carriersData) for loosely related wording.
+    const pomFailed =
+      matchResult.type === 'todo' ||
+      !code ||
+      /^\/\/\s*TODO:/im.test(code.trim()) ||
+      /\/\*\s*TODO:/i.test(code) ||
+      (code.includes('TODO:') && code.includes('No POM method'));
+    if (pomFailed) {
+      const existingPattern = this.patternExtractor.findPattern(action);
+      if (existingPattern) {
+        const pc = existingPattern.code;
+        const needsCarriersData = /\bcarriersData\b/.test(pc);
+        const td = _testData as Record<string, unknown> | undefined;
+        const stepImpliesCarriersData =
+          // Must reference the waterfall/25-carrier setup context, not just incidentally mention "include carrier"
+          /\b25\b.*carrier|carriers\s*data|waterfall|select.*include\s+carrier|add.*include\s+carrier|fill.*include\s+carrier/i.test(action) ||
+          (td != null && td['carriersData'] !== undefined && String(td['carriersData']).trim() !== '');
+        if (needsCarriersData && !stepImpliesCarriersData) {
+          console.log(
+            `      ⚠️ Skipping pattern from ${existingPattern.sourceFile} — uses carriersData but step/testData do not define it`
+          );
+        } else {
+          console.log(`      📚 Reusing pattern from ${existingPattern.sourceFile}: "${existingPattern.stepName}"`);
+          code = pc;
+        }
+      }
+    }
+
+    // ==================== PRIORITY 4: LLM GENERATION (final fallback) ====================
+    // When declarative mappings, POM matching, and pattern library all fail to produce real code,
+    // ask the LLM to generate a step using the full framework schema + POM method list.
+    const stillTodo =
+      !code ||
+      /^\/\/\s*TODO:/im.test(code.trim()) ||
+      (code.includes('TODO:') && code.includes('No POM method'));
+    if (stillTodo && this.llmService && this.llmService.isAvailable()) {
+      console.log(`      🤖 Falling back to LLM for: "${action.substring(0, 80)}"`);
+      const schemaCtx = this.getSchemaContext();
+      const testDataFields = _testData
+        ? Object.keys(_testData).filter(k => _testData[k] && String(_testData[k]).trim())
+        : [];
+      const llmCode = await this.llmService.generateStepCode(action, {
+        schema: schemaCtx,
+        testDataFields,
+        referenceSpecCode: this._activeRefSpecCode || undefined,
+      });
+      if (llmCode) {
+        console.log(`      ✅ LLM generated step code for: "${action.substring(0, 60)}"`);
+        code = llmCode;
+      }
+    }
+
+    return code;
   }
 
-  private generateDirectLocatorCode(_action: string, _testData?: Record<string, any>): string {
-    return `// TODO: No POM method found for this step. Manual implementation required.\n        await commonReusables.waitForAllLoadStates(sharedPage);`;
+  private generateDirectLocatorCode(action: string, _testData?: Record<string, any>): string {
+    const truncated = action.replace(/"/g, "'").substring(0, 100);
+    return `// TODO: implement — "${truncated}"\n        await pages.basePage.waitForMultipleLoadStates();`;
+  }
+
+  /**
+   * Parse test.step() blocks from the reference spec into label+code pairs.
+   * Uses brace-depth counting to handle nested curly braces inside step bodies.
+   * Result is cached in _refStepBlocks — call once before the step generation loop.
+   */
+  private buildRefStepBlocks(): Array<{ label: string; code: string }> {
+    if (!this._activeRefSpecCode) return [];
+    const blocks: Array<{ label: string; code: string }> = [];
+    const src = this._activeRefSpecCode;
+    // Match the opening of each test.step() call — captures the label
+    const stepOpenRe = /await\s+test\.step\(\s*["'`]([^"'`]+)["'`]\s*,\s*async\s*\(\)\s*=>\s*\{/g;
+    let m: RegExpExecArray | null;
+    while ((m = stepOpenRe.exec(src)) !== null) {
+      const label = m[1];
+      const bodyStart = m.index + m[0].length;
+      // Walk forward counting brace depth to find the matching closing brace
+      let depth = 1;
+      let i = bodyStart;
+      while (i < src.length && depth > 0) {
+        const ch = src[i];
+        if (ch === '{') depth++;
+        else if (ch === '}') depth--;
+        i++;
+      }
+      const body = src.slice(bodyStart, i - 1).trim();
+      if (body.length > 10) {
+        blocks.push({ label, code: body });
+      }
+    }
+    return blocks;
+  }
+
+  /**
+   * Jaccard similarity on word tokens (case-insensitive, min 3 chars).
+   * Returns 0..1. Used to match new step actions against reference step labels.
+   */
+  private jaccardSimilarity(a: string, b: string): number {
+    const tokenize = (s: string): Set<string> => new Set(
+      s.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length >= 3),
+    );
+    const setA = tokenize(a);
+    const setB = tokenize(b);
+    if (setA.size === 0 || setB.size === 0) return 0;
+    let intersection = 0;
+    for (const w of setA) { if (setB.has(w)) intersection++; }
+    return intersection / (setA.size + setB.size - intersection);
   }
 
   /**
@@ -1414,7 +1653,7 @@ await this.page.waitForLoadState('load');`,
       .map(t => t.startsWith('@') ? t : `@${t}`)
       .join(',');
 
-    const stepCode = await this.generateStepCode(testSteps, testCase);
+    const stepCode = await this.generateStepCode(testSteps, testCase, _testData);
 
     // Only declare variables that are actually used in the generated step code
     const optionalVars: string[] = [];
@@ -1436,8 +1675,9 @@ let sharedPage: any;
 let pages: PageManager;
 ${optionalVars.join('\n')}
 
-test.describe.configure({ retries: ${metadata.retryCount} });
 test.describe.serial("${testCase.title}", () => {
+  test.describe.configure({ retries: ${metadata.retryCount} });
+
   test.beforeAll(async ({ browser }) => {
     // Create shared context and page that will persist across tests
     sharedContext = await browser.newContext();
@@ -1485,13 +1725,14 @@ ${stepCode}
     // Ensure multi-app imports include BrowserContext, Page, ALERT_PATTERNS, commonReusables
     const importBlock = this.ensureMultiAppImports(imports);
 
-    const stepCode = await this.generateStepCode(testSteps, testCase);
+    const stepCode = await this.generateStepCode(testSteps, testCase, _testData);
 
     // Only declare variables that are actually used in the generated step code
     const optionalVars: string[] = [];
     if (stepCode.includes('cargoValue')) optionalVars.push('// eslint-disable-next-line @typescript-eslint/no-unused-vars\nlet cargoValue: string;');
     if (stepCode.includes('loadNumber')) optionalVars.push('let loadNumber: string;');
-    if (stepCode.includes('agentEmail')) optionalVars.push('let agentEmail: string;');
+    if (stepCode.includes('agentEmail')) optionalVars.push('let agentEmail = \'\';');
+    if (stepCode.includes('carriersData')) optionalVars.push('const carriersData: any[] = [];');
 
     return `${importBlock}
 
@@ -1510,10 +1751,11 @@ let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
 
-test.describe.configure({ retries: ${metadata.retryCount} });
 test.describe.serial(
   "Case ID: ${testCase.id} - ${testCase.title}",
   () => {
+    test.describe.configure({ retries: ${metadata.retryCount} });
+
     test.beforeAll(async ({ browser }) => {
       sharedContext = await browser.newContext();
       sharedPage = await sharedContext.newPage();
@@ -1555,8 +1797,9 @@ ${stepCode}
     const result: string[] = [];
 
     for (const imp of imports) {
-      // Upgrade playwright import to include BrowserContext and Page
-      if (imp.includes('@playwright/test') && !imp.includes('BrowserContext')) {
+      // Ensure playwright import always includes BrowserContext and Page — unconditional
+      // replacement so cleanUnusedImports can never strip Page before it's evaluated.
+      if (imp.includes('@playwright/test')) {
         result.push('import { BrowserContext, expect, Page, test } from "@playwright/test";');
       } else {
         result.push(imp);
@@ -1572,6 +1815,9 @@ ${stepCode}
     }
     if (!joined.includes('PageManager')) {
       result.push('import { PageManager } from "@utils/PageManager";');
+    }
+    if (!joined.includes('globalConstants') && !joined.includes('@utils/globalConstants')) {
+      result.push('import "@utils/globalConstants";');
     }
 
     return result.join('\n');
@@ -1983,13 +2229,13 @@ ${stepCode}
     if (!fs.existsSync(filePath)) return map;
     const content = fs.readFileSync(filePath, 'utf-8');
     // Match entries like: CARRIER_XPO_TRANS: "XPO TRANS INC",
-    const entryPattern = /(\w+):\s*["']([^"']+)["']/g;
+    const entryPattern = /(\w+):\s*(["'])(.*?)\2/g;
     // Find the CARRIER_NAME block
     const blockMatch = content.match(/static readonly CARRIER_NAME\s*=\s*\{([^}]+)\}/s);
     if (!blockMatch) return map;
     let m;
     while ((m = entryPattern.exec(blockMatch[1])) !== null) {
-      map.set(m[2].toLowerCase(), m[1]); // value → key
+      map.set(m[3].toLowerCase(), m[1]); // value → key
     }
     return map;
   }
@@ -2207,8 +2453,16 @@ ${stepCode}
           'A_CARRIER_CONTACT_FOR_AUTO_ACCEPT_MUST_BE_SELECTED', 'CARRIER_CAUTIONARY_SAFETY_RATING',
           'IN_VIEW_MODE', 'UNKNOWN_MESSAGE', 'FOR_SECONDARY_INVOICE',
           'STATING_STATUS_HAS_MOVED_TO_THE_INVOICE_SHOULD_APPEAR_ON_THE',
-          'STATUS_HAS_BEEN_SET_TO_BOOKED', 'PAYABLE_STATUS_INVOICE_RECEIVED',
-          'UNRECOGNISED_ZIP_CODE_ENTERED'
+          'STATUS_HAS_BEEN_SET_TO_BOOKED', 'STATUS_HAS_BEEN_SET_TO_INVOICED',
+          'PAYABLE_STATUS_INVOICE_RECEIVED', 'UNRECOGNISED_ZIP_CODE_ENTERED',
+          'YOUR_BID_HAS_BEEN_PLACED', 'INCOMPLETE_DATA_FOR',
+          'THE_255_CHARACTER_LIMIT_OF_THE_EMAIL_FOR_NOTIFICATIONS_FIELD',
+          'OFFER_RATE_MUST_BE_WITHIN_THE_RANGE_OF_200_AND_20000',
+          'CAUTION_CARRIER_HAS_A_CAUTIONARY_SAFETY_RATING',
+          'CONFIRM_CHANGE_TO_DELIVERED_FINAL', 'CARRIER_WHITELIST_CONFIRM',
+          'CARRIER_VISIBILITY_UPDATED', 'AGENT',
+          'IN_ORDER_TO_POST_THIS_LOAD_THE_CHECKBOX_LABELED',
+          'TO_UNCHECKING_POST_TO_ALL_CARRIERS_UPON_COMPLETION_OF_THE_WA'
         ],
         parentName: 'ALERT_PATTERNS'
       },
@@ -2697,14 +2951,14 @@ ${stepCode}
       // Extract carrier value from test data or from the generated code itself
       let carrierValue = '';
       if (testData) {
-        carrierValue = (testData as Record<string, string>)['Carrier']
-          || (testData as Record<string, string>)['carrierName']
+        carrierValue = (testData as Record<string, string>)['carrierName']
+          || (testData as Record<string, string>)['Carrier']
           || '';
       }
       // Also check testCase.explicitValues or testCase.testData
       if (!carrierValue && testCase.testData) {
-        carrierValue = (testCase.testData as Record<string, string>)['Carrier']
-          || (testCase.testData as Record<string, string>)['carrierName']
+        carrierValue = (testCase.testData as Record<string, string>)['carrierName']
+          || (testCase.testData as Record<string, string>)['Carrier']
           || '';
       }
 
@@ -2953,8 +3207,9 @@ ${stepCode}
       const defaultMatch = line.match(/^import\s+(\w+)\s+from\s+/);
       if (defaultMatch) {
         const name = defaultMatch[1];
-        // Check if the identifier is used in code body (not just the import line)
-        const usage = new RegExp(`\\b${name}\\b`);
+        // Use negative lookbehind to avoid matching "pages.foo.*" where foo is accessed via PageManager.
+        // We want standalone usage like "foo.method()" but NOT "pages.foo.method()".
+        const usage = new RegExp(`(?<!\\.)\\b${name}\\b`);
         if (!usage.test(codeAfterImports)) {
           toRemove.add(index);
           continue;
@@ -2983,7 +3238,11 @@ ${stepCode}
    * Generate step code with test.step wrappers
    * Creates organized test steps with proper code for each action
    */
-  private async generateStepCode(testSteps: GeneratedTestStep[], testCase: TestCaseInput): Promise<string> {
+  private async generateStepCode(
+    testSteps: GeneratedTestStep[],
+    testCase: TestCaseInput,
+    testData?: TestData
+  ): Promise<string> {
     let code = '';
     let stepCounter = 0;
 
@@ -3129,6 +3388,8 @@ ${stepCode}
     // ========== User-defined test steps (using composite groups) ==========
     let lastEmittedCodeKey = '';
     let userStepIndex = 0;
+    /** Aligns with testCase.steps / testSteps / _processedSteps order (increment per original step). */
+    let tsIndex = 0;
 
     for (const group of compositeGroups) {
       if (group.type !== 'single' && group.compositeCode) {
@@ -3144,6 +3405,12 @@ ${stepCode}
         );
 
         let stepBody = this.formatStepCode(group.compositeCode);
+
+        // Inject billingtoggle user switch immediately after BTMSLogin in login-group
+        if (group.type === 'login-group' && testCase.category === 'billingtoggle') {
+          stepBody += `        await pages.homePage.clickSwitchAccountButton();\n`;
+          stepBody += `        await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);\n`;
+        }
 
         // Inline expected results mapped to any step within this group
         for (const step of group.steps) {
@@ -3166,13 +3433,16 @@ ${stepCode}
         for (const step of group.steps) {
           userStepIndex = step.stepNumber;
         }
+        tsIndex += group.steps.length;
       } else {
-        // ── Single step: generate individually (existing logic) ──
+        // ── Single step: use pre-generated testSteps[tsIndex] (same order as testcase.steps) ──
         const step = group.steps[0];
-        const generatedStep = testSteps.find(ts =>
-          ts.stepName.includes(step.action.substring(0, 30))
-        ) || await this.generateSingleStep(step.action, step.stepNumber);
-
+        const preProcessed = this._processedSteps[tsIndex];
+        const fromBatch = testSteps[tsIndex];
+        const generatedStep =
+          fromBatch ??
+          (await this.generateSingleStep(step.action, step.stepNumber, testData, preProcessed));
+        tsIndex += 1;
         const lowerName = generatedStep.stepName.toLowerCase();
         const lowerCode = generatedStep.code.toLowerCase();
         if (!hasBTMSLoginStep && lowerCode.includes('btmslogin')) continue;
@@ -3233,7 +3503,7 @@ ${stepCode}
                 const patternConstant = resolveAlertPatternConstant(msgText, alertPatternsPath);
                 stepBody += `          pages.commonReusables.validateAlert(sharedPage, ${patternConstant}),\n`;
               }
-              stepBody += `          ${clickMatch[1]},\n`;
+              stepBody += `          ${clickMatch[1].replace(/^await\s+/, '')},\n`;
               stepBody += `        ]);\n`;
               stepBody += `        console.log("Alert validated");\n`;
 
@@ -3324,7 +3594,7 @@ ${stepCode}
           code += `        // Alert fires synchronously on click — must use Promise.all to capture it\n`;
           code += `        await Promise.all([\n`;
           mergedAlerts.forEach(a => { code += `${a},\n`; });
-          code += `          ${clickLineMatch[1]},\n`;
+          code += `          ${clickLineMatch[1].replace(/^await\s+/, '')},\n`;
           code += `        ]);\n`;
           code += `        console.log("Alert validated");\n`;
           code += `      });\n\n`;
@@ -3735,12 +4005,9 @@ ${stepCode}
         await commonReusables.waitForAllLoadStates(sharedPage);
         const agentInfoEmail = await pages.agentInfoPage.getAgentEmail();
         agentEmail = agentInfoEmail?.trim() || "";
-        console.log(\`Captured agent email: "\${agentEmail}"\`);
         pages.logger.info(\`Agent email captured: \${agentEmail}\`);
-        const btmsBaseUrl = new URL(sharedPage.url()).origin;
-        await sharedPage.goto(btmsBaseUrl);
-        await commonReusables.waitForAllLoadStates(sharedPage);
-        await sharedPage.locator('#c-sitemenu-container').waitFor({ state: 'visible', timeout: 15000 });`,
+        await pages.basePage.navigateToBaseUrl();
+        await commonReusables.waitForAllLoadStates(sharedPage);`,
           pageObjects: ['basePage', 'agentSearchPage', 'agentInfoPage'],
           assertions: []
         };
@@ -4178,12 +4445,12 @@ ${stepCode}
 
     // Offer rate validation (comparison)
     if (lowerExpected.includes('offer rate') || (lowerExpected.includes('rate') && lowerExpected.includes('match'))) {
-      return `        const displayedRate = await pages.dfbLoadFormPage.getOfferRate();\n        expect(displayedRate).toBe(testData.offerRate);\n        console.log("Offer rate validated:", displayedRate);\n`;
+      return `        const formValues = await pages.dfbLoadFormPage.getDFBFormFieldValues();\n        expect(formValues.offerRate).toBe(testData.offerRate);\n`;
     }
 
     // BIDS / Bid history (optional — wrap in try/catch)
     if (lowerExpected.includes('bids') || lowerExpected.includes('bid history')) {
-      return `        try {\n          const bidsValue = await pages.viewLoadCarrierTabPage.getBidsReportValue();\n          console.log("BIDS Reports value:", bidsValue);\n        } catch (e) {\n          console.log("Bid history check could not complete:", (e as Error).message);\n        }\n`;
+      return `        try {\n          await pages.viewLoadCarrierTabPage.getBidsReportValue();\n        } catch (e) {\n          console.log("Bid history check could not complete:", (e as Error).message);\n        }\n`;
     }
 
     // TNX-specific validations

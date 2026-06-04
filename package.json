@@ -21,7 +21,7 @@
   "devDependencies": {
     "@playwright/test": "^1.55.0",
     "@testmo/testmo-cli": "^1.4.4",
-    "@types/node": "^25.0.10",
+    "@types/node": "^25.9.1",
     "@types/pdfjs-dist": "^2.10.377",
     "@types/postmark": "^2.0.3",
     "allure-commandline": "^2.34.0",

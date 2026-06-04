@@ -1,6 +1,19 @@
-import { Page, Locator,expect} from "@playwright/test";
-import commonReusables from "@utils/commonReusables";
- 
+import { Page, Locator, expect } from "@playwright/test";
+
+/**
+ * Include Carriers Data modal + DataTables Editor fields for TNX/DFB waterfall on the load form.
+ *
+ * **Verified against monotrans cache (`src/agent/.cache/mono`):**
+ * - `btms/php/src/app/templates/includes/carrier_include_exclude.html.twig` — modal `#show_carriers_whitelist_data`,
+ *   table `#carriers_whitelist_data_show_full`, footer Save `button[data-dismiss="modal"]`, header `button.close`.
+ * - `btms/php/src/classes/Sunteck/Brokerage/Form/Type/LoadBoardFormType.php` — Symfony fields
+ *   `carriers_whitelist`, `post_all_carriers_after_waterfall`, `waterfall_carrier_blacklist`, `waterfall_offer_rate`
+ *   (rendered ids `form_*` on the load board form).
+ * - `btms/php/src/js/load_carrier_tnx_include_exclude.js` — Editor on `#carriers_whitelist_data_show_full` with fields
+ *   `priority`, `timing`, `target_rate` (DataTables Editor inputs `#DTE_Field_priority`, `#DTE_Field_timing`, `#DTE_Field_target_rate`).
+ *
+ * **DME cache (`src/agent/.cache/dme`):** no matching markup for this modal (grep 0 hits) — BTMS-only.
+ */
 export class DFBIncludeCarriersDataModalWaterfall {
  
   /**
@@ -13,6 +26,7 @@ export class DFBIncludeCarriersDataModalWaterfall {
   private readonly enterCarrierTimingValue_LOC: Locator;
   private readonly enterCarrierOfferRateValue_LOC: Locator;
   private readonly includeCarriersDataPopUpSaveButton_LOC: Locator;
+  private readonly includeCarriersDataModalCloseButton_LOC: Locator;
   private readonly postAllCarrierCheckbox_LOC: Locator;
   private readonly checkboxStatusValue_LOC: Locator;
   private readonly formWaterfallOfferRateInput_LOC: Locator;
@@ -25,39 +39,41 @@ export class DFBIncludeCarriersDataModalWaterfall {
    */
   constructor(page: Page) {
     this.page = page;
-    this.enterCarrierPriorityValue_LOC = page.locator("//input[@id='DTE_Field_priority']");
-    this.enterCarrierTimingValue_LOC = page.locator("//input[@id='DTE_Field_timing']");
-    this.enterCarrierOfferRateValue_LOC = page.locator("//input[@id='DTE_Field_target_rate']");
-    this.includeCarriersDataPopUpSaveButton_LOC = page.locator("//h5[contains(text(),'Include Carriers Data')]//parent::div//following-sibling::div//button[text()='Save']");
-        this.enterCarrierPriorityValue_LOC = page.locator(
-      "//input[@id='DTE_Field_priority']"
-    );
-    this.enterCarrierTimingValue_LOC = page.locator(
-      "//input[@id='DTE_Field_timing']"
-    );
-    this.enterCarrierOfferRateValue_LOC = page.locator(
-      "//input[@id='DTE_Field_target_rate']"
-    );
+    /** DataTables Editor inline field ids (Editor + `load_carrier_tnx_include_exclude.js` field names). */
+    this.enterCarrierPriorityValue_LOC = page.locator("#DTE_Field_priority");
+    this.enterCarrierTimingValue_LOC = page.locator("#DTE_Field_timing");
+    this.enterCarrierOfferRateValue_LOC = page.locator("#DTE_Field_target_rate");
+    /** `carrier_include_exclude.html.twig` L50–52: footer Save dismisses modal. */
     this.includeCarriersDataPopUpSaveButton_LOC = page.locator(
-      "//h5[contains(text(),'Include Carriers Data')]//parent::div//following-sibling::div//button[text()='Save']"
-    );
-    this.includeCarriersDataPopUpSaveButton_LOC = page.locator(
-      "//h5[contains(text(),'Include Carriers Data')]//parent::div//following-sibling::div//button[text()='Save']"
+      "#show_carriers_whitelist_data .modal-footer button[data-dismiss='modal']"
     );
     this.postAllCarrierCheckbox_LOC = page.locator(
       "input#form_post_all_carriers_after_waterfall"
     );
+    /** `carrier_include_exclude.html.twig` L5–8. */
+    this.includeCarriersDataModalCloseButton_LOC = page.locator(
+      "#show_carriers_whitelist_data .modal-header button.close"
+    );
+    /**
+     * Waterfall extra fields wrapper; JS toggles `show` / `hide` on `.form_additional-fields`
+     * (`load_carrier_tnx_include_exclude.js` ~996, 1163).
+     */
     this.checkboxStatusValue_LOC = page.locator(
-      "//select[@id='form_waterfall_carrier_blacklist']/parent::div/parent::div"
+      "#show_carriers_whitelist_data .form_additional-fields"
     );
-    this.formWaterfallOfferRateInput_LOC = page.locator(
-      "//input[@id='form_waterfall_offer_rate']"
+    /** `carrier_include_exclude.html.twig` L42–43; `LoadBoardFormType` `waterfall_offer_rate`. */
+    this.formWaterfallOfferRateInput_LOC = page.locator("#form_waterfall_offer_rate");
+    this.carrierRowLocator = (carrierName: string) =>
+      page
+        .locator("#carriers_whitelist_data_show_full tbody tr")
+        .filter({ hasText: carrierName });
+    /** `carrier_include_exclude.html.twig` L14 — tbody rows only (no header row). */
+    this.carrierTableRows_LOC = page.locator(
+      "#carriers_whitelist_data_show_full tbody tr"
     );
-    this.carrierRowLocator = (carrierName: string) => page.locator(`//td[contains(text(),'${carrierName}')]//parent::tr`);
-    this.carrierTableRows_LOC = page.locator("table.table-striped tbody tr");
   }
   private getCarrierPencilIconsLocator(carrierText: string): Locator {
-    return this.page.locator(`//td[contains(text(),'${carrierText}')]//parent::tr//td//i[@class='fa fa-pencil']`);
+    return this.carrierRowLocator(carrierText).locator("i.fa.fa-pencil");
   }
  
   /**
@@ -179,6 +195,7 @@ export class DFBIncludeCarriersDataModalWaterfall {
    * Clicks the Save button in the Include Carriers Data modal
    * @author Parth Rastogi
    * @created 2025-11-11
+   * @see monotrans `btms/php/src/app/templates/includes/carrier_include_exclude.html.twig` L50–52
    * @returns {Promise<void>}
    */
   async clickIncludeCarriersDataSaveButton(): Promise<void> {
@@ -200,6 +217,22 @@ export class DFBIncludeCarriersDataModalWaterfall {
       console.error(`❌ Error clicking Save button: ${error}`);
       throw error;
     }
+  }
+
+  /**
+   * Closes the Include Carriers Data modal (`#show_carriers_whitelist_data`) via the header close control.
+   *
+   * @author AI Agent
+   * @created 2026-05-12
+   * @see monotrans `btms/php/src/app/templates/includes/carrier_include_exclude.html.twig` L5–8
+   */
+  async clickCloseIncludeCarriersDataModal(): Promise<void> {
+    await this.includeCarriersDataModalCloseButton_LOC.waitFor({
+      state: "visible",
+      timeout: WAIT.DEFAULT,
+    });
+    await this.includeCarriersDataModalCloseButton_LOC.click();
+    await this.page.waitForTimeout(WAIT.DEFAULT / 3);
   }
  
   /**
@@ -226,6 +259,31 @@ export class DFBIncludeCarriersDataModalWaterfall {
       console.error(`❌ Error getting total carrier count: ${error}`);
       throw error;
     }
+  }
+
+  /**
+   * Carrier names from the first column of `#carriers_whitelist_data_show_full` (modal rows).
+   *
+   * @author AI Agent
+   * @created 2026-05-15
+   * @see `carrier_include_exclude.html.twig` — table `#carriers_whitelist_data_show_full`
+   */
+  async getCarrierNamesFromTable(): Promise<string[]> {
+    await this.carrierTableRows_LOC.first().waitFor({
+      state: "visible",
+      timeout: WAIT.DEFAULT,
+    });
+    const rowCount = await this.carrierTableRows_LOC.count();
+    const names: string[] = [];
+    for (let i = 0; i < rowCount; i++) {
+      const cellText =
+        (await this.carrierTableRows_LOC.nth(i).locator("td").first().textContent())?.trim() ??
+        "";
+      if (cellText) {
+        names.push(cellText);
+      }
+    }
+    return names;
   }
  
    /**
@@ -379,6 +437,99 @@ export class DFBIncludeCarriersDataModalWaterfall {
       
       console.log(`✅ Successfully verified input values for all ${carriersData.length} carrier(s)`);
       
+    } catch (error) {
+      console.error(`❌ Error verifying carrier input values: ${error}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Normalizes H:MM timing for compare (UI may show `0:01` when test data uses `00:01`).
+   * @author AI Agent
+   * @created 2026-05-26
+   * @param timing - Timing string from test data or grid display
+   * @returns Normalized `H:MM` with zero-padded minutes
+   */
+  private normalizeCarrierTimingForCompare(timing: string): string {
+    const match = timing.trim().match(/^(\d{1,2}):(\d{1,2})$/);
+    if (!match) return timing.trim();
+    const hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    return `${hours}:${String(minutes).padStart(2, "0")}`;
+  }
+
+  /**
+   * Verifies carrier row values; timing compared after normalizing `00:01` vs `0:01`.
+   * @author AI Agent
+   * @created 2026-05-26
+   * @param carriersData - Array of carrier data with name and input values [priority, timing, offerRate]
+   */
+  async verifyCarrierInputValuesNormalized(
+    carriersData: Array<{ name: string; values: string[] }>
+  ): Promise<void> {
+    try {
+      console.log(`Starting verification of input values for ${carriersData.length} carrier(s)`);
+
+      for (const carrier of carriersData) {
+        const [priority, timing, offerRate] = carrier.values;
+
+        console.log(`Verifying input values for carrier: "${carrier.name}"`);
+        console.log(`Expected - Priority: ${priority}, Timing: ${timing}, Offer Rate: ${offerRate}`);
+
+        const carrierRow = this.carrierRowLocator(carrier.name);
+        await carrierRow.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
+
+        const carrierCells = carrierRow.locator("td");
+        const cellCount = await carrierCells.count();
+
+        if (cellCount < 4) {
+          throw new Error(
+            `Expected at least 4 cells for carrier "${carrier.name}", but found ${cellCount}`
+          );
+        }
+
+        const actualPriority = (await carrierCells.nth(1).textContent())?.trim() || "";
+        const actualTiming = (await carrierCells.nth(2).textContent())?.trim() || "";
+        const actualOfferRate = (await carrierCells.nth(3).textContent())?.trim() || "";
+
+        console.log(
+          `  Actual - Priority: "${actualPriority}", Timing: "${actualTiming}", Offer Rate: "${actualOfferRate}"`
+        );
+
+        if (actualPriority !== priority) {
+          throw new Error(
+            `❌ Priority mismatch for carrier "${carrier.name}": Expected "${priority}", but got "${actualPriority}"`
+          );
+        }
+        console.log(`✅ Priority verified for carrier "${carrier.name}": ${actualPriority}`);
+
+        const expectedTimingNorm = this.normalizeCarrierTimingForCompare(timing);
+        const actualTimingNorm = this.normalizeCarrierTimingForCompare(actualTiming);
+        if (actualTimingNorm !== expectedTimingNorm) {
+          throw new Error(
+            `❌ Timing mismatch for carrier "${carrier.name}": Expected "${timing}" (${expectedTimingNorm}), but got "${actualTiming}" (${actualTimingNorm})`
+          );
+        }
+        console.log(`✅ Timing verified for carrier "${carrier.name}": ${actualTiming}`);
+
+        const normalizedActualOfferRate = actualOfferRate.replace(/[$,]/g, "");
+        const normalizedExpectedOfferRate = offerRate.replace(/[$,]/g, "");
+
+        if (normalizedActualOfferRate !== normalizedExpectedOfferRate) {
+          const expectedWithDecimals = parseFloat(normalizedExpectedOfferRate).toFixed(2);
+          const actualWithDecimals = parseFloat(normalizedActualOfferRate).toFixed(2);
+
+          if (actualWithDecimals !== expectedWithDecimals) {
+            throw new Error(
+              `❌ Offer Rate mismatch for carrier "${carrier.name}": Expected "${offerRate}", but got "${actualOfferRate}"`
+            );
+          }
+        }
+        console.log(`✅ Offer Rate verified for carrier "${carrier.name}": ${actualOfferRate}`);
+        console.log(`✅ All input values verified successfully for carrier: "${carrier.name}"`);
+      }
+
+      console.log(`✅ Successfully verified input values for all ${carriersData.length} carrier(s)`);
     } catch (error) {
       console.error(`❌ Error verifying carrier input values: ${error}`);
       throw error;

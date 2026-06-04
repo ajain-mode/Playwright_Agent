@@ -64,6 +64,17 @@ Input (JSON / plain text / CSV / XLSX)
   → src/tests/AIAgent/<category>/<TEST_ID>.spec.ts
 ```
 
+### Canonical manual testcase steps (`sample-testcases.csv`)
+
+**Written test steps and expected results** for human-authored / traceable specs are maintained in:
+
+`src/agent/examples/sample-testcases.csv`
+
+- Each row is a testcase (`Case ID`, `Test Steps`, `Expected`, `Tags`, etc.).
+- When **mapping**, **reviewing**, or **regenerating** an AI spec, treat that row as the source of truth for step numbering and acceptance criteria (in addition to `src/data/<category>/*.csv` for **field-level test data** consumed at runtime via `dataConfig.getTestDataFromCsv`).
+- Agent CLI modes (`npm run agent:file`, `agent:batch`, etc.) accept various inputs; this file is the **shared repository catalog** of step prose for alignment and documentation.
+- **DFB / BTMS precondition alignment:** When `Test Steps` spell out discrete navigation (e.g. Admin → Office Search → office profile/toggles → Agent Search → Switch User → Post Automation → Customer → **CREATE TL NEW**), prefer **mapping each band to explicit POM calls** (and reuse reference specs) instead of collapsing the whole block into `setupDFBTestPreConditions`. Use `pages.dfbHelpers.setupOfficePreConditions` only for the **office configuration** slice (see `src/tests/AIAgent/dfb/DFB-97739.spec.ts` Step 2 and `DFB-97788.spec.ts` Steps 2–5). Reserve `setupDFBTestPreConditions` for cases that intentionally use the bundled shortcut and still match the written case.
+
 ### Application Source Integration
 
 The agent clones application source repos to extract exact locators (never fabricated):
@@ -140,6 +151,7 @@ When `cloneAndAdaptReferenceSpec()` clones a high-match reference spec, `matchSt
 
 | Path | Purpose |
 |------|---------|
+| `src/agent/examples/sample-testcases.csv` | Catalog of manual **Test Steps** / **Expected** per `Case ID` (traceability vs `src/tests/AIAgent/**` specs) |
 | `src/agent/run-agent.ts` | CLI entry point for all agent modes |
 | `src/agent/PlaywrightAgent.ts` | Main orchestration class — initializes AppSourceIndexer, delegates CSV to CsvDataService |
 | `src/agent/config/AgentConfig.ts` | Paths, model settings, app source repos, all known page objects & constants |
@@ -297,6 +309,8 @@ Tests can span three applications via `appManager` (`MultiAppManager`):
 - `appManager.switchToDME()` — Digital Matching Engine
 
 Reference example for multi-app tests: `DFB-97739.spec.ts`. Reference for BTMS-only: `DFB-25103.spec.ts`.
+
+For **billingtoggle** end-to-end structure (View Load vs View Billing Waiting On, nested `test.step` aligned to CSV steps, no skipped expected validations), use **`src/tests/AIAgent/billingtoggle/BT-74454.spec.ts`** as the primary reference (`REFERENCE_SPECS.billingtoggle` / `ReferenceSpecAnalyzer` lists it first). Snippet catalog: `PromptsConfig.REFERENCE_PATTERNS.BILLING_TOGGLE_VIEW_LOAD_VS_VIEW_BILLING`. Workspace rule: `.cursor/rules/agent-architecture.mdc` (sections *Billing toggle: View Load vs View Billing* and *Test execution structure*).
 
 ### Generated Test Structure
 
