@@ -160,7 +160,7 @@ test.describe.serial(
 
         await test.step("Step 9: Create Load, rate type SPOT if shown", async () => {
           await pages.nonTabularLoadPage.clickCreateLoadButton();
-          await pages.editLoadLoadTabPage.checkRateTypeIfPresent(testData.rateType, pages.editLoadFormPage);
+          await pages.editLoadLoadTabPage.checkLoadTabDetails(testData.rateType);
           await pages.editLoadPage.validateEditLoadHeadingText();
           loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
           pages.logger.info(`Load number: ${loadNumber}`);
