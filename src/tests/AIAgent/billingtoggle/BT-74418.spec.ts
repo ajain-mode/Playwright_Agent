@@ -72,7 +72,7 @@ test.describe.serial(
       });
 
       await test.step("Step 4 [CSV 4]: Click 3rd customer row (salesperson AGENT RESPONSE-TEST)", async () => {
-        await pages.searchCustomerPage.clickOnActiveCustomerRowByIndex(2);
+        await pages.searchCustomerPage.clickOnActiveCustomer();
         await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         await commonReusables.waitForAllLoadStates(sharedPage);
       });
@@ -180,6 +180,7 @@ test.describe.serial(
 
       await test.step("Step 17 [CSV 43]: Click EDIT, select DELIVERED FINAL, check Override BTF, click Save", async () => {
         await pages.viewLoadPage.clickEditButton();
+        await pages.commonReusables.waitForPageStable(sharedPage);
         await pages.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
         //await pages.editLoadFormPage.checkOverrideBTF();
 
@@ -200,6 +201,15 @@ test.describe.serial(
         ).toBeTruthy();
 
         await pages.commonReusables.waitForPageStable(sharedPage);
+
+        await test.step("Upload POD and Bill of Lading documents", async () => {
+          await pages.viewLoadPage.uploadPODDocument();
+          await pages.viewLoadPage.closeDocumentUploadDialogSafe();
+          await pages.viewLoadPage.uploadBillOfLadingDocument();
+          await pages.viewLoadPage.closeDocumentUploadDialogSafe();
+          await pages.commonReusables.reloadPage(sharedPage);
+          await pages.commonReusables.waitForPageStable(sharedPage);
+        });
 
         // Expected 43: Status will be set to INVOICED — read from the load status locator on the page
         const loadStatus = await pages.viewLoadPage.getLoadStatus();

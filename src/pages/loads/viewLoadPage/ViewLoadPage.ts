@@ -1381,9 +1381,9 @@ export default class ViewLoadPage {
       throw new Error(`POD file not found. Checked:\n- ${candidatePaths.join("\n- ")}`);
     }
     await Promise.all([this.uploadDocumentIcon_LOC.first().click()]);
+    await this.customerButton_LOC.check();
     const dropdown = this.selectDocumentType_LOC;
     await dropdown.selectOption({ label: "Proof of Delivery" });
-    await this.dragDrop_LOC.click();
     const uploadInput = this.uploadTypeFile_LOC;
     await uploadInput.setInputFiles(filePath);
     await this.submitButton_LOC.last().click();
@@ -1391,6 +1391,27 @@ export default class ViewLoadPage {
     await expect(successMessage).toBeVisible({ timeout: WAIT.LARGE });
     await expect(successMessage).toHaveText("All documents attached successfully.", { timeout: WAIT.LARGE });
     console.log("✅ POD document uploaded and dialog closed successfully.");
+  }
+
+  async uploadBillOfLadingDocument(): Promise<void> {
+    const candidatePaths = [
+      path.resolve(process.cwd(), "src", "data", "bulkchange", "billOfLading.pdf")
+    ];
+    const filePath = candidatePaths.find(p => fs.existsSync(p));
+    if (!filePath) {
+      throw new Error(`Bill of Lading file not found. Checked:\n- ${candidatePaths.join("\n- ")}`);
+    }
+    await Promise.all([this.uploadDocumentIcon_LOC.first().click()]);
+    await this.customerButton_LOC.check();
+    const dropdown = this.selectDocumentType_LOC;
+    await dropdown.selectOption({ label: "Bill of Lading" });
+    const uploadInput = this.uploadTypeFile_LOC;
+    await uploadInput.setInputFiles(filePath);
+    await this.submitButton_LOC.last().click();
+    const successMessage = this.successMessage_LOC;
+    await expect(successMessage).toBeVisible({ timeout: WAIT.LARGE });
+    await expect(successMessage).toHaveText("All documents attached successfully.", { timeout: WAIT.LARGE });
+    console.log("✅ Bill of Lading document uploaded and dialog closed successfully.");
   }
 
   /**

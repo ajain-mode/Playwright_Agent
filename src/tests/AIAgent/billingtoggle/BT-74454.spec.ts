@@ -179,6 +179,7 @@ test.describe.serial(
 
           await test.step("CSV 50-51: Open Edit; set status DELIVERED FINAL; Save (confirm alert)", async () => {
             await vl.viewLoadPage.clickEditButton();
+            await pages.commonReusables.waitForPageStable(sharedPage);
             await vl.commonReusables.waitForPageStable(viewWorkPage);
 
             await vl.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);

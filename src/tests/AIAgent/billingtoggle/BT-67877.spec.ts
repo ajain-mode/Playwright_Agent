@@ -190,6 +190,7 @@ test.describe.serial(
 
         await test.step("Step 12: Edit, set status DELIVERED FINAL, save and accept confirmation (CSV 48)", async () => {
           await pages.viewLoadPage.clickEditButton();
+          await pages.commonReusables.waitForPageStable(sharedPage);
           await pages.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
 
           const capturedDialogs = await pages.commonReusables.acceptAllDialogsDuringAction(

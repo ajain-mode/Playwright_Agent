@@ -200,7 +200,7 @@ test.describe.serial(
         });
 
         await test.step("Step 47: Choose carrier XPO TRANS INC", async () => {
-           //@ModfiedBy Akshada Ghaytadkar - 04-Dec-2025: Updated carrier selection to use CARRIER_ID instead of CARRIER_NAME for better reliability
+          //@ModfiedBy Akshada Ghaytadkar - 04-Dec-2025: Updated carrier selection to use CARRIER_ID instead of CARRIER_NAME for better reliability
           // await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_NAME.CARRIER_XPO_TRANS);
           await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_ID.CARRIER_XPO_TRANS);
           pages.logger.info(`Carrier: ${CARRIER_ID.CARRIER_XPO_TRANS}`);
@@ -218,6 +218,7 @@ test.describe.serial(
 
         await test.step("Step 49-50: Click Edit, change status to DELIVERED FINAL, Save and accept alert", async () => {
           await pages.viewLoadPage.clickEditButton();
+          await pages.commonReusables.waitForPageStable(sharedPage);
           await pages.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
 
           const capturedDialogs = await pages.commonReusables.acceptAllDialogsDuringAction(
@@ -236,6 +237,14 @@ test.describe.serial(
           ).toContain(ALERT_PATTERNS.CONFIRM_CHANGE_TO_DELIVERED_FINAL);
 
           await pages.commonReusables.waitForPageStable(sharedPage);
+          await test.step("Upload POD and Bill of Lading documents", async () => {
+            await pages.viewLoadPage.uploadPODDocument();
+            await pages.viewLoadPage.closeDocumentUploadDialogSafe();
+            await pages.viewLoadPage.uploadBillOfLadingDocument();
+            await pages.viewLoadPage.closeDocumentUploadDialogSafe();
+            await pages.commonReusables.reloadPage(sharedPage);
+            await pages.commonReusables.waitForPageStable(sharedPage);
+          });
 
           const loadStatus = await pages.viewLoadPage.getLoadStatus();
           pages.logger.info(`Load status after save: ${loadStatus}`);
@@ -261,7 +270,7 @@ test.describe.serial(
           const noneChecked = await pages.loadBillingPage.areNoBillingIssuesChecked();
           pages.logger.info(`No billing issue checkboxes checked: ${noneChecked}`);
           expect(
-          noneChecked,
+            noneChecked,
             "No checkboxes under Billing Issues should be checked"
           ).toBeTruthy();
         });

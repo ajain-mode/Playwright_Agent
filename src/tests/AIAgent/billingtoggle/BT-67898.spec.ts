@@ -184,6 +184,7 @@ test.describe.serial(
 
         await test.step("Step 51-52 [CSV 51-52]: Edit — DELIVERED FINAL, Save; accept alert", async () => {
           await pages.viewLoadPage.clickEditButton();
+          await pages.commonReusables.waitForPageStable(sharedPage);
           await pages.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
 
           const capturedDialogs = await pages.commonReusables.acceptAllDialogsDuringAction(
@@ -202,6 +203,14 @@ test.describe.serial(
           ).toContain(ALERT_PATTERNS.CONFIRM_CHANGE_TO_DELIVERED_FINAL);
 
           await pages.commonReusables.waitForPageStable(sharedPage);
+          await test.step("Upload POD and Bill of Lading documents", async () => {
+            await pages.viewLoadPage.uploadPODDocument();
+            await pages.viewLoadPage.closeDocumentUploadDialogSafe();
+            await pages.viewLoadPage.uploadBillOfLadingDocument();
+            await pages.viewLoadPage.closeDocumentUploadDialogSafe();
+            await pages.commonReusables.reloadPage(sharedPage);
+            await pages.commonReusables.waitForPageStable(sharedPage);
+          });
 
           await test.step("Expected [CSV 52]: Load status is INVOICED", async () => {
             const loadStatus = await pages.viewLoadPage.getLoadStatus();
