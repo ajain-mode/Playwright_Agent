@@ -114,6 +114,7 @@ test.describe.serial(
 
         await test.step("Step 5 [CSV 42-50]: Create load, complete Carrier tab, and save to BOOKED", async () => {
           await pages.nonTabularLoadPage.clickCreateLoadButton();
+          await pages.editLoadLoadTabPage.checkLoadTabDetails(testData.rateType);
           await pages.editLoadPage.validateEditLoadHeadingText();
           loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
           pages.logger.info(`Load number: ${loadNumber}`);
