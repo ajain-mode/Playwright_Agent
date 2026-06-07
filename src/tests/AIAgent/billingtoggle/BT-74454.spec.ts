@@ -35,7 +35,7 @@ test.describe.serial(
       if (sharedContext) await sharedContext.close();
     });
 
-    test.skip(
+    test(
       "Case Id: BT-74454 - Verify the toggle behaviour when the load status is Delivered Final and price difference is resolved.",
       { tag: "@aiagent,@at_billingtoggle" },
       async () => {

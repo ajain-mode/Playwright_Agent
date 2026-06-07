@@ -30,7 +30,7 @@ test.describe.serial(
       if (sharedContext) await sharedContext.close();
     });
 
-    test.skip(
+    test(
       "Case Id: BT-67846 - Billing Toggle Validation with Carrier Invoice Upload",
       { tag: "@aiagent,@at_billingtoggle" },
       async () => {

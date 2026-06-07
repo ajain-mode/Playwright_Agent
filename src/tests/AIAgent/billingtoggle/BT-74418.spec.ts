@@ -42,7 +42,7 @@ test.describe.serial(
       }
     });
 
-    test.skip(
+    test(
       "Case Id: BT-74418 - Validate updated price difference message when carrier invoice already exists in pending status and secondary invoice is received.",
       {
         tag: "@aiagent,@at_billingtoggle"
