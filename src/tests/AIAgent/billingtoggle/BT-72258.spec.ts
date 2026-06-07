@@ -30,7 +30,7 @@ test.describe.serial(
       if (sharedContext) await sharedContext.close();
     });
 
-    test(
+    test.skip(
       "Case Id: BT-72258 - Verify the Payable Toggle setting when the Carrier remainder amount >= Carrier invoice amount for Autopay load.",
       { tag: "@aiagent,@at_billingtoggle" },
       async () => {

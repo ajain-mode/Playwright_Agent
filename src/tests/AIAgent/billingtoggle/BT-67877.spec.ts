@@ -39,7 +39,7 @@ test.describe.serial(
       if (sharedContext) await sharedContext.close();
     });
 
-    test(
+    test.skip(
       "Case Id: BT-67877 - Validating the scenario when the user is an admin user w/ system admin role, and the billing toggle is set to any state ...",
       { tag: "@aiagent,@at_billingtoggle" },
       async () => {

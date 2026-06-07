@@ -206,7 +206,7 @@ export default class ViewLoadPage {
     this.dragDrop_LOC = this.page.locator("//div[@class='dz-message']");
     this.uploadTypeFile_LOC = this.page.locator("//input[@type='file']");
     this.submitButton_LOC = this.page.locator("//input[@type='submit']");
-    this.successMessage_LOC = this.page.locator("//div[@id='message_display']");
+    this.successMessage_LOC = this.page.locator("#message_container>#message_display");
     this.closeDocumentUploadDialog_LOC = this.page.locator("//div[@role='dialog' and .//span[text()='Document Upload Utility']]//button[contains(@class,'ui-dialog-titlebar-close')]");
     this.payablesButton_LOC = this.page.locator("//input[@id='cat_payables']");
     this.customerButton_LOC = this.page.locator("#cat_customer");
