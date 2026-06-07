@@ -205,7 +205,7 @@ export default class ViewLoadPage {
     this.selectDocumentType_LOC = this.page.locator("//select[@name='document_type']");
     this.dragDrop_LOC = this.page.locator("//div[@class='dz-message']");
     this.uploadTypeFile_LOC = this.page.locator("//input[@type='file']");
-    this.submitButton_LOC = this.page.locator("//input[@type='submit']");
+    this.submitButton_LOC = this.page.locator("#submit_remote");
     this.successMessage_LOC = this.page.locator("#message_container>#message_display");
     this.closeDocumentUploadDialog_LOC = this.page.locator("//div[@role='dialog' and .//span[text()='Document Upload Utility']]//button[contains(@class,'ui-dialog-titlebar-close')]");
     this.payablesButton_LOC = this.page.locator("//input[@id='cat_payables']");
@@ -1386,7 +1386,7 @@ export default class ViewLoadPage {
     await dropdown.selectOption({ label: "Proof of Delivery" });
     const uploadInput = this.uploadTypeFile_LOC;
     await uploadInput.setInputFiles(filePath);
-    await this.submitButton_LOC.last().click();
+    await this.submitButton_LOC.click();
     const successMessage = this.successMessage_LOC;
     await expect(successMessage).toBeVisible({ timeout: WAIT.LARGE });
     await expect(successMessage).toHaveText("All documents attached successfully.", { timeout: WAIT.LARGE });
@@ -1407,7 +1407,7 @@ export default class ViewLoadPage {
     await dropdown.selectOption({ label: "Bill of Lading" });
     const uploadInput = this.uploadTypeFile_LOC;
     await uploadInput.setInputFiles(filePath);
-    await this.submitButton_LOC.last().click();
+    await this.submitButton_LOC.click();
     const successMessage = this.successMessage_LOC;
     await expect(successMessage).toBeVisible({ timeout: WAIT.LARGE });
     await expect(successMessage).toHaveText("All documents attached successfully.", { timeout: WAIT.LARGE });
@@ -1438,7 +1438,7 @@ export default class ViewLoadPage {
     await this.dragDrop_LOC.click();
     const uploadInput = this.uploadTypeFile_LOC;
     await uploadInput.setInputFiles(filePath);
-    await this.submitButton_LOC.last().click();
+    await this.submitButton_LOC.click();
     const successMessage = this.successMessage_LOC;
     await expect(successMessage).toBeVisible({ timeout: WAIT.LARGE });
     await expect(successMessage).toHaveText("All documents attached successfully.", { timeout: WAIT.LARGE });
