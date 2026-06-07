@@ -1374,7 +1374,7 @@ export default class ViewLoadPage {
    */
   async uploadPODDocument(): Promise<void> {
     const candidatePaths = [
-      path.resolve(process.cwd(), "src", "data", "bulkchange", "ProofOfDelivery.pdf")
+      path.resolve(process.cwd(), "src", "data", "bulkChange", "ProofOfDelivery.pdf")
     ];
     const filePath = candidatePaths.find(p => fs.existsSync(p));
     if (!filePath) {
@@ -1395,7 +1395,7 @@ export default class ViewLoadPage {
 
   async uploadBillOfLadingDocument(): Promise<void> {
     const candidatePaths = [
-      path.resolve(process.cwd(), "src", "data", "bulkchange", "billOfLading.pdf")
+      path.resolve(process.cwd(), "src", "data", "bulkChange", "billOfLading.pdf")
     ];
     const filePath = candidatePaths.find(p => fs.existsSync(p));
     if (!filePath) {
