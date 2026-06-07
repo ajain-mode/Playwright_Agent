@@ -67,7 +67,7 @@ jobs:
         run: npm ci
  
       - name: Run Playwright tests
-        run: npx playwright test --grep "@at_billingtoggle" --trace=on
+        run: npx playwright test --grep "@at_billingtoggle"
         env:
           TEST_MODULE: Billing Toggle
           RUN_NAME: AI-Billing Toggle
