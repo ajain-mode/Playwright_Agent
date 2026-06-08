@@ -1409,7 +1409,7 @@ export default class ViewLoadPage {
     await uploadInput.setInputFiles(filePath);
     await this.submitButton_LOC.click();
     const successMessage = this.successMessage_LOC;
-    await expect(successMessage).toBeVisible({ timeout: WAIT.XLARGE * 2 });
+    await expect(successMessage).toBeVisible({ timeout: WAIT.XLARGE });
     await expect(successMessage).toHaveText("All documents attached successfully.", { timeout: WAIT.LARGE });
     console.log("✅ Bill of Lading document uploaded and dialog closed successfully.");
   }

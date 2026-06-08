@@ -203,8 +203,14 @@ test.describe.serial(
         await pages.commonReusables.waitForPageStable(sharedPage);
 
         await test.step("Upload POD and Bill of Lading documents", async () => {
+          // POD upload
           await pages.viewLoadPage.uploadPODDocument();
           await pages.viewLoadPage.closeDocumentUploadDialogSafe();
+    
+          await pages.commonReusables.reloadPage(sharedPage);
+          await pages.commonReusables.waitForPageStable(sharedPage);
+
+          // BOL upload
           await pages.viewLoadPage.uploadBillOfLadingDocument();
           await pages.viewLoadPage.closeDocumentUploadDialogSafe();
           await pages.commonReusables.reloadPage(sharedPage);
