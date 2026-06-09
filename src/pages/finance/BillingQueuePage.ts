@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from "@playwright/test";
 import commonReusables from "@utils/commonReusables";
+import { REGEX_PATTERNS } from "@utils/regexPatterns";
 
 /**
  * Billing Queue report page (Finance → Billing Queue, rptname=BILLINGQUEUE).
@@ -37,9 +38,9 @@ export default class BillingQueuePage {
 
     constructor(private page: Page) {
         this.searchButton_LOC = this.page.locator("//input[@class='submit-report-search']");
-        this.resultsTable_LOC = this.page.locator("table.table, table.report-table, table").first();
-        this.resultsDataRows_LOC = this.page.locator("table tbody tr:has(td)");
-        this.tableHeaders_LOC = this.page.locator("thead th");
+        this.resultsTable_LOC = this.page.locator("#example_wrapper table#example");
+        this.tableHeaders_LOC = this.resultsTable_LOC.locator("thead > tr > th");
+        this.resultsDataRows_LOC = this.resultsTable_LOC.locator("tbody > tr[role='row']");
 
         const initialPrefix = BillingQueuePage.DATE_FILTER_PREFIX.INITIAL_TOGGLE;
         this.initialToggleDateStart_LOC = this.page.locator(`#${initialPrefix}start`);
@@ -173,40 +174,51 @@ export default class BillingQueuePage {
     }
 
     /**
-     * Resolves a column index (0-based) from a header regex; supports alternate header names.
+     * Normalizes report grid header text for case-insensitive exact label matching.
      * @author AI Agent
-     * @created 2026-06-03
+     * @created 2026-06-09
      */
-    async getColumnIndex(headerPatterns: RegExp[]): Promise<number> {
-        const headerCount = await this.tableHeaders_LOC.count();
-        for (let i = 0; i < headerCount; i++) {
-            const text = ((await this.tableHeaders_LOC.nth(i).innerText()) || "").replace(/\s+/g, " ").trim();
-            if (headerPatterns.some((pattern) => pattern.test(text))) {
-                return i;
-            }
-        }
-        throw new Error(`Column header not found for patterns: ${headerPatterns.map((p) => p.source).join(", ")}`);
+    private normalizeReportHeader(headerText: string): string {
+        return (headerText || "").replace(REGEX_PATTERNS.TEXT.WHITESPACE_RUNS, " ").trim().toUpperCase();
     }
 
     /**
-     * Reads non-empty cell values for a column identified by header pattern(s).
+     * Resolves a column index (0-based) from UI column label(s); supports alternate header names.
      * @author AI Agent
      * @created 2026-06-03
+     * @param columnLabels - Exact on-screen labels (e.g. BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE)
      */
-    async getColumnCellValues(headerPatterns: RegExp[]): Promise<string[]> {
-        const colIdx = await this.getColumnIndex(headerPatterns);
-        const columnHeader = ((await this.tableHeaders_LOC.nth(colIdx).innerText()) || "")
-            .replace(/\s+/g, " ")
-            .trim();
+    async getColumnIndex(columnLabels: string[]): Promise<number> {
+        const headerCount = await this.tableHeaders_LOC.count();
+        for (let i = 0; i < headerCount; i++) {
+            const text = this.normalizeReportHeader(await this.tableHeaders_LOC.nth(i).innerText());
+            if (columnLabels.some((label) => text === this.normalizeReportHeader(label))) {
+                return i;
+            }
+        }
+        throw new Error(`Column not found: ${columnLabels.join(", ")}`);
+    }
+
+    /**
+     * Reads non-empty cell values for a column identified by header label(s).
+     * @author AI Agent
+     * @created 2026-06-03
+     * @param columnLabels - Exact on-screen labels (e.g. BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE)
+     */
+    async getColumnCellValues(columnLabels: string[]): Promise<string[]> {
+        const colIdx = await this.getColumnIndex(columnLabels);
+        const columnHeader = this.normalizeReportHeader(await this.tableHeaders_LOC.nth(colIdx).innerText());
         console.log(
-            `Billing Queue column found: "${columnHeader}" (index ${colIdx}, patterns: ${headerPatterns.map((p) => p.source).join(", ")})`
+            `Billing Queue column found: "${columnHeader}" (index ${colIdx}, labels: ${columnLabels.join(", ")})`
         );
 
         const rowCount = await this.getResultsRowCount();
         const values: string[] = [];
         for (let r = 0; r < rowCount; r++) {
             const cell = this.resultsDataRows_LOC.nth(r).locator("td").nth(colIdx);
-            const text = ((await cell.innerText()) || "").replace(/\s+/g, " ").trim();
+            const text = ((await cell.innerText()) || "")
+                .replace(REGEX_PATTERNS.TEXT.WHITESPACE_RUNS, " ")
+                .trim();
             if (text) {
                 values.push(text);
             }
@@ -224,7 +236,7 @@ export default class BillingQueuePage {
         if (!trimmed || trimmed.toUpperCase() === TOGGLE_DATE_DISPLAY.NOT_APPLICABLE) {
             return null;
         }
-        const match = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+        const match = trimmed.match(REGEX_PATTERNS.DATE.US_REPORT_DATETIME);
         if (!match) {
             return null;
         }
@@ -238,7 +250,7 @@ export default class BillingQueuePage {
      * @created 2026-06-03
      */
     parseFilterDateInput(value: string, endOfDay = false): Date | null {
-        const match = value.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        const match = value.trim().match(REGEX_PATTERNS.DATE.US_FILTER_DATE);
         if (!match) {
             return null;
         }
@@ -255,7 +267,7 @@ export default class BillingQueuePage {
      * @created 2026-06-03
      */
     async expectColumnDatesWithinRange(
-        headerPatterns: RegExp[],
+        columnLabels: string[],
         rangeStart: string,
         rangeEnd: string
     ): Promise<void> {
@@ -264,7 +276,7 @@ export default class BillingQueuePage {
         expect(rangeStartDate, "Filter start date should be parseable").not.toBeNull();
         expect(rangeEndDate, "Filter end date should be parseable").not.toBeNull();
 
-        const cellValues = await this.getColumnCellValues(headerPatterns);
+        const cellValues = await this.getColumnCellValues(columnLabels);
         expect(cellValues.length, "Expected at least one row in results").toBeGreaterThan(0);
 
         for (const cellValue of cellValues) {

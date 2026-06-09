@@ -168,6 +168,28 @@ class BTMSLoginPage {
     }
     console.log(`Selected user: ${userName}`);
   }
+
+  /**
+   * Re-authenticates when the browser is already on the BTMS login page (no page.goto).
+   * Use after Edit Agent navigation redirects to login mid-test.
+   * @author AI Agent
+   * @created 2026-06-09
+   * @param userName - BTMS user to select after SSO (e.g. userSetup.globalUser)
+   */
+  async reauthenticateOnCurrentPage(userName: string): Promise<void> {
+    await this.page.waitForLoadState("domcontentloaded");
+    if (await this.ssoButton_LOC.isVisible()) {
+      await this.btmsSSOLogin();
+      await this.selectRequiredUser(userName);
+      return;
+    }
+    if (await this.btmsLoginPageVisible()) {
+      await this.enterUserName(userName);
+      await this.passwordInput_LOC.fill(userSetup.globalPassword);
+      await this.loginButton_LOC.click();
+      await commonReusables.waitForPageStable(this.page);
+    }
+  }
 }
 
 export default BTMSLoginPage;

@@ -61,7 +61,7 @@ export class AgentConfig {
     ],
     admin: ['AdminPage', 'OfficePage', 'SimulateEDispatch', 'ViewOfficeInfoPage', 'EditOfficeInfoPage'],
     customers: ['CustomerPage', 'EditCustomerPage', 'SearchCustomerPage', 'ViewCustomerPage', 'ViewMasterCustomerPage'],
-    finance: ['FinancePage', 'AccountsPayablePage', 'BillingAdjustmentsQueue', 'OfficeCommissionsDetailPage'],
+    finance: ['FinancePage', 'AccountsPayablePage', 'BillingAdjustmentsQueue', 'BillingQueuePage', 'OfficeCommissionsDetailPage'],
     home: ['HomePage', 'PostAutomationRulePage'],
     salesLead: ['NewSalesLeadPage', 'MySalesLeadPage', 'ViewSalesLeadPage', 'AccountClearanceQueuePage'],
     carrier: ['CarrierSearch', 'ViewCarrier'],
@@ -85,6 +85,9 @@ export class AgentConfig {
     'CREATED_BY', 'DOCUMENT_TYPE', 'DOCUMENT_ACTION_TYPE', 'DOCUMENT_TEXT',
     'LOAD_METHOD', 'RATE_TYPE', 'TOGGLE_NAME', 'TOGGLE_OPTIONS', 'USER_ROLES', 'CARRIER_TABS',
     'POST_AUTOMATION_RULE', 'POST_AUTOMATION_COLUMNS',
+    'BILLING_QUEUE_COLUMNS', 'LOAD_SEARCH_COLUMNS', 'BILLING_QUEUE_FILTER_LABELS',
+    'DATE_PRESET', 'TOGGLE_DATE_DISPLAY', 'VIEW_HISTORY_USER',
+    'PAYABLE_TOGGLE_VALUE', 'FINANCE_MESSAGES', 'BILLING_ISSUE_TAGS',
     // dfbGlobalConstants.ts
     'PRIORITY', 'LOAD_OFFER_RATES', 'CARRIER_TIMING', 'CARRIER_NAME',
     'DFB_FORM_FIELDS', 'DFB_BID_HISTORY_FIELDS', 'TENDER_DETAILS_MODAL_TABS',
@@ -171,7 +174,9 @@ export class AgentConfig {
       multiAppManager: '@utils/dfbUtils/MultiAppManager',
       globalConstants: '@utils/globalConstants',
       dfbGlobalConstants: '@utils/dfbUtils/dfbGlobalConstants',
-      commonReusables: '@utils/commonReusables'
+      commonReusables: '@utils/commonReusables',
+      regexPatterns: '@utils/regexPatterns',
+      alertPatterns: '@utils/alertPatterns',
     };
   }
 }

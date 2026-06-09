@@ -878,6 +878,29 @@ export const GUARDRAIL_RULES: GuardrailRule[] = [
     },
     errorMessage: 'MANDATORY: Human-authored POM methods and locators are strictly read-only. The agent may only ADD new methods/locators (marked @author AI Agent) or MODIFY existing @author AI Agent methods. Never alter methods authored by Deepak Bohra, Avanish Srivastava, Mukul Khan, or any other human author. If a human-authored locator is incorrect, propose the fix as a comment — do not apply it.',
   },
+  {
+    name: 'noRegExpReportColumnLabels',
+    description: 'Report grid column lookup must use plain BILLING_QUEUE_COLUMNS.* / LOAD_SEARCH_COLUMNS.* strings — not new RegExp(..., "i") or inline /CURRENT TOGGLE DATE/i',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      return (
+        !/new RegExp\(\s*(?:BILLING_QUEUE_COLUMNS|LOAD_SEARCH_COLUMNS)\.\w+/.test(input._generatedCode) &&
+        !/\/CURRENT TOGGLE DATE\/i/.test(input._generatedCode)
+      );
+    },
+    errorMessage:
+      'Report column headers must use plain string constants (BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE, LOAD_SEARCH_COLUMNS.BILLING_ACTIVITY) passed to getColumnIndex/getColumnCellValues/expectColumnDatesWithinRange. The POM does normalized case-insensitive equality. Do not use new RegExp(..., "i").',
+  },
+  {
+    name: 'noFuzzyViewHistoryUserAssertion',
+    description: 'View History User column must use expect(...).toBe(VIEW_HISTORY_USER.SYSTEM) — not toMatch(/system/i)',
+    validate: (input) => {
+      if (!input._generatedCode) return true;
+      return !/\.user[^)]*\)\.toMatch\(\s*\/system\/i\s*\)/.test(input._generatedCode);
+    },
+    errorMessage:
+      'View History system audit entries use the fixed literal SYSTEM. Use expect(row.user).toBe(VIEW_HISTORY_USER.SYSTEM) from globalConstants.ts — never toMatch(/system/i).',
+  },
 ];
 
 /**
@@ -1068,7 +1091,44 @@ export const GENERATION_RULES = {
   //      Admin > Office Search to navigate to Customer > Search).
   NO_NAVIGATE_AFTER_LOGIN: true,
 
-  // 16. FORBIDDEN PATTERNS — Patterns that must NEVER appear in generated code.
+  // 16. REPORT GRID LOCATORS — Billing Queue / Load Search DataTables (report_sizzle.phtml).
+  //     NEVER use page-wide selectors (table.table, table.report-table, table).first(),
+  //     table tbody tr, or thead th — they race with hydration and leak from clone tables.
+  //     ALWAYS anchor to the unique grid and chain headers/rows:
+  //       const resultsTable = page.locator("#example_wrapper table#example");
+  //       resultsTable.locator("thead > tr > th")
+  //       resultsTable.locator("tbody > tr[role='row']")  // Billing Queue
+  //       resultsTable.locator("tbody > tr.dnd-moved")    // Load Search
+  //     Reference POMs: BillingQueuePage.ts, AllLoadsSearchPage.ts
+  REPORT_GRID_LOCATORS: true,
+
+  // 17. REPORT COLUMN LABELS — Column lookup uses exact UI label strings, NOT RegExp.
+  //     Pass BILLING_QUEUE_COLUMNS.* / LOAD_SEARCH_COLUMNS.* to getColumnIndex / getColumnCellValues.
+  //     POM normalizes whitespace + case-insensitive equality. Failure: "Column not found: INITIAL TOGGLE DATE".
+  //     BAD:  getColumnCellValues([new RegExp(BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE, "i")])
+  //     BAD:  [/CURRENT TOGGLE DATE/i]
+  //     GOOD: getColumnCellValues([BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE])
+  //     GOOD: getColumnCellValues([BILLING_QUEUE_COLUMNS.AGENT_TOGGLE_DATE, BILLING_QUEUE_COLUMNS.CURRENT_TOGGLE_DATE])
+  REPORT_COLUMN_STRING_LABELS: true,
+
+  // 18. REGEX_PATTERNS — Date/datetime parsing and label extraction live in @utils/regexPatterns.
+  //     NEVER inline regex in POM parse helpers. Import REGEX_PATTERNS and use named keys:
+  //       REGEX_PATTERNS.DATE.US_REPORT_DATETIME, US_FILTER_DATE
+  //       REGEX_PATTERNS.BILLING_TOGGLE.INITIAL_TOGGLE_DATE_LABEL, CURRENT_TOGGLE_DATE_LABEL
+  //       REGEX_PATTERNS.TEXT.WHITESPACE_RUNS
+  REGEX_PATTERNS_MODULE: true,
+
+  // 19. VIEW HISTORY SYSTEM USER — System-generated audit entries use fixed literal "SYSTEM".
+  //     BAD:  expect(row.user).toMatch(/system/i)
+  //     GOOD: expect(row.user).toBe(VIEW_HISTORY_USER.SYSTEM)
+  VIEW_HISTORY_SYSTEM_USER: true,
+
+  // 20. CHAINED WIDGET LOCATORS — Declare container once; chain child off it.
+  //     BAD:  page.locator("#search_status_magic .ms-trigger") + page.locator("#search_status_magic")
+  //     GOOD: container = page.locator("#search_status_magic"); trigger = container.locator(".ms-trigger")
+  CHAINED_COMPONENT_LOCATORS: true,
+
+  // 21. FORBIDDEN PATTERNS — Patterns that must NEVER appear in generated code.
   //     selfCheckAndFix automatically detects and replaces these.
   FORBIDDEN_PATTERNS: [
     {
@@ -1121,6 +1181,31 @@ export const GENERATION_RULES = {
       replacement: 'vl.loadBillingPage (after const vl = new PageManager(viewWorkPage))',
       reason: 'Use PageManager(viewWorkPage) instead of per-POM new ...() in specs',
     },
+    {
+      pattern: 'new RegExp(BILLING_QUEUE_COLUMNS',
+      replacement: 'Plain string: BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE (see getColumnCellValues)',
+      reason: 'Report column headers are fixed UI labels — use string constants with POM normalized equality, not RegExp',
+    },
+    {
+      pattern: 'new RegExp(LOAD_SEARCH_COLUMNS',
+      replacement: 'Plain string: LOAD_SEARCH_COLUMNS.BILLING_ACTIVITY',
+      reason: 'Load Search column headers are fixed UI labels — use string constants, not RegExp',
+    },
+    {
+      pattern: '/CURRENT TOGGLE DATE/i',
+      replacement: 'BILLING_QUEUE_COLUMNS.CURRENT_TOGGLE_DATE',
+      reason: 'Alternate Billing Queue header is a named constant — not an inline regex',
+    },
+    {
+      pattern: '.toMatch(/system/i)',
+      replacement: '.toBe(VIEW_HISTORY_USER.SYSTEM)',
+      reason: 'View History User is exact literal SYSTEM — fuzzy regex hides regressions',
+    },
+    {
+      pattern: 'table.table, table.report-table, table',
+      replacement: 'page.locator("#example_wrapper table#example") with chained thead/tbody',
+      reason: 'Page-wide table selectors are flaky — anchor to the DataTables #example grid',
+    },
   ],
 
   // 13b. DIRECT LOCATOR FALLBACK — When no POM method exists for a step,
@@ -1155,6 +1240,11 @@ export const GENERATION_RULES = {
       // Primary: multi-step View Load ↔ Edit ↔ View Billing, fi_waiting_on layer split, CSV-aligned test.step
       'src/tests/AIAgent/billingtoggle/BT-74454.spec.ts',
       'src/tests/AIAgent/billingtoggle/BT-67846.spec.ts',
+      // Billing Queue grid + string column labels (BT-116909, BT-116910)
+      'src/tests/AIAgent/billingtoggle/BT-116909.spec.ts',
+      'src/tests/AIAgent/billingtoggle/BT-116910.spec.ts',
+      // View History exact SYSTEM user assertion (BT-97807)
+      'src/tests/AIAgent/billingtoggle/BT-97807.spec.ts',
     ],
     commission: [
       'src/tests/AIAgent/dfb/DFB-25103.spec.ts',
@@ -1293,6 +1383,49 @@ export const GENERATION_RULES = {
       expect(waitingOnAfterSave).toBe(PAYABLE_TOGGLE_VALUE.BILLING);
 
       // --- test.step naming: align to testcase (e.g. "CSV 59 expected: …", "Step 5 [CSV 44-48]: …") so no step/validation is implied but missing ---`,
+
+    /** Billing Queue / Load Search — scoped DataTables grid (BillingQueuePage, AllLoadsSearchPage). */
+    REPORT_GRID_LOCATORS: `
+      // Billing Queue / Load Search — NEVER page-wide table selectors
+      this.resultsTable_LOC = this.page.locator("#example_wrapper table#example");
+      this.tableHeaders_LOC = this.resultsTable_LOC.locator("thead > tr > th");
+      // Billing Queue data rows:
+      this.resultsDataRows_LOC = this.resultsTable_LOC.locator("tbody > tr[role='row']");
+      // Load Search data rows:
+      this.resultsDataRows_LOC = resultsTable.locator("tbody > tr.dnd-moved");
+      this.resultsTableFirstDataRow_LOC = this.resultsDataRows_LOC.first();`,
+
+    /** Billing Queue column reads — plain BILLING_QUEUE_COLUMNS string labels. */
+    BILLING_QUEUE_COLUMN_LOOKUP: `
+      const initialToggleValues = await pages.billingQueuePage.getColumnCellValues([
+        BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE,
+      ]);
+      const agentOrCurrentToggleValues = await pages.billingQueuePage.getColumnCellValues([
+        BILLING_QUEUE_COLUMNS.AGENT_TOGGLE_DATE,
+        BILLING_QUEUE_COLUMNS.CURRENT_TOGGLE_DATE,
+      ]);
+      await pages.billingQueuePage.expectColumnDatesWithinRange(
+        [BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE],
+        rangeStart,
+        rangeEnd
+      );`,
+
+    /** View History User — exact SYSTEM literal, not fuzzy regex. */
+    VIEW_HISTORY_SYSTEM_USER_ASSERTION: `
+      expect(row.user, "Expected: User as SYSTEM").toBe(VIEW_HISTORY_USER.SYSTEM);
+      // NEVER: expect(row.user).toMatch(/system/i) — hides SYSTEM_USER, AUTO-SYSTEM, etc.`,
+
+    /** POM date/label parsing — import REGEX_PATTERNS, never inline regex. */
+    REGEX_PATTERNS_USAGE: `
+      import { REGEX_PATTERNS } from "@utils/regexPatterns";
+      const match = trimmed.match(REGEX_PATTERNS.DATE.US_REPORT_DATETIME);
+      const filterMatch = value.trim().match(REGEX_PATTERNS.DATE.US_FILTER_DATE);
+      const normalized = text.replace(REGEX_PATTERNS.TEXT.WHITESPACE_RUNS, " ").trim();`,
+
+    /** Widget locators — container id once, chain trigger/children. */
+    CHAINED_WIDGET_LOCATORS: `
+      this.statusMultiselectContainer_LOC = this.page.locator("#search_status_magic");
+      this.statusMultiselectTrigger_LOC = this.statusMultiselectContainer_LOC.locator(".ms-trigger");`,
   },
 };
 

@@ -1,6 +1,7 @@
 import { Locator, Page } from '@playwright/test';
 import { PageManager } from "@utils/PageManager";
 import commonReusables from "@utils/commonReusables";
+import { REGEX_PATTERNS } from "@utils/regexPatterns";
 
 /**
  * All Loads Search page (Loads → Search, loadlist.php).
@@ -14,9 +15,9 @@ export default class AllLoadsSearchPage {
     private readonly bulkChange_LOC: Locator;
     private readonly searchbutton_LOC: Locator;
     private readonly searchLoads_LOC: Locator;
-    private readonly statusMultiselectTrigger_LOC: Locator;
     private readonly statusMultiselectContainer_LOC: Locator;
-    /** First LOADSEARCH data row — report_sizzle.phtml:1580 `tr.dnd-moved` row onClick linkurl */
+    private readonly statusMultiselectTrigger_LOC: Locator;
+    /** First LOADSEARCH data row — `#example_wrapper table#example` → `tbody > tr.dnd-moved` */
     private readonly resultsTableFirstDataRow_LOC: Locator;
     private readonly resultsDataRows_LOC: Locator;
     private readonly tableHeaders_LOC: Locator;
@@ -26,11 +27,12 @@ export default class AllLoadsSearchPage {
         this.bulkChange_LOC = this.page.locator("//button[@id='bulk-change-button']");
         this.searchbutton_LOC = this.page.locator("//input[@class='submit-report-search']");
         this.searchLoads_LOC = this.page.locator("//input[@id='search_loadsh_ids']");
-        this.statusMultiselectTrigger_LOC = this.page.locator("#search_status_magic .ms-trigger");
         this.statusMultiselectContainer_LOC = this.page.locator("#search_status_magic");
-        this.resultsTableFirstDataRow_LOC = this.page.locator("table tbody tr.dnd-moved").first();
-        this.resultsDataRows_LOC = this.page.locator("table tbody tr.dnd-moved");
-        this.tableHeaders_LOC = this.page.locator("thead th");
+        this.statusMultiselectTrigger_LOC = this.statusMultiselectContainer_LOC.locator(".ms-trigger");
+        const resultsTable = this.page.locator("#example_wrapper table#example");
+        this.resultsDataRows_LOC = resultsTable.locator("tbody > tr.dnd-moved");
+        this.resultsTableFirstDataRow_LOC = this.resultsDataRows_LOC.first();
+        this.tableHeaders_LOC = resultsTable.locator("thead > tr > th");
     }
 
     /**
@@ -39,25 +41,35 @@ export default class AllLoadsSearchPage {
      * @created 2026-06-04
      */
     private isReportCellEmpty(cellText: string): boolean {
-        const normalized = (cellText || "").replace(/\s+/g, " ").trim();
+        const normalized = (cellText || "").replace(REGEX_PATTERNS.TEXT.WHITESPACE_RUNS, " ").trim();
         return !normalized || normalized === "-" || normalized === "—";
     }
 
     /**
-     * Resolves a column index (0-based) from header regex patterns.
-     * Locator source: report_sizzle.phtml — `thead th`
+     * Normalizes report grid header text for case-insensitive exact label matching.
+     * @author AI Agent
+     * @created 2026-06-09
+     */
+    private normalizeReportHeader(headerText: string): string {
+        return (headerText || "").replace(REGEX_PATTERNS.TEXT.WHITESPACE_RUNS, " ").trim().toUpperCase();
+    }
+
+    /**
+     * Resolves a column index (0-based) from UI column label(s).
+     * Locator source: report_sizzle.phtml — `#example_wrapper table#example` → `thead > tr > th`
      * @author AI Agent
      * @created 2026-06-04
+     * @param columnLabels - Exact on-screen labels (e.g. LOAD_SEARCH_COLUMNS.BILLING_ACTIVITY)
      */
-    async getColumnIndex(headerPatterns: RegExp[]): Promise<number> {
+    async getColumnIndex(columnLabels: string[]): Promise<number> {
         const headerCount = await this.tableHeaders_LOC.count();
         for (let i = 0; i < headerCount; i++) {
-            const text = ((await this.tableHeaders_LOC.nth(i).innerText()) || "").replace(/\s+/g, " ").trim();
-            if (headerPatterns.some((pattern) => pattern.test(text))) {
+            const text = this.normalizeReportHeader(await this.tableHeaders_LOC.nth(i).innerText());
+            if (columnLabels.some((label) => text === this.normalizeReportHeader(label))) {
                 return i;
             }
         }
-        throw new Error(`Column header not found for patterns: ${headerPatterns.map((p) => p.source).join(", ")}`);
+        throw new Error(`Column not found: ${columnLabels.join(", ")}`);
     }
 
     /**
@@ -90,7 +102,7 @@ export default class AllLoadsSearchPage {
 
     /**
      * Waits until the first LOADSEARCH sizzle result row is visible.
-     * Locator source: report_sizzle.phtml:1580 — `table tbody tr.dnd-moved`
+     * Locator source: report_sizzle.phtml:1580 — `#example_wrapper table#example` → `tbody > tr.dnd-moved`
      * @author AI Agent
      * @created 2026-06-03
      */
@@ -100,7 +112,7 @@ export default class AllLoadsSearchPage {
 
     /**
      * Clicks the first LOADSEARCH result row (`tr.dnd-moved` row onClick → loadform.php linkurl).
-     * Locator source: report_sizzle.phtml:1580, rptdefs.inc.php LOADSEARCH linkurl
+     * Locator source: `#example_wrapper table#example` → `tbody > tr.dnd-moved`; rptdefs.inc.php LOADSEARCH linkurl
      * @author AI Agent
      * @created 2026-06-03
      */
@@ -112,22 +124,20 @@ export default class AllLoadsSearchPage {
 
     /**
      * Clicks the first LOADSEARCH row whose BILLING ACTIVITY cell is empty.
-     * Locator source: loadsearch.inc.php — `BILLING ACTIVITY` column; report_sizzle.phtml:1580 `tr.dnd-moved`
+     * Locator source: loadsearch.inc.php — `BILLING ACTIVITY` column; `#example_wrapper table#example` → `tbody > tr.dnd-moved`
      * @author AI Agent
      * @created 2026-06-04
      */
     async clickLoadDetailRowWithEmptyBillingActivity(): Promise<void> {
         await this.waitForSearchResults();
 
-        const billingActivityIdx = await this.getColumnIndex([
-            new RegExp(LOAD_SEARCH_COLUMNS.BILLING_ACTIVITY, "i"),
-        ]);
+        const billingActivityIdx = await this.getColumnIndex([LOAD_SEARCH_COLUMNS.BILLING_ACTIVITY]);
 
         const rowCount = await this.resultsDataRows_LOC.count();
         for (let r = 0; r < rowCount; r++) {
             const row = this.resultsDataRows_LOC.nth(r);
             const activityText = ((await row.locator("td").nth(billingActivityIdx).innerText()) || "")
-                .replace(/\s+/g, " ")
+                .replace(REGEX_PATTERNS.TEXT.WHITESPACE_RUNS, " ")
                 .trim();
 
             if (this.isReportCellEmpty(activityText)) {

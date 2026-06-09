@@ -181,6 +181,7 @@ const KNOWN_PAGE_GETTERS = new Set<string>([
   'selectChangesPage',
   'agentAccountsPage',
   'allLoadsSearchPage',
+  'billingQueuePage',
   'postAutomationRulePageEditEntryModal',
   'btmsAcceptTermPage',
   'carrierPortalPage',
@@ -1020,6 +1021,48 @@ const SANITIZER_RULES: GuardrailRule[] = [
         return line.substring(0, labelStart) + fixedLabel + line.substring(asyncIdx);
       }).join('\n');
     },
+  },
+  // SAN-026: Report column labels — plain BILLING_QUEUE_COLUMNS strings, not RegExp
+  {
+    id: 'SAN-026',
+    description: 'Replace new RegExp(BILLING_QUEUE_COLUMNS.*, "i") with plain BILLING_QUEUE_COLUMNS.* constants',
+    severity: 'error',
+    category: 'data-compliance',
+    detect: (code) => /new RegExp\(\s*BILLING_QUEUE_COLUMNS\.\w+\s*,\s*["']i["']\s*\)/.test(code),
+    fix: (code) =>
+      code.replace(/new RegExp\(\s*(BILLING_QUEUE_COLUMNS\.\w+)\s*,\s*["']i["']\s*\)/g, '$1'),
+  },
+  // SAN-027: Load Search column labels — plain LOAD_SEARCH_COLUMNS strings, not RegExp
+  {
+    id: 'SAN-027',
+    description: 'Replace new RegExp(LOAD_SEARCH_COLUMNS.*, "i") with plain LOAD_SEARCH_COLUMNS.* constants',
+    severity: 'error',
+    category: 'data-compliance',
+    detect: (code) => /new RegExp\(\s*LOAD_SEARCH_COLUMNS\.\w+\s*,\s*["']i["']\s*\)/.test(code),
+    fix: (code) =>
+      code.replace(/new RegExp\(\s*(LOAD_SEARCH_COLUMNS\.\w+)\s*,\s*["']i["']\s*\)/g, '$1'),
+  },
+  // SAN-028: Alternate Billing Queue header — named constant, not inline regex
+  {
+    id: 'SAN-028',
+    description: 'Replace /CURRENT TOGGLE DATE/i with BILLING_QUEUE_COLUMNS.CURRENT_TOGGLE_DATE',
+    severity: 'error',
+    category: 'data-compliance',
+    detect: (code) => /\/CURRENT TOGGLE DATE\/i/.test(code),
+    fix: (code) => code.replace(/\/CURRENT TOGGLE DATE\/i/g, 'BILLING_QUEUE_COLUMNS.CURRENT_TOGGLE_DATE'),
+  },
+  // SAN-029: View History User — exact SYSTEM literal, not fuzzy regex
+  {
+    id: 'SAN-029',
+    description: 'Replace View History user toMatch(/system/i) with toBe(VIEW_HISTORY_USER.SYSTEM)',
+    severity: 'error',
+    category: 'assertion-quality',
+    detect: (code) => /\.user[^)]*\)\.toMatch\(\s*\/system\/i\s*\)/.test(code),
+    fix: (code) =>
+      code.replace(
+        /(expect\([^)]*\.user[^)]*\)\s*)\.toMatch\(\s*\/system\/i\s*\)/g,
+        '$1.toBe(VIEW_HISTORY_USER.SYSTEM)',
+      ),
   },
 ];
 

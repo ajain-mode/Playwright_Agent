@@ -160,7 +160,7 @@ test.describe.serial(
           expect(row.message, "Expected: $100 overcharge in history").toContain(
             ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_100_OVER_TOTAL_CHARGE
           );
-          expect(row.user, "Expected: User as System").toMatch(/system/i);
+          expect(row.user, "Expected: User as SYSTEM").toBe(VIEW_HISTORY_USER.SYSTEM);
           expect(row.inactiveDate.trim(), "Expected: Inactive date empty").toBe("");
         });
 
@@ -205,7 +205,7 @@ test.describe.serial(
           expect(row100.message, "Expected: 1st row $100 overcharge message").toContain(
             ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_100_OVER_TOTAL_CHARGE
           );
-          expect(row100.user, "Expected: 1st row User as System").toMatch(/system/i);
+          expect(row100.user, "Expected: 1st row User as SYSTEM").toBe(VIEW_HISTORY_USER.SYSTEM);
           expect(
             row100.inactiveDate.trim().length,
             "Expected: 1st row Inactive date (last column) set after second invoice"
@@ -214,7 +214,7 @@ test.describe.serial(
           expect(row300.message, "Expected: 2nd row $300 overcharge message").toContain(
             ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_300_OVER_TOTAL_CHARGE
           );
-          expect(row300.user, "Expected: 2nd row User as System").toMatch(/system/i);
+          expect(row300.user, "Expected: 2nd row User as SYSTEM").toBe(VIEW_HISTORY_USER.SYSTEM);
           expect(row300.inactiveDate.trim(), "Expected: 2nd row Inactive date empty").toBe("");
         });
       }
