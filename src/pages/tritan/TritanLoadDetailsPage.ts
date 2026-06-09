@@ -265,4 +265,85 @@ export default class TritanLoadDetailsPage {
         console.log(`Customer Total Amount text: ${text}`);
         return text.match(/\d+\.\d{2}/)?.[0] ?? '';
     }
+
+    /**
+     * Clicks the green "+" under Carrier Invoices on the Tritan load page.
+     * @author AI Agent
+     * @created 2026-06-01
+     */
+    async clickAddCarrierInvoicePlusIcon(): Promise<void> {
+        const addIcon = this.page
+            .locator('iframe[name="AppBody"]')
+            .contentFrame()
+            .locator('#Detail')
+            .contentFrame()
+            .locator('iframe')
+            .contentFrame()
+            .locator('#carrInvoicesWin')
+            .contentFrame()
+            .locator('.right > a, a img[alt*="Add"]')
+            .first();
+        await addIcon.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        await addIcon.click();
+        await commonReusables.waitForPageStable(this.page);
+        console.log('Clicked Carrier Invoices add (+) icon');
+    }
+
+    /**
+     * Returns the latest carrier invoice number and bill total from the load page table.
+     * @author AI Agent
+     * @created 2026-06-01
+     */
+    async getLatestCarrierInvoiceDetails(): Promise<{ invoiceNumber: string; billTotal: string }> {
+        const frame = this.page
+            .locator('iframe[name="AppBody"]')
+            .contentFrame()
+            .locator('#Detail')
+            .contentFrame()
+            .locator('iframe')
+            .contentFrame()
+            .locator('#carrInvoicesWin')
+            .contentFrame();
+        const invoiceNumber = (
+            (await frame.locator("//td[@class='type' and normalize-space()='Invoice']/parent::tr//td[1]").last().textContent()) ||
+            ''
+        ).trim();
+        const billTotalRaw = (
+            (await frame.locator("//td[@class='type' and normalize-space()='Invoice']/parent::tr//td[@class='total']//a").last().textContent()) ||
+            ''
+        ).trim();
+        const billTotal = billTotalRaw.match(/\d+(?:\.\d+)?/)?.[0] ?? billTotalRaw;
+        console.log(`Latest carrier invoice: ${invoiceNumber}, bill total: ${billTotal}`);
+        return { invoiceNumber, billTotal };
+    }
+
+    /**
+     * Opens carrier rate popup Edit Charges and applies short-pay settlement fields.
+     * @author AI Agent
+     * @created 2026-06-01
+     */
+    async applyCarrierShortPaySettlement(
+        carrierPopup: Page,
+        queueLabel: string,
+        settlementReason: string,
+        comment: string,
+        fuelSurchargeAmount: string,
+    ): Promise<void> {
+        const editCharges = carrierPopup.locator("//a[normalize-space()='[edit charges]']");
+        await editCharges.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        await editCharges.click();
+        await carrierPopup.locator('#sQueue').selectOption({ label: queueLabel });
+        await carrierPopup.locator('#sSettleReason').selectOption({ label: settlementReason });
+        await carrierPopup.locator('#sComments').fill(comment);
+        const fuelInput = carrierPopup.locator(
+            "//td[contains(normalize-space(.),'Fuel Surcharges')]/following-sibling::td//input",
+        );
+        if (await fuelInput.count()) {
+            await fuelInput.first().fill(fuelSurchargeAmount);
+        }
+        await Promise.all([
+            carrierPopup.waitForEvent('close'),
+            carrierPopup.locator("//input[@value=' Save ']").click(),
+        ]);
+    }
 }

@@ -66,7 +66,15 @@ export class DFBGlobalConstants {
   static readonly DFB_BID_HISTORY_FIELDS = {
     EQUIPMENT_1: "F",
     SOURCE: "DFB",
-    TNX_SERVICE_EMAIL: "service-tnx-stage@modeglobal.com",
+  } as const;
+
+  /**
+   * Load Method label in POSTED hover tooltip table (BTMS display vs CSV code `TL`).
+   * @author AI Agent
+   * @created 2026-05-28
+   */
+  static readonly DFB_LOAD_METHOD_HOVER_LABEL = {
+    TL: "TruckLoad",
   } as const;
 
   static readonly DFB_RATE_DEFAULTS = {
@@ -129,6 +137,7 @@ declare global {
   
   const DFB_FORM_FIELDS: typeof DFBGlobalConstants.DFB_FORM_FIELDS;
   const DFB_BID_HISTORY_FIELDS: typeof DFBGlobalConstants.DFB_BID_HISTORY_FIELDS;
+  const DFB_LOAD_METHOD_HOVER_LABEL: typeof DFBGlobalConstants.DFB_LOAD_METHOD_HOVER_LABEL;
   const DFB_RATE_DEFAULTS: typeof DFBGlobalConstants.DFB_RATE_DEFAULTS;
   const TENDER_DETAILS_MODAL_TABS: typeof DFBGlobalConstants.TENDER_DETAILS_MODAL_TABS;
   const TNX_STATUS_HISTORY: typeof DFBGlobalConstants.TNX_STATUS_HISTORY;
@@ -139,7 +148,12 @@ declare global {
 }
 
 // Global exports for backward compatibility
-export const { PRIORITY, CARRIER_TIMING, INCLUDE_CARRIERS } = DFBGlobalConstants;
+export const {
+  PRIORITY,
+  CARRIER_TIMING,
+  INCLUDE_CARRIERS,
+  DFB_LOAD_METHOD_HOVER_LABEL,
+} = DFBGlobalConstants;
 
 // Set global constants
 if (typeof globalThis !== "undefined") {
@@ -151,6 +165,8 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).DFB_FORM_FIELDS = DFBGlobalConstants.DFB_FORM_FIELDS;
   (globalThis as any).DFB_BID_HISTORY_FIELDS =
     DFBGlobalConstants.DFB_BID_HISTORY_FIELDS;
+  (globalThis as any).DFB_LOAD_METHOD_HOVER_LABEL =
+    DFBGlobalConstants.DFB_LOAD_METHOD_HOVER_LABEL;
   (globalThis as any).DFB_RATE_DEFAULTS =
     DFBGlobalConstants.DFB_RATE_DEFAULTS;
   (globalThis as any).TENDER_DETAILS_MODAL_TABS =

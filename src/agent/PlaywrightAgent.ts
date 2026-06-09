@@ -155,7 +155,6 @@ export class PlaywrightAgent {
 
         // Save the script
         await this.saveScript(script, testCase);
-        console.log(`✅ Generated: ${script.fileName}`);
       }
 
     } catch (error: any) {
@@ -216,7 +215,6 @@ export class PlaywrightAgent {
         const script = await this.generator.generateScript(testCase, testData, match?.specPath || undefined, match?.score);
         scripts.push(script);
         await this.saveScript(script, testCase);
-        console.log(`✅ Generated: ${script.fileName}`);
       }
     } catch (error: any) {
       errors.push(`Error generating script for ${testCase.id}: ${error.message}`);
@@ -302,7 +300,6 @@ export class PlaywrightAgent {
         const script = await this.generator.generateScript(testCase, testData, match?.specPath || undefined, match?.score);
         scripts.push(script);
         await this.saveScript(script, testCase);
-        console.log(`✅ Generated: ${script.fileName}`);
 
         // After generating, exclude this ID from future matching in this batch
         // to prevent sibling test cases from referencing a freshly-generated spec
@@ -540,31 +537,31 @@ export class PlaywrightAgent {
       finalReport = report2;
     }
 
-    if (finalReport.passed) {
+    const compiles = this.runCompilationCheck(script.filePath, script.testCaseId);
+
+    if (finalReport.passed && compiles) {
       fs.writeFileSync(script.filePath, outputCode, 'utf-8');
       console.log(`   ✅ Generated: ${script.testCaseId}.spec.ts`);
-    } else if (finalReport.summary.hardBlocks > 0) {
-      // Save as draft — NOT a production spec
+    } else {
+      // Unresolved errors or hard-blocks — never write a production .spec.ts
       const draftPath = script.filePath.replace('.spec.ts', '.draft.spec.ts');
       fs.writeFileSync(draftPath, outputCode, 'utf-8');
-      console.log(`   ⚠️ Draft saved: ${path.basename(draftPath)} — ${finalReport.summary.hardBlocks} unresolved hard-block(s)`);
-      for (const v of finalReport.violations.filter(v => v.severity === 'hard-block')) {
+      const hardBlocks = finalReport.summary.hardBlocks;
+      const errors = finalReport.summary.errors;
+      console.log(
+        `   ⚠️ Draft saved: ${path.basename(draftPath)} — ` +
+          `${hardBlocks} hard-block(s), ${errors} error(s) (fix before promoting to .spec.ts)`,
+      );
+      for (const v of finalReport.violations.filter(
+        (v) => v.severity === 'hard-block' || v.severity === 'error',
+      )) {
         console.log(`      ❌ ${v.ruleId}: ${v.message}`);
-      }
-    } else {
-      // Errors but no hard-blocks — write as spec but warn
-      fs.writeFileSync(script.filePath, outputCode, 'utf-8');
-      console.log(`   ⚠️ Generated with warnings: ${script.testCaseId}.spec.ts`);
-      for (const v of finalReport.violations.filter(v => v.severity === 'error')) {
-        console.log(`      ⚠️ ${v.ruleId}: ${v.message}`);
       }
     }
 
-    // Post-write: compile check
+    // Post-write: batch compile runs in finalizeBatchCompilation()
     if (this.batchMode) {
       this.pendingCompilationFiles.push(script.filePath);
-    } else {
-      this.runCompilationCheck(script.filePath, script.testCaseId);
     }
 
     // Legacy sanitizeGeneratedCode/validateGeneratedCode/selfCheckAndFix methods
@@ -577,7 +574,7 @@ export class PlaywrightAgent {
    * Logs only genuine compilation errors — path alias resolution warnings (TS2307
    * for @-prefixed imports) are filtered out since they resolve correctly at runtime.
    */
-  private runCompilationCheck(filePath: string, testId: string): void {
+  private runCompilationCheck(filePath: string, testId: string): boolean {
     console.log(`\n🔍 Running TypeScript compilation check for ${testId}...`);
     const projectRoot = path.resolve(__dirname, '../..');
     try {
@@ -587,6 +584,7 @@ export class PlaywrightAgent {
         cwd: projectRoot,
       });
       console.log(`   ✅ Compilation check passed — no TypeScript errors found`);
+      return true;
     } catch (error: any) {
       const output = error.stdout || error.message || '';
       // Only look at errors in the specific generated file
@@ -608,10 +606,11 @@ export class PlaywrightAgent {
       if (errorLines.length > 0) {
         console.log(`   ⚠️ TypeScript compilation issues found for ${testId}:`);
         errorLines.forEach((line: string) => console.log(`      ${line}`));
-        console.log(`   📝 Total: ${errorLines.length} issue(s) — review and fix before running tests`);
-      } else {
-        console.log(`   ✅ Compilation check passed — no actionable TypeScript errors`);
+        console.log(`   📝 Total: ${errorLines.length} issue(s) — draft only until fixed`);
+        return false;
       }
+      console.log(`   ✅ Compilation check passed — no actionable TypeScript errors`);
+      return true;
     }
   }
 
@@ -790,8 +789,13 @@ export class PlaywrightAgent {
     if (!match) return null;
 
     console.log(`   🔗 Similarity match: ${testCase.id} → ${match.matchedId} (score=${(match.score * 100).toFixed(0)}%, ${match.reasons.join(', ')})`);
-    // Data inheritance removed — test data must always come from parsing the input,
-    // never from a matched test case (whose office/customer/agent values differ).
+
+    if (!this.matcher.isReferenceSuitable(testCase, match)) {
+      console.log(
+        `   ⏭️ Reference spec ${match.matchedId} rejected — precondition/step flow mismatch; using category reference / step-by-step`,
+      );
+      return { ...match, specPath: '', score: Math.min(match.score, 0.55) };
+    }
 
     return match;
   }

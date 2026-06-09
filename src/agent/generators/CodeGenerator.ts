@@ -80,6 +80,36 @@ function toConstantName(message: string): string {
   return result || 'UNKNOWN_MESSAGE';
 }
 
+/** Merge CSV Expected column + per-step expectedResult for LLM and assertion mapping. */
+function collectAllExpectedResults(testCase: TestCaseInput): string[] {
+  const fromColumn = testCase.expectedResults || [];
+  const fromSteps = testCase.steps
+    .filter((s) => s.expectedResult?.trim())
+    .map((s) => s.expectedResult!.trim());
+  const seen = new Set<string>();
+  const merged: string[] = [];
+  for (const item of [...fromColumn, ...fromSteps]) {
+    const key = item.trim();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    merged.push(key);
+  }
+  return merged;
+}
+
+/** POM calls that only read state — not valid as sole action for Enter/Click/Select steps. */
+const STUB_READONLY_POM_CALLS =
+  /await\s+pages\.\w+\.(getRateTypeValue|getPostStatusText|getIncludeCarriersSelectedCarrierIds|getLinehaulDefaultValue|getFuelSurchargeDefaultValue)\s*\(\s*\)\s*;?/;
+
+function isStubOnlyStepCode(code: string): boolean {
+  const lines = code
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith('//'));
+  if (lines.length === 0) return true;
+  return lines.every((l) => STUB_READONLY_POM_CALLS.test(l) || /^console\.log/.test(l));
+}
+
 /**
  * Look up the ALERT_PATTERNS constant for a given message text.
  * If not found, auto-creates a new entry in alertPatterns.ts and returns the reference.
@@ -323,6 +353,15 @@ export class CodeGenerator {
   }
 
   /**
+   * Large / billing-toggle cases use FormStepGrouper step-by-step — not hybrid clone of another spec.
+   */
+  private shouldSkipHybridClonePath(testCase: TestCaseInput): boolean {
+    if (testCase.steps.length >= 40) return true;
+    if (testCase.category === 'billingtoggle' && testCase.steps.length >= 25) return true;
+    return false;
+  }
+
+  /**
    * Generate a complete test script from test case input
    */
   async generateScript(testCase: TestCaseInput, testData?: TestData, dynamicRefSpecPath?: string, matchScore?: number): Promise<GeneratedScript> {
@@ -385,8 +424,19 @@ export class CodeGenerator {
     } else if (!this._activeRefSpecCode) {
       console.log(`\n⏭️  Tier 1 LLM skipped — no reference spec loaded for category '${testCase.category}' (check ReferenceSpecAnalyzer.REFERENCE_SPECS)`);
     }
-    if (this.llmService?.isAvailable() && this._activeRefSpecCode) {
-      console.log(`\n🤖 Full-spec LLM generation for ${testCase.id} (${testCase.steps.length} steps)`);
+    const allExpected = collectAllExpectedResults(testCase);
+    const skipFullSpecLlm = testCase.steps.length > 40;
+
+    if (skipFullSpecLlm && this.llmService?.isAvailable()) {
+      console.log(
+        `   ⏭️ Full-spec LLM skipped — ${testCase.steps.length} steps (>40); using rule-based step-by-step`,
+      );
+    }
+
+    if (this.llmService?.isAvailable() && this._activeRefSpecCode && !skipFullSpecLlm) {
+      console.log(
+        `\n🤖 Full-spec LLM generation for ${testCase.id} (${testCase.steps.length} steps, ${allExpected.length} expected block(s))`,
+      );
       const schemaCtx = this.getSchemaContext();
       const testDataObj: Record<string, string> = testData
         ? Object.fromEntries(
@@ -399,10 +449,6 @@ export class CodeGenerator {
         action: s.action,
         expectedResult: s.expectedResult,
       }));
-      const expectedResults = testCase.steps
-        .filter(s => s.expectedResult)
-        .map(s => s.expectedResult!);
-
       const fullSpecCode = await this.llmService.generateFullSpecFromReference(
         this._activeRefSpecCode,
         testCase.id,
@@ -410,7 +456,7 @@ export class CodeGenerator {
         testCase.category,
         preconditions,
         steps,
-        expectedResults,
+        allExpected,
         testDataObj,
         schemaCtx,
         'generate',
@@ -450,7 +496,13 @@ export class CodeGenerator {
     // 3. For steps that differ significantly → LLM generates replacement code
     // 4. Splice LLM-generated steps into the cloned spec
     const isHighMatch = (matchScore || 0) >= 0.7;
-    if (isHighMatch && this._activeRefSpecCode) {
+    const skipHybridClone = this.shouldSkipHybridClonePath(testCase);
+    if (skipHybridClone && isHighMatch) {
+      console.log(
+        `   ⏭️ Hybrid clone skipped — ${testCase.category} case with ${testCase.steps.length} steps; using FormStepGrouper pipeline`,
+      );
+    }
+    if (isHighMatch && this._activeRefSpecCode && !skipHybridClone) {
       console.log(`\n🧠 HIGH MATCH (${((matchScore || 0) * 100).toFixed(0)}%) — hybrid clone + LLM adaptation`);
 
       const clonedContent = await this.cloneAndAdaptReferenceSpec(
@@ -500,10 +552,6 @@ export class CodeGenerator {
           action: s.action,
           expectedResult: s.expectedResult,
         }));
-        const expectedResults = testCase.steps
-          .filter(s => s.expectedResult)
-          .map(s => s.expectedResult!);
-
         const fullSpecCode = await this.llmService.generateFullSpecFromReference(
           this._activeRefSpecCode,
           testCase.id,
@@ -511,7 +559,7 @@ export class CodeGenerator {
           testCase.category,
           preconditions,
           steps,
-          expectedResults,
+          allExpected,
           testDataObj,
           schemaCtx,
           'adapt',
@@ -639,6 +687,11 @@ export class CodeGenerator {
     testCase: TestCaseInput,
   ): Promise<string> {
     const code = await this.generateCodeFromAction(stepAction, testCase.testData as any);
+    if (isStubOnlyStepCode(code)) {
+      throw new Error(
+        `Stub-only POM readback for step ${stepNumber} — no actionable mapping for: ${stepAction.substring(0, 60)}`,
+      );
+    }
     const labelText =
       stepAction.length > 80 ? stepAction.substring(0, 77) + '...' : stepAction;
     const stepLabel = `Step ${stepNumber}: ${labelText}`;
@@ -1926,7 +1979,18 @@ ${stepCode}
 
       // Count how many steps differ
       const differingSteps = stepMatches.filter(m => m.similarity < 0.5);
-      console.log(`   🔍 Step comparison: ${stepMatches.length - differingSteps.length} matching, ${differingSteps.length} differing`);
+      const matchingCount = stepMatches.length - differingSteps.length;
+      const matchRatio = newSteps.length > 0 ? matchingCount / newSteps.length : 0;
+      console.log(
+        `   🔍 Step comparison: ${matchingCount} matching, ${differingSteps.length} differing (${(matchRatio * 100).toFixed(0)}% match ratio)`,
+      );
+
+      if (matchRatio < 0.3) {
+        console.log(
+          `   ⏭️ Clone+adapt aborted — reference step alignment too low (${matchingCount}/${newSteps.length})`,
+        );
+        return null;
+      }
 
       // If all steps match well enough, return pure clone
       if (differingSteps.length === 0) {
@@ -1961,7 +2025,18 @@ ${stepCode}
       };
       console.log(`   📦 Minimal schema: ${Object.keys(minimalPom).length} page objects (vs ${Object.keys(fullSchema.pageObjects).length} full)`);
 
-      for (const match of differingSteps) {
+      const maxLlmAdaptSteps = 15;
+      const llmAdaptQueue =
+        differingSteps.length > maxLlmAdaptSteps
+          ? differingSteps.slice(0, maxLlmAdaptSteps)
+          : differingSteps;
+      if (differingSteps.length > maxLlmAdaptSteps) {
+        console.log(
+          `   ⚠️ Capping LLM adaptations at ${maxLlmAdaptSteps}/${differingSteps.length} — remainder uses step-by-step fallback`,
+        );
+      }
+
+      for (const match of llmAdaptQueue) {
         const newStep = match.newStep;
         const stepAction = newStep.action;
         const stepExpected = newStep.expectedResult || '';
@@ -2027,10 +2102,15 @@ ${stepCode}
 
       console.log(`   📝 Adapted ${adaptedCount}/${differingSteps.length} differing steps via LLM`);
 
-      // If zero steps adapted and there are many differing steps, signal failure
-      // so the caller can try generateFullSpecFromReference as fallback
+      // If zero/few steps adapted, abort hybrid output
       if (adaptedCount === 0 && differingSteps.length >= 3) {
         console.log(`   ⚠️ Clone+adapt produced pure clone (0/${differingSteps.length} adapted) — signaling for full-spec fallback`);
+        return null;
+      }
+      if (adaptedCount < Math.min(3, differingSteps.length * 0.1) && differingSteps.length >= 10) {
+        console.log(
+          `   ⚠️ Clone+adapt adapted too few steps (${adaptedCount}/${differingSteps.length}) — aborting hybrid output`,
+        );
         return null;
       }
 
@@ -3246,13 +3326,14 @@ ${stepCode}
     let code = '';
     let stepCounter = 0;
 
+    const compositeGroups = this.formStepGrouper.groupSteps(testCase.steps);
+
     // ========== MANDATORY: BTMS Login Step (always first) ==========
     // Only skip if there's already a BTMS login step. DME/TNX logins are for
     // different systems and do NOT substitute for the initial BTMS login.
-    const hasBTMSLoginStep = testSteps.some(step => {
-      const lowerCode = step.code.toLowerCase();
-      return lowerCode.includes('btmslogin');
-    });
+    const hasBTMSLoginStep =
+      testSteps.some((step) => step.code.toLowerCase().includes('btmslogin')) ||
+      compositeGroups.some((g) => g.type === 'login-group');
 
     if (!hasBTMSLoginStep) {
       stepCounter++;
@@ -3382,9 +3463,6 @@ ${stepCode}
     // ========== Map expected results to steps (inline validation) ==========
     const expectedMap = this.mapExpectedToSteps(testCase);
 
-    // ========== FORM STEP GROUPING — collapse consecutive form-field steps ==========
-    const compositeGroups = this.formStepGrouper.groupSteps(testCase.steps);
-
     // ========== User-defined test steps (using composite groups) ==========
     let lastEmittedCodeKey = '';
     let userStepIndex = 0;
@@ -3392,7 +3470,7 @@ ${stepCode}
     let tsIndex = 0;
 
     for (const group of compositeGroups) {
-      if (group.type !== 'single' && group.compositeCode) {
+      if (group.type !== 'single' && (group.compositeCode || group.type === 'login-group')) {
         // ── Composite group: emit a single test.step with pre-generated code ──
         stepCounter++;
         userStepIndex++;
@@ -3404,7 +3482,14 @@ ${stepCode}
           `Step ${stepCounter} [${rangeStr}]: ${group.compositeStepName}`
         );
 
-        let stepBody = this.formatStepCode(group.compositeCode);
+        const isLoginComposite =
+          group.type === 'login-group' ||
+          (csvRange[0] === 1 && /log\s*in.*btms/i.test(group.compositeStepName || ''));
+        let stepBody = isLoginComposite
+          ? `        await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
+        await commonReusables.waitForAllLoadStates(sharedPage);
+`
+          : this.formatStepCode(group.compositeCode!);
 
         // Inject billingtoggle user switch immediately after BTMSLogin in login-group
         if (group.type === 'login-group' && testCase.category === 'billingtoggle') {
@@ -3683,7 +3768,9 @@ ${stepCode}
       if (!trimmedExpected) return;
 
       // Parse "Ensure after Step: XX" / "Ensure the Step: XX" / "Ensure Step XX" headers
-      const ensureMatch = trimmedExpected.match(/^ensure\s+(?:the\s+|after\s+)?step\s*[:#.]?\s*(\d+)/i);
+      const ensureMatch = trimmedExpected.match(
+        /^(?:\d+\.\s*)?ensure\s+(?:the\s+|after\s+)?step\s*[:#.]?\s*(\d+)/i,
+      );
       if (ensureMatch) {
         const referencedStep = parseInt(ensureMatch[1], 10);
         // If the referenced step is past the multi-app threshold, leave unmapped
@@ -4346,7 +4433,50 @@ ${stepCode}
     const lowerExpected = expected.toLowerCase();
 
     // Skip "Ensure after Step" header lines — these are only grouping labels, not assertions
-    if (/^ensure\s+(?:the\s+|after\s+)?step/i.test(expected.trim())) return '';
+    if (/^(?:\d+\.\s*)?ensure\s+(?:the\s+|after\s+)?step/i.test(expected.trim())) return '';
+
+    // Billing toggle — Waiting On / Not Deliv. Final / Price Difference (View Billing)
+    if (
+      lowerExpected.includes('billing toggle') &&
+      lowerExpected.includes('agent')
+    ) {
+      return `        await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
+        const billingToggle = await pages.loadBillingPage.getBillingToggleValue();
+        expect(billingToggle, "Billing toggle should be Agent").toBe(PAYABLE_TOGGLE_VALUE.AGENT);
+`;
+    }
+    if (lowerExpected.includes('not deliv') && lowerExpected.includes('check')) {
+      return `        const notDelivChecked = await pages.loadBillingPage.isNotDeliveredFinalChecked();
+        expect(notDelivChecked, "Not Deliv. Final should be checked").toBe(true);
+`;
+    }
+    if (lowerExpected.includes('price difference') && lowerExpected.includes('check')) {
+      return `        await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
+        // Price Difference is surfaced on View Load Load tab after reload — validated in View Load block
+`;
+    }
+    if (lowerExpected.includes('invoiced') && lowerExpected.includes('over') && lowerExpected.includes('charge')) {
+      return `        const overMsg = await pages.loadBillingPage.findPayableMessageContaining(FINANCE_MESSAGES.CARRIER_OVER_INVOICED);
+        expect(overMsg, "Carrier over-invoiced message should display under Billing Issues").toBeTruthy();
+`;
+    }
+    if (lowerExpected.includes('waiting on') && lowerExpected.includes('agent')) {
+      return `        await pages.viewLoadPage.clickloadTab();
+        await pages.viewLoadPage.scrollWaitingOnIntoView();
+        const waitingOnLabel = await pages.viewLoadPage.getBillingIssuesWaitingOnDisplayLabel();
+        expect(waitingOnLabel, "Waiting On on View Load should be Agent").toBe(PAYABLE_TOGGLE_VALUE.AGENT);
+`;
+    }
+    if (lowerExpected.includes('not deliv') && lowerExpected.includes('tag')) {
+      return `        const notDelivTag = await pages.viewLoadPage.isBillingIssuesNotDelivFinalTagSpanVisible();
+        expect(notDelivTag, "Not Deliv. Final tag should be visible on View Load").toBe(true);
+`;
+    }
+    if (lowerExpected.includes('price difference') && lowerExpected.includes('tag')) {
+      return `        const priceDiffTag = await pages.viewLoadPage.isBillingIssuesPriceDifferenceTagSpanVisible();
+        expect(priceDiffTag, "Price Difference tag should be visible on View Load").toBe(true);
+`;
+    }
 
     // Skip standalone app labels (BTMS, DME, TNX) and generic descriptor lines ending with colon
     if (/^(btms|dme|tnx)\s*$/i.test(expected.trim())) return '';

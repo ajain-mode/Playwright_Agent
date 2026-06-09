@@ -1052,3 +1052,483 @@ Ensure after Step 103 (Click Bid History):
 - Equipment matches FLATBED shown as F from step 60.
 - Miles matches the Total Miles value from the Carrier tab.
 - Source displays DFB.",,"aiteam, bidding, dfb, includecarrier, waterfallsetup"
+67847,,FD-35847,"Validating the scenario when the LTL load is not  in ""Delivered Final"" status and paperwork received for the load with price difference.",,"1. Login to BTMS in any valid environment. (http://brokerage.stage.suntecktts.com/)
+2. Click on Sign in with Single Sign-On.
+3. Enter the User ID and click Next.
+4. Enter the Password.
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (NY OFFIC).
+9. Click on Search.
+10. Click on Office profile.
+11. Check Invoice Process set as Central. (If set then skip step 12 and 13).
+12. Click on Edit.
+13. Set Invoice Process as Central and click on Save.
+14. Hover and click on ADMIN.
+15. Now user gets navigated to the ADMIN main page and on Switch User field enter value as MATT BROWN.
+16. Once suggestion is shown click on MATT BROWN (NY OFFIC) - 1752.
+17. Hover to Customers and click Search.
+18. Enter the Customer name in the ""Customer"" field (A & Z PHARMACEUTICAL INC).
+19. Click on ""Search"" button.
+20. Click on Customer detail row.
+21. Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*"".
+22. In ""ENTER NEW LOAD"" page, ""Customer"" field is already selected; if not, select A & Z PHARMACEUTICAL INC.
+23. ""Salesperson"" and ""Dispatcher"" fields have preselected values; if not, we need to select them.
+24. Select the location from the ""Shipper"" field (ADAMS WAREHOUSE).
+25. Once the location is selected from the ""Shipper"" field, ""Name"", ""Address"", ""City"", ""State"", ""Zip"", ""Country"" will automatically update the values in the corresponding fields.
+26. Select the ""Earliest Date"" (Future date needs to be selected) (select tomorrow's date).
+27. Select the ""Latest Date"" (Future date needs to be selected) (select tomorrow's date).
+28. Enter the ""Earliest Time"" (Eg. 09:00).
+29. Enter the ""Latest Time"" (Eg. 09:00).
+30. Select the location from the ""Consignee"" field. (ARK LOGISTICS)
+31. Once the location is selected from the ""Consignee"" field, ""Name"", ""Address"", ""City"", ""State"", ""Zip"", ""Country"" will automatically update the values in the corresponding fields.
+32. Select the ""Earliest Date"" (Future date needs to be selected) (select day after tomorrow).
+33. Select the ""Latest Date"" (Future date needs to be selected) (select day after tomorrow).
+34. Enter the ""Earliest Time"" (Eg. 10:00).
+35. Enter the ""Latest Time"" (Eg. 10:00).
+36. In the field Whose Instructions, enter value as TestData.
+37. Enter the Quantity in the ""Qty"" field (Eg. 40).
+38. Select the ""UoM"" field (Eg. Case or Cases).
+39. Enter the description in the ""Description"" field (Eg. Total 40 cases).
+40. Enter the weight in the ""Weight"" field (Eg. 1000).
+41. Select the ""Equipment"" field as ""FLATBED"".
+42. Enter the ""length"" field (Eg. 54).
+43. Select the ""Mileage Engine"" field as ""Current"".
+44. Select the ""Method"" as ""Practical"".
+45. ""Linehaul"" and ""Fuel Surcharge"" default value will be ""Flat Rate"".
+46. Click on ""Create Load"" button.
+47. On the load page, select Rate Type as SPOT if not selected.
+48. Click the Carrier tab on the Edit Load page.
+49. Enter 2000 in the Offer Rate field.
+50. Now click on choose a carrier button and enter value as ZONA TRUCKING LLC and once it is visible fully select it.
+51. Click on Save button [STATUS HAS BEEN SET TO BOOKED alert should get displayed]. Accept the alert.
+52. On View load page once the status is BOOKED. Click Edit Button.
+53. Under Load tab change the Status to DISPATCHED and Click on carrier tab.
+54. Enter flat rate in Carrier eg 1000.
+55. Click On Save.
+56. On Load tab click on View Billing button.
+57. Under load documents section click on upload icon against Payables.
+58. Upload the carrier invoice document.
+59. Select radio button Payables and Select Document Type as carrier Invoice.
+60. Enter invoice number e.g 123456 and Enter Invoice Amount e.g. 1100 and click on attach. Accept the alert [Payable Status has been updated to INVOICE RECEIVED] and close the pop up.
+61. Reload the page and validate the Waiting on toggle under BILLING ISSUES.
+62. Click on view load Button.","Ensure after step 61:
+- Billing Toggle set to ""Agent""
+- Not Deliv Final checkbox is checked.
+- Price Difference checkbox is checked.
+- ""ZONA TRUCKING LLC invoiced $100.00 over total charge"" message should be displayed on screen.
+
+Ensure after step 62:
+- On View Load page Waiting on value is set to Agent.
+- ""Not Deliv. Final"" and ""Price Difference"" tag is available under Billing section.
+- ""ZONA TRUCKING LLC invoiced $100.00 over total charge"" message should be displayed on screen under billing section.",,"aiteam, billingtoggle"
+97807,,FD-39683,Validate when an additional carrier invoice is added for same carrier of a multi carrier load.,,"Test Steps:
+
+1. Login to BTMS in any valid environment. (http://brokerage.stage.suntecktts.com/)
+2. Click on Sign in with Single Sign-On.
+3. Enter the User ID and click Next.
+4. Enter the Password.
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (NY OFFIC).
+9. Click on Search.
+10. Click on Office profile.
+11. Check Invoice Process set as Central. (If set then skip step 12 and 13).
+12. Click on Edit.
+13. Set Invoice Process as Central and click on Save.
+14. Hover and click on ADMIN.
+15. Now user gets navigated to the ADMIN main page and on Switch User field enter value as MATT BROWN.
+16. Once suggestion is shown click on MATT BROWN (NY OFFIC) - 1752.
+17. Hover to Customers and click Search.
+18. Enter the Customer name in the ""Customer"" field (A & Z PHARMACEUTICAL INC).
+19. Click on ""Search"" button.
+20. Click on Customer detail row.
+21. Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*"".
+22. In ""ENTER NEW LOAD"" page, ""Customer"" field is already selected; if not, select A & Z PHARMACEUTICAL INC.
+23. ""Salesperson"" and ""Dispatcher"" fields have preselected values; if not, we need to select them.
+24. Select the location from the ""Shipper"" field (ADAMS WAREHOUSE).
+25. Once the location is selected from the ""Shipper"" field, ""Name"", ""Address"", ""City"", ""State"", ""Zip"", ""Country"" will automatically update the values in the corresponding fields.
+26. Select the ""Earliest Date"" (Future date needs to be selected) (select tomorrow's date).
+27. Select the ""Latest Date"" (Future date needs to be selected) (select tomorrow's date).
+28. Enter the ""Earliest Time"" (Eg. 09:00).
+29. Enter the ""Latest Time"" (Eg. 09:00).
+30. Select the location from the ""Consignee"" field. (ARK LOGISTICS)
+31. Once the location is selected from the ""Consignee"" field, ""Name"", ""Address"", ""City"", ""State"", ""Zip"", ""Country"" will automatically update the values in the corresponding fields.
+32. Select the ""Earliest Date"" (Future date needs to be selected) (select day after tomorrow).
+33. Select the ""Latest Date"" (Future date needs to be selected) (select day after tomorrow).
+34. Enter the ""Earliest Time"" (Eg. 10:00).
+35. Enter the ""Latest Time"" (Eg. 10:00).
+36. In the field Whose Instructions, enter value as TestData.
+37. Enter the Quantity in the ""Qty"" field (Eg. 40).
+38. Select the ""UoM"" field (Eg. Case or Cases).
+39. Enter the description in the ""Description"" field (Eg. Total 40 cases).
+40. Enter the weight in the ""Weight"" field (Eg. 1000).
+41. Select the ""Equipment"" field as ""FLATBED"".
+42. Enter the ""length"" field (Eg. 54).
+43. Select the ""Mileage Engine"" field as ""Current"".
+44. Select the ""Method"" as ""Practical"".
+45. ""Linehaul"" and ""Fuel Surcharge"" default value will be ""Flat Rate"".
+46. Click on ""Create Load"" button.
+47. On the  load page, select Rate Type as SPOT if not selected.Click the ""Carrier tab"" in the ""Edit load"" page.
+48. Enter a valid value for the Offer Rate field on the load as ""1000"".
+49. Enter flat rate in Customer as 500.
+50. Enter flat rate in Carrier as 600.
+51. Enter trailer length 10 if value is not filled.
+52. Enter total miles e.g. 100 if not filled.
+53. Now click on choose a carrier button and enter value as ZONA TRUCKING LLC and once it is fully visible, select it.
+54. Click on Save button [STATUS HAS BEEN SET TO BOOKED alert should get displayed]. Accept the alert.
+55. On Load tab click on View Billing button.
+56. Under load documents section click on upload icon against Payables.
+57. Upload the carrier invoice document.
+58. Select radio button Payables and select Document Type as Carrier Invoice.
+59. Enter invoice number e.g. 1234567 and enter Invoice Amount e.g. 700 and click on Attach. Accept the alert [Payable Status has been updated to INVOICE RECEIVED] and close the pop-up.
+60. Reload the page and validate the Waiting on toggle.
+61. Click on View History under Billing Issue section. Pop-up window will open.
+62. Repeat the steps 56 to 58.
+63. Enter invoice number e.g. 234567 and enter Invoice Amount e.g. 200 and click on Attach. Accept the alert [Payable Status has been updated to INVOICE RECEIVED] if available. Validate the message ""All documents attached successfully"". Close the pop-up. Reload the page and validate the Waiting on toggle.
+64. Click on View History under Billing Issue section. Pop-up window will open.","Expected Result:
+
+After step 60:
+- Billing toggle value should be set to Agent.
+- Validate the message under BILLING ISSUES: ""ZONA TRUCKING LLC invoiced $100.00 over total charge."" (Calculation of value 100 = carrier invoice amount 700 - flat rate carrier value from load page 600)
+
+After step 61:
+- Validate the pop-up will show 1 row with ""ZONA TRUCKING LLC invoiced $100.00 over total charge."" message in history. User as System, time when the invoice gets attached, and Inactive date as empty.
+
+After step 63:
+- Billing toggle value should be set to Agent.
+- Validate the message under BILLING ISSUES: ""ZONA TRUCKING LLC invoiced $300.00 over total charge.""
+
+After step 64:
+- Validate the pop-up will show 2 rows:
+  - 1st row: ""ZONA TRUCKING LLC invoiced $100.00 over total charge."" message in history. User as System, time when the invoice gets attached, and Inactive date as the second invoice attachment creation time.
+  - 2nd row: ""ZONA TRUCKING LLC invoiced $300.00 over total charge."" message in history. User as System, time when the invoice gets attached, and Inactive date as empty.
+(Inactive Date format e.g. 2026-05-14 12:16:25 by SYSTEM)",,"aiteam, billingtoggle"
+116907,,FD-39753,Validate Initial and Current Toggle Date display in BTMS UI.,,"1. Log in to BTMS in any valid environment. (http://brokerage.stage.suntecktts.com/)
+2. Click on Sign in with Single Sign-On.
+3. Enter the User ID and click Next.
+4. Enter the Password.
+5. Click Sign In.
+6. Hover over Loads and click Search.
+7. On the Load Search page, select any status in the Status field (e.g. BOOKED).
+8. Click the Search button.
+9. Click on any load detail row whose Billing Issue and Billing Reason columns are both empty.
+10. On the View Load page, click the View Billing button.
+11. Under Billing, observe the Billing Toggle, Initial Toggle Date, and Current Toggle Date.
+12. Move the Toggle towards Billing. Refresh the page and observe the Initial Toggle Date and Current Toggle Date.
+13. Move the Toggle towards Agent. Refresh the page and observe the Initial Toggle Date and Current Toggle Date.
+14. Repeat Step 12.
+15. Repeat Step 13.","11. After Step 11: The Toggle should be in Neutral position. Initial Toggle Date and Current Toggle Date should both display N/A.
+
+12. After Step 12: The Initial Toggle Date should be updated to the time when the Toggle was first moved (e.g. Initial Toggle Date: 05/20/2026 01:34:40). The Current Toggle Date should also be updated to the time when the Toggle was moved (e.g. Current Toggle Date: 05/20/2026 01:34:41).
+
+13. After Step 13: The Initial Toggle Date should remain the same as in Step 12 (e.g. Initial Toggle Date: 05/20/2026 01:34:40). The Current Toggle Date should be updated to the time when the Toggle was moved in this step (e.g. Current Toggle Date: 05/20/2026 01:40:47).
+
+14. After Step 14: Same validation as Step 13 — the Initial Toggle Date should remain unchanged and the Current Toggle Date should be updated to the time when the Toggle was moved in this step.
+
+15. After Step 15: Same validation as Step 13 — the Initial Toggle Date should remain unchanged and the Current Toggle Date should be updated to the time when the Toggle was moved in this step.",,"aiteam, billingtoggle, loadsearch"
+116909,,FD-39753,Validate Billing Queue columns.,,"1. Log in to BTMS in any valid environment. (http://brokerage.stage.suntecktts.com/)
+2. Click on Sign in with Single Sign-On.
+3. Enter the User ID and click Next.
+4. Enter the Password.
+5. Click Sign In.
+6. Hover over Finance and click Billing Queue.
+7. On the Billing Queue page, select any filter such as Docs Rec'd Date,  click on Presets, and choose Last Week from the options.
+8. Click the Search button.
+9. Verify that the Billing Queue rows are displayed.","9. After Step 9: Validate that the following columns are populated on the page:
+   1. Initial Toggle Date
+   2. Current Toggle Date
+   3. Waiting on Billing Count",,"aiteam, billingtoggle, loadsearch"
+116910,,FD-39753,"Verify Billing Queue filters for Initial and Current Toggle Date
+(Current toggle deprecated and Agent Toggle Date is coming now)",,"1. Log in to BTMS in any valid environment (http://brokerage.stage.suntecktts.com/).
+2. Click on ""Sign in with Single Sign-On"".
+3. Enter the User ID and click Next.
+4. Enter the Password.
+5. Click Sign In.
+6. Hover over Finance and click Billing Queue.
+7. On the Billing Queue page, observe the ""Initial Toggle Date"" and ""Agent Toggle Date"" filters.
+8. Select the ""Initial Toggle Date"" filter, click on Presets, and choose ""Last Week"" from the options. Save the dates that appear in the Initial Toggle Date datepicker.
+9. Click the Search button.
+10. Verify that the Billing Queue rows are displayed.
+11. Repeat Step 6. On the Billing Queue page, select the ""Agent Toggle Date"" filter, click on Presets, and choose ""Last Week"" from the options. Save the dates that appear in the Agent Toggle Date datepicker.
+12. Repeat Steps 9 and 10.","After Step 7: Validate that the ""Initial Toggle Date"" and ""Agent Toggle Date"" filters are available on the Billing Queue page.
+After Step 10: Validate that the records displayed on screen fall within the Initial Toggle Date range saved in Step 8.
+After Step 12: Validate that the records displayed on screen fall within the Agent Toggle Date range saved in Step 11.",,"aiteam, billingtoggle, loadsearch"
+116905,,FD-39753,Validate initial_billing_toggle_date captures first toggle movement.,,"1. Log in to BTMS in any valid environment (http://brokerage.stage.suntecktts.com/).
+2. Click on Sign in with Single Sign-On.
+3. Enter the User ID and click Next.
+4. Enter the Password.
+5. Click Sign In.
+6. Hover over Loads and click Search.
+7. On the Load Search page, select any status in the Status field (e.g. BOOKED).
+8. Click the Search button.
+9. Click on any load detail row.
+10. On the View Load page, extract the Load ID from the View Load page heading and save it as loadId. Click the View Billing button.
+11. Under Billing, observe the Billing Toggle, Initial Toggle Date, and Current Toggle Date (both should be N/A).
+12. Connect to the Stage BTMS database from the test using a MySQL client (mysql2) over the pre-established SSH tunnel. Connection parameters are read from environment variables:
+    - Host: btms.db.stage.modetrans.com
+    - Port: 3306
+    - User: readonly
+    - Password: take it from env variables
+    - Schema: sunteck_fats
+13. Execute the parameterized query against the loadsh table:
+    SELECT id, initial_billing_toggle_date, current_billing_toggle_date
+    FROM sunteck_fats.loadsh
+    WHERE id = :loadId;
+    Close the DB connection.
+14. Return to BTMS. Move the Billing Toggle for the first time. Refresh the View Billing page and capture the new Initial Toggle Date and Current Toggle Date values from the UI — both should now display the current timestamp.
+15. Re-open the DB connection (same parameters as step 12).
+16. Re-execute the parameterized query against the loadsh table:
+    SELECT id, initial_billing_toggle_date, current_billing_toggle_date
+    FROM sunteck_fats.loadsh
+    WHERE id = :loadId;
+    Close the DB connection.","After step 13 (fresh load — before any toggle movement):
+- Both initial_billing_toggle_date and current_billing_toggle_date in the DB should be NULL/empty since the Billing Toggle has never been moved for this load.
+- The UI should also display empty values (N/A) for Initial Toggle Date and Current Toggle Date, consistent with the DB state observed in step 11.
+
+After step 16 (after the first toggle movement):
+- initial_billing_toggle_date in the DB should be populated with the current system date/time, captured exactly at the moment of the first toggle movement.
+- current_billing_toggle_date in the DB should also be populated with the same date/time as initial_billing_toggle_date (since this is the first movement).
+- Both DB values must match the Initial Toggle Date and Current Toggle Date displayed in the UI after refresh (step 14), confirming that initial_billing_toggle_date is successfully captured on the first toggle movement.",,"aiteam, billingtoggle, loadsearch"
+116906,,FD-39753,Verify Current Toggle Date updates correctly.,,"1. Log in to BTMS in any valid environment (http://brokerage.stage.suntecktts.com/).
+2. Click on Sign in with Single Sign-On.
+3. Enter the User ID and click Next.
+4. Enter the Password.
+5. Click Sign In.
+6. Hover over Loads and click Search.
+7. On the Load Search page, select any status in the Status field (e.g. BOOKED).
+8. Click the Search button.
+9. Click on any load detail row.
+10. On the View Load page, extract the Load ID from the View Load page heading and save it as loadId. Click the View Billing button.
+11. Under Billing, observe the Billing Toggle, Initial Toggle Date, and Current Toggle Date.
+12. Connect to the Stage BTMS database from the test using a MySQL client (mysql2) over the pre-established SSH tunnel. Connection parameters are read from environment variables:
+    - Host: btms.db.stage.modetrans.com
+    - Port: 3306
+    - User: readonly
+    - Password: use it from env variables
+    - Schema: sunteck_fats
+13. Execute the parameterized query against the loadsh table:
+    SELECT id, initial_toggle_date, current_toggle_date
+    FROM sunteck_fats.loadsh
+    WHERE id = :loadId;
+    Close the DB connection.
+14. Return to BTMS. Move the Toggle towards Billing. Refresh the View Billing page and capture the Initial Toggle Date and Current Toggle Date displayed in the UI.
+15. Re-open the DB connection (same parameters as step 12).
+16. Re-execute the parameterized query against the loadsh table:
+    SELECT id, initial_toggle_date, current_toggle_date
+    FROM sunteck_fats.loadsh
+    WHERE id = :loadId;
+    Close the DB connection.
+17. Return to BTMS. Move the Toggle towards Agent. Refresh the View Billing page and capture the Initial Toggle Date and Current Toggle Date displayed in the UI.
+18. Re-open the DB connection (same parameters as step 12).
+19. Re-execute the parameterized query against the loadsh table:
+    SELECT id, initial_toggle_date, current_toggle_date
+    FROM sunteck_fats.loadsh
+    WHERE id = :loadId;
+    Close the DB connection.","After step 13:
+The initial_toggle_date and current_toggle_date values returned from the DB query should exactly match the Initial Toggle Date and Current Toggle Date displayed on the Billing section in the UI (step 11).
+
+After step 16:
+- initial_toggle_date in DB should remain unchanged (same as the original value captured in step 13).
+- current_toggle_date in DB should be updated to the current system date/time reflecting the toggle move towards Billing.
+- Both DB values must match the Initial Toggle Date and Current Toggle Date shown in the UI after refresh (step 14).
+
+After step 19:
+- initial_toggle_date in DB should remain unchanged (same as the original value captured in step 13).
+- current_toggle_date in DB should be updated to the current system date/time reflecting the toggle move towards Agent.
+- Both DB values must match the Initial Toggle Date and Current Toggle Date shown in the UI after refresh (step 17).",,"aiteam, billingtoggle, loadsearch"
+82749,,FD-38034,Verify Billing Toggle switches to Agent when Missing Paperwork is marked.,,"Test Steps:
+
+1. Login to BTMS in any valid environment (http://brokerage.stage.suntecktts.com/).
+2. Click on ""Sign in with Single Sign-On"".
+3. Enter the User ID and click ""Next"".
+4. Enter the Password.
+5. Click ""Sign In"".
+6. Switch to SVC_TESTAUTOMATION and make sure you are on the SVC_TESTAUTOMATION user.
+7. Hover over ADMIN.
+8. Click on ""OFFICE SEARCH"".
+9. Enter the office code (CORP).
+10. Click on ""Search"".
+11. Click on ""Office Profile"".
+12. Verify that ""Invoice Process"" is set as ""Central"". (If already set, skip steps 13 and 14.)
+13. Click on ""Edit"".
+14. Set ""Invoice Process"" as ""Central"" and click on ""Save"".
+15. Hover over ""Customers"" and click ""Search"".
+16. Enter the customer name in the ""Customer"" field (BALLOHKNEE COLDCUTS).
+17. Click on the ""Search"" button.
+18. Click on the customer detail row.
+19. Scroll down on the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*"".
+20. On the ""ENTER NEW LOAD"" page, verify the ""Customer"" field is already selected; if not, select BALLOHKNEE COLDCUTS.
+21. Verify that ""Salesperson"" and ""Dispatcher"" fields have preselected values; if not, select them.
+22. Select the location from the ""Shipper"" field (ALASKA).
+23. Once the location is selected, verify that ""Name"", ""Address"", ""City"", ""State"", ""Zip"", and ""Country"" are automatically populated.
+24. Select the ""Earliest Date"" (select tomorrow's date).
+25. Select the ""Latest Date"" (select tomorrow's date).
+26. Enter the ""Earliest Time"" (e.g., 09:00).
+27. Enter the ""Latest Time"" (e.g., 09:00).
+28. Select the location from the ""Consignee"" field (AMPORTS JACKSONVILLE).
+29. Once the location is selected, verify that ""Name"", ""Address"", ""City"", ""State"", ""Zip"", and ""Country"" are automatically populated.
+30. Select the ""Earliest Date"" (select the day after tomorrow).
+31. Select the ""Latest Date"" (select the day after tomorrow).
+32. Enter the ""Earliest Time"" (e.g., 10:00).
+33. Enter the ""Latest Time"" (e.g., 10:00).
+34. In the field Whose Instructions, enter value as TestData.
+35. Enter the quantity in the ""Qty"" field (e.g., 40).
+36. Select the ""UoM"" field (e.g., Case or Cases).
+37. Enter the description in the ""Description"" field (e.g., ""Total 40 cases"").
+38. Enter the weight in the ""Weight"" field (e.g., 1000).
+39. Select the ""Equipment"" field as ""FLATBED"".
+40. Enter the ""Length"" field (e.g., 54).
+41. Select the ""Mileage Engine"" field as ""Current"".
+42. Select the ""Method"" as ""Practical"".
+43. Verify that ""Linehaul"" and ""Fuel Surcharge"" default to ""Flat Rate"".
+44. Click on the ""Create Load"" button.
+45. Click the ""Carrier"" tab on the ""Edit Load"" page.
+46. Enter a valid value in the ""Offer Rate"" field as ""1000"".
+47. Enter trailer length as 10 if the value is not already filled.
+48. Enter total miles (e.g., 100) if not already filled.
+49. Click on the ""Choose a Carrier"" button, enter ""ZONA TRUCKING LLC"", and once it is fully visible, select it.
+50. Click on the ""Save"" button. The alert ""STATUS HAS BEEN SET TO BOOKED"" should be displayed; accept the alert.
+51. On the ""Load"" tab.
+52. Under the ""Load Documents"" section, click on the upload icon against ""Payables"".
+53. Upload the carrier invoice document.
+54. Select the ""Payables"" radio button and select ""Document Type"" as ""Carrier Invoice"".
+55. Enter the invoice number (e.g., 1234567) and the Invoice Amount (e.g., 700), then click ""Attach"". Validate the message ""All Documents attached successfully"" and close the pop-up.
+56. Click on the ""Save"" button. On the load page, click on the ""View Billing"" button.
+57. Move the billing toggle towards ""Billing"".
+58. Under ""Missing Paperwork"", check the ""Miscellaneous"" checkbox.
+59. Repeat step 57.
+60. Under ""Missing Paperwork"", check the ""Lumper"" checkbox.","Expected Results:
+
+56. After step 56: Validate that the Billing toggle is automatically set to ""Agent"". Under ""Billing Issues"", the message should be displayed as: ""ZONA TRUCKING LLC invoiced $700.00 over total charge.""
+
+57. After step 57: Validate that the Billing toggle moves to ""Billing"".
+
+58. After step 58: Validate that the Billing toggle is automatically set back to ""Agent"".
+
+59. After step 59: Perform the same validation as step 57 (Billing toggle should move to ""Billing"").
+
+60. After step 60: Perform the same validation as step 58 (Billing toggle should be automatically set back to ""Agent"").",,"aiteam, billingtoggle"
+67876,,FD-35865,"Validating the scenario when the user is an agent user, and the billing toggle is set to Agent and load is not in an Invoiced or Posted state",,"Test Steps:
+
+1. Log in to BTMS in a valid environment: http://brokerage.stage.suntecktts.com/
+2. Click Sign in with Single Sign-On.
+3. Enter the User ID and click Next.
+4. Enter the Password.
+5. Click Sign In.
+6. Hover over the ADMIN menu.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (NY OFFIC) and click Search.
+9. Click on the Office Profile.
+10. Check Invoice Process is set as Central. (If already set, skip steps 11 and 12).
+11. Click on Edit.
+12. Set Invoice Process as Central and click Save.
+13. Hover over the ADMIN menu.
+14. Click on AGENT SEARCH.
+15. Enter ""MATT BROWN"" in the Agent field and click Search.
+16. Click on the Agent Profile.
+17. Confirm the Agent Info page is displayed.
+18. On Agent Info page verify Auth Level is set to ""MANAGER"".
+19. User should contain the user roles ""BTMS_USER, PRINCIPAL"" and should NOT contain ""ADMIN, SYSTEM_ADMIN"".
+20. If steps 18 and 19 are set correctly, skip steps 21 to 23.
+21. If not, click on Edit and select Auth Level field as MANAGER.
+22. From User roles select BTMS_USER, PRINCIPAL; if ADMIN or SYSTEM_ADMIN are available, remove them.
+23. Click on Save.
+24. Hover over ADMIN and click it.
+25. On the ADMIN main page, enter ""MATT BROWN"" in the Switch User field.
+26. Once the suggestion is shown, click on MATT BROWN (NY OFFIC) -1752.
+27. After the switch, hover over the Loads tab and click on Search.
+28. Under the Status enter or select DELIVERED FINAL and click on Search button.
+29. Click any row of delivered final load. On View Load page click on View Billing button.
+30. Under Billing Issue section click on Billing toggle to move towards Agent.
+31. Refresh the page and try to move the toggle towards Billing.
+32. Refresh the page and try to set the toggle to Neutral.","Expected Result:
+
+After step 30:
+Validate with hard assertion Billing toggle should be set to ""Agent"".
+
+After step 31:
+Validate with hard assertion Billing toggle should be set to ""Billing"".
+
+After step 32:
+Validate with hard assertion Billing toggle should NOT be set to ""Neutral"". Its value should remain either ""Billing"" or ""Agent"".",,"aiteam, billingtoggle"
+82786,,FD-36330,Verify payable toggle when Load Receives Short Pay flagged Invoice Payload from SLC for office billing.,,"1.  Login to the Tritan application using the URL ""https://qa-tritan.mercurygate.net/"".
+2.  Enter a valid Login ID and Password.
+3.  Click the ""Sign In"" button.
+4.  After login, click the ""Company"" menu.
+5.  Click the ""Expand"" button.
+6.  Select the customer ""Goodyear Tire and Rubber Sanders"".
+7.  After switching to the customer, hover over ""View"" and click ""Shipment Template"".
+8.  Select the LTL load template ""TEST SHORT PAY LTL ESTES"" and click the green ""+"" icon.
+9.  Once the template opens, click the ""Save"" button.
+10. The shipment/load will be created. Save the Shipment ID from the heading for further use.
+11. Click the Load ID under the ""Loads"" table.
+12. On the Load page, under ""Carrier Invoices"", click the green ""+"" icon.
+13. A carrier invoice will be added. Save the Invoice Number and Bill Total of the added invoice for further use.
+14. On the same page, click the ""Plan"" tab.
+15. Under ""Pickup 1"", click the green ""+"" icon of the Status (currently in Pending state).
+16. Enter the PRO Number (e.g., 33298572).
+17. From the date picker, select today's date and select the time from the list next to the date picker. Click ""Save"".
+18. Accept the alert ""Status message added"".
+19. Under ""Drop 1"", click the green ""+"" icon of the Status (currently in Pending state).
+20. Repeat steps 17 and 18.
+21. Click the Shipment Number under the ""Shipment"" column of the Pickup 1 table.
+22. On the Shipment Details page, validate that the Status is ""Delivered"".
+23. Hover over the ""Shipment"" tab and, under the Shipment menu, click ""Activities"". Under ""Activities"", click ""List Activities"".
+24. Select the checkbox where Type is ""BTMS Extract"".
+25. At the bottom of the page, select ""Set Complete"" from the dropdown and click the ""Submit"" button.
+26. Login to the BTMS application.
+27. On the Home page, click the search icon next to the ""Admin"" tab. Enter the Shipment ID from step 10 in the search box and click the search icon.
+28. Continue polling the search for 5-6 minutes until the record appears in BTMS.
+29. Once available in BTMS, the ""View Load"" page will open.
+30. On the View Load page, click the ""View Billing"" button.
+31. Under ""Carrier Invoices"", click the ""Add New"" button.
+32. The ""Add Carrier Invoice"" popup will open. Enter the Invoice Number from step 13 and an amount greater than the Bill Total saved in step 13.
+33. Click the ""Save Invoice"" button. Once the invoice is added, refresh the page.
+34. Navigate back to the Tritan application.
+35. If you are on the BTMS Activities page, hover over the ""Shipment"" menu and click ""Detail"".
+36. On the Shipment Details page, click the Load ID under the ""Loads"" table.
+37. On the Load Details page, click the Bill Total amount of the Carrier Invoice.
+38. A popup window will open. Click ""Edit Charges"".
+39. From the ""Queue"" dropdown, select ""40 Valid/Approved"".
+40. Under the ""Settlement Reason"" dropdown, select ""Short Pay - Accessorial"" and in the Comment section add the comment ""not approved short pay load"".
+41. For ""Fuel Surcharges"", enter the amount from step 33's expected result message (e.g., 125) and click ""Save"".
+42. Click the ""Plan"" tab and repeat step 21.
+43. On the Shipment Details page, click the printer icon of ""Customer Invoices"". A popup will open — select any radio button (e.g., the first one).
+44. A file save window will appear; click ""Cancel"". Also click ""Cancel"" on the popup.
+45. Click the Bill Total amount of the Customer Invoice. A popup window will open; click ""Edit Charges"".
+46. From the ""Queue"" dropdown, select ""40 Extract"" and click ""Save"".
+47. Repeat steps 23 to 25.
+48. Navigate to BTMS and click the ""View Load"" button.
+49. On the View Load page, check that the Load Status is ""INVOICED"". If not, click the ""Edit"" button, select the status ""Delivered Final"", Accept the alert if available and click ""Save"". Wait until the status changes to ""INVOICED"".
+50. Click the ""View Billing"" button and observe the ""Payables"" toggle.","After Step 25:
+  - BTMS Extract status changes to ""COMPLETE"".
+
+After Step 29: Validate the following fields:
+  - Load Status should be ""Delivered"".
+  - Method should be ""LTL"".
+  - Created By field should be ""Intelys API Portal"".
+  - Source System should be ""TRITAN"".
+  - Source System ID should match the Shipment ID from step 10.
+
+After Step 33:
+  - The Payables toggle should move to ""Agent"".
+  - A message should appear on screen: ""ESTES EXPRESS LINES invoiced $125.00 over the total charge"".
+  Note: The $125 amount is dynamic. Calculate it as:
+        (Invoice amount added from BTMS View Billing page, e.g., 557.50)
+        - (Carrier invoice Bill Total from Tritan, e.g., 432.50)
+        = 125.00
+
+After Step 46:
+  - Customer Invoice Queue should show the value ""50 Complete"".
+  - Customer Invoice Extract Date should appear under the column along with the time.
+
+After Step 47:
+  - BTMS Extract and Invoice Extract statuses should both be ""Complete"".
+
+After Step 50:
+  - Payables toggle must be set to ""Payables"".
+  - Payable Reason should be ""Short Pay - Accessorial"".
+  - Under ""Message"", ""Short Pay - Accessorial; not approved Invoice"" should be displayed.",,"aiteam,payabletoggle"

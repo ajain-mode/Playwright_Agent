@@ -349,6 +349,46 @@ export class TestCaseParser {
   }
 
   /**
+   * Parse the CSV Expected column — keeps bullet lists under "Ensure after step N" together.
+   */
+  private parseExpectedColumn(expectedText: string): string[] {
+    const normalized = expectedText.replace(
+      /(\d+)\.\s*(Ensure\s+after\s+step\s+\1\s*:?)/gi,
+      '$2',
+    );
+    const lines = normalized.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    const results: string[] = [];
+    let buffer: string[] = [];
+
+    const flush = () => {
+      if (buffer.length > 0) {
+        results.push(buffer.join('\n'));
+        buffer = [];
+      }
+    };
+
+    for (const line of lines) {
+      if (/^(?:\d+\.\s*)?Ensure\s+after\s+step\s+\d+/i.test(line)) {
+        flush();
+        buffer = [line.replace(/^\d+\.\s*/, '')];
+      } else if (/^[-•*]\s+/.test(line) && buffer.length > 0) {
+        buffer.push(line);
+      } else if (line.includes(';')) {
+        flush();
+        line.split(';').forEach((part) => {
+          const t = part.trim();
+          if (t) results.push(t);
+        });
+      } else {
+        flush();
+        results.push(line);
+      }
+    }
+    flush();
+    return results;
+  }
+
+  /**
    * Extract expected results from text
    */
   private extractExpectedResults(text: string): string[] {
@@ -796,9 +836,9 @@ export class TestCaseParser {
       ? this.extractSteps(steps)
       : this.extractSteps(title + ' ' + description);
 
-    // Parse expected results
+    // Parse expected results (preserve "Ensure after step N" bullet groups)
     const parsedExpectedResults: string[] = expectedResults
-      ? expectedResults.split(/[;|\n]/).map(s => s.trim()).filter(s => s)
+      ? this.parseExpectedColumn(expectedResults)
       : this.extractExpectedResults(description);
 
     // Parse tags
@@ -1190,10 +1230,23 @@ export class TestCaseParser {
           if (tlMatch) values.formFields['trailerLength'] = tlMatch[1].trim();
         }
 
-        // Invoice Amount: "enter Invoice Amount (e.g.900)" or "Invoice Amount as 600"
+        if (!values.formFields.customerName) {
+          const custMatch = trimmed.match(
+            /Enter\s+the\s+["']([^"']+)["']\s+in\s+the\s+customer/i,
+          );
+          if (custMatch) values.formFields.customerName = custMatch[1].trim();
+        }
+
+        if (!values.formFields.shipmentCommodityQty) {
+          const qtyPlain = trimmed.match(/Enter\s+Qty\s+as\s+(\d+)/i);
+          if (qtyPlain) values.formFields.shipmentCommodityQty = qtyPlain[1].trim();
+        }
+
+        // Invoice Amount: "Invoice Amount (e.g., 700)" or "Invoice Amount (e.g.900)" or "Invoice Amount as 600"
         if (!values.formFields['carrierInvoiceAmount1']) {
-          const invAmtMatch = trimmed.match(/Invoice\s+Amount\s*\(\s*(?:e\.?g\.?\s*)?(\d+)\s*\)/i)
-            || trimmed.match(/Invoice\s+Amount\s+(?:as\s+)?(\d+)/i);
+          const invAmtMatch = trimmed.match(
+            /Invoice\s+Amount\s*\(\s*(?:e\.?g\.?,?\s*)?(\d+(?:\.\d+)?)\s*\)/i,
+          ) || trimmed.match(/Invoice\s+Amount\s+(?:as\s+)?(\d+(?:\.\d+)?)/i);
           if (invAmtMatch) values.formFields['carrierInvoiceAmount1'] = invAmtMatch[1].trim();
         }
 
@@ -1660,6 +1713,13 @@ export class TestCaseParser {
     }
     if (!values.formFields['linehaulRate'] && !values.formFields['lhRate'] && /(?:linehaul|lh)\s+rate\s*(?:as\s+)?\d+/i.test(testStepsText)) {
       missing.push('linehaulRate');
+    }
+
+    if (!values.formFields.customerName && /enter\s+the\s+["'][^"']+["']\s+in\s+the\s+customer/i.test(testStepsText)) {
+      missing.push('customerName');
+    }
+    if (!values.formFields.shipmentCommodityQty && /enter\s+qty\s+as\s+(\d+)/i.test(testStepsText)) {
+      missing.push('shipmentCommodityQty');
     }
 
     return missing;

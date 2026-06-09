@@ -68,6 +68,15 @@ export const ALERT_PATTERNS = {
 
   YOUR_BID_HAS_BEEN_PLACED: "Your bid has been placed!",
 
+  ZONA_TRUCKING_LLC_INVOICED_100_OVER_TOTAL_CHARGE:
+    "ZONA TRUCKING LLC invoiced $100.00 over total charge.",
+
+  ZONA_TRUCKING_LLC_INVOICED_300_OVER_TOTAL_CHARGE:
+    "ZONA TRUCKING LLC invoiced $300.00 over total charge.",
+
+  ZONA_TRUCKING_LLC_INVOICED_700_OVER_TOTAL_CHARGE:
+    "ZONA TRUCKING LLC invoiced $700.00 over total charge.",
+
 };
 
 

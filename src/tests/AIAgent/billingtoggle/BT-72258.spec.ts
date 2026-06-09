@@ -36,8 +36,11 @@ test.describe.serial(
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
-        await test.step("Step 1: Login to BTMS and navigate to Office Search", async () => {
+        await test.step("Step 1: Login to BTMS, switch to billing toggle user, navigate to Office Search", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
+          await commonReusables.waitForAllLoadStates(sharedPage);
+          await pages.homePage.clickSwitchAccountButton();
+          await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
           await pages.basePage.navigateToBaseUrl();
           await pages.basePage.hoverOverHeaderByText(HEADERS.ADMIN);
           await pages.basePage.clickSubHeaderByText(ADMIN_SUB_MENU.OFFICE_SEARCH);

@@ -1,5 +1,6 @@
-import { Locator, Page } from "@playwright/test";
+import { expect, Locator, Page } from "@playwright/test";
 import commonReusables from "@utils/commonReusables";
+import { GlobalConstants } from "@utils/globalConstants";
 
 /**
  * Author name: Deepak Bohra
@@ -525,6 +526,20 @@ class TNXLandingPage {
   }
 
   /**
+   * Dismisses TNX overlays that block load search after returning from BTMS (onboarding Skip,
+   * Active Jobs Skip, No Thanks promo, temporary delay banner). Safe to call when no overlay is shown.
+   * @author AI Agent
+   * @created 2026-05-29
+   * @returns Promise<void>
+   */
+  async dismissBlockingOverlays(): Promise<void> {
+    await this.handleActiveJobsSkipButton();
+    await this.handleOptionalSkipButton();
+    await this.handleOptionalNoThanksButton();
+    await this.handleTemporaryDelayPopUp();
+  }
+
+  /**
    * @description Handle optional Skip button in onboarding process - click if present, ignore if not
    * @author Deepak Bohra
    * @created 2025-08-29
@@ -634,6 +649,59 @@ class TNXLandingPage {
       console.error(`❌ Failed to enter bid amount '${bidAmount}': ${error}`);
       throw error;
     }
+  }
+
+  /**
+   * @description Enter bid amount in TNX bid panel and wait until Bid Now is enabled.
+   * React-controlled `bidAmount` input requires focus + fill + keyboard blur before Bid Now appears.
+   * Locator: input[@name='bidAmount'] (TNX tender bid panel).
+   * @author AI Agent
+   * @created 2026-05-25
+   * @param bidAmount - Numeric bid amount (e.g. from testData.bidAmount)
+   */
+  async enterBidAmountAndWaitForBidNow(bidAmount: string): Promise<void> {
+    const parsed = parseFloat(bidAmount.replace(/[^0-9.]/g, ""));
+    if (Number.isNaN(parsed) || parsed <= 0) {
+      throw new Error(`enterBidAmountAndWaitForBidNow: invalid bid amount '${bidAmount}'`);
+    }
+    const amountToEnter = String(Math.trunc(parsed));
+
+    const input = this.bidAmountInput_LOC;
+    await input.waitFor({ state: "visible", timeout: WAIT.MID });
+    await expect(input).toBeEditable({ timeout: WAIT.MID });
+    await input.click();
+    await input.fill(amountToEnter);
+    await input.press("Space");
+    await input.press("Tab");
+
+    const normalizeAmount = (value: string): number =>
+      Math.trunc(parseFloat(value.replace(/[^0-9.]/g, "")) || 0);
+
+    await expect
+      .poll(async () => normalizeAmount(await input.inputValue()), {
+        message: `TNX bid amount input should hold '${amountToEnter}'`,
+        timeout: WAIT.MID,
+      })
+      .toBe(normalizeAmount(amountToEnter));
+
+    const bidNowLabel = GlobalConstants.TNX.BID_NOW_BUTTON;
+    const bidNowButton = this.page.getByRole("button", { name: bidNowLabel });
+    await expect(bidNowButton).toBeVisible({ timeout: WAIT.MID });
+    await expect(bidNowButton).toBeEnabled({ timeout: WAIT.MID });
+    console.log(`✅ Bid amount '${amountToEnter}' entered; ${bidNowLabel} is enabled`);
+  }
+
+  /**
+   * @description Click Bid Now after enterBidAmountAndWaitForBidNow (button must be enabled).
+   * @author AI Agent
+   * @created 2026-05-25
+   */
+  async clickBidNowWhenEnabled(): Promise<void> {
+    const bidNowLabel = GlobalConstants.TNX.BID_NOW_BUTTON;
+    const bidNowButton = this.page.getByRole("button", { name: bidNowLabel });
+    await expect(bidNowButton).toBeEnabled({ timeout: WAIT.MID });
+    await bidNowButton.click();
+    console.log(`✅ Clicked ${bidNowLabel}`);
   }
 
   /**

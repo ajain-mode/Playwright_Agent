@@ -54,4 +54,24 @@ export default class ShipmentActivities {
         await commonReusables.waitForPageStable(this.page);
         await this.page.waitForTimeout(WAIT.DEFAULT * 2); // Additional wait to ensure action is processed
     }
+
+    /**
+     * Verifies an activities row shows COMPLETE for the given activity Type.
+     * @author AI Agent
+     * @created 2026-06-01
+     * @param activityType - Activity type label (e.g. BTMS Extract, Invoice Extract)
+     */
+    async expectActivityStatusComplete(activityType: string): Promise<void> {
+        const statusCell = this.page
+            .locator('iframe[name="AppBody"]')
+            .contentFrame()
+            .locator('#Detail')
+            .contentFrame()
+            .locator(
+                `(//tr[td[@title='Type' and normalize-space()='${activityType}']])[1]//td[@title='Status']`,
+            );
+        await statusCell.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        const status = ((await statusCell.textContent()) || '').trim().toUpperCase();
+        expect(status, `Expected ${activityType} status COMPLETE`).toContain('COMPLETE');
+    }
 }

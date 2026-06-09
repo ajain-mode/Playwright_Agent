@@ -35,7 +35,8 @@ export class DFBLoadFormPage {
   private readonly dataTableRows_LOC: Locator;
   private readonly includeCarriersInput_LOC: Locator;
   private readonly carrierHighlighted_LOC: Locator;
-  private readonly includeCarriersTypeaheadOption_LOC: Locator;
+  /** All visible whitelist select2 AJAX rows (`#form_carriers_whitelist`). */
+  private readonly includeCarriersTypeaheadResult_LOC: Locator;
   private readonly optionSelectedDropdown_LOC: string;
   private readonly carrierErrorMessage_LOC: Locator;  
   private readonly carrierAutoAcceptCheckBox_LOC: Locator;
@@ -85,8 +86,9 @@ export class DFBLoadFormPage {
     this.carrierHighlighted_LOC = page.locator(
       "//*[@class='select2-results__option select2-results__option--highlighted']"
     );
-    this.includeCarriersTypeaheadOption_LOC = page.locator(
-      "li.select2-results__option:not(.select2-results__option--disabled)"
+    // Whitelist-only typeahead rows (select2 id prefix from #form_carriers_whitelist).
+    this.includeCarriersTypeaheadResult_LOC = page.locator(
+      'li[id^="select2-form_carriers_whitelist-result"]'
     );
     this.optionSelectedDropdown_LOC = "option[selected]";
     this.carrierErrorMessage_LOC = page.locator("#carr_prexisting_errors");
@@ -174,51 +176,84 @@ export class DFBLoadFormPage {
   }
 
   /**
-   * Fills Include Carriers by searching each term and selecting the first typeahead result
-   * until `targetCount` is reached (e.g. search INC, then LLC for any remainder — DFB-97788 step 60).
+   * Fills Include Carriers: exhaust each search term (INC, then LLC) by selecting every new carrier
+   * from the typeahead list. Does not click `.first()` on repeat searches — selected rows stay in
+   * the dropdown and toggle off when clicked (DFB-97788 step 60).
    *
    * @author AI Agent
    * @created 2026-05-15
-   * @see monotrans `LoadBoardFormType.php` — `carriers_whitelist` / `#form_carriers_whitelist`
+   * @see `load_carrier_tnx_include_exclude.js` — whitelist select2 on `#form_carriers_whitelist`
    */
   async selectIncludeCarriersBySearchTerms(
     searchTerms: readonly string[],
     targetCount: number
   ): Promise<void> {
-    const maxAttemptsPerTerm = targetCount + 5;
+    const maxPassesPerTerm = targetCount + 5;
 
     for (const term of searchTerms) {
-      let attempts = 0;
+      if ((await this.getIncludeCarriersSelectedOptionCount()) >= targetCount) {
+        return;
+      }
+
+      let passes = 0;
+      let addedOnLastPass = true;
+
       while (
         (await this.getIncludeCarriersSelectedOptionCount()) < targetCount &&
-        attempts < maxAttemptsPerTerm
+        passes < maxPassesPerTerm &&
+        addedOnLastPass
       ) {
-        attempts += 1;
-        const before = await this.getIncludeCarriersSelectedOptionCount();
+        passes += 1;
+        addedOnLastPass = false;
+
         await this.includeCarriersInput_LOC.click();
         await this.includeCarriersInput_LOC.fill(term);
         await this.page.waitForLoadState("domcontentloaded");
 
-        const hasResult = await this.includeCarriersTypeaheadOption_LOC
+        const resultsVisible = await this.includeCarriersTypeaheadResult_LOC
           .first()
           .waitFor({ state: "visible", timeout: WAIT.DEFAULT })
           .then(() => true)
           .catch(() => false);
-        if (!hasResult || (await this.includeCarriersTypeaheadOption_LOC.count()) === 0) {
+
+        if (!resultsVisible) {
           console.log(`No Include Carriers typeahead results for search "${term}"`);
           break;
         }
 
-        await this.includeCarriersTypeaheadOption_LOC.first().click();
-        await this.page.waitForTimeout(WAIT.DEFAULT / 4);
+        const selectedIds = new Set(await this.getIncludeCarriersSelectedCarrierIds());
+        const candidates = await this.getIncludeCarriersTypeaheadCandidates();
 
-        const after = await this.getIncludeCarriersSelectedOptionCount();
-        if (after <= before) {
-          console.log(
-            `Include Carriers count unchanged after selecting first result for "${term}" (${before} → ${after})`
-          );
-          break;
+        for (const candidate of candidates) {
+          if ((await this.getIncludeCarriersSelectedOptionCount()) >= targetCount) {
+            break;
+          }
+          if (candidate.isDisabled) {
+            continue;
+          }
+          if (candidate.ariaSelected || selectedIds.has(candidate.carrierId)) {
+            continue;
+          }
+
+          const countBefore = await this.getIncludeCarriersSelectedOptionCount();
+          await this.clickIncludeCarriersWhitelistTypeaheadResult(candidate.resultId);
+          await this.page.waitForTimeout(WAIT.DEFAULT / 4);
+
+          const countAfter = await this.getIncludeCarriersSelectedOptionCount();
+          if (countAfter > countBefore) {
+            addedOnLastPass = true;
+            selectedIds.add(candidate.carrierId);
+            console.log(
+              `Include Carriers +1 via "${term}": ${candidate.text} (${countAfter}/${targetCount})`
+            );
+          } else if (countAfter < countBefore) {
+            console.log(
+              `Include Carriers skipped toggle-off row for "${term}": ${candidate.text}`
+            );
+          }
         }
+
+        await this.page.keyboard.press("Escape").catch(() => undefined);
       }
 
       if ((await this.getIncludeCarriersSelectedOptionCount()) >= targetCount) {
@@ -232,6 +267,76 @@ export class DFBLoadFormPage {
         `Expected ${targetCount} include carriers after searches [${searchTerms.join(", ")}] but selected ${final}.`
       );
     }
+  }
+
+  /**
+   * BTMS carrier ids on `#form_carriers_whitelist` (option values).
+   *
+   * @author AI Agent
+   * @created 2026-05-29
+   */
+  async getIncludeCarriersSelectedCarrierIds(): Promise<string[]> {
+    await this.includeCarriersValue_LOC.waitFor({ state: "attached" });
+    return await this.includeCarriersValue_LOC.evaluate((el) => {
+      const tag = el.tagName.toLowerCase();
+      if (tag === "select") {
+        return Array.from((el as HTMLSelectElement).selectedOptions)
+          .map((o) => o.value)
+          .filter(Boolean);
+      }
+      const raw = el.getAttribute("value")?.trim() ?? "";
+      if (!raw) {
+        return [];
+      }
+      return raw.split(",").map((s) => s.trim()).filter(Boolean);
+    });
+  }
+
+  /**
+   * Visible whitelist typeahead rows for the current search (open dropdown).
+   *
+   * @author AI Agent
+   * @created 2026-05-29
+   */
+  private async getIncludeCarriersTypeaheadCandidates(): Promise<
+    {
+      carrierId: string;
+      resultId: string;
+      text: string;
+      ariaSelected: boolean;
+      isDisabled: boolean;
+    }[]
+  > {
+    return await this.page.evaluate(() => {
+      const items = document.querySelectorAll<HTMLLIElement>(
+        'li[id^="select2-form_carriers_whitelist-result"]'
+      );
+      return Array.from(items).map((li) => ({
+        resultId: li.id,
+        carrierId: li.id.split("-").pop() ?? "",
+        text: (li.textContent ?? "").trim(),
+        ariaSelected: li.getAttribute("aria-selected") === "true",
+        isDisabled: li.classList.contains("select2-results__option--disabled"),
+      }));
+    });
+  }
+
+  /**
+   * @author AI Agent
+   * @created 2026-05-29
+   */
+  private includeCarriersWhitelistTypeaheadResult_LOC(resultId: string): Locator {
+    return this.page.locator(`#${resultId}`);
+  }
+
+  /**
+   * @author AI Agent
+   * @created 2026-05-29
+   */
+  private async clickIncludeCarriersWhitelistTypeaheadResult(
+    resultId: string
+  ): Promise<void> {
+    await this.includeCarriersWhitelistTypeaheadResult_LOC(resultId).click();
   }
 
   /**

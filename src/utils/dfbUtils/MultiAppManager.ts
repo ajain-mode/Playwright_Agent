@@ -118,6 +118,19 @@ export class MultiAppManager {
     return this.tnxPageManager!;
   }
 
+  /**
+   * Switches to TNX and dismisses overlays (Skip / No Thanks / delay) before load search or bidding.
+   * Use after switchToBTMS when the TNX tab may still show a blocking popup over the shell.
+   * @author AI Agent
+   * @created 2026-05-29
+   * @returns Promise<PageManager> - TNX PageManager instance
+   */
+  async switchToTNXForLoadSearch(): Promise<PageManager> {
+    const tnxPages = await this.switchToTNX();
+    await tnxPages.tnxLandingPage.dismissBlockingOverlays();
+    return tnxPages;
+  }
+
  
 
   /**

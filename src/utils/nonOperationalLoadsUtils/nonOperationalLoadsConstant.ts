@@ -5,6 +5,8 @@ export class NonOperationalLoadsConstant {
 
     static readonly SELECT_QUEUE_ACTION = {
         FORTY_EXTRACT: "40 Extract",
+        FORTY_VALID_APPROVED: "40 Valid/Approved",
+        FIFTY_COMPLETE: "50 Complete",
     } as const;
 
     static readonly INVOICE_OPTIONS = {
@@ -27,7 +29,9 @@ export class NonOperationalLoadsConstant {
     } as const;
 
     static readonly SETTLEMENT_REASONS = {
-        ACCESSORIAL_CHARGE_ADDED: "Accessorial Charge Added",
+        SHORT_PAY_ACCESSORIAL: "Short Pay - Accessorial",
+    SHORT_PAY_ACCESSORIAL_COMMENT: "not approved short pay load",
+    SHORT_PAY_INVOICE_MESSAGE: "Short Pay - Accessorial; not approved Invoice",
     } as const;
 
     static readonly APPROVAL_FOR = {

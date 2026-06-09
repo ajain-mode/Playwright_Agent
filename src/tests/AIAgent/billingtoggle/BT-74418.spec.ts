@@ -56,8 +56,11 @@ test.describe.serial(
       // Precondition: Payable toggle = Agent
       // Precondition: Pending carrier invoice with price difference
 
-      await test.step("Step 1: Login to BTMS application.", async () => {
+      await test.step("Step 1: Login to BTMS and switch to billing toggle user", async () => {
         await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
+        await commonReusables.waitForAllLoadStates(sharedPage);
+        await pages.homePage.clickSwitchAccountButton();
+        await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
         pages.logger.info("BTMS Login Successfully");
       });
 

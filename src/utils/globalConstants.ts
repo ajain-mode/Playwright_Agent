@@ -16,6 +16,8 @@ export class GlobalConstants {
     SPEC_TIMEOUT: 600000,
     SPEC_TIMEOUT_LARGE: 900000,
     XXLARGE: 120000,
+    /** Poll `validatePostStatus(POSTED)` after waterfall save (e.g. DFB-89214: 3 carriers × 00:01 + post-to-all). */
+    WATERFALL_POST_STATUS: 300000,
   } as const;
 
   /**
@@ -68,6 +70,38 @@ export class GlobalConstants {
     OFFICE_SEARCH: "Office Search",
     COMMISSION_AUDIT_QUEUE: "Commission Audit Queue",
     BILLING_ADJUSTMENTS_QUEUE: "Billing Adjustments Queue",
+    BILLING_QUEUE: "Billing Queue",
+  } as const;
+
+  /** Billing Queue report column headers — billing.php / BillingQueueSearchReportColumnDefinitions.php */
+  static readonly BILLING_QUEUE_COLUMNS = {
+    INITIAL_TOGGLE_DATE: "INITIAL TOGGLE DATE",
+    AGENT_TOGGLE_DATE: "AGENT TOGGLE DATE",
+    WAITING_ON_BILLING_COUNT: "WAITING ON BILLING COUNT",
+  } as const;
+
+  /** Load Search (LOADSEARCH) report column headers — rptdefs.inc.php / report_sizzle.phtml */
+  static readonly LOAD_SEARCH_COLUMNS = {
+    BILLING_ISSUE: "BILLING ISSUE",
+    BILLING_REASON: "BILLING REASON",
+    BILLING_ACTIVITY: "BILLING ACTIVITY",
+  } as const;
+
+  /** Billing Queue filter panel labels — ReportFilterManager.php */
+  static readonly BILLING_QUEUE_FILTER_LABELS = {
+    INITIAL_TOGGLE: "Initial Toggle",
+    AGENT_TOGGLE: "Agent Toggle",
+    DOCS_RECD: "Docs Rec'd",
+  } as const;
+
+  /** View Billing toggle date display when unset — billing.php */
+  static readonly TOGGLE_DATE_DISPLAY = {
+    NOT_APPLICABLE: "N/A",
+  } as const;
+
+  /** Date preset labels on sizzle report filters — DatePresetBuilder.php */
+  static readonly DATE_PRESET = {
+    LAST_WEEK: "Last Week",
   } as const;
 
   //Agent Sub-Menu Items
@@ -346,6 +380,8 @@ export class GlobalConstants {
     OFFER_RATE_5: "1500.00",
     BID_RATE: "3500",
     BID_RATE_2: "500",
+    BID_RATE_INCLUDED_1: "2500",
+    BID_RATE_INCLUDED_2: "2300",
     CONGRATS_MESSAGE: "Congrats, successfully matched!",
     CARRIER_DISPATCH_NAME: "Deepak Bohra",
     CARRIER_DISPATCH_NAME_1: "Mode Staging Service",
@@ -489,7 +525,9 @@ export class GlobalConstants {
   } as const;
 
   static readonly LOAD_METHOD = {
-    ELTL: "ELTL"
+    ELTL: "ELTL",
+    LTL: "LTL",
+    TL: "TL",
   } as const;
 
   static readonly RATE_TYPE = {
@@ -550,6 +588,23 @@ export class GlobalConstants {
   static readonly AGENT_USER_ROLES = {
     ADMIN: "ADMIN",
     SYSTEM_ADMIN: "SYSTEM_ADMIN",
+    BTMS_USER: "BTMS_USER",
+    PRINCIPAL: "PRINCIPAL",
+  } as const;
+
+  /** Payables slider on View Billing (distinct from Billing Issues Waiting On toggle). */
+  static readonly PAYABLES_TOGGLE_VALUE = {
+    PAYABLES: "Payables",
+    AGENT: "Agent",
+    NEUTRAL: "Neutral",
+  } as const;
+
+  static readonly SOURCE_SYSTEM = {
+    TRITAN: "TRITAN",
+  } as const;
+
+  static readonly LOAD_CREATED_BY = {
+    INTELYS_API_PORTAL: "Intelys API Portal",
   } as const;
 
   /**
@@ -680,6 +735,7 @@ export class GlobalConstants {
     CARRIER_18_KING: "18 KING TRUCKING LLC",
     CARRIER_XPO_TRANS: "XPO TRANS INC",
     CARRIER_XPO_TRANS_AND: "XPO TRANS INC and select it once fully visible",
+    CARRIER_ESTES_EXPRESS_LINES: "ESTES EXPRESS LINES",
   } as const;
   static readonly CARRIER_ID = {
     CARRIER_XPO_TRANS: "01039257"
@@ -750,6 +806,11 @@ declare global {
   const TOGGLE_NAME: typeof GlobalConstants.TOGGLE_NAME;
   const TOGGLE_OPTIONS: typeof GlobalConstants.TOGGLE_OPTIONS;
   const FINANCE_SUB_MENU: typeof GlobalConstants.FINANCE_SUB_MENU;
+  const BILLING_QUEUE_COLUMNS: typeof GlobalConstants.BILLING_QUEUE_COLUMNS;
+  const LOAD_SEARCH_COLUMNS: typeof GlobalConstants.LOAD_SEARCH_COLUMNS;
+  const BILLING_QUEUE_FILTER_LABELS: typeof GlobalConstants.BILLING_QUEUE_FILTER_LABELS;
+  const TOGGLE_DATE_DISPLAY: typeof GlobalConstants.TOGGLE_DATE_DISPLAY;
+  const DATE_PRESET: typeof GlobalConstants.DATE_PRESET;
   const USER_ROLES: typeof GlobalConstants.USER_ROLES;
   const AGENT_USER_ROLES: typeof GlobalConstants.AGENT_USER_ROLES;
   const AGENT_AUTH_LEVEL: typeof GlobalConstants.AGENT_AUTH_LEVEL;
@@ -760,6 +821,9 @@ declare global {
   const CARRIER_NAME: typeof GlobalConstants.CARRIER_NAME;
   const RATE_TYPE: typeof GlobalConstants.RATE_TYPE;
   const PAYABLE_TOGGLE_VALUE: typeof GlobalConstants.PAYABLE_TOGGLE_VALUE;
+  const PAYABLES_TOGGLE_VALUE: typeof GlobalConstants.PAYABLES_TOGGLE_VALUE;
+  const SOURCE_SYSTEM: typeof GlobalConstants.SOURCE_SYSTEM;
+  const LOAD_CREATED_BY: typeof GlobalConstants.LOAD_CREATED_BY;
   const INVOICE_PROCESS: typeof GlobalConstants.INVOICE_PROCESS;
   const AUTOPAY_STATUS: typeof GlobalConstants.AUTOPAY_STATUS;
   const FINANCE_MESSAGES: typeof GlobalConstants.FINANCE_MESSAGES;
@@ -831,9 +895,17 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).CARRIER_STATUS = GlobalConstants.CARRIER_STATUS;
   (globalThis as any).TOGGLE_NAME = GlobalConstants.TOGGLE_NAME;
   (globalThis as any).FINANCE_SUB_MENU = GlobalConstants.FINANCE_SUB_MENU;
+  (globalThis as any).BILLING_QUEUE_COLUMNS = GlobalConstants.BILLING_QUEUE_COLUMNS;
+  (globalThis as any).LOAD_SEARCH_COLUMNS = GlobalConstants.LOAD_SEARCH_COLUMNS;
+  (globalThis as any).BILLING_QUEUE_FILTER_LABELS = GlobalConstants.BILLING_QUEUE_FILTER_LABELS;
+  (globalThis as any).TOGGLE_DATE_DISPLAY = GlobalConstants.TOGGLE_DATE_DISPLAY;
+  (globalThis as any).DATE_PRESET = GlobalConstants.DATE_PRESET;
   (globalThis as any).TOGGLE_OPTIONS = GlobalConstants.TOGGLE_OPTIONS;
   (globalThis as any).USER_ROLES = GlobalConstants.USER_ROLES;
   (globalThis as any).AGENT_USER_ROLES = GlobalConstants.AGENT_USER_ROLES;
+  (globalThis as any).PAYABLES_TOGGLE_VALUE = GlobalConstants.PAYABLES_TOGGLE_VALUE;
+  (globalThis as any).SOURCE_SYSTEM = GlobalConstants.SOURCE_SYSTEM;
+  (globalThis as any).LOAD_CREATED_BY = GlobalConstants.LOAD_CREATED_BY;
   (globalThis as any).CARRIER_TABS = GlobalConstants.CARRIER_TABS;
   (globalThis as any).POST_AUTOMATION_RULE = GlobalConstants.POST_AUTOMATION_RULE;  
   (globalThis as any).POST_AUTOMATION_COLUMNS = GlobalConstants.POST_AUTOMATION_COLUMNS;

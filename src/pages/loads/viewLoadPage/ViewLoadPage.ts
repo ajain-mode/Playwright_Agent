@@ -1,6 +1,7 @@
 import { expect, Locator, Page } from "@playwright/test";
 import LoadBillingPage from "@pages/loads/LoadBillingPage";
 import commonReusables from "@utils/commonReusables";
+import { ALERT_PATTERNS } from "@utils/alertPatterns";
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -51,6 +52,8 @@ export default class ViewLoadPage {
   private readonly carrierTotalValue_LOC: Locator;
   private readonly viewLoadPage_LOC: Locator;
   private readonly sourceSystemIDValue_LOC: Locator;
+  private readonly sourceSystemValue_LOC: Locator;
+  private readonly createdByValue_LOC: Locator;
   private readonly viewHistory_LOC: Locator;
   private readonly historyHeader_LOC: string;
   private readonly historyHeader: (page?: Page) => Locator;
@@ -78,6 +81,13 @@ export default class ViewLoadPage {
   private readonly carrierInvoiceAmount_LOC: Locator;
   private readonly submitRemoteButton_LOC: Locator;
   private readonly bidsAvgRate_LOC: Locator;
+  /** Predictive Bid Results modal — loadcarrierpredictiverates.phtml `#carr_1_show_details` */
+  private readonly bidResultsPredictiveModal_LOC: Locator;
+  private readonly bidResultsPredictiveTitle_LOC: Locator;
+  private readonly bidResultsPredictiveBody_LOC: Locator;
+  private readonly bidResultsPredictiveCloseButton_LOC: Locator;
+  private readonly bidResultsLaneRatesTable_LOC: Locator;
+  private readonly bidResultsMarketRatesTable_LOC: Locator;
   /**
    * View Load → Load tab: Waiting On — `loadform.php` renders a **&lt;select id="fi_waiting_on"&gt;** (FI_WAITING_ON)
    * with **string** option values `Agent` / `Billing` (not numeric 1–3). View Billing (`billing.php`) uses a hidden
@@ -91,6 +101,11 @@ export default class ViewLoadPage {
    */
   private readonly viewLoadBillingTableContainingWaitingOn_LOC: Locator;
   /**
+   * Billing Issues region on Load tab — `select#fi_waiting_on` → ancestor `table[2]` (loadform.php).
+   * @author AI Agent
+   */
+  private readonly viewLoadBillingIssuesRegion_LOC: Locator;
+  /**
    * Billing issue tags on Load tab — `font` nodes scoped to the Waiting On block
    * (`select#fi_waiting_on` → ancestor table[2]).
    * @author AI Agent
@@ -100,6 +115,21 @@ export default class ViewLoadPage {
   private readonly billingIssuesNotDelivFinalTagSpan_LOC: Locator;
   /** `font` tag for `BILLING_ISSUE_TAGS.PRICE_DIFFERENCE` within the billing block around Waiting On. */
   private readonly billingIssuesPriceDifferenceTagSpan_LOC: Locator;
+  /**
+   * Load tab BILLING block — inner table that contains Waiting On, Messages, and View History.
+   * Locator source: loadform.phtml:612-656 (`<b>BILLING</b>` header row).
+   */
+  private readonly viewLoadBillingSection_LOC: Locator;
+  /**
+   * Billing Messages "View History" on View Load — `show_billing_messages_history(loadId)` (not load edit history).
+   * Locator source: loadform.php:7972 / 9379 — link sits above `#billing-note-container` in the Messages row.
+   */
+  private readonly viewLoadBillingMessagesViewHistoryLink_LOC: Locator;
+  /**
+   * Finance messages directly under View History in the BILLING section (`#billing-note-container` → `.messages-list > .message`).
+   * Locator source: loadform.phtml:648-651 + fats.inc.php:3976-3984.
+   */
+  private readonly viewLoadBillingIssuesMessagesList_LOC: Locator;
   private readonly dfbLoadBoardSection_LOC: Locator;
   private readonly autoAcceptCheckbox_LOC: Locator;
   private readonly carrierContactDropdown_LOC: Locator;
@@ -188,6 +218,12 @@ export default class ViewLoadPage {
     this.customerTotalValue_LOC = page.locator("(//table[@id='financial-details']/tbody)[1]//td[@class='customer_name']/following-sibling::td[1]");
     this.viewLoadPage_LOC = page.locator("//td[@class='hedbar0 centered-flex']");
     this.sourceSystemIDValue_LOC = page.locator("//td[@class='fn' and normalize-space(.)='Source System ID']/following-sibling::td[1]");
+    this.sourceSystemValue_LOC = page.locator(
+      "//td[@class='fn' and normalize-space(.)='Source System']/following-sibling::td[1]",
+    );
+    this.createdByValue_LOC = page.locator(
+      "//td[@class='fn' and normalize-space(.)='Created By']/following-sibling::td[1]",
+    );
     this.viewHistory_LOC = this.page.locator("//input[@value='View History']");
     this.historyHeader_LOC = "//font[contains(normalize-space(.), 'History of Edits for Load')]";
     this.historyHeader = (page: Page = this.page) => page.locator(this.historyHeader_LOC);
@@ -215,19 +251,42 @@ export default class ViewLoadPage {
     this.submitRemoteButton_LOC = this.page.locator("#submit_remote");
     this.autoLoadTenderCheckbox_LOC = this.page.locator("//input[@id='loadsh_auto_edi204']");
     this.bidsAvgRate_LOC = this.page.locator("#bids-rate");
+    this.bidResultsPredictiveModal_LOC = this.page.locator("#carr_1_show_details");
+    this.bidResultsPredictiveTitle_LOC = this.page.locator("#carr_1_rates_result_title");
+    this.bidResultsPredictiveBody_LOC = this.page.locator("#carr_1_rates_result_body");
+    this.bidResultsPredictiveCloseButton_LOC = this.bidResultsPredictiveModal_LOC.locator(
+      '.modal-footer button[data-dismiss="modal"], .modal-header button.close'
+    );
+    this.bidResultsLaneRatesTable_LOC = this.bidResultsPredictiveBody_LOC.locator("table").filter({
+      has: this.page.getByText("Lane Rates", { exact: true }),
+    });
+    this.bidResultsMarketRatesTable_LOC = this.bidResultsPredictiveBody_LOC.locator("table").filter({
+      has: this.page.getByText("Market Rates", { exact: true }),
+    });
     this.billingIssuesWaitingOn_LOC = this.page.locator("select#fi_waiting_on");
     this.viewLoadBillingTableContainingWaitingOn_LOC = this.page.locator(
       'xpath=//select[@id="fi_waiting_on"]/ancestor::table[1]'
     );
-    this.viewLoadBillingIssueTagFontBase_LOC = this.page.locator(
-      'xpath=//select[@id="fi_waiting_on"]/ancestor::table[2]//font'
+    this.viewLoadBillingIssuesRegion_LOC = this.page.locator(
+      'xpath=//select[@id="fi_waiting_on"]/ancestor::table[2]'
     );
+    this.viewLoadBillingIssueTagFontBase_LOC = this.viewLoadBillingIssuesRegion_LOC.locator("font");
     this.billingIssuesNotDelivFinalTagSpan_LOC = this.viewLoadBillingIssueTagFontBase_LOC.filter({
       hasText: BILLING_ISSUE_TAGS.NOT_DELIV_FINAL,
     });
     this.billingIssuesPriceDifferenceTagSpan_LOC = this.viewLoadBillingIssueTagFontBase_LOC.filter({
       hasText: BILLING_ISSUE_TAGS.PRICE_DIFFERENCE,
     });
+    this.viewLoadBillingSection_LOC = this.page.locator(
+      'xpath=//b[normalize-space()="BILLING"]/ancestor::table[1]'
+    );
+    this.viewLoadBillingMessagesViewHistoryLink_LOC = this.viewLoadBillingSection_LOC.locator(
+      'a[href*="show_billing_messages_history"]'
+    );
+    this.viewLoadBillingIssuesMessagesList_LOC =
+      this.viewLoadBillingMessagesViewHistoryLink_LOC.locator(
+        'xpath=ancestor::td[1]//div[@id="billing-note-container"]//div[contains(@class,"messages-list")]/div[contains(@class,"message")][not(contains(@class,"new-message"))]'
+      );
     this.dfbLoadBoardSection_LOC = this.page.locator("#tnx_load_board");
     this.autoAcceptCheckbox_LOC = this.page.locator("//input[@id='form_auto_accept']");
     this.carrierContactDropdown_LOC = this.page.locator("//select[@id='form_accept_as_user']");
@@ -741,6 +800,92 @@ export default class ViewLoadPage {
   }
 
   /**
+   * Asserts a Lane Rates or Market Rates table inside the predictive Bid Results body has dollar amounts.
+   * @param sectionTable Constructor-initialized section table locator
+   * @param sectionLabel Section header cell text
+   */
+  private async assertPredictiveRateSectionPopulated(
+    sectionTable: Locator,
+    sectionLabel: "Lane Rates" | "Market Rates"
+  ): Promise<void> {
+    await expect
+      .soft(sectionTable.first(), `${sectionLabel} table should be visible in Bid Results`)
+      .toBeVisible({ timeout: WAIT.DEFAULT });
+
+    const cellTexts = (await sectionTable.first().locator("td").allTextContents()).map((t) =>
+      t.trim()
+    );
+    const populatedRates = cellTexts.filter((t) => /\$[\d,]+\.\d{2}/.test(t));
+    expect
+      .soft(
+        populatedRates.length,
+        `${sectionLabel} should show at least one populated rate, cells: ${cellTexts.join(" | ")}`
+      )
+      .toBeGreaterThan(0);
+  }
+
+  /**
+   * Validates Lane and Market rates in the Bid Results popup opened via BIDS report click.
+   * Locator source: load_carrier_predictive_rates.js, loadcarrierpredictiverates.phtml
+   * (`#carr_1_show_details`, `#carr_1_rates_result_body` — first carrier tab).
+   * @author AI Agent
+   * @created 2026-05-28
+   * @returns Promise<void>
+   */
+  async validateBidResultsLaneAndMarketRatesVisible(): Promise<void> {
+    await this.page.waitForLoadState("domcontentloaded");
+
+    await this.bidResultsPredictiveModal_LOC.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
+    await expect.soft(this.bidResultsPredictiveTitle_LOC, "Bid Results modal title").toHaveText(
+      /Bid Results/i,
+      { timeout: WAIT.DEFAULT }
+    );
+
+    await expect
+      .poll(
+        async () => {
+          const bodyText = (await this.bidResultsPredictiveBody_LOC.textContent())?.trim() ?? "";
+          return (
+            bodyText.includes("Lane Rates") &&
+            bodyText.includes("Market Rates") &&
+            !/Loading/i.test(bodyText)
+          );
+        },
+        {
+          message: "Bid Results body should load Lane and Market rate tables",
+          timeout: WAIT.LARGE,
+        }
+      )
+      .toBe(true);
+
+    await this.assertPredictiveRateSectionPopulated(
+      this.bidResultsLaneRatesTable_LOC,
+      "Lane Rates"
+    );
+    await this.assertPredictiveRateSectionPopulated(
+      this.bidResultsMarketRatesTable_LOC,
+      "Market Rates"
+    );
+  }
+
+  /**
+   * Closes the predictive Bid Results modal opened from BIDS report (`#bids-num-reports`).
+   * Locator source: loadcarrierpredictiverates.phtml (`#carr_1_show_details` modal footer).
+   * @author AI Agent
+   * @created 2026-05-28
+   * @returns Promise<void>
+   */
+  async closeBidResultsModal(): Promise<void> {
+    await this.page.waitForLoadState("domcontentloaded");
+    await this.bidResultsPredictiveCloseButton_LOC.first().waitFor({
+      state: "visible",
+      timeout: WAIT.DEFAULT,
+    });
+    await this.bidResultsPredictiveCloseButton_LOC.first().click();
+    await this.bidResultsPredictiveModal_LOC.waitFor({ state: "hidden", timeout: WAIT.DEFAULT });
+  }
+
+  /**
    * Verify whether Create Bid button is clickable on view load page
    * @author Parth Rastogi
    * @modified 2025-10-13
@@ -1159,6 +1304,46 @@ export default class ViewLoadPage {
     const sourceSystemID = await this.sourceSystemIDValue_LOC.textContent();
     console.log(`Source System ID: ${sourceSystemID}`);
     return sourceSystemID?.trim() || "";
+  }
+
+  /**
+   * Gets the Source System value from View Load.
+   * @author AI Agent
+   * @created 2026-06-01
+   * @returns Source System label (e.g. TRITAN)
+   */
+  async getSourceSystemValue(): Promise<string> {
+    await this.sourceSystemValue_LOC.waitFor({ state: "visible", timeout: WAIT.MID });
+    const value = (await this.sourceSystemValue_LOC.textContent())?.trim() || "";
+    console.log(`Source System: ${value}`);
+    return value;
+  }
+
+  /**
+   * Gets the Created By value from View Load.
+   * @author AI Agent
+   * @created 2026-06-01
+   */
+  async getCreatedByValue(): Promise<string> {
+    await this.createdByValue_LOC.waitFor({ state: "visible", timeout: WAIT.MID });
+    const value = (await this.createdByValue_LOC.textContent())?.trim() || "";
+    console.log(`Created By: ${value}`);
+    return value;
+  }
+
+  /** Reads visible load status text from the status control. */
+  async getLoadStatusText(): Promise<string> {
+    await this.page.waitForLoadState("domcontentloaded");
+    const statusLoc = this.page.locator("#loadsh_status, select[name='loadsh_status']").first();
+    if (await statusLoc.count()) {
+      const tag = await statusLoc.evaluate((el) => el.tagName.toLowerCase());
+      if (tag === "select") {
+        const selected = statusLoc.locator("option:checked");
+        return ((await selected.textContent()) || "").trim().toUpperCase();
+      }
+      return ((await statusLoc.textContent()) || "").trim().toUpperCase();
+    }
+    return "";
   }
 
   /**
@@ -1600,6 +1785,36 @@ export default class ViewLoadPage {
   }
 
   /**
+   * Clicks Submit/Attach on the Document Upload Utility. If the Payable INVOICE RECEIVED alert
+   * appears, accepts it and skips the in-dialog success message. If no alert within the timeout,
+   * validates {@link SUCCESS_MESSAGES.ALL_DOCUMENTS_ATTACHED} instead.
+   * @author AI Agent
+   * @created 2026-06-03
+   * @param alertTimeoutSeconds - Seconds to wait for the optional invoice alert (default 30)
+   */
+  async submitDocumentUploadWithOptionalInvoiceAlert(alertTimeoutSeconds: number = 30): Promise<void> {
+    const invoiceAlertPromise = commonReusables.validateAlert(
+      this.page,
+      ALERT_PATTERNS.PAYABLE_STATUS_INVOICE_RECEIVED,
+      alertTimeoutSeconds
+    );
+    await this.clickSubmitRemote();
+    try {
+      await invoiceAlertPromise;
+      console.log(
+        "Payable INVOICE RECEIVED alert accepted; skipping All documents attached success validation"
+      );
+    } catch (err) {
+      const message = (err as Error).message ?? "";
+      if (message.includes("No alert appeared within")) {
+        await this.waitForUploadSuccess();
+        return;
+      }
+      throw err;
+    }
+  }
+
+  /**
    * Scrolls the Load tab **Waiting On** control (`#fi_waiting_on`) into view.
    * View Load does not render `#finance_issues_block`; use {@link LoadBillingPage.scrollBillingIssuesBlockIntoView} on View Billing.
    * @author AI Agent
@@ -1682,6 +1897,64 @@ export default class ViewLoadPage {
   async getBillingIssuesPriceDifferenceTagSpanCount(): Promise<number> {
     await this.viewLoadBillingTableContainingWaitingOn_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
     return await this.billingIssuesPriceDifferenceTagSpan_LOC.count();
+  }
+
+  /**
+   * Scrolls the View Load BILLING Messages block (View History link + `#billing-note-container`) into view.
+   * Locator source: loadform.phtml:645-654 — messages render below `show_billing_messages_history` in the same `td`.
+   * @author AI Agent
+   * @created 2026-06-04
+   */
+  async scrollViewLoadBillingIssuesMessagesIntoView(): Promise<void> {
+    await this.scrollWaitingOnIntoView();
+    await this.viewLoadBillingMessagesViewHistoryLink_LOC.scrollIntoViewIfNeeded();
+    await this.viewLoadBillingMessagesViewHistoryLink_LOC.waitFor({
+      state: "visible",
+      timeout: WAIT.LARGE,
+    });
+    const noteContainer = this.viewLoadBillingMessagesViewHistoryLink_LOC.locator(
+      'xpath=ancestor::td[1]//div[@id="billing-note-container"]'
+    );
+    await noteContainer.scrollIntoViewIfNeeded();
+    await noteContainer.waitFor({ state: "visible", timeout: WAIT.LARGE });
+  }
+
+  /**
+   * Reads Billing Issues messages on View Load Load tab (below Messages / View History under BILLING).
+   * Use {@link LoadBillingPage.getBillingIssuesMessages} on View Billing only.
+   * Locator source: loadform.php:7972-7975, loadform.phtml:648-651, fats.inc.php `build_finance_messages_by_type(..., true)`
+   * @author AI Agent
+   * @created 2026-06-04
+   */
+  async getViewLoadBillingIssuesMessages(): Promise<string[]> {
+    await this.scrollViewLoadBillingIssuesMessagesIntoView();
+    await this.viewLoadBillingIssuesMessagesList_LOC.first().waitFor({
+      state: "visible",
+      timeout: WAIT.LARGE,
+    });
+    const count = await this.viewLoadBillingIssuesMessagesList_LOC.count();
+    const messages: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const text = await this.viewLoadBillingIssuesMessagesList_LOC.nth(i).textContent();
+      if (text?.trim()) {
+        messages.push(text.trim());
+      }
+    }
+    return messages;
+  }
+
+  /**
+   * Finds a Billing Issues message on View Load Load tab containing the given text (case-insensitive).
+   * Locator source: `a[href*="show_billing_messages_history"]` → same `td` → `#billing-note-container .messages-list > .message`.
+   * @author AI Agent
+   * @created 2026-06-01
+   * @param searchText - Substring to match (e.g. {@link ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_100_OVER_TOTAL_CHARGE})
+   * @returns Matching message text, or null if not found
+   */
+  async findBillingIssuesMessageContaining(searchText: string): Promise<string | null> {
+    const messages = await this.getViewLoadBillingIssuesMessages();
+    const match = messages.find((msg) => msg.toLowerCase().includes(searchText.toLowerCase()));
+    return match ?? null;
   }
 
   /**

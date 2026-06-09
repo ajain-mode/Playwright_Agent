@@ -1800,5 +1800,65 @@ class NonTabularLoadPage {
     await this.page.waitForLoadState("networkidle");
     await this.page.waitForTimeout(1000);
   }
+
+  /**
+   * Display text of the selected customer on Enter New Load (`#form_customer` Select2).
+   * @author AI Agent
+   * @created 2026-06-01
+   * @returns Customer label shown in the Select2 container
+   */
+  async getCustomerFieldDisplayText(): Promise<string> {
+    const rendered = this.page.locator("#select2-form_customer-container .select2-selection__rendered");
+    await rendered.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
+    return (await rendered.textContent())?.trim() || "";
+  }
+
+  /**
+   * Reads shipper location fields after ship-point selection (auto-populate).
+   * Locators: `loadform.php` — `#form_shipper_name`, `#form_shipper_address`, etc.
+   * @author AI Agent
+   * @created 2026-06-01
+   */
+  async getShipperLocationFieldValues(): Promise<{
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+    country: string;
+  }> {
+    return {
+      name: (await this.formShipperNameInput_LOC.inputValue()).trim(),
+      address: (await this.formShipperAddressInput_LOC.inputValue()).trim(),
+      city: (await this.formShipperCityInput_LOC.inputValue()).trim(),
+      state: (await this.formShipperStateInput_LOC.inputValue()).trim(),
+      zip: (await this.formShipperZipInput_LOC.inputValue()).trim(),
+      country: (await this.shipperCountryDropdown_LOC.inputValue()).trim(),
+    };
+  }
+
+  /**
+   * Reads consignee location fields after ship-point selection (auto-populate).
+   * Locators: `loadform.php` — `#form_consignee_name`, `#form_consignee_address`, etc.
+   * @author AI Agent
+   * @created 2026-06-01
+   */
+  async getConsigneeLocationFieldValues(): Promise<{
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+    country: string;
+  }> {
+    return {
+      name: (await this.formConsigneeNameInput_LOC.inputValue()).trim(),
+      address: (await this.formConsigneeAddressInput_LOC.inputValue()).trim(),
+      city: (await this.formConsigneeCityInput_LOC.inputValue()).trim(),
+      state: (await this.formConsigneeStateInput_LOC.inputValue()).trim(),
+      zip: (await this.formConsigneeZipInput_LOC.inputValue()).trim(),
+      country: (await this.consigneeCountryDropdown_LOC.inputValue()).trim(),
+    };
+  }
 }
 export default NonTabularLoadPage;
