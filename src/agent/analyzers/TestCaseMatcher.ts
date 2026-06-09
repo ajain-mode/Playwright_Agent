@@ -16,6 +16,12 @@
 import fs from 'fs';
 import path from 'path';
 import { TestCaseInput } from '../types/TestCaseTypes';
+import {
+  normalizeRowToHeaderCount,
+  parseCsvLine,
+  repairShiftedInvoiceAmountColumns,
+  rowToRecord,
+} from '../utils/csvRowUtils';
 
 // ─────────────────────────── Types ───────────────────────────
 
@@ -650,18 +656,23 @@ export class TestCaseMatcher {
       const lines = content.split(/\r?\n/).filter(l => l.trim());
       if (lines.length < 2) return {};
 
-      const headers = this.splitCSVLine(lines[0]);
+      const headers = parseCsvLine(lines[0]);
       const prefixed = this.prefixId(caseId, category);
 
       for (let i = 1; i < lines.length; i++) {
-        const fields = this.splitCSVLine(lines[i]);
+        const fields = parseCsvLine(lines[i]);
         const id = (fields[0] || '').trim();
         if (id === prefixed || id === caseId) {
-          const row: Record<string, string> = {};
-          for (let j = 0; j < headers.length && j < fields.length; j++) {
-            row[headers[j].trim()] = fields[j];
+          let aligned = normalizeRowToHeaderCount(fields, headers.length);
+          const { values: repaired } = repairShiftedInvoiceAmountColumns(headers, aligned);
+          aligned = repaired;
+          const row = rowToRecord(headers, aligned);
+          // Omit empty cells for backward compatibility
+          const result: Record<string, string> = {};
+          for (const [key, val] of Object.entries(row)) {
+            if (val) result[key] = val;
           }
-          return row;
+          return result;
         }
       }
     } catch {

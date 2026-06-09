@@ -17,6 +17,7 @@ export default class ShipmentDetailsPage {
     private readonly selectQueueDropdown_LOC: () => Locator;
     private readonly saveQueueBtn_LOC: () => Locator;
     private readonly invoiceExtractDate_LOC: Locator;
+    private readonly customerInvoiceQueue_LOC: Locator;
     private readonly customerChargesDropdown_LOC: () => Locator;
     private readonly customerInvoiceChargesAmountInput_LOC: () => Locator;
     private readonly settlementReasonDropdown_LOC: () => Locator;
@@ -38,6 +39,8 @@ export default class ShipmentDetailsPage {
         this.saveQueueBtn_LOC = () => this.popupPage!.locator("//input[@value=' Save ']");
         this.invoiceExtractDate_LOC = this.page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame().locator('#invoicesWin').contentFrame()
             .locator("//td[@class='type' and normalize-space()='Invoice']/parent::tr//td[@class='invoiceExtractDate']");
+        this.customerInvoiceQueue_LOC = this.page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame().locator('#invoicesWin').contentFrame()
+            .locator("//td[@class='type' and normalize-space()='Invoice']/parent::tr//td[@class='queue']");
         this.customerChargesDropdown_LOC = () => this.popupPage!.locator('//select[@id="InvoiceCharge6EDICode"]');
         this.customerInvoiceChargesAmountInput_LOC = () => this.popupPage!.locator('//input[@id="InvoiceCharge6Rate"]');
         this.settlementReasonDropdown_LOC = () => this.popupPage!.locator('#sSettleReason');
@@ -249,5 +252,16 @@ export default class ShipmentDetailsPage {
         await this.invoiceExtractDate_LOC.waitFor({ state: 'visible', timeout: WAIT.LARGE });
         const extractDate = (await this.invoiceExtractDate_LOC.innerText()).trim();
         return extractDate;
+    }
+
+    /**
+     * Returns Customer Invoice queue label from the invoices table (e.g. 50 Complete).
+     * @author AI Agent
+     * @created 2026-06-01
+     * @returns Customer invoice queue display text
+     */
+    async getCustomerInvoiceQueueDisplayValue(): Promise<string> {
+        await this.customerInvoiceQueue_LOC.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        return (await this.customerInvoiceQueue_LOC.innerText()).trim();
     }
 }

@@ -65,6 +65,7 @@ class LoadBillingPage {
     private readonly carrierPayableStatusSelect_LOC: Locator;
     private readonly carrierRemainderAmount_LOC: Locator;
     private readonly carrierTotalInvoicesAmount_LOC: Locator;
+    private readonly payableReasonDisplay_LOC: Locator;
 
     // Billing Issues section root + checkboxes (inside #finance_issues_block)
     private readonly financeIssuesBlock_LOC: Locator;
@@ -73,6 +74,9 @@ class LoadBillingPage {
     private readonly allBillingIssueCheckboxes_LOC: Locator;
     private readonly lumperCheckbox_LOC: Locator;
     private readonly lumperLabel_LOC: Locator;
+    /** Missing Paperwork — Miscellaneous — billing.php `#Miscellaneouss` (value `mpw`) */
+    private readonly miscellaneousCheckbox_LOC: Locator;
+    private readonly miscellaneousLabel_LOC: Locator;
 
     // Billing Issues View History popup: table.hist rows with cells (header row uses th).
     private readonly BILLING_ISSUES_HISTORY_TABLE_DATA_ROWS_SELECTOR = 'table.hist tr:has(td)';
@@ -178,12 +182,17 @@ class LoadBillingPage {
         this.allBillingIssueCheckboxes_LOC = this.financeIssuesBlock_LOC.locator("input.fi_ckb");
         this.lumperCheckbox_LOC = this.page.locator("#Lumpers");
         this.lumperLabel_LOC = this.page.locator("label[for='Lumpers'].ckb");
+        this.miscellaneousCheckbox_LOC = this.page.locator("#Miscellaneouss");
+        this.miscellaneousLabel_LOC = this.page.locator("label[for='Miscellaneouss'].ckb");
 
         // Carrier Payable Status dropdown (first carrier), Remainder, and Total Invoices
         this.carrierPayableStatusSelect_LOC = this.page.locator("select[id^='carr_'][id$='_post_status']").first();
         this.carrierRemainderAmount_LOC = this.page.locator("span[id^='carr_'][id$='_carr_balance']").first();
         // Total Invoices label uses &nbsp; in PHP source ("Total&nbsp;Invoices"), so match words separately
         this.carrierTotalInvoicesAmount_LOC = this.page.locator("//span[contains(@class, 'pmt-label')][contains(., 'Total') and contains(., 'Invoices')]/following-sibling::span").first();
+        this.payableReasonDisplay_LOC = this.page.locator(
+            "//div[contains(@id,'payables-note-container')]//td[contains(normalize-space(.),'Payable Reason')]/following-sibling::td[1]",
+        );
 
     }
     /**
@@ -1119,6 +1128,35 @@ class LoadBillingPage {
     }
 
     /**
+     * Clicks the "Miscellaneous" checkbox label in Missing Paperwork section.
+     * billing.php — `#Miscellaneouss` / `value="mpw"`.
+     * @author AI Agent
+     * @created 2026-06-04
+     */
+    async clickMiscellaneousCheckbox(): Promise<void> {
+        await this.miscellaneousLabel_LOC.scrollIntoViewIfNeeded();
+        const wasChecked = await this.miscellaneousCheckbox_LOC.isChecked();
+        await this.miscellaneousLabel_LOC.click();
+        await commonReusables.waitForPageStable(this.page);
+        if (wasChecked) {
+            await expect(this.miscellaneousCheckbox_LOC).not.toBeChecked({ timeout: WAIT.DEFAULT });
+        } else {
+            await expect(this.miscellaneousCheckbox_LOC).toBeChecked({ timeout: WAIT.DEFAULT });
+        }
+        console.log(`Clicked Miscellaneous checkbox (was: ${wasChecked}, now: ${!wasChecked})`);
+    }
+
+    /**
+     * Checks whether the "Miscellaneous" Missing Paperwork checkbox is checked.
+     * @author AI Agent
+     * @created 2026-06-04
+     */
+    async isMiscellaneousChecked(): Promise<boolean> {
+        await this.miscellaneousCheckbox_LOC.waitFor({ state: "attached", timeout: WAIT.DEFAULT });
+        return this.miscellaneousCheckbox_LOC.isChecked();
+    }
+
+    /**
      * Extracts a dollar value from a string. Matches patterns like $1,500.00, $900, $2,000.00, etc.
      * Delegates to commonReusables.extractDollarValue().
      * @param text - The text to extract the dollar value from
@@ -1232,6 +1270,18 @@ class LoadBillingPage {
         const amount = parseFloat((text ?? '').replace(/[$,]/g, ''));
         console.log(`Carrier total invoices amount: ${amount}`);
         return amount;
+    }
+
+    /**
+     * Reads Payable Reason display text from the Payables section on View Billing.
+     * @author AI Agent
+     * @created 2026-06-01
+     */
+    async getPayableReasonDisplayValue(): Promise<string> {
+        await this.payableReasonDisplay_LOC.first().waitFor({ state: "visible", timeout: WAIT.LARGE });
+        const text = ((await this.payableReasonDisplay_LOC.first().textContent()) || "").trim();
+        console.log(`Payable Reason: ${text}`);
+        return text;
     }
 }
 export default LoadBillingPage;

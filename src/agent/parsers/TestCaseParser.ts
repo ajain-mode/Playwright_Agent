@@ -1242,10 +1242,11 @@ export class TestCaseParser {
           if (qtyPlain) values.formFields.shipmentCommodityQty = qtyPlain[1].trim();
         }
 
-        // Invoice Amount: "enter Invoice Amount (e.g.900)" or "Invoice Amount as 600"
+        // Invoice Amount: "Invoice Amount (e.g., 700)" or "Invoice Amount (e.g.900)" or "Invoice Amount as 600"
         if (!values.formFields['carrierInvoiceAmount1']) {
-          const invAmtMatch = trimmed.match(/Invoice\s+Amount\s*\(\s*(?:e\.?g\.?\s*)?(\d+)\s*\)/i)
-            || trimmed.match(/Invoice\s+Amount\s+(?:as\s+)?(\d+)/i);
+          const invAmtMatch = trimmed.match(
+            /Invoice\s+Amount\s*\(\s*(?:e\.?g\.?,?\s*)?(\d+(?:\.\d+)?)\s*\)/i,
+          ) || trimmed.match(/Invoice\s+Amount\s+(?:as\s+)?(\d+(?:\.\d+)?)/i);
           if (invAmtMatch) values.formFields['carrierInvoiceAmount1'] = invAmtMatch[1].trim();
         }
 

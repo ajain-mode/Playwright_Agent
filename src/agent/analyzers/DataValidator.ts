@@ -9,6 +9,12 @@
 
 import fs from 'fs';
 import path from 'path';
+import {
+  formatCsvRow,
+  normalizeRowToHeaderCount,
+  parseCsvLine,
+  repairShiftedInvoiceAmountColumns,
+} from '../utils/csvRowUtils';
 
 export interface ValidationResult {
   field: string;
@@ -178,10 +184,10 @@ export class DataValidator {
     const lines = content.split(/\r?\n/).filter(l => l.trim());
     if (lines.length < 2) return;
 
-    const headers = this.parseCsvLineSimple(lines[0]);
+    const headers = parseCsvLine(lines[0]);
 
     for (let i = 1; i < lines.length; i++) {
-      const values = this.parseCsvLineSimple(lines[i]);
+      const values = normalizeRowToHeaderCount(parseCsvLine(lines[i]), headers.length);
       for (const [field, rule] of Object.entries(this.fieldRules)) {
         if (!rule.learnFromData) continue;
 
@@ -374,12 +380,21 @@ export class DataValidator {
     const outputLines = [headerLine];
 
     for (let i = 1; i < nonEmptyLines.length; i++) {
-      const values = this.parseCsvLineSimple(nonEmptyLines[i]);
+      const rawValues = this.parseCsvLineSimple(nonEmptyLines[i]);
+      let values = normalizeRowToHeaderCount(rawValues, headers.length);
+      const { values: repairedValues, repaired: invoiceRepaired } = repairShiftedInvoiceAmountColumns(
+        headers,
+        values,
+      );
+      values = repairedValues;
+
       const testCaseId = idColIdx >= 0 && idColIdx < values.length
         ? values[idColIdx].trim()
         : `Row-${i}`;
 
-      let rowModified = false;
+      let rowModified = rawValues.length !== headers.length || invoiceRepaired;
+      if (rowModified) modified = true;
+
       const corrections: ValidationResult[] = [];
       const rowErrors: ValidationResult[] = [];
       const rowWarnings: ValidationResult[] = [];
@@ -416,7 +431,7 @@ export class DataValidator {
         });
       }
 
-      outputLines.push(values.join(','));
+      outputLines.push(formatCsvRow(values, headers.length));
     }
 
     if (modified) {

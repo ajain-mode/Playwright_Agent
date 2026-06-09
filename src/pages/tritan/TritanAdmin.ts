@@ -154,6 +154,19 @@ class TritanAdmin {
     }
 
     /**
+     * Enters a specific PRO number in the Pickup popup (e.g. from CSV TrailerNumber).
+     * @author AI Agent
+     * @created 2026-06-01
+     * @param proNumber - PRO number to enter (TritanAdmin pickup popup `#PRO`)
+     */
+    async enterProNumberValue(proNumber: string): Promise<void> {
+        await this.proInputBox_LOC.waitFor({ state: 'visible' });
+        await this.proInputBox_LOC.fill('');
+        await this.proInputBox_LOC.fill(proNumber);
+        await this.proInputBox_LOC.press('Tab');
+    }
+
+    /**
 *  Enter Date and Time in Pickup popup
 * @author Aniket Nale
 * @created 18-Nov-2025

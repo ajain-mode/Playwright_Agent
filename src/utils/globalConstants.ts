@@ -525,7 +525,9 @@ export class GlobalConstants {
   } as const;
 
   static readonly LOAD_METHOD = {
-    ELTL: "ELTL"
+    ELTL: "ELTL",
+    LTL: "LTL",
+    TL: "TL",
   } as const;
 
   static readonly RATE_TYPE = {
@@ -586,6 +588,23 @@ export class GlobalConstants {
   static readonly AGENT_USER_ROLES = {
     ADMIN: "ADMIN",
     SYSTEM_ADMIN: "SYSTEM_ADMIN",
+    BTMS_USER: "BTMS_USER",
+    PRINCIPAL: "PRINCIPAL",
+  } as const;
+
+  /** Payables slider on View Billing (distinct from Billing Issues Waiting On toggle). */
+  static readonly PAYABLES_TOGGLE_VALUE = {
+    PAYABLES: "Payables",
+    AGENT: "Agent",
+    NEUTRAL: "Neutral",
+  } as const;
+
+  static readonly SOURCE_SYSTEM = {
+    TRITAN: "TRITAN",
+  } as const;
+
+  static readonly LOAD_CREATED_BY = {
+    INTELYS_API_PORTAL: "Intelys API Portal",
   } as const;
 
   /**
@@ -716,6 +735,7 @@ export class GlobalConstants {
     CARRIER_18_KING: "18 KING TRUCKING LLC",
     CARRIER_XPO_TRANS: "XPO TRANS INC",
     CARRIER_XPO_TRANS_AND: "XPO TRANS INC and select it once fully visible",
+    CARRIER_ESTES_EXPRESS_LINES: "ESTES EXPRESS LINES",
   } as const;
 
   /**
@@ -798,6 +818,9 @@ declare global {
   const CARRIER_NAME: typeof GlobalConstants.CARRIER_NAME;
   const RATE_TYPE: typeof GlobalConstants.RATE_TYPE;
   const PAYABLE_TOGGLE_VALUE: typeof GlobalConstants.PAYABLE_TOGGLE_VALUE;
+  const PAYABLES_TOGGLE_VALUE: typeof GlobalConstants.PAYABLES_TOGGLE_VALUE;
+  const SOURCE_SYSTEM: typeof GlobalConstants.SOURCE_SYSTEM;
+  const LOAD_CREATED_BY: typeof GlobalConstants.LOAD_CREATED_BY;
   const INVOICE_PROCESS: typeof GlobalConstants.INVOICE_PROCESS;
   const AUTOPAY_STATUS: typeof GlobalConstants.AUTOPAY_STATUS;
   const FINANCE_MESSAGES: typeof GlobalConstants.FINANCE_MESSAGES;
@@ -876,6 +899,9 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).TOGGLE_OPTIONS = GlobalConstants.TOGGLE_OPTIONS;
   (globalThis as any).USER_ROLES = GlobalConstants.USER_ROLES;
   (globalThis as any).AGENT_USER_ROLES = GlobalConstants.AGENT_USER_ROLES;
+  (globalThis as any).PAYABLES_TOGGLE_VALUE = GlobalConstants.PAYABLES_TOGGLE_VALUE;
+  (globalThis as any).SOURCE_SYSTEM = GlobalConstants.SOURCE_SYSTEM;
+  (globalThis as any).LOAD_CREATED_BY = GlobalConstants.LOAD_CREATED_BY;
   (globalThis as any).CARRIER_TABS = GlobalConstants.CARRIER_TABS;
   (globalThis as any).POST_AUTOMATION_RULE = GlobalConstants.POST_AUTOMATION_RULE;  
   (globalThis as any).POST_AUTOMATION_COLUMNS = GlobalConstants.POST_AUTOMATION_COLUMNS;

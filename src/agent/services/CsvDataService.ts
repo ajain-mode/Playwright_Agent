@@ -13,6 +13,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { TestCaseInput } from '../types/TestCaseTypes';
 import { buildCsvAliasMap } from '../config/FieldRegistry';
+import {
+  escapeCsvValue as escapeCsvCell,
+  formatCsvRow,
+  normalizeRowToHeaderCount,
+  parseCsvLine as parseCsvLineCells,
+  repairShiftedInvoiceAmountColumns,
+  rowToRecord,
+} from '../utils/csvRowUtils';
 
 // Category to data CSV file mapping
 const CATEGORY_DATA_CSV_MAP: Record<string, { folder: string; file: string }> = {
@@ -93,12 +101,46 @@ export class CsvDataService {
 
     if (foundLineIndex >= 0) {
       console.log(`   ✅ Test ID '${testCaseId}' already exists in ${path.basename(csvPath)}`);
-      // Update existing row if testCase has extracted values that differ from the CSV
+      // Fix column misalignment before merging extracted step values
+      this.normalizeExistingRowAlignment(csvPath, lines, headers, foundLineIndex);
       this.updateExistingRowIfNeeded(csvPath, lines, headers, foundLineIndex, testCase);
     } else {
       console.log(`   ➕ Test ID '${testCaseId}' not found. Adding to ${path.basename(csvPath)}...`);
       this.appendTestDataToCsv(csvPath, headers, testCase);
       console.log(`   ✅ Test ID '${testCaseId}' added to ${path.basename(csvPath)}`);
+    }
+  }
+
+  /**
+   * Re-align an existing row to the header column count and repair known shifted invoice amounts.
+   */
+  private normalizeExistingRowAlignment(
+    csvPath: string,
+    lines: string[],
+    headers: string[],
+    rowIndex: number,
+  ): void {
+    const parsed = this.parseCsvLine(lines[rowIndex]);
+    let aligned = normalizeRowToHeaderCount(parsed, headers.length);
+    const { values: repaired, repaired: didRepair } = repairShiftedInvoiceAmountColumns(headers, aligned);
+    aligned = repaired;
+
+    const misaligned = parsed.length !== headers.length;
+    if (!misaligned && !didRepair) {
+      return;
+    }
+
+    lines[rowIndex] = formatCsvRow(aligned, headers.length);
+    const newContent = lines.join('\n') + '\n';
+    fs.writeFileSync(csvPath, newContent, 'utf-8');
+
+    if (misaligned) {
+      console.log(
+        `   🔧 Realigned row columns (${parsed.length} → ${headers.length}) for ${path.basename(csvPath)}`,
+      );
+    }
+    if (didRepair) {
+      console.log(`   🔧 Moved shifted invoice amount into carrierInvoiceAmount1 column`);
     }
   }
 
@@ -121,7 +163,7 @@ export class CsvDataService {
     // Build alias map from extracted values
     const aliasMap: Record<string, string> = buildCsvAliasMap(ev, (v) => this.normalizeLoadMethod(v));
 
-    const existingValues = this.parseCsvLine(lines[rowIndex]);
+    const existingValues = normalizeRowToHeaderCount(this.parseCsvLine(lines[rowIndex]), headers.length);
     let updated = false;
     const updatedColumns: string[] = [];
 
@@ -141,13 +183,13 @@ export class CsvDataService {
       if (extractedVal && String(extractedVal).trim() && String(extractedVal).trim() !== existingVal) {
         updated = true;
         updatedColumns.push(`${headerClean}: ${existingVal} → ${String(extractedVal).trim()}`);
-        return this.escapeCsvValue(String(extractedVal));
+        return String(extractedVal).trim();
       }
       return existingValues[colIndex] || '';
     });
 
     if (updated) {
-      lines[rowIndex] = newValues.join(',');
+      lines[rowIndex] = formatCsvRow(newValues, headers.length);
       const newContent = lines.join('\n') + '\n';
       fs.writeFileSync(csvPath, newContent, 'utf-8');
       console.log(`   🔄 Updated ${updatedColumns.length} column(s) in existing row: ${updatedColumns.join(', ')}`);
@@ -167,12 +209,12 @@ export class CsvDataService {
 
     const values = [testCase.id];
     dataKeys.forEach(key => {
-      const val = String(testData[key] || '');
-      values.push(this.escapeCsvValue(val));
+      values.push(String(testData[key] || ''));
     });
 
-    const csvContent = headers.join(',') + '\n' + values.join(',') + '\n';
-    fs.writeFileSync(csvPath, csvContent, 'utf-8');
+    const csvContent = formatCsvRow(values, headers.length) + '\n';
+    const headerLine = headers.map(h => escapeCsvCell(h)).join(',');
+    fs.writeFileSync(csvPath, headerLine + '\n' + csvContent, 'utf-8');
   }
 
   /**
@@ -217,7 +259,7 @@ export class CsvDataService {
       }
     }
 
-    // Build value row matching existing headers
+    // Build value row matching existing headers (exactly one cell per header)
     const values: string[] = [];
     const filledColumns: string[] = [];
     headers.forEach(header => {
@@ -233,7 +275,7 @@ export class CsvDataService {
           testData[toCamelCase(headerClean)] ||
           aliasMap[headerLower] ||
           '';
-        values.push(this.escapeCsvValue(String(val)));
+        values.push(String(val));
         if (val) filledColumns.push(headerClean);
       }
     });
@@ -242,7 +284,7 @@ export class CsvDataService {
       console.log(`   📋 Populated columns: ${filledColumns.join(', ')}`);
     }
 
-    const newLine = values.join(',');
+    const newLine = formatCsvRow(values, headers.length);
     const existingContent = fs.readFileSync(csvPath, 'utf-8');
     const separator = existingContent.endsWith('\n') ? '' : '\n';
     fs.writeFileSync(csvPath, existingContent + separator + newLine + '\n', 'utf-8');
@@ -263,8 +305,15 @@ export class CsvDataService {
     for (let i = 1; i < lines.length; i++) {
       const values = this.parseCsvLine(lines[i]);
       if (values[idCol]?.trim() === testCase.id) {
+        let aligned = normalizeRowToHeaderCount(values, headers.length);
+        const { values: repaired } = repairShiftedInvoiceAmountColumns(headers, aligned);
+        aligned = repaired;
+        const record = rowToRecord(headers, aligned);
+        // Omit empty cells for backward compatibility with callers
         const result: Record<string, string> = {};
-        headers.forEach((h, idx) => { if (values[idx]) result[h.trim()] = values[idx].trim(); });
+        for (const [key, val] of Object.entries(record)) {
+          if (val) result[key] = val;
+        }
         return result;
       }
     }
@@ -275,16 +324,7 @@ export class CsvDataService {
    * Escape a CSV value (wrap in quotes if contains special characters).
    */
   escapeCsvValue(value: string): string {
-    if (
-      value.includes(',') ||
-      value.includes('"') ||
-      value.includes('\n') ||
-      value.includes('(') ||
-      value.includes(')')
-    ) {
-      return `"${value.replace(/"/g, '""')}"`;
-    }
-    return value;
+    return escapeCsvCell(value);
   }
 
   /**
@@ -302,28 +342,7 @@ export class CsvDataService {
    * Parse a CSV line handling quoted values.
    */
   parseCsvLine(line: string): string[] {
-    const result: string[] = [];
-    let current = '';
-    let inQuotes = false;
-
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      if (char === '"') {
-        if (inQuotes && line[i + 1] === '"') {
-          current += '"';
-          i++;
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if (char === ',' && !inQuotes) {
-        result.push(current);
-        current = '';
-      } else {
-        current += char;
-      }
-    }
-    result.push(current);
-    return result;
+    return parseCsvLineCells(line);
   }
 }
 

@@ -74,6 +74,9 @@ export const ALERT_PATTERNS = {
   ZONA_TRUCKING_LLC_INVOICED_300_OVER_TOTAL_CHARGE:
     "ZONA TRUCKING LLC invoiced $300.00 over total charge.",
 
+  ZONA_TRUCKING_LLC_INVOICED_700_OVER_TOTAL_CHARGE:
+    "ZONA TRUCKING LLC invoiced $700.00 over total charge.",
+
 };
 
 

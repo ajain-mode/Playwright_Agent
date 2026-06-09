@@ -52,6 +52,8 @@ export default class ViewLoadPage {
   private readonly carrierTotalValue_LOC: Locator;
   private readonly viewLoadPage_LOC: Locator;
   private readonly sourceSystemIDValue_LOC: Locator;
+  private readonly sourceSystemValue_LOC: Locator;
+  private readonly createdByValue_LOC: Locator;
   private readonly viewHistory_LOC: Locator;
   private readonly historyHeader_LOC: string;
   private readonly historyHeader: (page?: Page) => Locator;
@@ -216,6 +218,12 @@ export default class ViewLoadPage {
     this.customerTotalValue_LOC = page.locator("(//table[@id='financial-details']/tbody)[1]//td[@class='customer_name']/following-sibling::td[1]");
     this.viewLoadPage_LOC = page.locator("//td[@class='hedbar0 centered-flex']");
     this.sourceSystemIDValue_LOC = page.locator("//td[@class='fn' and normalize-space(.)='Source System ID']/following-sibling::td[1]");
+    this.sourceSystemValue_LOC = page.locator(
+      "//td[@class='fn' and normalize-space(.)='Source System']/following-sibling::td[1]",
+    );
+    this.createdByValue_LOC = page.locator(
+      "//td[@class='fn' and normalize-space(.)='Created By']/following-sibling::td[1]",
+    );
     this.viewHistory_LOC = this.page.locator("//input[@value='View History']");
     this.historyHeader_LOC = "//font[contains(normalize-space(.), 'History of Edits for Load')]";
     this.historyHeader = (page: Page = this.page) => page.locator(this.historyHeader_LOC);
@@ -1296,6 +1304,46 @@ export default class ViewLoadPage {
     const sourceSystemID = await this.sourceSystemIDValue_LOC.textContent();
     console.log(`Source System ID: ${sourceSystemID}`);
     return sourceSystemID?.trim() || "";
+  }
+
+  /**
+   * Gets the Source System value from View Load.
+   * @author AI Agent
+   * @created 2026-06-01
+   * @returns Source System label (e.g. TRITAN)
+   */
+  async getSourceSystemValue(): Promise<string> {
+    await this.sourceSystemValue_LOC.waitFor({ state: "visible", timeout: WAIT.MID });
+    const value = (await this.sourceSystemValue_LOC.textContent())?.trim() || "";
+    console.log(`Source System: ${value}`);
+    return value;
+  }
+
+  /**
+   * Gets the Created By value from View Load.
+   * @author AI Agent
+   * @created 2026-06-01
+   */
+  async getCreatedByValue(): Promise<string> {
+    await this.createdByValue_LOC.waitFor({ state: "visible", timeout: WAIT.MID });
+    const value = (await this.createdByValue_LOC.textContent())?.trim() || "";
+    console.log(`Created By: ${value}`);
+    return value;
+  }
+
+  /** Reads visible load status text from the status control. */
+  async getLoadStatusText(): Promise<string> {
+    await this.page.waitForLoadState("domcontentloaded");
+    const statusLoc = this.page.locator("#loadsh_status, select[name='loadsh_status']").first();
+    if (await statusLoc.count()) {
+      const tag = await statusLoc.evaluate((el) => el.tagName.toLowerCase());
+      if (tag === "select") {
+        const selected = statusLoc.locator("option:checked");
+        return ((await selected.textContent()) || "").trim().toUpperCase();
+      }
+      return ((await statusLoc.textContent()) || "").trim().toUpperCase();
+    }
+    return "";
   }
 
   /**
