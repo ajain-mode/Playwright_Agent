@@ -3,6 +3,7 @@ import { MultiAppManager } from "@utils/dfbUtils/MultiAppManager";
 import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
 import { PageManager } from "@utils/PageManager";
+import type { AgentAuthRolesExpectation } from "@pages/admin/agent/AgentInfoPage";
 import commonReusables from "@utils/commonReusables";
 
 const testcaseID = "BT-67876";
@@ -36,7 +37,7 @@ test.describe.serial(
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
-        await test.step("Step 1 [67876 1-5]: Login to BTMS", async () => {
+        await test.step("Step 1 [67876 1-5]: Login to BTMS as admin (global user)", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
@@ -50,7 +51,7 @@ test.describe.serial(
           await pages.officePage.ensureInvoiceProcess(INVOICE_PROCESS.CENTRAL);
         });
 
-        await test.step("Step 3 [67876 15-19]: Agent Search MATT BROWN — verify MANAGER and agent roles", async () => {
+        await test.step("Step 3 [67876 15-17]: Agent Search MATT BROWN — open Agent Info page", async () => {
           await pages.basePage.navigateToBaseUrl();
           await pages.basePage.hoverOverHeaderByText(HEADERS.ADMIN);
           await pages.basePage.clickSubHeaderByText(ADMIN_SUB_MENU.AGENT_SEARCH);
@@ -58,20 +59,67 @@ test.describe.serial(
           await pages.agentSearchPage.clickOnSearchButton();
           await pages.agentSearchPage.selectAgentByName(AGENT_SEARCH_NAME);
           await commonReusables.waitForPageStable(sharedPage);
+        });
 
+        await test.step("Step 3 [67876 18]: Verify Auth Level is MANAGER", async () => {
           const authLevel = await pages.agentInfoPage.getAuthLevel();
-          expect(authLevel, "Expected: Auth Level is MANAGER").toBe(AGENT_AUTH_LEVEL.MANAGER);
-
-          const rolesText = (await pages.agentInfoPage.getDisplayedUserRolesText()).toUpperCase();
-          expect(rolesText, "Expected: BTMS_USER role present").toContain(AGENT_USER_ROLES.BTMS_USER);
-          expect(rolesText, "Expected: PRINCIPAL role present").toContain(AGENT_USER_ROLES.PRINCIPAL);
-          expect(rolesText, "Expected: ADMIN role must not be present").not.toContain(
-            AGENT_USER_ROLES.ADMIN
-          );
-          expect(rolesText, "Expected: SYSTEM_ADMIN role must not be present").not.toContain(
-            AGENT_USER_ROLES.SYSTEM_ADMIN
+          expect.soft(authLevel, "CSV 18: Auth Level must be MANAGER").toBe(
+            AGENT_AUTH_LEVEL.MANAGER
           );
         });
+
+        const AGENT_AUTH_ROLES_EXPECTATION: AgentAuthRolesExpectation = {
+          authLevel: AGENT_AUTH_LEVEL.MANAGER,
+          requiredRoles: [
+            AGENT_USER_ROLES.BTMS_USER,
+            AGENT_USER_ROLES.PRINCIPAL,
+          ],
+          forbiddenRoles: [
+            AGENT_USER_ROLES.ADMIN,
+            AGENT_USER_ROLES.SYSTEM_ADMIN,
+          ],
+        };
+
+        await test.step(
+          "Step 3 [67876 19]: Verify user roles BTMS_USER, PRINCIPAL — not ADMIN, SYSTEM_ADMIN",
+          async () => {
+            await pages.agentInfoPage.validateDisplayedUserRoles({
+              requiredRoles: AGENT_AUTH_ROLES_EXPECTATION.requiredRoles,
+              forbiddenRoles: AGENT_AUTH_ROLES_EXPECTATION.forbiddenRoles,
+              soft: true,
+            });
+          }
+        );
+
+        await test.step(
+          "Step 3 [67876 20-23]: Skip or correct agent when 18-19 not met — Edit, roles, Save",
+          async () => {
+            const preconditionsMet = await pages.agentInfoPage.isAgentAuthAndRolesMet(
+              AGENT_AUTH_ROLES_EXPECTATION
+            );
+            if (preconditionsMet) {
+              pages.logger.info("Steps 18-19 met — skipping steps 21-23");
+              return;
+            }
+
+            pages.logger.info("Steps 18-19 not met — executing steps 21-23 (Edit, roles, Save)");
+            await pages.agentInfoPage.ensureAgentAuthAndRoles(
+              pages.agentEditPage,
+              AGENT_AUTH_ROLES_EXPECTATION,
+              { pages, loginUser: userSetup.globalUser },
+            );
+
+            const authLevel = await pages.agentInfoPage.getAuthLevel();
+            expect(authLevel, "CSV 18: Auth Level must be MANAGER after correction").toBe(
+              AGENT_AUTH_LEVEL.MANAGER
+            );
+
+            await pages.agentInfoPage.validateDisplayedUserRoles({
+              requiredRoles: AGENT_AUTH_ROLES_EXPECTATION.requiredRoles,
+              forbiddenRoles: AGENT_AUTH_ROLES_EXPECTATION.forbiddenRoles,
+            });
+          }
+        );
 
         await test.step("Step 4 [67876 24-26]: Switch user to MATT BROWN (NY OFFIC) -1752", async () => {
           await pages.adminPage.hoverAndClickAdminMenu();

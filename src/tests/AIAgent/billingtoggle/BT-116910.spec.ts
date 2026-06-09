@@ -87,7 +87,7 @@ test.describe.serial(
           expect(rowCount, "Expected: Billing Queue rows displayed").toBeGreaterThan(0);
 
           await pages.billingQueuePage.expectColumnDatesWithinRange(
-            [new RegExp(BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE, "i")],
+            [BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE],
             initialToggleDateRange.start,
             initialToggleDateRange.end
           );
@@ -116,7 +116,7 @@ test.describe.serial(
 
         await test.step("Step 9 [Expected after 116910 12]: Records within Agent Toggle Date range", async () => {
           await pages.billingQueuePage.expectColumnDatesWithinRange(
-            [new RegExp(BILLING_QUEUE_COLUMNS.AGENT_TOGGLE_DATE, "i"), /CURRENT TOGGLE DATE/i],
+            [BILLING_QUEUE_COLUMNS.AGENT_TOGGLE_DATE, BILLING_QUEUE_COLUMNS.CURRENT_TOGGLE_DATE],
             agentToggleDateRange.start,
             agentToggleDateRange.end
           );

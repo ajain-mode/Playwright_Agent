@@ -65,7 +65,7 @@ test.describe.serial(
           expect(rowCount, "Expected: Billing Queue rows displayed").toBeGreaterThan(0);
 
           const initialToggleValues = await pages.billingQueuePage.getColumnCellValues([
-            new RegExp(BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE, "i"),
+            BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE,
           ]);
           expect(
             initialToggleValues.length,
@@ -73,8 +73,8 @@ test.describe.serial(
           ).toBeGreaterThan(0);
 
           const currentOrAgentToggleValues = await pages.billingQueuePage.getColumnCellValues([
-            new RegExp(BILLING_QUEUE_COLUMNS.AGENT_TOGGLE_DATE, "i"),
-            /CURRENT TOGGLE DATE/i,
+            BILLING_QUEUE_COLUMNS.AGENT_TOGGLE_DATE,
+            BILLING_QUEUE_COLUMNS.CURRENT_TOGGLE_DATE,
           ]);
           expect(
             currentOrAgentToggleValues.length,
@@ -82,7 +82,7 @@ test.describe.serial(
           ).toBeGreaterThan(0);
 
           const waitingOnBillingCountValues = await pages.billingQueuePage.getColumnCellValues([
-            new RegExp(BILLING_QUEUE_COLUMNS.WAITING_ON_BILLING_COUNT, "i"),
+            BILLING_QUEUE_COLUMNS.WAITING_ON_BILLING_COUNT,
           ]);
           expect(
             waitingOnBillingCountValues.length,

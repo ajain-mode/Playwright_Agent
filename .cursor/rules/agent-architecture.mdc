@@ -108,3 +108,69 @@ Never hardcode expected values in assertions. Use:
 ## POM Method JSDoc
 
 Every new POM method must include: `@author AI Agent`, `@created YYYY-MM-DD`, `@param` (if applicable), `@returns` (if applicable), and locator source reference.
+
+## Report grid locators (Billing Queue / Load Search)
+
+DataTables report grids (`report_sizzle.phtml`) share `#example_wrapper table#example`. **Never** use page-wide `table.table`, `table.report-table`, `table` + `.first()`, `table tbody tr`, or `thead th` — they race hydration and leak rows/headers from clone tables.
+
+```typescript
+// CORRECT — scoped grid (BillingQueuePage, AllLoadsSearchPage)
+this.resultsTable_LOC = this.page.locator("#example_wrapper table#example");
+this.tableHeaders_LOC = this.resultsTable_LOC.locator("thead > tr > th");
+this.resultsDataRows_LOC = this.resultsTable_LOC.locator("tbody > tr[role='row']"); // Billing Queue
+// Load Search: resultsTable.locator("tbody > tr.dnd-moved")
+```
+
+`PromptsConfig.GENERATION_RULES.REPORT_GRID_LOCATORS` and `REFERENCE_PATTERNS.REPORT_GRID_LOCATORS`.
+
+## Report column labels (string constants, not RegExp)
+
+Column lookup uses **exact UI label strings** from `BILLING_QUEUE_COLUMNS` / `LOAD_SEARCH_COLUMNS`. POM `getColumnIndex(string[])` / `getColumnCellValues(string[])` normalizes whitespace and compares case-insensitively.
+
+```typescript
+// CORRECT
+await pages.billingQueuePage.getColumnCellValues([BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE]);
+await pages.billingQueuePage.getColumnCellValues([
+  BILLING_QUEUE_COLUMNS.AGENT_TOGGLE_DATE,
+  BILLING_QUEUE_COLUMNS.CURRENT_TOGGLE_DATE,
+]);
+
+// WRONG — SpecValidator SAN-026/027/028 + guardrail noRegExpReportColumnLabels
+getColumnCellValues([new RegExp(BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE, "i")]);
+```
+
+Reference specs: `BT-116909.spec.ts`, `BT-116910.spec.ts`. Snippet: `REFERENCE_PATTERNS.BILLING_QUEUE_COLUMN_LOOKUP`.
+
+## REGEX_PATTERNS module (`src/utils/regexPatterns.ts`)
+
+Date/datetime parsing and billing-block label extraction use `REGEX_PATTERNS` — **never** inline regex in POM parse helpers.
+
+| Key | Use |
+|-----|-----|
+| `DATE.US_REPORT_DATETIME` | Billing Queue report cell dates |
+| `DATE.US_FILTER_DATE` | Datepicker filter inputs |
+| `BILLING_TOGGLE.INITIAL_TOGGLE_DATE_LABEL` | `#finance_issues_block` text |
+| `TEXT.WHITESPACE_RUNS` | Header/cell normalization |
+
+`PromptsConfig.GENERATION_RULES.REGEX_PATTERNS_MODULE` · `REFERENCE_PATTERNS.REGEX_PATTERNS_USAGE`.
+
+## View History User — exact SYSTEM assertion
+
+System-generated audit entries write the fixed literal `"SYSTEM"`. Use exact equality with `VIEW_HISTORY_USER.SYSTEM` — not `toMatch(/system/i)`.
+
+```typescript
+expect(row.user).toBe(VIEW_HISTORY_USER.SYSTEM);
+```
+
+Enforced: `SAN-029`, guardrail `noFuzzyViewHistoryUserAssertion`. Reference: `BT-97807.spec.ts`.
+
+## Chained widget locators
+
+Declare container id once; chain children off it (single source of truth, scoped to parent).
+
+```typescript
+this.statusMultiselectContainer_LOC = this.page.locator("#search_status_magic");
+this.statusMultiselectTrigger_LOC = this.statusMultiselectContainer_LOC.locator(".ms-trigger");
+```
+
+`GENERATION_RULES.CHAINED_COMPONENT_LOCATORS` · `REFERENCE_PATTERNS.CHAINED_WIDGET_LOCATORS`.

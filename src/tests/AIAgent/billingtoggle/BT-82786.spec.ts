@@ -118,10 +118,14 @@ test.describe.serial(
           await tritanPages.shipmentActivitiesPage.expectActivityStatusComplete("BTMS Extract");
         });
 
-        await test.step("Steps 26-29 [82786 26-29 + Expected]: BTMS login — poll shipment, validate load fields", async () => {
+        await test.step(
+          "Steps 26-29 [82786 26-29 + Expected]: BTMS login, billing toggle user — poll shipment, validate load fields",
+          async () => {
           btmsPage = await context.newPage();
           btmsPages = new PageManager(btmsPage);
           await btmsPages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
+          await btmsPages.homePage.clickSwitchAccountButton();
+          await btmsPages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
           await btmsPages.basePage.refreshAndSearchFromMainHeader(shipmentId);
 
           await btmsPages.viewLoadPage.validateLoadStatus(LOAD_STATUS.DELIVERED);

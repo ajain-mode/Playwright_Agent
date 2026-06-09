@@ -77,6 +77,8 @@ export class GlobalConstants {
   static readonly BILLING_QUEUE_COLUMNS = {
     INITIAL_TOGGLE_DATE: "INITIAL TOGGLE DATE",
     AGENT_TOGGLE_DATE: "AGENT TOGGLE DATE",
+    /** Alternate Billing Queue grid header when Agent Toggle Date is labeled Current Toggle Date. */
+    CURRENT_TOGGLE_DATE: "CURRENT TOGGLE DATE",
     WAITING_ON_BILLING_COUNT: "WAITING ON BILLING COUNT",
   } as const;
 
@@ -592,6 +594,18 @@ export class GlobalConstants {
     PRINCIPAL: "PRINCIPAL",
   } as const;
 
+  /**
+   * BTMS Agent Info USER ROLES multiselect display labels (view/edit agent form).
+   * @author AI Agent
+   * @created 2026-06-09
+   */
+  static readonly AGENT_USER_ROLE_DISPLAY = {
+    BTMS_USER: "BTMS User",
+    PRINCIPAL: "Principal Admin",
+    ADMIN: "Admin",
+    SYSTEM_ADMIN: "System Admin User",
+  } as const;
+
   /** Payables slider on View Billing (distinct from Billing Issues Waiting On toggle). */
   static readonly PAYABLES_TOGGLE_VALUE = {
     PAYABLES: "Payables",
@@ -688,6 +702,16 @@ export class GlobalConstants {
   static readonly BILLING_ISSUE_TAGS = {
     NOT_DELIV_FINAL: "Not Deliv. Final",
     PRICE_DIFFERENCE: "Price Difference",
+  } as const;
+
+  /**
+   * User column values in Billing Issues View History popup — billing.php `table.hist`.
+   * System-generated audit entries use the fixed literal "SYSTEM".
+   * @author AI Agent
+   * @created 2026-06-09
+   */
+  static readonly VIEW_HISTORY_USER = {
+    SYSTEM: "SYSTEM",
   } as const;
 
   static readonly CARRIER_PAYABLE_STATUS = {
@@ -810,6 +834,7 @@ declare global {
   const DATE_PRESET: typeof GlobalConstants.DATE_PRESET;
   const USER_ROLES: typeof GlobalConstants.USER_ROLES;
   const AGENT_USER_ROLES: typeof GlobalConstants.AGENT_USER_ROLES;
+  const AGENT_USER_ROLE_DISPLAY: typeof GlobalConstants.AGENT_USER_ROLE_DISPLAY;
   const AGENT_AUTH_LEVEL: typeof GlobalConstants.AGENT_AUTH_LEVEL;
   const AGENT_AUTH_ALLOWED: typeof GlobalConstants.AGENT_AUTH_ALLOWED;
   const CARRIER_TABS: typeof GlobalConstants.CARRIER_TABS;
@@ -825,6 +850,7 @@ declare global {
   const AUTOPAY_STATUS: typeof GlobalConstants.AUTOPAY_STATUS;
   const FINANCE_MESSAGES: typeof GlobalConstants.FINANCE_MESSAGES;
   const BILLING_ISSUE_TAGS: typeof GlobalConstants.BILLING_ISSUE_TAGS;
+  const VIEW_HISTORY_USER: typeof GlobalConstants.VIEW_HISTORY_USER;
   const CARRIER_PAYABLE_STATUS: typeof GlobalConstants.CARRIER_PAYABLE_STATUS;
   const DEFAULT_ITEM_DIMENSIONS: typeof GlobalConstants.DEFAULT_ITEM_DIMENSIONS;
   const MILEAGE_ENGINE: typeof GlobalConstants.MILEAGE_ENGINE;
@@ -899,6 +925,7 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).TOGGLE_OPTIONS = GlobalConstants.TOGGLE_OPTIONS;
   (globalThis as any).USER_ROLES = GlobalConstants.USER_ROLES;
   (globalThis as any).AGENT_USER_ROLES = GlobalConstants.AGENT_USER_ROLES;
+  (globalThis as any).AGENT_USER_ROLE_DISPLAY = GlobalConstants.AGENT_USER_ROLE_DISPLAY;
   (globalThis as any).PAYABLES_TOGGLE_VALUE = GlobalConstants.PAYABLES_TOGGLE_VALUE;
   (globalThis as any).SOURCE_SYSTEM = GlobalConstants.SOURCE_SYSTEM;
   (globalThis as any).LOAD_CREATED_BY = GlobalConstants.LOAD_CREATED_BY;
@@ -912,6 +939,7 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).AUTOPAY_STATUS = GlobalConstants.AUTOPAY_STATUS;
   (globalThis as any).FINANCE_MESSAGES = GlobalConstants.FINANCE_MESSAGES;
   (globalThis as any).BILLING_ISSUE_TAGS = GlobalConstants.BILLING_ISSUE_TAGS;
+  (globalThis as any).VIEW_HISTORY_USER = GlobalConstants.VIEW_HISTORY_USER;
   (globalThis as any).CARRIER_PAYABLE_STATUS = GlobalConstants.CARRIER_PAYABLE_STATUS;
   (globalThis as any).DEFAULT_ITEM_DIMENSIONS = GlobalConstants.DEFAULT_ITEM_DIMENSIONS;
   (globalThis as any).MILEAGE_ENGINE = GlobalConstants.MILEAGE_ENGINE;

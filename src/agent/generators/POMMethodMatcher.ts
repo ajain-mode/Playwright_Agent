@@ -64,7 +64,8 @@ const PAGE_CONTEXT_TO_CLASSES: Record<string, string[]> = {
   agentaccounts: ['AgentAccountsPage', 'HomePage'],
   agentsearch:   ['AgentSearchPage', 'AdminPage'],
   // ── Finance ─────────────────────────────────────────────────────────
-  finance: ['FinancePage', 'AccountsPayablePage'],
+  finance: ['FinancePage', 'AccountsPayablePage', 'BillingQueuePage'],
+  billingqueue: ['BillingQueuePage', 'FinancePage', 'BasePage'],
   // ── TNX / DME ───────────────────────────────────────────────────────
   tnx: ['TNXLandingPage', 'TNXRepLandingPage'],
   dme: ['DMEDashboardPage'],

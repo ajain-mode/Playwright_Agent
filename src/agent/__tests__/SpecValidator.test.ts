@@ -293,6 +293,38 @@ test.describe('SpecValidator.sanitize()', () => {
     });
   });
 
+  test.describe('SAN-026 through SAN-029: billing queue / view history patterns', () => {
+    test('SAN-026 replaces RegExp BILLING_QUEUE_COLUMNS with plain constant', () => {
+      const input =
+        'getColumnCellValues([new RegExp(BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE, "i")]);';
+      const { code, appliedRules } = validator.sanitize(input);
+      expect(code).toContain('BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE');
+      expect(code).not.toContain('new RegExp');
+      expect(appliedRules).toContain('SAN-026');
+    });
+
+    test('SAN-027 replaces RegExp LOAD_SEARCH_COLUMNS with plain constant', () => {
+      const input = 'getColumnIndex([new RegExp(LOAD_SEARCH_COLUMNS.BILLING_ACTIVITY, "i")]);';
+      const { code, appliedRules } = validator.sanitize(input);
+      expect(code).toContain('LOAD_SEARCH_COLUMNS.BILLING_ACTIVITY');
+      expect(appliedRules).toContain('SAN-027');
+    });
+
+    test('SAN-028 replaces /CURRENT TOGGLE DATE/i with named constant', () => {
+      const input = 'getColumnCellValues([/CURRENT TOGGLE DATE/i]);';
+      const { code, appliedRules } = validator.sanitize(input);
+      expect(code).toContain('BILLING_QUEUE_COLUMNS.CURRENT_TOGGLE_DATE');
+      expect(appliedRules).toContain('SAN-028');
+    });
+
+    test('SAN-029 replaces fuzzy View History user match with VIEW_HISTORY_USER.SYSTEM', () => {
+      const input = 'expect(row.user, "Expected: User as System").toMatch(/system/i);';
+      const { code, appliedRules } = validator.sanitize(input);
+      expect(code).toContain('.toBe(VIEW_HISTORY_USER.SYSTEM)');
+      expect(appliedRules).toContain('SAN-029');
+    });
+  });
+
   test.describe('Multiple sanitizer rules in one pass', () => {
     test('should apply multiple rules when multiple issues exist', () => {
       const input = [

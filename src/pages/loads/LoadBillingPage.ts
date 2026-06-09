@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from "@playwright/test";
 import commonReusables from "@utils/commonReusables";
+import { REGEX_PATTERNS } from "@utils/regexPatterns";
 /** 
  * Load Billing Page Class
  * Handles all operations related to the billing page of a load.
@@ -617,7 +618,7 @@ class LoadBillingPage {
     async getInitialToggleDateDisplayValue(): Promise<string> {
         await this.scrollBillingIssuesBlockIntoView();
         const blockText = (await this.financeIssuesBlock_LOC.innerText()) || "";
-        const match = blockText.match(/Initial Toggle Date:\s*([^\n]+)/i);
+        const match = blockText.match(REGEX_PATTERNS.BILLING_TOGGLE.INITIAL_TOGGLE_DATE_LABEL);
         return (match?.[1] || "").trim();
     }
 
@@ -629,7 +630,7 @@ class LoadBillingPage {
     async getCurrentToggleDateDisplayValue(): Promise<string> {
         await this.scrollBillingIssuesBlockIntoView();
         const blockText = (await this.financeIssuesBlock_LOC.innerText()) || "";
-        const match = blockText.match(/Current Toggle Date:\s*([^\n]+)/i);
+        const match = blockText.match(REGEX_PATTERNS.BILLING_TOGGLE.CURRENT_TOGGLE_DATE_LABEL);
         return (match?.[1] || "").trim();
     }
 

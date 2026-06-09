@@ -262,6 +262,13 @@ Key guardrails enforced by `SpecValidator` (Agent 3) and `PromptsConfig.ts`:
 | `noEvaluateDomGuessing` | `page.evaluate()` with DOM querySelector — use Playwright methods |
 | `noHardcodedMessagesInAssertions` | Hardcoded message strings in `.toBe()`, `.toHaveText()`, `selectOption({label:})` — use global constants (`PAYABLE_TOGGLE_VALUE`, `CARRIER_PAYABLE_STATUS`, `SUCCESS_MESSAGES`, `DOCUMENT_TYPE`, etc.) |
 | `CAT-BT-001` | Billing toggle spec missing `USER_ROLES.BILLINGTOGGLE_USER` switch after login — auto-fixes by injecting switch code |
+| `SAN-026` / `SAN-027` | `new RegExp(BILLING_QUEUE_COLUMNS.*)` / `LOAD_SEARCH_COLUMNS.*` → plain string constants for `getColumnCellValues` |
+| `SAN-028` | Inline `/CURRENT TOGGLE DATE/i` → `BILLING_QUEUE_COLUMNS.CURRENT_TOGGLE_DATE` |
+| `SAN-029` | View History `toMatch(/system/i)` → `toBe(VIEW_HISTORY_USER.SYSTEM)` |
+| `noRegExpReportColumnLabels` | Generation guardrail — report column headers use `BILLING_QUEUE_COLUMNS` / `LOAD_SEARCH_COLUMNS` strings |
+| `noFuzzyViewHistoryUserAssertion` | Generation guardrail — exact `VIEW_HISTORY_USER.SYSTEM`, not fuzzy regex |
+| `REPORT_GRID_LOCATORS` | POM DataTables grids must use `#example_wrapper table#example` with chained thead/tbody (not page-wide `table`) |
+| `REGEX_PATTERNS_MODULE` | Date/label parsing regex lives in `@utils/regexPatterns` — no inline regex in POM helpers |
 
 ### Global Constants
 
