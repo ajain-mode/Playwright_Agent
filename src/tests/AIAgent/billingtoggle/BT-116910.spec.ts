@@ -32,7 +32,7 @@ test.describe.serial(
 
     test(
       "Case Id: BT-116910 - Verify Billing Queue filters for Initial and Agent Toggle Date",
-      { tag: "@AIAgent,@aiteam,@billingtoggle,@loadsearch" },
+      { tag: "@aiagent,@at_billingtoggle" },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 

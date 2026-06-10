@@ -37,7 +37,7 @@ test.describe.serial(
 
     test(
       "Case Id: BT-67847 - Validating the scenario when the LTL load is not in Delivered Final status and paperwork received for the load with price difference",
-      { tag: "@AIAgent,@aiteam,@billingtoggle" },
+      { tag: "@aiteam,@aiagent,@at_billingtoggle" },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 

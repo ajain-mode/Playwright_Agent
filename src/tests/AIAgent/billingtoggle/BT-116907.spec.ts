@@ -31,7 +31,7 @@ test.describe.serial(
 
     test(
       "Case Id: BT-116907 - Validate Initial and Current Toggle Date display in BTMS UI",
-      { tag: "@AIAgent,@aiteam,@billingtoggle,@loadsearch" },
+      { tag: "@aiteam,@aiagent,@at_billingtoggle,@loadsearch" },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
