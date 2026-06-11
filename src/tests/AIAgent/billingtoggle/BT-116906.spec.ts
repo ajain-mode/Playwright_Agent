@@ -7,6 +7,7 @@ import commonReusables from "@utils/commonReusables";
 import {
   BtmsDbClient,
   formatDbToggleDateForLog,
+  isUiToggleDateDisplayPopulated,
   uiToggleDateMatchesDb,
 } from "@utils/db/BtmsDbClient";
 
@@ -45,9 +46,11 @@ test.describe.serial(
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
-        await test.step("Step 1 [116906 1-5]: Login to BTMS", async () => {
+        await test.step("Step 1 [116906 1-5]: Login to BTMS and switch to billing toggle user", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
           await commonReusables.waitForAllLoadStates(sharedPage);
+          await pages.homePage.clickSwitchAccountButton();
+          await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
         });
 
         await test.step("Step 2 [116906 6]: Hover Loads and click Search", async () => {
@@ -77,8 +80,14 @@ test.describe.serial(
           async () => {
             baselineUiInitial = await pages.loadBillingPage.getInitialToggleDateDisplayValue();
             baselineUiCurrent = await pages.loadBillingPage.getCurrentToggleDateDisplayValue();
-            expect(baselineUiInitial, "Expected: Initial Toggle Date visible in UI").toBeTruthy();
-            expect(baselineUiCurrent, "Expected: Current Toggle Date visible in UI").toBeTruthy();
+            expect(
+              isUiToggleDateDisplayPopulated(baselineUiInitial, TOGGLE_DATE_DISPLAY.NOT_APPLICABLE),
+              `Expected: Initial Toggle Date MM/DD/YYYY HH:mm:ss in UI (got "${baselineUiInitial}")`
+            ).toBe(true);
+            expect(
+              isUiToggleDateDisplayPopulated(baselineUiCurrent, TOGGLE_DATE_DISPLAY.NOT_APPLICABLE),
+              `Expected: Current Toggle Date MM/DD/YYYY HH:mm:ss in UI (got "${baselineUiCurrent}")`
+            ).toBe(true);
           }
         );
 
@@ -129,6 +138,10 @@ test.describe.serial(
             expect(uiCurrent, "Expected: Current Toggle Date updated after Billing move").not.toBe(
               baselineUiCurrent
             );
+            expect(
+              isUiToggleDateDisplayPopulated(uiCurrent, TOGGLE_DATE_DISPLAY.NOT_APPLICABLE),
+              `Expected: Current Toggle Date MM/DD/YYYY HH:mm:ss after Billing move (got "${uiCurrent}")`
+            ).toBe(true);
 
             const db = new BtmsDbClient();
             await db.connect();
@@ -176,6 +189,10 @@ test.describe.serial(
             expect(uiCurrent, "Expected: Current Toggle Date updated after Agent move").not.toBe(
               uiCurrentBefore
             );
+            expect(
+              isUiToggleDateDisplayPopulated(uiCurrent, TOGGLE_DATE_DISPLAY.NOT_APPLICABLE),
+              `Expected: Current Toggle Date MM/DD/YYYY HH:mm:ss after Agent move (got "${uiCurrent}")`
+            ).toBe(true);
 
             const db = new BtmsDbClient();
             await db.connect();

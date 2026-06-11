@@ -16,6 +16,13 @@ test.describe("REGEX_PATTERNS", () => {
     expect(withTime![6]).toBe("45");
   });
 
+  test("US_BILLING_TOGGLE_DATETIME requires mm/dd/yyyy hh:mm:ss", () => {
+    expect("06/03/2026 14:30:45".match(REGEX_PATTERNS.DATE.US_BILLING_TOGGLE_DATETIME)).not.toBeNull();
+    expect("06/01/2026 10:15".match(REGEX_PATTERNS.DATE.US_BILLING_TOGGLE_DATETIME)).toBeNull();
+    expect("N/A".match(REGEX_PATTERNS.DATE.US_BILLING_TOGGLE_DATETIME)).toBeNull();
+    expect("".match(REGEX_PATTERNS.DATE.US_BILLING_TOGGLE_DATETIME)).toBeNull();
+  });
+
   test("US_FILTER_DATE requires anchored mm/dd/yyyy", () => {
     expect("6/3/2026".match(REGEX_PATTERNS.DATE.US_FILTER_DATE)).not.toBeNull();
     expect("6/3/2026 14:30".match(REGEX_PATTERNS.DATE.US_FILTER_DATE)).toBeNull();

@@ -1,8 +1,10 @@
-import fs from "fs";
 import net from "net";
 import mysql, { Connection, RowDataPacket } from "mysql2/promise";
 import moment from "moment-timezone";
 import { Client as SshClient, ConnectConfig } from "ssh2";
+import loginSetup from "@loginHelpers/loginSetup";
+import { resolveSshPrivateKeyFromEnv } from "@utils/db/sshKeyUtils";
+import { REGEX_PATTERNS } from "@utils/regexPatterns";
 
 /** Row shape for loadsh toggle date columns — billing.php UI maps Current → last_finance_contact_date. */
 export interface LoadToggleDatesRow {
@@ -20,7 +22,7 @@ interface SshTunnelHandle {
 
 /**
  * Read-only MySQL client for Stage BTMS (`sunteck_fats.loadsh`).
- * Matches MySQL Workbench "BTMS Stage" — SSH tunnel via bastion when BTMS_SSH_HOST is set.
+ * Hosts come from loginHelpers/config.json; secrets from .env (BTMS_DB_PASSWORD, BTMS_SSH_KEY).
  * @author AI Agent
  * @created 2026-06-04
  */
@@ -29,7 +31,7 @@ export class BtmsDbClient {
   private sshTunnel: SshTunnelHandle | null = null;
 
   /**
-   * Opens connection using BTMS_DB_* and optional BTMS_SSH_* (Workbench SSH tunnel).
+   * Opens connection via SSH bastion (config.json) + MySQL credentials (.env).
    * @author AI Agent
    * @created 2026-06-04
    */
@@ -39,11 +41,15 @@ export class BtmsDbClient {
       throw new Error("BTMS_DB_PASSWORD is required for DB validation tests");
     }
 
-    const remoteHost = process.env.BTMS_DB_HOST || "btms.db.stage.modetrans.com";
-    const remotePort = Number(process.env.BTMS_DB_PORT || 3306);
-    const user = process.env.BTMS_DB_USER || "readonly";
-    const database = process.env.BTMS_DB_SCHEMA || "sunteck_fats";
-    const sshHost = process.env.BTMS_SSH_HOST;
+    const remoteHost = loginSetup.dbHost;
+    const remotePort = loginSetup.dbPort;
+    const user = loginSetup.dbUser;
+    const database = loginSetup.dbSchema;
+    const sshHost = loginSetup.sshHost;
+
+    if (!remoteHost) {
+      throw new Error("database.dbHost is not configured in loginHelpers/config.json");
+    }
 
     let mysqlHost = remoteHost;
     let mysqlPort = remotePort;
@@ -142,21 +148,15 @@ export class BtmsDbClient {
     remoteHost: string,
     remotePort: number
   ): Promise<SshTunnelHandle> {
-    const sshUser = process.env.BTMS_SSH_USER || "bastion";
-    const sshPort = Number(process.env.BTMS_SSH_PORT || 22);
-    const keyPath = process.env.BTMS_SSH_KEY_PATH;
-
-    if (!keyPath || !fs.existsSync(keyPath)) {
-      throw new Error(
-        `BTMS_SSH_KEY_PATH must point to an existing private key (Workbench: ${keyPath || "unset"})`
-      );
-    }
+    const sshUser = loginSetup.sshUser;
+    const sshPort = loginSetup.sshPort;
+    const privateKey = resolveSshPrivateKeyFromEnv();
 
     const sshConfig: ConnectConfig = {
       host: sshHost,
       port: sshPort,
       username: sshUser,
-      privateKey: fs.readFileSync(keyPath),
+      privateKey,
     };
 
     const sshPassword = process.env.BTMS_SSH_PASSWORD;
@@ -211,6 +211,22 @@ export class BtmsDbClient {
  */
 export function isDbToggleDateEmpty(value: Date | null | undefined): boolean {
   return value == null;
+}
+
+/**
+ * True when View Billing toggle date text is a populated MM/DD/YYYY HH:mm:ss value (not N/A, blank, or malformed).
+ * @author AI Agent
+ * @created 2026-06-11
+ */
+export function isUiToggleDateDisplayPopulated(
+  uiDisplay: string,
+  notApplicableLabel = "N/A"
+): boolean {
+  const ui = (uiDisplay || "").trim();
+  if (!ui || ui.toUpperCase() === notApplicableLabel.toUpperCase()) {
+    return false;
+  }
+  return REGEX_PATTERNS.DATE.US_BILLING_TOGGLE_DATETIME.test(ui);
 }
 
 /**

@@ -30,6 +30,7 @@ test.describe.serial(
         userSetup.tritanAdminCustomer,
         userSetup.tritanAdminCustomerPassword,
       );
+      await commonReusables.waitForPageStable(tritanPage, { timeout: WAIT.XXLARGE });
     });
 
     test.afterAll(async () => {
@@ -42,11 +43,8 @@ test.describe.serial(
       async () => {
         test.setTimeout(WAIT.XXLARGE * 8);
 
-        await test.step("Steps 1-3 [82786 1-3]: Login to Tritan", async () => {
-          await tritanPages.tritanDashboardPage.verifyDashboardPageLoaded();
-        });
-
-        await test.step("Steps 4-6 [82786 4-6]: Company → Expand → Goodyear customer", async () => {
+        await test.step("Steps 1-6 [82786 1-6]: Login confirmed — Company → Expand → Goodyear customer", async () => {
+          await commonReusables.waitForPageStable(tritanPage, { timeout: WAIT.XXLARGE });
           await tritanPages.tritanDashboardPage.clickOnCompanyButton();
           await tritanPages.tritanCompanyPage.clickOnExpandAllButton();
           await tritanPages.tritanCompanyPage.selectCustomerByName(testData.customerName);
@@ -55,8 +53,7 @@ test.describe.serial(
         await test.step(
           "Steps 7-10 [82786 7-10]: Shipment Template LTL TEST SHORT PAY LTL ESTES — Save shipment",
           async () => {
-            await tritanPages.tritanDashboardPage.clickOnViewCell();
-            await tritanPages.tritanDashboardPage.clickOnShipmentTemplate();
+            await tritanPages.tritanDashboardPage.hoverViewAndClickShipmentTemplate();
             await tritanPages.listShipmentTemplatePage.clickOnLtlShipmentTemplateByName(
               testData["Customer Value"],
             );
@@ -64,11 +61,22 @@ test.describe.serial(
             shipmentId = await tritanPages.shipmentDetailsPage.getShipmentIdFromHeader();
             tritanPages.logger.info(`Shipment ID: ${shipmentId}`);
             expect(shipmentId).toBeTruthy();
+            await tritanPages.tritanDashboardPage.closeMdiWindowIfPresent("Intermodal");
+            await tritanPages.tritanDashboardPage.hoverOnShipmentTemplateFromHeader();
+            await tritanPages.tritanDashboardPage.clickOnDetailsTab();
+            await commonReusables.waitForPageStable(tritanPage, { timeout: WAIT.LARGE });
           }
         );
 
         await test.step("Steps 11-13 [82786 11-13]: Open load — add carrier invoice on Tritan", async () => {
+          await tritanPages.tritanDashboardPage.closeMdiWindowIfPresent("Intermodal");
+          await tritanPages.tritanDashboardPage.activateMdiTabContaining(shipmentId);
+          await tritanPages.tritanDashboardPage.hoverOnShipmentTemplateFromHeader();
+          await tritanPages.tritanDashboardPage.clickOnDetailsTab();
+          await commonReusables.waitForPageStable(tritanPage, { timeout: WAIT.LARGE });
           await tritanPages.shipmentDetailsPage.clickOnLoadNumber(shipmentId);
+          await commonReusables.waitForPageStable(tritanPage, { timeout: WAIT.XXLARGE });
+          await tritanPages.tritanLoadDetailsPage.clickOnDetailsTab();
           await tritanPages.tritanLoadDetailsPage.clickAddCarrierInvoicePlusIcon();
           ({ invoiceNumber: carrierInvoiceNumber, billTotal: carrierBillTotal } =
             await tritanPages.tritanLoadDetailsPage.getLatestCarrierInvoiceDetails());
@@ -94,11 +102,16 @@ test.describe.serial(
           await tritanPages.tritanAdminPage.clickPickupSaveButton();
           await statusAlert;
 
+          const dropStatusAlert = tritanPages.commonReusables.validateAlert(
+            tritanPage,
+            /Status message added/i,
+          );
           await tritanPages.tritanLoadPlanPage.setDropStatus(
             await commonReusables.getDate("today", "MM/DD/YYYY"),
             testData.consigneeEarliestTime,
           );
           await tritanPages.tritanLoadPlanPage.clickSaveButton();
+          await dropStatusAlert;
         });
 
         await test.step("Steps 19-22 [82786 19-22]: Shipment Delivered status on Shipment Details", async () => {
@@ -143,8 +156,9 @@ test.describe.serial(
             await btmsPages.viewLoadPage.clickViewBillingButton();
             await btmsPages.loadBillingPage.scrollBillingIssuesBlockIntoView();
 
-            invoiceOverage = 125;
-            btmsOverInvoiceAmount = (parseFloat(carrierBillTotal) + invoiceOverage).toFixed(2);
+            const overageIncrement = 125;
+            btmsOverInvoiceAmount = (parseFloat(carrierBillTotal) + overageIncrement).toFixed(2);
+            invoiceOverage = parseFloat(btmsOverInvoiceAmount) - parseFloat(carrierBillTotal);
 
             await btmsPages.loadBillingPage.clickAddNewCarrierInvoice();
             await btmsPages.loadBillingPage.enterCarrierInvoiceNumber(carrierInvoiceNumber);

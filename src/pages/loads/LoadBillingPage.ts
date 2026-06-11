@@ -645,8 +645,41 @@ class LoadBillingPage {
     }
 
     /**
+     * X position on `.slider-track` for Billing (1), Neutral (2), or Agent (3).
+     * bootstrap-slider `#waiting_on_select` / `#fi_waiting_on` — billing.php.
+     * @author AI Agent
+     * @created 2026-06-11
+     */
+    private billingToggleTrackSegmentClickX(trackWidth: number, rawValue: string): number {
+        const segmentRatio: Record<string, number> = {
+            "1": 0.12,
+            "2": 0.5,
+            "3": 0.88,
+        };
+        const ratio = segmentRatio[rawValue] ?? 0.5;
+        return Math.max(2, Math.min(trackWidth - 2, Math.round(trackWidth * ratio)));
+    }
+
+    /**
+     * Clicks a proportional segment on the billing issues slider track for the target raw value.
+     * @author AI Agent
+     * @created 2026-06-11
+     */
+    private async clickBillingToggleTrackSegment(
+        targetRawValue: string,
+        trackBox: { width: number; height: number }
+    ): Promise<void> {
+        const clickX = this.billingToggleTrackSegmentClickX(trackBox.width, targetRawValue);
+        const clickY = Math.max(1, Math.round(trackBox.height / 2));
+        await this.billingToggleTrack_LOC.click({ position: { x: clickX, y: clickY } });
+        await commonReusables.waitForPageStable(this.page);
+    }
+
+    /**
      * Sets Billing Issues "Waiting On" toggle to Billing, Agent, or Neutral.
      * Clicks slider track and validates hidden source field (`#fi_waiting_on`) reaches target raw value.
+     * Uses incremental handle-adjacent clicks first; falls back to proportional track segment when needed
+     * (e.g. Agent→Billing as agent user on Delivered Final loads — BT-67876 step 31).
      * @author AI Agent
      * @created 2026-05-06
      * @param expectedToggle - One of PAYABLE_TOGGLE_VALUE.BILLING/AGENT/NEUTRAL
@@ -677,6 +710,7 @@ class LoadBillingPage {
         }
 
         const maxMoves = 2;
+        let incrementalStalled = false;
         for (let move = 0; move < maxMoves && currentRawValue !== targetRawValue; move++) {
             const handleBox = await this.billingToggleHandle_LOC.boundingBox();
             if (!handleBox) {
@@ -696,7 +730,18 @@ class LoadBillingPage {
             const beforeRawValue = currentRawValue;
             currentRawValue = await this.billingToggleHiddenField_LOC.inputValue();
             if (currentRawValue === beforeRawValue) {
-                throw new Error(`Billing toggle did not move from raw value ${beforeRawValue}`);
+                incrementalStalled = true;
+                break;
+            }
+        }
+
+        if (currentRawValue !== targetRawValue) {
+            await this.clickBillingToggleTrackSegment(targetRawValue, trackBox);
+            currentRawValue = await this.billingToggleHiddenField_LOC.inputValue();
+            if (incrementalStalled && currentRawValue !== targetRawValue) {
+                throw new Error(
+                    `Billing toggle did not reach raw value ${targetRawValue} (stuck at ${currentRawValue})`
+                );
             }
         }
 
@@ -1101,21 +1146,27 @@ class LoadBillingPage {
 
     /**
      * Clicks the "Lumper" checkbox label in Missing Paperwork section.
-     * Waits for the AJAX-driven checkbox state to actually toggle.
+     * Caller is responsible for pre/post state; use {@link ensureLumperChecked} to check idempotently.
      * @author AI Agent
      * @created 28-Apr-2026
      */
     async clickLumperCheckbox(): Promise<void> {
         await this.lumperLabel_LOC.scrollIntoViewIfNeeded();
-        const wasChecked = await this.lumperCheckbox_LOC.isChecked();
         await this.lumperLabel_LOC.click();
         await commonReusables.waitForPageStable(this.page);
-        if (wasChecked) {
-            await expect(this.lumperCheckbox_LOC).not.toBeChecked({ timeout: WAIT.DEFAULT });
-        } else {
-            await expect(this.lumperCheckbox_LOC).toBeChecked({ timeout: WAIT.DEFAULT });
+    }
+
+    /**
+     * Ensures the "Lumper" Missing Paperwork checkbox is checked (idempotent).
+     * billing.php — Lumper missing-paperwork checkbox.
+     * @author AI Agent
+     * @created 2026-06-11
+     */
+    async ensureLumperChecked(): Promise<void> {
+        if (!(await this.isLumperChecked())) {
+            await this.clickLumperCheckbox();
         }
-        console.log(`Clicked Lumper checkbox (was: ${wasChecked}, now: ${!wasChecked})`);
+        await expect(this.lumperCheckbox_LOC).toBeChecked({ timeout: WAIT.DEFAULT });
     }
 
     /**
@@ -1131,20 +1182,27 @@ class LoadBillingPage {
     /**
      * Clicks the "Miscellaneous" checkbox label in Missing Paperwork section.
      * billing.php — `#Miscellaneouss` / `value="mpw"`.
+     * Caller is responsible for pre/post state; use {@link ensureMiscellaneousChecked} to check idempotently.
      * @author AI Agent
      * @created 2026-06-04
      */
     async clickMiscellaneousCheckbox(): Promise<void> {
         await this.miscellaneousLabel_LOC.scrollIntoViewIfNeeded();
-        const wasChecked = await this.miscellaneousCheckbox_LOC.isChecked();
         await this.miscellaneousLabel_LOC.click();
         await commonReusables.waitForPageStable(this.page);
-        if (wasChecked) {
-            await expect(this.miscellaneousCheckbox_LOC).not.toBeChecked({ timeout: WAIT.DEFAULT });
-        } else {
-            await expect(this.miscellaneousCheckbox_LOC).toBeChecked({ timeout: WAIT.DEFAULT });
+    }
+
+    /**
+     * Ensures the "Miscellaneous" Missing Paperwork checkbox is checked (idempotent).
+     * billing.php — `#Miscellaneouss` / `value="mpw"`.
+     * @author AI Agent
+     * @created 2026-06-11
+     */
+    async ensureMiscellaneousChecked(): Promise<void> {
+        if (!(await this.isMiscellaneousChecked())) {
+            await this.clickMiscellaneousCheckbox();
         }
-        console.log(`Clicked Miscellaneous checkbox (was: ${wasChecked}, now: ${!wasChecked})`);
+        await expect(this.miscellaneousCheckbox_LOC).toBeChecked({ timeout: WAIT.DEFAULT });
     }
 
     /**

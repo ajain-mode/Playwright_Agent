@@ -37,18 +37,14 @@ test.describe.serial(
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
-        await test.step("Step 1 [82749 1-5]: Login to BTMS", async () => {
+        await test.step("Step 1 [82749 1-6]: Login to BTMS and switch to billing toggle user", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
           await commonReusables.waitForAllLoadStates(sharedPage);
-        });
-
-        await test.step("Step 2 [82749 6]: Switch to SVC_TESTAUTOMATION user", async () => {
           await pages.homePage.clickSwitchAccountButton();
-          await pages.agentAccountsPage.clickOnUserNameIfVisible("SVC_TESTAUTOMATION");
-          await commonReusables.waitForAllLoadStates(sharedPage);
+          await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
         });
 
-        await test.step("Step 3 [82749 7-14]: Office CORP — ensure Invoice Process is Central", async () => {
+        await test.step("Step 2 [82749 7-14]: Office CORP — ensure Invoice Process is Central", async () => {
           await pages.basePage.hoverOverHeaderByText(HEADERS.ADMIN);
           await pages.basePage.clickSubHeaderByText(ADMIN_SUB_MENU.OFFICE_SEARCH);
           await pages.officePage.officeCodeSearchField(testData.officeName);
@@ -57,7 +53,7 @@ test.describe.serial(
           await pages.officePage.ensureInvoiceProcess(INVOICE_PROCESS.CENTRAL);
         });
 
-        await test.step("Step 4 [82749 15-19]: Customer BALLOHKNEE COLDCUTS — search and CREATE TL *NEW*", async () => {
+        await test.step("Step 3 [82749 15-19]: Customer BALLOHKNEE COLDCUTS — search and CREATE TL *NEW*", async () => {
           await pages.basePage.navigateToBaseUrl();
           await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
           await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
@@ -69,7 +65,7 @@ test.describe.serial(
         });
 
         await test.step(
-          "Step 5 [82749 20-43]: Enter New Load — BALLOHKNEE COLDCUTS, shipper ALASKA, consignee AMPORTS JACKSONVILLE",
+          "Step 4 [82749 20-43]: Enter New Load — BALLOHKNEE COLDCUTS, shipper ALASKA, consignee AMPORTS JACKSONVILLE",
           async () => {
             await pages.nonTabularLoadPage.selectCustomerViaSelect2(testData["Customer Value"]);
             await pages.nonTabularLoadPage.ensureEnterNewLoadSalespersonDispatcherSelection();
@@ -103,7 +99,7 @@ test.describe.serial(
           }
         );
 
-        await test.step("Step 6 [82749 44-50]: Create load, Carrier tab — offer rate, ZONA, Save to BOOKED", async () => {
+        await test.step("Step 5 [82749 44-50]: Create load, Carrier tab — offer rate, ZONA, Save to BOOKED", async () => {
           await pages.nonTabularLoadPage.clickCreateLoadButton();
           await pages.editLoadLoadTabPage.checkLoadTabDetails(testData.rateType);
           await pages.editLoadPage.validateEditLoadHeadingText();
@@ -125,7 +121,7 @@ test.describe.serial(
           await commonReusables.waitForPageStable(sharedPage);
         });
 
-        await test.step("Step 7 [82749 51-55]: Load tab — upload Payables Carrier Invoice", async () => {
+        await test.step("Step 6 [82749 51-55]: Load tab — upload Payables Carrier Invoice", async () => {
           await pages.editLoadPage.clickOnTab(TABS.LOAD);
           await pages.viewLoadPage.openDocumentUploadDialog();
           await pages.viewLoadPage.attachCarrierInvoiceFile();
@@ -140,7 +136,7 @@ test.describe.serial(
           await pages.viewLoadPage.closeDocumentUploadDialogSafe();
         });
 
-        await test.step("Step 8 [82749 56 + Expected]: Save load and open View Billing — Agent toggle and $700 message", async () => {
+        await test.step("Step 7 [82749 56 + Expected]: Save load and open View Billing — Agent toggle and $700 message", async () => {
           await pages.editLoadFormPage.clickOnSaveBtn();
           await commonReusables.waitForPageStable(sharedPage);
           await pages.editLoadFormPage.clickOnViewBillingBtn();
@@ -162,7 +158,7 @@ test.describe.serial(
           ).toContain(ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_700_OVER_TOTAL_CHARGE);
         });
 
-        await test.step("Step 9 [82749 57 + Expected]: Move billing toggle towards Billing", async () => {
+        await test.step("Step 8 [82749 57 + Expected]: Move billing toggle towards Billing", async () => {
           await pages.loadBillingPage.setAndAssertBillingIssuesToggle(PAYABLE_TOGGLE_VALUE.BILLING);
           const billingToggle = await pages.loadBillingPage.getBillingToggleValue();
           expect(billingToggle, "Expected after 57: Billing toggle moves to Billing").toBe(
@@ -171,15 +167,9 @@ test.describe.serial(
         });
 
         await test.step(
-          "Step 10 [82749 58 + Expected]: Check Miscellaneous — toggle returns to Agent",
+          "Step 9 [82749 58 + Expected]: Check Miscellaneous — toggle returns to Agent",
           async () => {
-            if (!(await pages.loadBillingPage.isMiscellaneousChecked())) {
-              await pages.loadBillingPage.clickMiscellaneousCheckbox();
-            }
-            expect(
-              await pages.loadBillingPage.isMiscellaneousChecked(),
-              "Expected: Miscellaneous checkbox checked"
-            ).toBe(true);
+            await pages.loadBillingPage.ensureMiscellaneousChecked();
             await commonReusables.waitForPageStable(sharedPage);
 
             const billingToggle = await pages.loadBillingPage.getBillingToggleValue();
@@ -190,7 +180,7 @@ test.describe.serial(
           }
         );
 
-        await test.step("Step 11 [82749 59 + Expected]: Repeat move toggle to Billing", async () => {
+        await test.step("Step 10 [82749 59 + Expected]: Repeat move toggle to Billing", async () => {
           await pages.loadBillingPage.setAndAssertBillingIssuesToggle(PAYABLE_TOGGLE_VALUE.BILLING);
           const billingToggle = await pages.loadBillingPage.getBillingToggleValue();
           expect(billingToggle, "Expected after 59: Billing toggle moves to Billing").toBe(
@@ -199,14 +189,9 @@ test.describe.serial(
         });
 
         await test.step(
-          "Step 12 [82749 60 + Expected]: Check Lumper — toggle returns to Agent",
+          "Step 11 [82749 60 + Expected]: Check Lumper — toggle returns to Agent",
           async () => {
-            if (!(await pages.loadBillingPage.isLumperChecked())) {
-              await pages.loadBillingPage.clickLumperCheckbox();
-            }
-            expect(await pages.loadBillingPage.isLumperChecked(), "Expected: Lumper checkbox checked").toBe(
-              true
-            );
+            await pages.loadBillingPage.ensureLumperChecked();
             await commonReusables.waitForPageStable(sharedPage);
 
             const billingToggle = await pages.loadBillingPage.getBillingToggleValue();

@@ -88,6 +88,58 @@ class TritanDashboardPage {
         await this.shipmentTemplate_LOC.click();
     }
 
+    /**
+     * Hovers View and clicks the first visible Shipment Templates submenu item.
+     * Avoids strict-mode failure when duplicate top-menu cells are rendered.
+     * @author AI Agent
+     * @created 2026-06-10
+     */
+    async hoverViewAndClickShipmentTemplate() {
+        await commonReusables.waitForPageStable(this.page);
+        await this.viewCells_LOC.waitFor({ state: 'visible', timeout: WAIT.SMALL });
+        await this.viewCells_LOC.hover();
+        const shipmentTemplateLink = this.page.getByText("Shipment Templates", { exact: true }).first();
+        await shipmentTemplateLink.waitFor({ state: "visible", timeout: WAIT.SMALL });
+        await shipmentTemplateLink.click();
+    }
+
+    /**
+     * Closes an MDI taskbar window when its tab label contains the given text.
+     * @author AI Agent
+     * @created 2026-06-10
+     * @param tabLabelPart - Substring of the bottom tab title (e.g. Intermodal)
+     */
+    async closeMdiWindowIfPresent(tabLabelPart: string): Promise<void> {
+        const appBody = this.page.frameLocator('iframe[name="AppBody"]');
+        const closeIcon = appBody.locator(
+            `//td[contains(normalize-space(.),'${tabLabelPart}')]//img[contains(@alt,'Close')]`,
+        );
+        if ((await closeIcon.count()) > 0) {
+            await closeIcon.first().click();
+            await commonReusables.waitForPageStable(this.page);
+            console.log(`Closed MDI window containing: ${tabLabelPart}`);
+        }
+    }
+
+    /**
+     * Activates an MDI taskbar tab whose label contains the given text.
+     * @author AI Agent
+     * @created 2026-06-10
+     * @param tabLabelPart - Substring of the bottom tab title (e.g. shipment or load id)
+     */
+    async activateMdiTabContaining(tabLabelPart: string): Promise<void> {
+        const appBody = this.page.frameLocator('iframe[name="AppBody"]');
+        const tab = appBody.locator(`//td[contains(normalize-space(.),'${tabLabelPart}')]`).last();
+        const isVisible = await tab.isVisible({ timeout: WAIT.SMALL }).catch(() => false);
+        if (!isVisible) {
+            console.log(`MDI tab containing "${tabLabelPart}" not found — skipping activation`);
+            return;
+        }
+        await tab.click();
+        await commonReusables.waitForPageStable(this.page);
+        console.log(`Activated MDI tab containing: ${tabLabelPart}`);
+    }
+
     //     /**
     // * Get Shipment ID from the header section
     // * @returns {Promise<string>} Shipment ID as a string

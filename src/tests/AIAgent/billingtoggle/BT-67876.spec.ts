@@ -37,9 +37,11 @@ test.describe.serial(
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
-        await test.step("Step 1 [67876 1-5]: Login to BTMS as admin (global user)", async () => {
+        await test.step("Step 1 [67876 1-5]: Login to BTMS and switch to billing toggle user", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
           await commonReusables.waitForAllLoadStates(sharedPage);
+          await pages.homePage.clickSwitchAccountButton();
+          await pages.agentAccountsPage.clickOnUserNameIfVisible(USER_ROLES.BILLINGTOGGLE_USER);
         });
 
         await test.step("Step 2 [67876 6-14]: Office NY OFFIC — ensure Invoice Process is Central", async () => {
@@ -121,7 +123,7 @@ test.describe.serial(
           }
         );
 
-        await test.step("Step 4 [67876 24-26]: Switch user to MATT BROWN (NY OFFIC) -1752", async () => {
+        await test.step("Step 4 [67876 24-26]: Switch user to MATT BROWN (NY OFFIC) - 1752", async () => {
           await pages.adminPage.hoverAndClickAdminMenu();
           await pages.adminPage.switchUser(testData.salesAgent);
           await commonReusables.waitForAllLoadStates(sharedPage);
@@ -137,22 +139,39 @@ test.describe.serial(
           await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
         });
 
-        await test.step("Step 6 [67876 30 + Expected]: Move billing toggle to Agent — hard assert Agent", async () => {
-          await pages.loadBillingPage.setAndAssertBillingIssuesToggle(PAYABLE_TOGGLE_VALUE.AGENT);
-          const billingToggle = await pages.loadBillingPage.getBillingToggleValue();
-          expect(billingToggle, "Expected after 30: Billing toggle set to Agent").toBe(
-            PAYABLE_TOGGLE_VALUE.AGENT
-          );
-        });
+        await test.step(
+          "Step 6 [67876 30 + Expected]: Move towards Agent — hard assert Agent",
+          async () => {
+            const currentToggle = await pages.loadBillingPage.getBillingToggleValue();
+            if (currentToggle === PAYABLE_TOGGLE_VALUE.AGENT) {
+              pages.logger.info(
+                "CSV 30: toggle already Agent — skip move, hard assert Agent"
+              );
+            } else {
+              await pages.loadBillingPage.setAndAssertBillingIssuesToggle(
+                PAYABLE_TOGGLE_VALUE.AGENT
+              );
+            }
+            const billingToggle = await pages.loadBillingPage.getBillingToggleValue();
+            expect(billingToggle, "Expected after 30: Billing toggle set to Agent").toBe(
+              PAYABLE_TOGGLE_VALUE.AGENT
+            );
+          }
+        );
 
-        await test.step("Step 7 [67876 31 + Expected]: Refresh, move toggle to Billing — hard assert Billing", async () => {
-          await pages.loadBillingPage.reloadBillingPageAndWaitForToggleBlock();
-          await pages.loadBillingPage.setAndAssertBillingIssuesToggle(PAYABLE_TOGGLE_VALUE.BILLING);
-          const billingToggle = await pages.loadBillingPage.getBillingToggleValue();
-          expect(billingToggle, "Expected after 31: Billing toggle set to Billing").toBe(
-            PAYABLE_TOGGLE_VALUE.BILLING
-          );
-        });
+        await test.step(
+          "Step 7 [67876 31 + Expected]: Refresh, move towards Billing — hard assert Billing",
+          async () => {
+            await pages.loadBillingPage.reloadBillingPageAndWaitForToggleBlock();
+            await pages.loadBillingPage.setAndAssertBillingIssuesToggle(
+              PAYABLE_TOGGLE_VALUE.BILLING
+            );
+            const billingToggle = await pages.loadBillingPage.getBillingToggleValue();
+            expect(billingToggle, "Expected after 31: Billing toggle set to Billing").toBe(
+              PAYABLE_TOGGLE_VALUE.BILLING
+            );
+          }
+        );
 
         await test.step(
           "Step 8 [67876 32 + Expected]: Refresh, attempt Neutral — toggle must NOT be Neutral",

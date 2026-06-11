@@ -1346,7 +1346,7 @@ After step 19:
 3. Enter the User ID and click ""Next"".
 4. Enter the Password.
 5. Click ""Sign In"".
-6. Switch to SVC_TESTAUTOMATION and make sure you are on the SVC_TESTAUTOMATION user.
+6. Switch to BILLINGTOGGLE.USER and make sure you are on the BILLINGTOGGLE.USER user.
 7. Hover over ADMIN.
 8. Click on ""OFFICE SEARCH"".
 9. Enter the office code (CORP).
@@ -1438,7 +1438,7 @@ After step 19:
 23. Click on Save.
 24. Hover over ADMIN and click it.
 25. On the ADMIN main page, enter ""MATT BROWN"" in the Switch User field.
-26. Once the suggestion is shown, click on MATT BROWN (NY OFFIC) -1752.
+26. Once the suggestion is shown, click on MATT BROWN (NY OFFIC) - 1752.
 27. After the switch, hover over the Loads tab and click on Search.
 28. Under the Status enter or select DELIVERED FINAL and click on Search button.
 29. Click any row of delivered final load. On View Load page click on View Billing button.
