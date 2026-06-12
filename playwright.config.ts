@@ -1,12 +1,12 @@
 /// <reference types="node" />
-import "@utils/globalConstants";
-import "@utils/dfbUtils/dfbGlobalConstants";
-import "@utils/ediUtils/ediConstants";
-import "@utils/carrierUtils/carrierConstants";
-import "@utils/bulkChangeUtils/bulkChangeConstants";
-import "@utils/salesLeadUtils/salesLeadConstants";
-import "@utils/nonOperationalLoadsUtils/nonOperationalLoadsConstant";
-import "@utils/datUtils/datConstants";
+import "./src/utils/globalConstants";
+import "./src/utils/dfbUtils/dfbGlobalConstants";
+import "./src/utils/ediUtils/ediConstants";
+import "./src/utils/carrierUtils/carrierConstants";
+import "./src/utils/bulkChangeUtils/bulkChangeConstants";
+import "./src/utils/salesLeadUtils/salesLeadConstants";
+import "./src/utils/nonOperationalLoadsUtils/nonOperationalLoadsConstant";
+import "./src/utils/datUtils/datConstants";
 
 import test, { defineConfig, devices } from "@playwright/test";
 
@@ -60,7 +60,7 @@ export default defineConfig({
     },
     // Full trace on every test is very slow locally (especially on OneDrive paths).
     // trace: process.env.CI ? "on" : "retain-on-failure",
-    trace: "off",
+    trace: "on",
   },
   projects: [
     {
