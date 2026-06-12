@@ -52,7 +52,7 @@ test.describe.serial(
     test(
       "Case Id: DFB-97788 — Waterfall post-all with 25 include carriers shows validation alert on Post",
       {
-        tag: "@aiagent,@dfb,@at_cargovalue",
+        tag: "@aiagent,@at_dfb,@at_cargovalue",
       },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
