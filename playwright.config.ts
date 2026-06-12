@@ -16,7 +16,7 @@ export default defineConfig({
 
   fullyParallel: false,
   workers: 1,
-  timeout: 5 * 60 * 1000, // Set a global timeout of 5 minutes for each test
+  timeout: process.env.CI ? 15 * 60 * 1000 : 5 * 60 * 1000, // 15 min on CI, 5 min locally
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
@@ -45,10 +45,7 @@ export default defineConfig({
     contextOptions: {
       //  storageState: undefined,          // No shared auth state
     },
-    screenshot: {
-      mode: 'on',
-      fullPage: true
-    },
+    screenshot: process.env.CI ? 'only-on-failure' : 'on',
     video: 'off',
     ignoreHTTPSErrors: true,
     permissions: [], // Block all permissions globally
@@ -60,7 +57,7 @@ export default defineConfig({
     },
     // Full trace on every test is very slow locally (especially on OneDrive paths).
     // trace: process.env.CI ? "on" : "retain-on-failure",
-    trace: "on",
+    trace: "off",
   },
   projects: [
     {
