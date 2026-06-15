@@ -72,11 +72,11 @@ export default class HomePage {
      * @description Clicks on the User Profile icon in the home page and click Switch Account.
      */
     async clickSwitchAccountButton() {
-        await this.page.waitForLoadState('networkidle');
+       // await this.page.waitForLoadState('networkidle');
         await this.userProfileLink_LOC.click();
         await this.switchAccountButton_LOC.click();
         console.log("Clicked on Switch Account button");
-        await this.page.waitForLoadState('networkidle');
+        //await this.page.waitForLoadState('networkidle');
     }
 
 }
