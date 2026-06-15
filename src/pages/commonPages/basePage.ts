@@ -24,7 +24,7 @@ export default class BasePage {
       "//div[@class='searchinput-container']//input[@id='header_search']"
 
     );
-    
+
 
     /**
      * @author Aniket Nale
@@ -73,8 +73,7 @@ export default class BasePage {
    */
   async clickSubHeaderByText(subheaderText: string) {
     try {
-      const subheading = this.siteMenuContainer_LOC
-        .getByRole('link', { name: subheaderText, exact: true });
+      const subheading = this.siteMenuContainer_LOC.getByRole('link', { name: subheaderText, exact: true });
       await expect(subheading).toBeVisible({
         timeout: WAIT.XLARGE,
       });

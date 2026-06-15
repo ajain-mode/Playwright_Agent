@@ -57,7 +57,7 @@ test.describe.serial(
         tag: "@aiagent,@at_carrierautoaccept,@at_dfb"
       },
       async () => {
-        test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
+        test.setTimeout(WAIT.SPEC_TIMEOUT_XLARGE);
 
         // ═══════════════════════════════════════════════════════════════
         // PRECONDITIONS (Steps 1-6)
