@@ -42,7 +42,7 @@ test.describe.serial(
 
     test(
       "Case Id: BT-116906 - Verify Current Toggle Date updates correctly",
-      { tag: "@AIAgent,@aiteam,@billingtoggle,@loadsearch" },
+      { tag: "@AIAgent,@aiteam,@at_billingtoggle,@loadsearch" },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
