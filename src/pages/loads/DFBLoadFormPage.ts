@@ -35,8 +35,17 @@ export class DFBLoadFormPage {
   private readonly dataTableRows_LOC: Locator;
   private readonly includeCarriersInput_LOC: Locator;
   private readonly carrierHighlighted_LOC: Locator;
-  /** All visible whitelist select2 AJAX rows (`#form_carriers_whitelist`). */
+  /** Include Carriers combobox (tree typeahead — current BTMS Carrier tab). */
+  private readonly includeCarriersCombobox_LOC: Locator;
+  private readonly includeCarriersComboboxSearchInput_LOC: Locator;
+  private readonly includeCarriersComboboxChip_LOC: Locator;
+  private readonly includeCarriersTreeItem_LOC: Locator;
+  private readonly includeCarriersTreeItemEnabled_LOC: Locator;
+  /** Legacy select2 whitelist AJAX rows (`#form_carriers_whitelist`). */
   private readonly includeCarriersTypeaheadResult_LOC: Locator;
+  private readonly includeCarriersDisabledItem_LOC: Locator;
+  private readonly includeCarriersWhitelistTypeaheadResultById_LOC: (resultId: string) => Locator;
+  private readonly includeCarriersTreeItemByLabel_LOC: (label: string) => Locator;
   private readonly optionSelectedDropdown_LOC: string;
   private readonly carrierErrorMessage_LOC: Locator;  
   private readonly carrierAutoAcceptCheckBox_LOC: Locator;
@@ -80,16 +89,36 @@ export class DFBLoadFormPage {
       page.locator(`#form_${buttonSuffix}`);
     this.dataTableText_LOC = page.locator("#lastPostedDetailsTable");
     this.dataTableRows_LOC = page.locator("#lastPostedDetailsTable tr");
+    /** Legacy select2 search input — sibling span of `#form_carriers_whitelist`. */
     this.includeCarriersInput_LOC = page.locator(
-      "//*[@id='form_carriers_whitelist']//parent::div//input"
+      "//*[@id='form_carriers_whitelist']/following-sibling::span//input[contains(@class,'select2-search__field')]",
     );
     this.carrierHighlighted_LOC = page.locator(
-      "//*[@class='select2-results__option select2-results__option--highlighted']"
+      "//*[@class='select2-results__option select2-results__option--highlighted']",
     );
-    // Whitelist-only typeahead rows (select2 id prefix from #form_carriers_whitelist).
+    this.includeCarriersCombobox_LOC = page.locator(
+      "xpath=//*[normalize-space()='Include Carriers']/following::*[@role='combobox'][1]",
+    );
+    this.includeCarriersComboboxSearchInput_LOC =
+      this.includeCarriersCombobox_LOC.locator('[role="textbox"]');
+    this.includeCarriersComboboxChip_LOC = this.includeCarriersCombobox_LOC
+      .locator('[role="listitem"]')
+      .filter({ hasNot: this.includeCarriersComboboxSearchInput_LOC });
+    this.includeCarriersTreeItem_LOC = page.locator(
+      "xpath=//*[normalize-space()='Include Carriers']/following::*[@role='tree'][1]//*[@role='treeitem']",
+    );
+    this.includeCarriersDisabledItem_LOC = page.locator("[disabled]");
+    this.includeCarriersTreeItemEnabled_LOC = this.includeCarriersTreeItem_LOC.filter({
+      hasNot: this.includeCarriersDisabledItem_LOC,
+    });
+    // Legacy select2 whitelist AJAX rows.
     this.includeCarriersTypeaheadResult_LOC = page.locator(
-      'li[id^="select2-form_carriers_whitelist-result"]'
+      'li[id^="select2-form_carriers_whitelist-result"]',
     );
+    this.includeCarriersWhitelistTypeaheadResultById_LOC = (resultId: string) =>
+      page.locator(`#${resultId}`);
+    this.includeCarriersTreeItemByLabel_LOC = (label: string) =>
+      this.includeCarriersTreeItem_LOC.getByText(label, { exact: true });
     this.optionSelectedDropdown_LOC = "option[selected]";
     this.carrierErrorMessage_LOC = page.locator("#carr_prexisting_errors");
     this.carrierAutoAcceptCheckBox_LOC = page.locator("//input[@id='form_auto_accept']");
@@ -182,7 +211,6 @@ export class DFBLoadFormPage {
    *
    * @author AI Agent
    * @created 2026-05-15
-   * @see `load_carrier_tnx_include_exclude.js` — whitelist select2 on `#form_carriers_whitelist`
    */
   async selectIncludeCarriersBySearchTerms(
     searchTerms: readonly string[],
@@ -206,16 +234,9 @@ export class DFBLoadFormPage {
         passes += 1;
         addedOnLastPass = false;
 
-        await this.includeCarriersInput_LOC.click();
-        await this.includeCarriersInput_LOC.fill(term);
-        await this.page.waitForLoadState("domcontentloaded");
+        await this.fillIncludeCarriersSearch(term);
 
-        const resultsVisible = await this.includeCarriersTypeaheadResult_LOC
-          .first()
-          .waitFor({ state: "visible", timeout: WAIT.DEFAULT })
-          .then(() => true)
-          .catch(() => false);
-
+        const resultsVisible = await this.waitForIncludeCarriersSearchResults();
         if (!resultsVisible) {
           console.log(`No Include Carriers typeahead results for search "${term}"`);
           break;
@@ -223,12 +244,13 @@ export class DFBLoadFormPage {
 
         const selectedIds = new Set(await this.getIncludeCarriersSelectedCarrierIds());
         const candidates = await this.getIncludeCarriersTypeaheadCandidates();
+        let selectedOnPass = false;
 
         for (const candidate of candidates) {
           if ((await this.getIncludeCarriersSelectedOptionCount()) >= targetCount) {
             break;
           }
-          if (candidate.isDisabled) {
+          if (candidate.isDisabled || candidate.isAlreadySelected) {
             continue;
           }
           if (candidate.ariaSelected || selectedIds.has(candidate.carrierId)) {
@@ -236,24 +258,41 @@ export class DFBLoadFormPage {
           }
 
           const countBefore = await this.getIncludeCarriersSelectedOptionCount();
-          await this.clickIncludeCarriersWhitelistTypeaheadResult(candidate.resultId);
+          try {
+            await this.clickIncludeCarriersTypeaheadResult(candidate);
+            await expect
+              .poll(async () => this.getIncludeCarriersSelectedOptionCount(), {
+                timeout: WAIT.SMALL,
+              })
+              .toBeGreaterThan(countBefore);
+          } catch (error) {
+            console.log(
+              `Include Carriers could not click "${candidate.text}" for "${term}": ${error}`,
+            );
+            continue;
+          }
           await this.page.waitForTimeout(WAIT.DEFAULT / 4);
 
           const countAfter = await this.getIncludeCarriersSelectedOptionCount();
           if (countAfter > countBefore) {
             addedOnLastPass = true;
+            selectedOnPass = true;
             selectedIds.add(candidate.carrierId);
             console.log(
-              `Include Carriers +1 via "${term}": ${candidate.text} (${countAfter}/${targetCount})`
+              `Include Carriers +1 via "${term}": ${candidate.text} (${countAfter}/${targetCount})`,
             );
-          } else if (countAfter < countBefore) {
+            break;
+          }
+          if (countAfter < countBefore) {
             console.log(
-              `Include Carriers skipped toggle-off row for "${term}": ${candidate.text}`
+              `Include Carriers skipped toggle-off row for "${term}": ${candidate.text}`,
             );
           }
         }
 
-        await this.page.keyboard.press("Escape").catch(() => undefined);
+        if (!selectedOnPass) {
+          break;
+        }
       }
 
       if ((await this.getIncludeCarriersSelectedOptionCount()) >= targetCount) {
@@ -270,26 +309,77 @@ export class DFBLoadFormPage {
   }
 
   /**
-   * BTMS carrier ids on `#form_carriers_whitelist` (option values).
+   * True when Include Carriers renders the tree combobox (not legacy select2).
+   * @author AI Agent
+   * @created 2026-06-16
+   */
+  private async usesIncludeCarriersTreeWidget(): Promise<boolean> {
+    return (await this.includeCarriersCombobox_LOC.count()) > 0;
+  }
+
+  /**
+   * Opens Include Carriers search and types the term (tree combobox or legacy select2).
+   * @author AI Agent
+   * @created 2026-06-16
+   */
+  private async fillIncludeCarriersSearch(term: string): Promise<void> {
+    if (await this.usesIncludeCarriersTreeWidget()) {
+      await this.includeCarriersCombobox_LOC.scrollIntoViewIfNeeded();
+      await this.includeCarriersCombobox_LOC.click();
+      await this.includeCarriersComboboxSearchInput_LOC.click({
+        force: true,
+        timeout: WAIT.SMALL,
+      });
+      await this.includeCarriersComboboxSearchInput_LOC.fill(term);
+      await this.page.waitForTimeout(WAIT.DEFAULT / 2);
+      return;
+    }
+    await this.includeCarriersInput_LOC.click();
+    await this.includeCarriersInput_LOC.fill(term);
+    await this.page.waitForLoadState("domcontentloaded");
+  }
+
+  /**
+   * Waits for the first selectable Include Carriers search result row.
+   * @author AI Agent
+   * @created 2026-06-16
+   */
+  private async waitForIncludeCarriersSearchResults(): Promise<boolean> {
+    if (await this.usesIncludeCarriersTreeWidget()) {
+      return this.includeCarriersTreeItemEnabled_LOC
+        .first()
+        .waitFor({ state: "visible", timeout: WAIT.SMALL })
+        .then(() => true)
+        .catch(() => false);
+    }
+
+    return this.includeCarriersTypeaheadResult_LOC
+      .first()
+      .waitFor({ state: "visible", timeout: WAIT.SMALL })
+      .then(() => true)
+      .catch(() => false);
+  }
+
+  /**
+   * BTMS carrier ids on `#form_carriers_whitelist` (option values) or combobox chips.
    *
    * @author AI Agent
    * @created 2026-05-29
    */
   async getIncludeCarriersSelectedCarrierIds(): Promise<string[]> {
+    if (await this.usesIncludeCarriersTreeWidget()) {
+      const fromSelect = await this.readIncludeCarriersWhitelistSelectValues();
+      if (fromSelect.length > 0) {
+        return fromSelect;
+      }
+      const chipTexts = await this.includeCarriersComboboxChip_LOC.allInnerTexts();
+      return chipTexts
+        .map((text) => this.parseCarrierIdFromDisplayLabel(text))
+        .filter(Boolean);
+    }
+
     await this.includeCarriersValue_LOC.waitFor({ state: "attached" });
-    return await this.includeCarriersValue_LOC.evaluate((el) => {
-      const tag = el.tagName.toLowerCase();
-      if (tag === "select") {
-        return Array.from((el as HTMLSelectElement).selectedOptions)
-          .map((o) => o.value)
-          .filter(Boolean);
-      }
-      const raw = el.getAttribute("value")?.trim() ?? "";
-      if (!raw) {
-        return [];
-      }
-      return raw.split(",").map((s) => s.trim()).filter(Boolean);
-    });
+    return this.readIncludeCarriersWhitelistSelectValues();
   }
 
   /**
@@ -305,38 +395,105 @@ export class DFBLoadFormPage {
       text: string;
       ariaSelected: boolean;
       isDisabled: boolean;
+      isAlreadySelected: boolean;
     }[]
   > {
-    return await this.page.evaluate(() => {
-      const items = document.querySelectorAll<HTMLLIElement>(
-        'li[id^="select2-form_carriers_whitelist-result"]'
+    if (await this.usesIncludeCarriersTreeWidget()) {
+      const items = await this.includeCarriersTreeItem_LOC.evaluateAll((elements) =>
+        elements.map((item) => ({
+          resultId: item.id || (item.textContent ?? "").trim(),
+          text: (item.textContent ?? "").trim(),
+          ariaSelected: item.getAttribute("aria-selected") === "true",
+          isDisabled: item.hasAttribute("disabled"),
+          isAlreadySelected: item.classList.contains("select2-results__option--selected"),
+        })),
       );
-      return Array.from(items).map((li) => ({
+      return items.map((item) => ({
+        ...item,
+        carrierId: this.parseCarrierIdFromDisplayLabel(item.text),
+      }));
+    }
+
+    return this.includeCarriersTypeaheadResult_LOC.evaluateAll((items) =>
+      items.map((li) => ({
         resultId: li.id,
         carrierId: li.id.split("-").pop() ?? "",
         text: (li.textContent ?? "").trim(),
         ariaSelected: li.getAttribute("aria-selected") === "true",
         isDisabled: li.classList.contains("select2-results__option--disabled"),
-      }));
+        isAlreadySelected: li.classList.contains("select2-results__option--selected"),
+      })),
+    );
+  }
+
+  /**
+   * Reads selected option values from the whitelist native select.
+   * @author AI Agent
+   * @created 2026-06-16
+   */
+  private async readIncludeCarriersWhitelistSelectValues(): Promise<string[]> {
+    await this.includeCarriersValue_LOC.waitFor({ state: "attached" });
+    return this.includeCarriersValue_LOC.evaluate((el) => {
+      const tag = el.tagName.toLowerCase();
+      if (tag !== "select") {
+        const raw = el.getAttribute("value")?.trim() ?? "";
+        if (!raw) {
+          return [];
+        }
+        return raw.split(",").map((s) => s.trim()).filter(Boolean);
+      }
+      return Array.from((el as HTMLSelectElement).selectedOptions)
+        .map((option) => option.value)
+        .filter(Boolean);
     });
   }
 
   /**
+   * Reads selected option display labels from the whitelist native select.
    * @author AI Agent
-   * @created 2026-05-29
+   * @created 2026-06-16
    */
-  private includeCarriersWhitelistTypeaheadResult_LOC(resultId: string): Locator {
-    return this.page.locator(`#${resultId}`);
+  private async readIncludeCarriersWhitelistSelectLabels(): Promise<string[]> {
+    await this.includeCarriersValue_LOC.waitFor({ state: "attached" });
+    return this.includeCarriersValue_LOC.evaluate((el) => {
+      const tag = el.tagName.toLowerCase();
+      if (tag !== "select") {
+        const raw = el.getAttribute("value")?.trim() ?? "";
+        if (!raw) {
+          return [];
+        }
+        return raw.split(",").map((s) => s.trim()).filter(Boolean);
+      }
+      return Array.from((el as HTMLSelectElement).selectedOptions)
+        .map((option) => option.text.trim())
+        .filter(Boolean);
+    });
+  }
+
+  /**
+   * Parses BTMS carrier id from display label suffix, e.g. "ZONA TRUCKING LLC (285149)".
+   * @author AI Agent
+   * @created 2026-06-16
+   */
+  private parseCarrierIdFromDisplayLabel(label: string): string {
+    return label.match(/\((\d+)\)\s*$/)?.[1] ?? "";
   }
 
   /**
    * @author AI Agent
    * @created 2026-05-29
    */
-  private async clickIncludeCarriersWhitelistTypeaheadResult(
-    resultId: string
-  ): Promise<void> {
-    await this.includeCarriersWhitelistTypeaheadResult_LOC(resultId).click();
+  private async clickIncludeCarriersTypeaheadResult(candidate: {
+    resultId: string;
+    text: string;
+  }): Promise<void> {
+    if (await this.usesIncludeCarriersTreeWidget()) {
+      const row = this.includeCarriersTreeItemByLabel_LOC(candidate.text);
+      await row.scrollIntoViewIfNeeded();
+      await row.click({ timeout: WAIT.SMALL });
+      return;
+    }
+    await this.includeCarriersWhitelistTypeaheadResultById_LOC(candidate.resultId).click();
   }
 
   /**
@@ -346,20 +503,17 @@ export class DFBLoadFormPage {
    * @created 2026-05-15
    */
   async getIncludeCarriersSelectedCarrierNames(): Promise<string[]> {
+    if (await this.usesIncludeCarriersTreeWidget()) {
+      const fromSelect = await this.readIncludeCarriersWhitelistSelectLabels();
+      if (fromSelect.length > 0) {
+        return fromSelect;
+      }
+      const chipTexts = await this.includeCarriersComboboxChip_LOC.allInnerTexts();
+      return chipTexts.map((text) => text.trim()).filter(Boolean);
+    }
+
     await this.includeCarriersValue_LOC.waitFor({ state: "attached" });
-    return await this.includeCarriersValue_LOC.evaluate((el) => {
-      const tag = el.tagName.toLowerCase();
-      if (tag === "select") {
-        return Array.from((el as HTMLSelectElement).selectedOptions)
-          .map((o) => o.text.trim())
-          .filter(Boolean);
-      }
-      const raw = el.getAttribute("value")?.trim() ?? "";
-      if (!raw) {
-        return [];
-      }
-      return raw.split(",").map((s) => s.trim()).filter(Boolean);
-    });
+    return this.readIncludeCarriersWhitelistSelectLabels();
   }
 
   /**
@@ -372,6 +526,10 @@ export class DFBLoadFormPage {
    *      `carriers_whitelist` (`#form_carriers_whitelist`). DME: not applicable (whitelist UI is BTMS).
    */
   async getIncludeCarriersSelectedOptionCount(): Promise<number> {
+    if (await this.usesIncludeCarriersTreeWidget()) {
+      return (await this.getIncludeCarriersSelectedCarrierIds()).length;
+    }
+
     await this.includeCarriersValue_LOC.waitFor({ state: "attached" });
     return await this.includeCarriersValue_LOC.evaluate((el) => {
       const tag = el.tagName.toLowerCase();
