@@ -1346,7 +1346,7 @@ After step 19:
 3. Enter the User ID and click ""Next"".
 4. Enter the Password.
 5. Click ""Sign In"".
-6. Switch to SVC_TESTAUTOMATION and make sure you are on the SVC_TESTAUTOMATION user.
+6. Switch to BILLINGTOGGLE.USER and make sure you are on the BILLINGTOGGLE.USER user.
 7. Hover over ADMIN.
 8. Click on ""OFFICE SEARCH"".
 9. Enter the office code (CORP).
@@ -1438,7 +1438,7 @@ After step 19:
 23. Click on Save.
 24. Hover over ADMIN and click it.
 25. On the ADMIN main page, enter ""MATT BROWN"" in the Switch User field.
-26. Once the suggestion is shown, click on MATT BROWN (NY OFFIC) -1752.
+26. Once the suggestion is shown, click on MATT BROWN (NY OFFIC) - 1752.
 27. After the switch, hover over the Loads tab and click on Search.
 28. Under the Status enter or select DELIVERED FINAL and click on Search button.
 29. Click any row of delivered final load. On View Load page click on View Billing button.
@@ -1532,3 +1532,164 @@ After Step 50:
   - Payables toggle must be set to ""Payables"".
   - Payable Reason should be ""Short Pay - Accessorial"".
   - Under ""Message"", ""Short Pay - Accessorial; not approved Invoice"" should be displayed.",,"aiteam,payabletoggle"
+82789,,FD-36330,Verify payable toggle when Load Receives Short Pay flagged Adjustment  Payload from SLC for central billing.,,"1.  Login to the Tritan application using the URL ""https://qa-tritan.mercurygate.net/"".
+2.  Enter a valid Login ID and Password.
+3.  Click the ""Sign In"" button.
+4.  After login, click the ""Company"" menu.
+5.  Click the ""Expand"" button.
+6.  Select the customer ""Goodyear Tire and Rubber Sanders"".
+7.  After switching to the customer, hover over ""View"" and click ""Shipment Template"".
+8.  Select the LTL load template ""TEST SHORT PAY LTL ESTES"" and click the green ""+"" icon.
+9.  Once the template opens, click the ""Save"" button.
+10. The shipment/load will be created. Save the Shipment ID from the heading for further use.
+11. Click the Load ID under the ""Loads"" table.
+12. On the Load page, under ""Carrier Invoices"", click the green ""+"" icon.
+13. A carrier invoice will be added. Save the Invoice Number and Bill Total of the added invoice for further use.
+14. On the same page, click the ""Plan"" tab.
+15. Under ""Pickup 1"", click the green ""+"" icon of the Status (currently in Pending state).
+16. Enter the PRO Number (e.g., 33298572).
+17. From the date picker, select today's date and select the time from the dropdown list next to the date picker. Click ""Save"".
+18. Accept the alert ""Status message added"".
+19. Under ""Drop 1"", click the green ""+"" icon of the Status (currently in Pending state).
+20. Repeat steps 17 and 18.
+21. Click the Shipment Number under the ""Shipment"" column of the Pickup 1 table.
+22. On the Shipment Details page, validate that the Status is ""Delivered"".
+23. Hover over the ""Shipment"" tab and, under the Shipment menu, click ""Activities"". Under ""Activities"", click ""List Activities"".
+24. Select the checkbox where Type is ""BTMS Extract"".
+25. At the bottom of the page, select ""Set Complete"" from the dropdown and click the ""Submit"" button.
+26. Login to the BTMS application.
+27. On the Home page, click the search icon next to the ""Admin"" tab. Enter the Shipment ID from step 10 in the search box and click the search icon.
+28. Continue polling the search for 5-6 minutes until the record appears in BTMS.
+29. Once available in BTMS, the ""View Load"" page will open.
+30. On the View Load page, click the ""View Billing"" button.
+31. Under ""Carrier Invoices"", click the ""Add New"" button.
+32. The ""Add Carrier Invoice"" popup will open. Enter the Invoice Number from step 13 and an amount greater than the Bill Total saved in step 13.
+33. Click the ""Save Invoice"" button. Once the invoice is added, refresh the page.
+34. Navigate back to the Tritan application.
+35. If you are on the BTMS Activities page, hover over the ""Shipment"" menu and click ""Detail"".
+36. On the Shipment Details page, click the Load ID under the ""Loads"" table.
+37. On the Load Details page, click the Bill Total amount of the Carrier Invoice.
+38. A popup window will open. Click ""Edit Charges"".
+39. From the ""Queue"" dropdown, select ""40 Valid/Approved"".
+40. Under the ""Settlement Reason"" dropdown, select ""Short Pay - Fuel Surcharge"" and in the Comment section add the comment ""Carrier Agreed to include fuel surcharge in linehaul"".
+41. For ""Fuel Surcharges"", enter the amount from step 33's expected result message (e.g., 125) and click ""Save"".
+42. Click the ""Plan"" tab and repeat step 21.
+43. On the Shipment Details page, click the printer icon of ""Customer Invoices"". A popup will open — select any radio button (e.g., the first one).
+44. A file save window will appear; click ""Cancel"". Also click ""Cancel"" on the popup.
+45. Click the Bill Total amount of the Customer Invoice. A popup window will open; click ""Edit Charges"".
+46. From the ""Queue"" dropdown, select ""40 Extract"" and click ""Save"".
+47. Repeat steps 23 to 25.
+48. Navigate to BTMS and click the ""View Load"" button.
+49. On the View Load page, check that the Load Status is ""INVOICED"". If not, click the ""Edit"" button, select the status ""Delivered Final"",Accept the alert if available and click ""Save"". Wait until the status changes to ""INVOICED"".
+50. Click the ""View Billing"" button and observe the ""Payables"" toggle.
+51.Navigate back to the tritan application.
+52. Repeat step 35 to 38. 
+53.Update tthe comment ""Carrier Agreed to include fuel surcharge in linehaul again""  and select settlement reason as  Short Pay - Accessorial.Click on save.
+54.Navigate to the BTMS Application.Refresh the page util the message ""Short Pay - Accessorial; Carrier Agreed to include fuel surcharge in linehaul again.""appear on screen. (Note it will take around 4-5 min)","After Step 25:
+  - BTMS Extract status changes to ""COMPLETE"".
+
+After Step 29: Validate the following fields:
+  - Load Status should be ""Delivered"".
+  - Method should be ""LTL"".
+  - Created By field should be ""Intelys API Portal"".
+  - Source System should be ""TRITAN"".
+  - Source System ID should match the Shipment ID from step 10.
+
+After Step 33:
+  - The Payables toggle should move to ""Agent"".
+  - A message should appear on screen: ""ESTES EXPRESS LINES invoiced $125.00 over the total charge"".
+  Note: The $125 amount is dynamic. Calculate it as:
+        (Invoice amount added from BTMS View Billing page, e.g., 557.50)
+        - (Carrier invoice Bill Total from Tritan, e.g., 432.50)
+        = 125.00
+
+After Step 46:
+  - Customer Invoice Queue should show the value ""50 Complete"".
+  - Customer Invoice Extract Date should appear under the column along with the time.
+
+After Step 47:
+  - BTMS Extract and Invoice Extract statuses should both be ""Complete"".
+
+After Step 50:
+  - Payables toggle must be set to ""Payables"".
+  - Payable Reason should be ""Short Pay - Fuel Surcharge"".
+  - Under ""Message"", ""Short Pay - Fuel Surcharge; Carrier Agreed to include fuel surcharge in linehaul"" should be displayed.
+
+After Step 54:
+  - Payables toggle must be set to ""Payables"".
+  - Payable Reason should be ""Short Pay -  Accessorial"".
+  - Under ""Message"", ""Short Pay -  Accessorial; Carrier Agreed to include fuel surcharge in linehaul  again"" should be displayed.",,"aiteam,payabletoggle"
+97804,,FD-39683,Validate when an additional carrier invoice is added for the same carrier as the existing invoice.,,"Test Steps:
+
+1. Login to BTMS in any valid environment. (http://brokerage.stage.suntecktts.com/)
+2. Click on Sign in with Single Sign-On.
+3. Enter the User ID and click Next.
+4. Enter the Password.
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (NY OFFIC).
+9. Click on Search.
+10. Click on Office profile.
+11. Check Invoice Process set as Central. (If set then skip step 12 and 13).
+12. Click on Edit.
+13. Set Invoice Process as Central and click on Save.
+14. Hover and click on ADMIN.
+15. Now user gets navigated to the ADMIN main page and on Switch User field enter value as MATT BROWN.
+16. Once suggestion is shown click on MATT BROWN (NY OFFIC) -1752.
+17. Hover to Customers and click Search.
+18. Enter the Customer name in the ""Customer"" field (A & Z PHARMACEUTICAL INC).
+19. Click on ""Search"" button.
+20. Click on Customer detail row.
+21. Scroll down in the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*"".
+22. In ""ENTER NEW LOAD"" page, ""Customer"" field is already selected; if not, select A & Z PHARMACEUTICAL INC.
+23. ""Salesperson"" and ""Dispatcher"" fields have preselected values; if not, we need to select them.
+24. Select the location from the ""Shipper"" field (ADAMS WAREHOUSE).
+25. Once the location is selected from the ""Shipper"" field, ""Name"", ""Address"", ""City"", ""State"", ""Zip"", ""Country"" will automatically update the values in the corresponding fields.
+26. Select the ""Earliest Date"" (Future date needs to be selected) (select tomorrow's date).
+27. Select the ""Latest Date"" (Future date needs to be selected) (select tomorrow's date).
+28. Enter the ""Earliest Time"" (Eg. 09:00).
+29. Enter the ""Latest Time"" (Eg. 09:00).
+30. Select the location from the ""Consignee"" field. (ARK LOGISTICS)
+31. Once the location is selected from the ""Consignee"" field, ""Name"", ""Address"", ""City"", ""State"", ""Zip"", ""Country"" will automatically update the values in the corresponding fields.
+32. Select the ""Earliest Date"" (Future date needs to be selected) (select day after tomorrow).
+33. Select the ""Latest Date"" (Future date needs to be selected) (select day after tomorrow).
+34. Enter the ""Earliest Time"" (Eg. 10:00).
+35. Enter the ""Latest Time"" (Eg. 10:00).
+36. In the field Whose Instructions, enter value as TestData.
+37. Enter the Quantity in the ""Qty"" field (Eg. 40).
+38. Select the ""UoM"" field (Eg. Case or Cases).
+39. Enter the description in the ""Description"" field (Eg. Total 40 cases).
+40. Enter the weight in the ""Weight"" field (Eg. 1000).
+41. Select the ""Equipment"" field as ""FLATBED"".
+42. Enter the ""length"" field (Eg. 54).
+43. Select the ""Mileage Engine"" field as ""Current"".
+44. Select the ""Method"" as ""Practical"".
+45. ""Linehaul"" and ""Fuel Surcharge"" default value will be ""Flat Rate"".
+46. Click on ""Create Load"" button.
+47. On the load page, select Rate Type as SPOT if not selected.Click the ""Carrier tab"" in the ""Edit load"" page.
+48. Enter a valid value for the Offer Rate field on the load as ""1000"".
+49. Enter flat rate in Customer as 500.
+50. Enter flat rate in Carrier as 600.
+51. Enter trailer length 10 if value is not filled.
+52. Enter total miles e.g. 100 if not filled.
+53. Now click on choose a carrier button and enter value as ZONA TRUCKING LLC and once it is fully visible, select it.
+54. Click on Save button [STATUS HAS BEEN SET TO BOOKED alert should get displayed]. Accept the alert.
+55. On Load tab click on View Billing button.
+56. Under load documents section click on upload icon against Payables.
+57. Upload the carrier invoice document.
+58. Select radio button Payables and select Document Type as Carrier Invoice.
+59. Enter invoice number e.g. 1234567 and enter Invoice Amount e.g. 700 and click on Attach. Accept the alert [Payable Status has been updated to INVOICE RECEIVED] and close the pop-up.
+60. Reload the page and validate the Waiting on toggle.
+61. Click on View History under Billing Issue section. Pop-up window will open.
+62. Repeat the steps 56 to 58.
+63. Enter invoice number e.g. 234567 and enter Invoice Amount e.g. 200 and click on Attach. Accept the alert [Payable Status has been updated to INVOICE RECEIVED] if available. Validate the message ""All documents attached successfully"". Close the pop-up. Reload the page and validate the Waiting on toggle.
+64. Click on View History under Billing Issue section. Pop-up window will open.","Expected Result:
+
+After step 60:
+- Billing toggle value should be set to Agent.
+- Validate the price difference value under BILLING ISSUES is $100.00. (Calculation: 100 = carrier invoice amount 700 - flat rate carrier value from load page 600)
+
+After step 63:
+- Billing toggle value should be set to Agent.
+- Validate the price difference value under BILLING ISSUES is $300.00. (Calculation: 300 = total carrier invoice amount 900 (700 + 200) - flat rate carrier value from load page 600)",,"aiteam, billingtoggle"

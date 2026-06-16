@@ -12,5 +12,10 @@
     "customerPortalUrl": "https://customerportal.stage.suntecktts.com/",
     "apiUrl": "https://api.stage.modeglobal.com/",
     "legacyCustomerPortalUrl": "https://my.${env}.suntecktts.com/login"
+  },
+  "database": {
+    "sshHost": "bastion.${env}.modetrans.com",
+    "dbHost": "btms.db.${env}.modetrans.com"
   }
 }
+

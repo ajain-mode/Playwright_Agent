@@ -4,6 +4,7 @@ import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
 import { PageManager } from "@utils/PageManager";
 import commonReusables from "@utils/commonReusables";
+import { isUiToggleDateDisplayPopulated } from "@utils/db/BtmsDbClient";
 
 const testcaseID = "BT-116907";
 dataConfig.getTestDataFromCsv(dataConfig.billingtoggleData, testcaseID);
@@ -90,13 +91,13 @@ test.describe.serial(
           initialAfterFirstMove = await pages.loadBillingPage.getInitialToggleDateDisplayValue();
           const currentDate = await pages.loadBillingPage.getCurrentToggleDateDisplayValue();
           expect(
-            initialAfterFirstMove,
-            "Expected: Initial Toggle Date set when toggle first moved"
-          ).not.toBe(TOGGLE_DATE_DISPLAY.NOT_APPLICABLE);
+            isUiToggleDateDisplayPopulated(initialAfterFirstMove, TOGGLE_DATE_DISPLAY.NOT_APPLICABLE),
+            `Expected: Initial Toggle Date MM/DD/YYYY HH:mm:ss when toggle first moved (got "${initialAfterFirstMove}")`
+          ).toBe(true);
           expect(
-            currentDate,
-            "Expected: Current Toggle Date set when toggle moved to Billing"
-          ).not.toBe(TOGGLE_DATE_DISPLAY.NOT_APPLICABLE);
+            isUiToggleDateDisplayPopulated(currentDate, TOGGLE_DATE_DISPLAY.NOT_APPLICABLE),
+            `Expected: Current Toggle Date MM/DD/YYYY HH:mm:ss when toggle moved to Billing (got "${currentDate}")`
+          ).toBe(true);
         });
 
         await test.step("Step 8 [116907 13 + Expected]: Move toggle to Agent, refresh, Initial unchanged, Current updated", async () => {
@@ -115,6 +116,10 @@ test.describe.serial(
             currentAfter,
             "Expected: Current Toggle Date updated when toggle moved to Agent"
           ).not.toBe(currentBefore);
+          expect(
+            isUiToggleDateDisplayPopulated(currentAfter, TOGGLE_DATE_DISPLAY.NOT_APPLICABLE),
+            `Expected: Current Toggle Date MM/DD/YYYY HH:mm:ss after Agent move (got "${currentAfter}")`
+          ).toBe(true);
         });
 
         await test.step("Step 9 [116907 14 + Expected]: Repeat Billing move — Initial unchanged, Current updated", async () => {
@@ -133,6 +138,10 @@ test.describe.serial(
             currentAfter,
             "Expected: Current Toggle Date updated on repeat Billing move"
           ).not.toBe(currentBefore);
+          expect(
+            isUiToggleDateDisplayPopulated(currentAfter, TOGGLE_DATE_DISPLAY.NOT_APPLICABLE),
+            `Expected: Current Toggle Date MM/DD/YYYY HH:mm:ss after repeat Billing move (got "${currentAfter}")`
+          ).toBe(true);
         });
 
         await test.step("Step 10 [116907 15 + Expected]: Repeat Agent move — Initial unchanged, Current updated", async () => {
@@ -151,6 +160,10 @@ test.describe.serial(
             currentAfter,
             "Expected: Current Toggle Date updated on repeat Agent move"
           ).not.toBe(currentBefore);
+          expect(
+            isUiToggleDateDisplayPopulated(currentAfter, TOGGLE_DATE_DISPLAY.NOT_APPLICABLE),
+            `Expected: Current Toggle Date MM/DD/YYYY HH:mm:ss after repeat Agent move (got "${currentAfter}")`
+          ).toBe(true);
         });
       }
     );

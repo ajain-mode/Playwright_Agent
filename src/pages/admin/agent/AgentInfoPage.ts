@@ -15,6 +15,8 @@ export default class AgentInfoPage {
   private readonly datUsernameView_LOC: Locator;
   private readonly datUsernameInput_LOC: Locator;
   private readonly bulkChangeRole_LOC: Locator;
+  private readonly userRolesSelect_LOC: Locator;
+  private readonly userRolesPlainTextViewCell_LOC: Locator;
   private readonly userRolesViewCell_LOC: Locator;
   private readonly duplicateButton_LOC: Locator;
   private readonly agentNameView_LOC: Locator;
@@ -33,9 +35,16 @@ export default class AgentInfoPage {
     this.duplicateButton_LOC = this.page.locator("//td[contains(text(),'Agent Info')]/following-sibling::td/div/input[contains(normalize-space(@value),'Duplicate')]");
     this.agentNameView_LOC = this.page.locator("//td[label[normalize-space()='Name']]/following-sibling::td[contains(@class,'addr-block-name-cell')]");
     this.bulkChangeRole_LOC = page.locator("td.viewww");
-    this.userRolesViewCell_LOC = page.locator(
+    /** agentform.php: USER ROLES multiselect — id agent_auth_role_ids */
+    this.userRolesSelect_LOC = page.locator("#agent_auth_role_ids");
+    /** Plain-text USER ROLES cell when view mode does not render the multiselect widget */
+    this.userRolesPlainTextViewCell_LOC = page.locator(
       "//td[contains(@class,'fn') and contains(normalize-space(translate(., '\u00A0', ' ')), 'USER ROLES')]/following-sibling::td[contains(@class,'view')]",
     );
+    /** USER ROLES jQuery UI multiselect trigger (e.g. "8 selected") — scoped to role widget only */
+    this.userRolesViewCell_LOC = page
+      .locator("td:has(#agent_auth_role_ids)")
+      .getByRole("button", { name: "selected" });
     this.authValue_LOC = this.page.locator(
       "//td[@class='fn' and contains(normalize-space(translate(., '\u00A0', ' ')), 'Auth Level')]/following-sibling::td[@class='view' and not (preceding-sibling::td[@class='view'])]"
     );
@@ -274,18 +283,65 @@ export default class AgentInfoPage {
   }
 
   /**
+   * Reads selected USER ROLES labels from #agent_auth_role_ids (view or edit).
+   * @author AI Agent
+   * @created 2026-06-15
+   * @returns Role option text keys (e.g. BTMS_USER, PRINCIPAL)
+   */
+  private async getUserRolesFromSelectElement(): Promise<string[]> {
+    if ((await this.userRolesSelect_LOC.count()) === 0) {
+      return [];
+    }
+    return this.userRolesSelect_LOC.evaluate((el) => {
+      const select = el as HTMLSelectElement;
+      const selected =
+        select.selectedOptions.length > 0
+          ? Array.from(select.selectedOptions)
+          : Array.from(select.querySelectorAll("option:checked"));
+      return selected
+        .map((option) => (option.textContent ?? "").replace(/\u00A0/g, " ").trim())
+        .filter(Boolean);
+    });
+  }
+
+  /**
    * Returns visible USER ROLES / role assignment text from the agent view page.
-   * Uses the same role container as {@link validateBulkChangeRole} (td.viewww).
+   * Prefers #agent_auth_role_ids selected options; waits on multiselect button when present.
    *
    * @author AI Agent
    * @created 2026-04-30
-   * @returns Normalized inner text from the roles display cell
+   * @returns Normalized role labels as comma-separated text
    */
   async getDisplayedUserRolesText(): Promise<string> {
+    const fromSelect = await this.getUserRolesFromSelectElement();
+    if (fromSelect.length > 0) {
+      return fromSelect.join(", ");
+    }
+
+    if ((await this.userRolesViewCell_LOC.count()) > 0) {
+      await this.userRolesViewCell_LOC.first().waitFor({ state: "visible", timeout: WAIT.SMALL });
+      const afterWidget = await this.getUserRolesFromSelectElement();
+      if (afterWidget.length > 0) {
+        return afterWidget.join(", ");
+      }
+    }
+
+    if ((await this.userRolesPlainTextViewCell_LOC.count()) > 0) {
+      await this.userRolesPlainTextViewCell_LOC.first().waitFor({
+        state: "visible",
+        timeout: WAIT.SMALL,
+      });
+      const raw = (await this.userRolesPlainTextViewCell_LOC.first().innerText()) ?? "";
+      const text = raw.replace(/\u00A0/g, " ").trim();
+      if (text && !/^\d+\s+selected$/i.test(text)) {
+        return text;
+      }
+    }
+
     const rolesCell =
-      (await this.userRolesViewCell_LOC.count()) > 0
-        ? this.userRolesViewCell_LOC.first()
-        : this.bulkChangeRole_LOC.first();
+      (await this.bulkChangeRole_LOC.count()) > 0
+        ? this.bulkChangeRole_LOC.first()
+        : this.userRolesPlainTextViewCell_LOC.first();
     await rolesCell.waitFor({ state: "visible", timeout: WAIT.SMALL });
     const raw = (await rolesCell.innerText()) ?? "";
     return raw.replace(/\u00A0/g, " ").trim();

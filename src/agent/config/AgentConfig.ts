@@ -104,6 +104,8 @@ export class AgentConfig {
     'salesLeadFilters', 'paymentTermsOptions', 'salesLeadStatuses', 'OPERATING_OFFICE',
     // bulkChangeConstants.ts
     'REFERENCE_TYPE', 'CARRIER_CONFIRMATION_TYPE', 'BOL_HEADER_STYLE', 'SELECT_CHANGES_TYPE',
+    // billingToggleConstants.ts
+    'AGENT_SEARCH_NAME', 'PAYABLE_SHORT_PAY',
     // nonOperationalLoadsConstant.ts
     'LOAD_ACTIVITIES', 'SELECT_QUEUE_ACTION', 'INVOICE_OPTIONS', 'LOAD_CHARGES',
     'INVOICE_CHARGES_DROPDOWN', 'CHARGE_AMOUNTS', 'SETTLEMENT_REASONS',

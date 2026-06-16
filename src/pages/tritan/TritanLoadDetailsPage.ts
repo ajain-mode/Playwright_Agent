@@ -267,26 +267,46 @@ export default class TritanLoadDetailsPage {
     }
 
     /**
+     * Carrier Invoices sub-window inside shipment/load Detail frame.
+     * @author AI Agent
+     * @created 2026-06-10
+     * @returns FrameLocator scoped to #carrInvoicesWin
+     */
+    private carrierInvoicesFrame(): FrameLocator {
+        return this.detailsFrame
+            .locator('iframe[src*="editTransport"]')
+            .contentFrame()
+            .locator("#carrInvoicesWin")
+            .contentFrame();
+    }
+
+    /**
      * Clicks the green "+" under Carrier Invoices on the Tritan load page.
      * @author AI Agent
      * @created 2026-06-01
      */
     async clickAddCarrierInvoicePlusIcon(): Promise<void> {
-        const addIcon = this.page
-            .locator('iframe[name="AppBody"]')
-            .contentFrame()
-            .locator('#Detail')
-            .contentFrame()
-            .locator('iframe')
-            .contentFrame()
-            .locator('#carrInvoicesWin')
-            .contentFrame()
-            .locator('.right > a, a img[alt*="Add"]')
-            .first();
-        await addIcon.waitFor({ state: 'visible', timeout: WAIT.LARGE });
-        await addIcon.click();
         await commonReusables.waitForPageStable(this.page);
-        console.log('Clicked Carrier Invoices add (+) icon');
+        const transportFrame = this.detailsFrame.locator('iframe[src*="editTransport"]').contentFrame();
+        await transportFrame.locator("body").waitFor({ state: "attached", timeout: WAIT.XXLARGE });
+        const invoiceWindowIds = ['#carrInvoicesWin', '#vendInvoicesWin', '#invoicesWin'];
+        for (const winId of invoiceWindowIds) {
+            const addIcon = transportFrame
+                .locator(winId)
+                .contentFrame()
+                .locator('.right > a, a img[alt*="Add"], a img[alt="Add"]')
+                .first();
+            try {
+                await addIcon.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+                await addIcon.click();
+                await commonReusables.waitForPageStable(this.page);
+                console.log(`Clicked Carrier Invoices add (+) icon via ${winId}`);
+                return;
+            } catch {
+                // try next known invoice sub-window
+            }
+        }
+        throw new Error('Carrier Invoices add (+) icon not found in any known invoice window');
     }
 
     /**
@@ -295,15 +315,7 @@ export default class TritanLoadDetailsPage {
      * @created 2026-06-01
      */
     async getLatestCarrierInvoiceDetails(): Promise<{ invoiceNumber: string; billTotal: string }> {
-        const frame = this.page
-            .locator('iframe[name="AppBody"]')
-            .contentFrame()
-            .locator('#Detail')
-            .contentFrame()
-            .locator('iframe')
-            .contentFrame()
-            .locator('#carrInvoicesWin')
-            .contentFrame();
+        const frame = this.carrierInvoicesFrame();
         const invoiceNumber = (
             (await frame.locator("//td[@class='type' and normalize-space()='Invoice']/parent::tr//td[1]").last().textContent()) ||
             ''

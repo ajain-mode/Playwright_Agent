@@ -18,6 +18,8 @@ export const REGEX_PATTERNS = {
   DATE: {
     /** mm/dd/yyyy with optional hh:mm or hh:mm:ss (report grid cell values). */
     US_REPORT_DATETIME: /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/,
+    /** mm/dd/yyyy hh:mm:ss — View Billing Initial/Current Toggle Date when set (billing.php). */
+    US_BILLING_TOGGLE_DATETIME: /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/,
     /** mm/dd/yyyy date-only, anchored (datepicker filter start/end inputs). */
     US_FILTER_DATE: /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
   },
