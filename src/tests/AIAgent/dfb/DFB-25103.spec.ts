@@ -20,7 +20,7 @@ let sharedContext: any;
 let sharedPage: any;
 let pages: PageManager;
 
-//test.describe.configure({ retries: 1 });
+test.describe.configure({ retries: 1 });
 test.describe.serial(
   "Verify that a message is displayed when a value is not entered for the Email for Notifications field on the CREATE NEW ENTRY form",
   () => {

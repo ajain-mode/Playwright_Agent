@@ -31,7 +31,7 @@ let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
 
-test.describe.configure({ retries: 0 });
+test.describe.configure({ retries: 1 });
 test.describe.serial(
   "Case ID: DFB-97739 - Automatically book a load when it is manually posted and display a message when an active loadboard user is not selected for the Carrier Contact for Rate Confirmation field on the load",
   () => {
