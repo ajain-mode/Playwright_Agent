@@ -22,7 +22,7 @@ interface SshTunnelHandle {
 
 /**
  * Read-only MySQL client for Stage BTMS (`sunteck_fats.loadsh`).
- * Hosts come from loginHelpers/config.json; secrets from .env (BTMS_DB_PASSWORD, BTMS_SSH_KEY).
+ * Hosts from loginHelpers/config.json; ports/users/schema/password/key from .env (BTMS_DB_*, BTMS_SSH_*).
  * @author AI Agent
  * @created 2026-06-04
  */
@@ -31,7 +31,7 @@ export class BtmsDbClient {
   private sshTunnel: SshTunnelHandle | null = null;
 
   /**
-   * Opens connection via SSH bastion (config.json) + MySQL credentials (.env).
+   * Opens connection via SSH bastion (config.json hosts + .env) + MySQL credentials (.env).
    * @author AI Agent
    * @created 2026-06-04
    */

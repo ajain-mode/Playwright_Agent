@@ -932,6 +932,44 @@ class LoadBillingPage {
     }
 
     /**
+     * Expected price difference under Billing Issues = total carrier invoice amount(s) − flat carrier rate.
+     * billing.php `#billing-note-container` — e.g. BT-97804 Expected (700 − 600 = 100).
+     * @author AI Agent
+     * @created 2026-06-15
+     * @param carrierRate - Flat carrier rate from load (testData.carrierRate)
+     * @param invoiceAmounts - One or more carrier invoice amounts (testData.carrierInvoiceAmount*)
+     * @returns Absolute price difference in dollars
+     */
+    calculateExpectedBillingIssuesPriceDifference(
+        carrierRate: string,
+        invoiceAmounts: string[],
+    ): number {
+        const totalInvoiced = invoiceAmounts.reduce(
+            (sum, amount) => sum + parseFloat(String(amount).replace(/,/g, "")),
+            0,
+        );
+        const charges = parseFloat(String(carrierRate).replace(/,/g, ""));
+        return Math.abs(totalInvoiced - charges);
+    }
+
+    /**
+     * Reads the price-difference dollar value from Billing Issues messages (`#billing-note-container`).
+     * @author AI Agent
+     * @created 2026-06-15
+     * @returns Parsed dollar amount from the first matching message, or null if none found
+     */
+    async getBillingIssuesPriceDifferenceDisplayValue(): Promise<number | null> {
+        const messages = await this.getBillingIssuesMessages();
+        for (const msg of messages) {
+            const value = commonReusables.extractDollarValue(msg);
+            if (value !== null) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Clicks Payables "View History" link and returns the popup Page.
      * Scoped to `div[id^='payables-note-container_']` — `show_payables_messages_and_toggle_history`.
      * @author AI Agent

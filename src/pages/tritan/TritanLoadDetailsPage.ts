@@ -288,6 +288,7 @@ export default class TritanLoadDetailsPage {
     async clickAddCarrierInvoicePlusIcon(): Promise<void> {
         await commonReusables.waitForPageStable(this.page);
         const transportFrame = this.detailsFrame.locator('iframe[src*="editTransport"]').contentFrame();
+        await transportFrame.locator("body").waitFor({ state: "attached", timeout: WAIT.XXLARGE });
         const invoiceWindowIds = ['#carrInvoicesWin', '#vendInvoicesWin', '#invoicesWin'];
         for (const winId of invoiceWindowIds) {
             const addIcon = transportFrame
@@ -296,7 +297,7 @@ export default class TritanLoadDetailsPage {
                 .locator('.right > a, a img[alt*="Add"], a img[alt="Add"]')
                 .first();
             try {
-                await addIcon.waitFor({ state: 'visible', timeout: WAIT.MID });
+                await addIcon.waitFor({ state: 'visible', timeout: WAIT.LARGE });
                 await addIcon.click();
                 await commonReusables.waitForPageStable(this.page);
                 console.log(`Clicked Carrier Invoices add (+) icon via ${winId}`);

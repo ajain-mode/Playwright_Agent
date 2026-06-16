@@ -15,10 +15,15 @@ class LoginSetup {
     sshHost: string;
     /** MySQL host behind bastion — resolved from config.json `database.dbHost` */
     dbHost: string;
+    /** MySQL port — from .env `BTMS_DB_PORT` */
     dbPort: number;
+    /** SSH bastion port — from .env `BTMS_SSH_PORT` */
     sshPort: number;
+    /** SSH bastion user — from .env `BTMS_SSH_USER` */
     sshUser: string;
+    /** MySQL user — from .env `BTMS_DB_USER` */
     dbUser: string;
+    /** MySQL schema — from .env `BTMS_DB_SCHEMA` */
     dbSchema: string;
     private data = dataConfig.readJsonData("loginHelpers", "config.json");
     constructor() {
@@ -47,11 +52,11 @@ class LoginSetup {
         // @added : AI Agent - 2026-06-10 -> BTMS DB / SSH bastion hosts from config.json (env-specific)
         this.sshHost = (databaseData.sshHost || '').replace('${env}', this.Execution_Env);
         this.dbHost = (databaseData.dbHost || '').replace('${env}', this.Execution_Env);
-        this.dbPort = Number(databaseData.dbPort ?? 3306);
-        this.sshPort = Number(databaseData.sshPort ?? 22);
-        this.sshUser = databaseData.sshUser || 'bastion';
-        this.dbUser = databaseData.dbUser || 'readonly';
-        this.dbSchema = databaseData.dbSchema || 'sunteck_fats';
+        this.dbPort = Number(process.env.BTMS_DB_PORT ?? 3306);
+        this.sshPort = Number(process.env.BTMS_SSH_PORT ?? 22);
+        this.sshUser = process.env.BTMS_SSH_USER || 'bastion';
+        this.dbUser = process.env.BTMS_DB_USER || 'readonly';
+        this.dbSchema = process.env.BTMS_DB_SCHEMA || 'sunteck_fats';
     }
 }
 const loginSetup = new LoginSetup();

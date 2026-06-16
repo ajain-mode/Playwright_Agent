@@ -8,7 +8,6 @@ import commonReusables from "@utils/commonReusables";
 
 const testcaseID = "BT-67876";
 const testData = dataConfig.getTestDataFromCsv(dataConfig.billingtoggleData, testcaseID);
-const AGENT_SEARCH_NAME = "MATT BROWN";
 
 let sharedContext: BrowserContext;
 let sharedPage: Page;
@@ -33,7 +32,7 @@ test.describe.serial(
 
     test(
       "Case Id: BT-67876 - Validating agent user billing toggle on Delivered Final load (not Invoiced/Posted)",
-      { tag: "@AIAgent,@aiteam,@billingtoggle" },
+      { tag: "@aiagent,@at_billingtoggle" },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
@@ -63,13 +62,6 @@ test.describe.serial(
           await commonReusables.waitForPageStable(sharedPage);
         });
 
-        await test.step("Step 3 [67876 18]: Verify Auth Level is MANAGER", async () => {
-          const authLevel = await pages.agentInfoPage.getAuthLevel();
-          expect.soft(authLevel, "CSV 18: Auth Level must be MANAGER").toBe(
-            AGENT_AUTH_LEVEL.MANAGER
-          );
-        });
-
         const AGENT_AUTH_ROLES_EXPECTATION: AgentAuthRolesExpectation = {
           authLevel: AGENT_AUTH_LEVEL.MANAGER,
           requiredRoles: [
@@ -83,39 +75,17 @@ test.describe.serial(
         };
 
         await test.step(
-          "Step 3 [67876 19]: Verify user roles BTMS_USER, PRINCIPAL — not ADMIN, SYSTEM_ADMIN",
+          "Step 3 [67876 18-23]: Ensure agent auth/roles — verify MANAGER, BTMS_USER, PRINCIPAL",
           async () => {
-            await pages.agentInfoPage.validateDisplayedUserRoles({
-              requiredRoles: AGENT_AUTH_ROLES_EXPECTATION.requiredRoles,
-              forbiddenRoles: AGENT_AUTH_ROLES_EXPECTATION.forbiddenRoles,
-              soft: true,
-            });
-          }
-        );
-
-        await test.step(
-          "Step 3 [67876 20-23]: Skip or correct agent when 18-19 not met — Edit, roles, Save",
-          async () => {
-            const preconditionsMet = await pages.agentInfoPage.isAgentAuthAndRolesMet(
-              AGENT_AUTH_ROLES_EXPECTATION
-            );
-            if (preconditionsMet) {
-              pages.logger.info("Steps 18-19 met — skipping steps 21-23");
-              return;
-            }
-
-            pages.logger.info("Steps 18-19 not met — executing steps 21-23 (Edit, roles, Save)");
             await pages.agentInfoPage.ensureAgentAuthAndRoles(
               pages.agentEditPage,
               AGENT_AUTH_ROLES_EXPECTATION,
               { pages, loginUser: userSetup.globalUser },
             );
-
-            const authLevel = await pages.agentInfoPage.getAuthLevel();
-            expect(authLevel, "CSV 18: Auth Level must be MANAGER after correction").toBe(
-              AGENT_AUTH_LEVEL.MANAGER
+            await pages.agentInfoPage.validateAuthLevel(
+              AGENT_AUTH_LEVEL.MANAGER,
+              "CSV 18: Auth Level must be MANAGER",
             );
-
             await pages.agentInfoPage.validateDisplayedUserRoles({
               requiredRoles: AGENT_AUTH_ROLES_EXPECTATION.requiredRoles,
               forbiddenRoles: AGENT_AUTH_ROLES_EXPECTATION.forbiddenRoles,

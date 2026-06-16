@@ -15,12 +15,7 @@
   },
   "database": {
     "sshHost": "bastion.${env}.modetrans.com",
-    "dbHost": "btms.db.${env}.modetrans.com",
-    "dbPort": 3306,
-    "sshPort": 22,
-    "sshUser": "bastion",
-    "dbUser": "readonly",
-    "dbSchema": "sunteck_fats"
+    "dbHost": "btms.db.${env}.modetrans.com"
   }
 }
 
