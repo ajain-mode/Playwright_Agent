@@ -33,7 +33,7 @@ test.describe.serial(
 
     test(
       "Case Id: BT-97804 - Validate when an additional carrier invoice is added for the same carrier as the existing invoice",
-      { tag: "@aiagent,@billingtoggle" },
+      { tag: "@aiagent,@at_billingtoggle" },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 
