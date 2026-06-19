@@ -1,0 +1,41 @@
+{
+  "CarrierInvoices": {
+    "Invoice": {
+      "SourceSystem": "",
+      "CarrierName": "XPO LOGISTICS FREIGHT, INC.",
+      "CarrierId": "32467",
+      "InvoiceDate": "04/17/2026",
+      "InvoiceNumber": "32670a",
+      "AuthorityNumber": "TEST",
+      "InvoiceTotal": "784",
+      "LoadId": "{LoadId}",
+      "EquipmentNumber": "",
+      "BillToName": "Suntecktts",
+      "BillToAddress": "Attn: Accounts Payable",
+      "BillToCity": "Frisco",
+      "BillToState": "TX",
+      "BillToZip": "75033",
+      "PlannedFreight": "true",
+      "ReferenceNumbers": {
+        "ReferenceNumber": [
+          { "Qualifier": "TH", "Value": "TRITAN" },
+          { "Qualifier": "11", "Value": "ETSPL1" },
+          { "Qualifier": "DO", "Value": "9133102" },
+          { "Qualifier": "YY", "Value": "Y" },
+          { "Qualifier": "111", "Value": "ETSPL1" },
+          { "Qualifier": "OCD", "Value": "99" },
+          { "Qualifier": "SQ", "Value": "80886152" }
+        ]
+      },
+      "Charges": {
+        "Charge": [
+          { "Description": "MINIMUM CHARGE", "FeeCode": "MIN", "Quantity": "1", "Rate": "87.21", "RateCode": "FR", "Total": "87.21" },
+          { "Description": "HIGH COST SERVICE AREA (FLAT C", "FeeCode": "MSG", "Quantity": "1", "Rate": "87.21", "RateCode": "FR", "Total": "87.21" },
+          { "Description": "PEAK DEMAND SURCHARGE (PERCENT", "FeeCode": "PDS", "Quantity": "1", "Rate": "87.21", "RateCode": "FR", "Total": "87.21" },
+          { "Description": "FUEL ADJUSTMENT", "FeeCode": "FUE", "Quantity": "1", "Rate": "87.21", "RateCode": "FR", "Total": "87.21" },
+          { "Description": "LUMPER FEES (KGL1)", "FeeCode": "UNL", "Quantity": "1", "Rate": "87.21", "RateCode": "FR", "Total": "87.21" }
+        ]
+      }
+    }
+  }
+}

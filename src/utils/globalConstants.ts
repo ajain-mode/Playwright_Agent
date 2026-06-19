@@ -592,6 +592,7 @@ export class GlobalConstants {
     SYSTEM_ADMIN: "SYSTEM_ADMIN",
     BTMS_USER: "BTMS_USER",
     PRINCIPAL: "PRINCIPAL",
+    PAYABLES_MANAGER: "PAYABLES_MANAGER",
   } as const;
 
   /**
@@ -604,6 +605,7 @@ export class GlobalConstants {
     PRINCIPAL: "Principal Admin",
     ADMIN: "Admin",
     SYSTEM_ADMIN: "System Admin User",
+    PAYABLES_MANAGER: "Payables Manager",
   } as const;
 
   /** Payables slider on View Billing (distinct from Billing Issues Waiting On toggle). */
@@ -692,6 +694,14 @@ export class GlobalConstants {
   static readonly FINANCE_MESSAGES = {
     LOAD_NOT_INVOICED: "Load is not Invoiced",
     CARRIER_OVER_INVOICED: "over the total charge",
+    CARRIER_NOT_ASSIGNED_TO_LOAD: "but carrier is not assigned to the load.",
+  } as const;
+
+  /** EDI 210 unassigned-invoice exception copy (billing.php / edi_exception). */
+  static readonly EDI_EXCEPTION = {
+    SOURCE_API_210: "API 210",
+    DESCRIP_CARRIER_NOT_BOOKED_ON_LOAD: "Carrier is not booked on load",
+    TOGGLE_HISTORY_ROLE_INITIAL: 0,
   } as const;
 
   /**
@@ -759,6 +769,7 @@ export class GlobalConstants {
     CARRIER_18_KING: "18 KING TRUCKING LLC",
     CARRIER_XPO_TRANS: "XPO TRANS INC",
     CARRIER_XPO_TRANS_AND: "XPO TRANS INC and select it once fully visible",
+    CARRIER_XPO_LOGISTICS_FREIGHT: "XPO LOGISTICS FREIGHT, INC.",
     CARRIER_ESTES_EXPRESS_LINES: "ESTES EXPRESS LINES",
   } as const;
 
@@ -849,6 +860,7 @@ declare global {
   const INVOICE_PROCESS: typeof GlobalConstants.INVOICE_PROCESS;
   const AUTOPAY_STATUS: typeof GlobalConstants.AUTOPAY_STATUS;
   const FINANCE_MESSAGES: typeof GlobalConstants.FINANCE_MESSAGES;
+  const EDI_EXCEPTION: typeof GlobalConstants.EDI_EXCEPTION;
   const BILLING_ISSUE_TAGS: typeof GlobalConstants.BILLING_ISSUE_TAGS;
   const VIEW_HISTORY_USER: typeof GlobalConstants.VIEW_HISTORY_USER;
   const CARRIER_PAYABLE_STATUS: typeof GlobalConstants.CARRIER_PAYABLE_STATUS;
@@ -938,6 +950,7 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).INVOICE_PROCESS = GlobalConstants.INVOICE_PROCESS;
   (globalThis as any).AUTOPAY_STATUS = GlobalConstants.AUTOPAY_STATUS;
   (globalThis as any).FINANCE_MESSAGES = GlobalConstants.FINANCE_MESSAGES;
+  (globalThis as any).EDI_EXCEPTION = GlobalConstants.EDI_EXCEPTION;
   (globalThis as any).BILLING_ISSUE_TAGS = GlobalConstants.BILLING_ISSUE_TAGS;
   (globalThis as any).VIEW_HISTORY_USER = GlobalConstants.VIEW_HISTORY_USER;
   (globalThis as any).CARRIER_PAYABLE_STATUS = GlobalConstants.CARRIER_PAYABLE_STATUS;

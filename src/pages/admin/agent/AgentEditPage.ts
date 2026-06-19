@@ -123,6 +123,7 @@ export default class AgentEditPage {
             [AGENT_USER_ROLES.PRINCIPAL]: AGENT_USER_ROLE_DISPLAY.PRINCIPAL,
             [AGENT_USER_ROLES.ADMIN]: AGENT_USER_ROLE_DISPLAY.ADMIN,
             [AGENT_USER_ROLES.SYSTEM_ADMIN]: AGENT_USER_ROLE_DISPLAY.SYSTEM_ADMIN,
+            [AGENT_USER_ROLES.PAYABLES_MANAGER]: AGENT_USER_ROLE_DISPLAY.PAYABLES_MANAGER,
         };
         const normalized = this.normalizeRoleKey(role);
         const display = displayByKey[normalized];

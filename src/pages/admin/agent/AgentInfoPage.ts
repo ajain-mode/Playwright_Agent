@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from "@playwright/test";
 import AgentEditPage from "@pages/admin/agent/AgentEditPage";
+import commonReusables from "@utils/commonReusables";
 import { PageManager } from "@utils/PageManager";
 
 /** Auth level and user-role expectations for agent view/edit flows. */
@@ -398,6 +399,12 @@ export default class AgentInfoPage {
       if (expectedKey === AGENT_USER_ROLES.BTMS_USER) {
         return assignedKey === AGENT_USER_ROLES.BTMS_USER;
       }
+      if (expectedKey === AGENT_USER_ROLES.PAYABLES_MANAGER) {
+        return (
+          assignedKey === AGENT_USER_ROLES.PAYABLES_MANAGER ||
+          (assignedKey.includes("PAYABLES") && assignedKey.includes("MANAGER"))
+        );
+      }
       return assignedKey === expectedKey;
     });
   }
@@ -537,5 +544,16 @@ export default class AgentInfoPage {
     }
     await agentEditPage.clickSaveButton();
     await this.recoverAgentInfoViewIfLogin(agentInfoUrl, options);
+    await commonReusables.waitForPageStable(this.page);
+
+    const authAfter = await this.getAuthLevel();
+    const rolesAfter = await this.getDisplayedUserRolesList();
+    const authOk = authAfter === expectation.authLevel.toUpperCase();
+    const rolesOk = this.rolesMatchExpectation(rolesAfter, expectation);
+    if (!authOk || !rolesOk) {
+      throw new Error(
+        `Agent auth/roles not applied after save (auth=${authAfter}, roles=${rolesAfter.join(", ")})`,
+      );
+    }
   }
 }

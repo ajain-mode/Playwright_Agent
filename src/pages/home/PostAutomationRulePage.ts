@@ -1753,7 +1753,31 @@ class PostAutomationRulePage {
       return false;
     }
   }
-}
 
+  /**
+   * Verifies no post automation rule exists for customer; navigates via direct URL when
+   * Office Config Post Automation button is disabled (switched sales users — BT-82715).
+   * @author AI Agent
+   * @created 2026-06-17
+   * @param customerName - Customer to search on post automation screen
+   */
+  async verifyCustomerPostAutomationRuleWhenButtonMayBeDisabled(
+    customerName: string,
+  ): Promise<void> {
+    await this.hoverAndSelectOfficeConfig();
+    const postAutomationButton = this.postAutomationButton_LOC;
+    if (await postAutomationButton.isEnabled()) {
+      await this.clickPostAutomationButton();
+    } else {
+      await this.page.goto(new URL("/web/post_automation", this.page.url()).href);
+      await commonReusables.waitForPageStable(this.page);
+    }
+    await this.inputSearch(customerName);
+    await this.verifySearchResults();
+    console.log(
+      `Post automation rule verification completed for customer: ${customerName}`,
+    );
+  }
+}
 
 export default PostAutomationRulePage;
