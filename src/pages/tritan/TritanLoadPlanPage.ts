@@ -31,6 +31,7 @@ export default class TritanLoadPlanPage {
      * @created 17-Dec-2025
     */
     async setDropStatus(date: string, time: string) {
+        await this.dropStatusPlusIcon_LOC.waitFor({ state: "visible" });
         const popupPromise = this.page.waitForEvent("popup");
         await this.dropStatusPlusIcon_LOC.click();
         this.popupPage = await popupPromise;
@@ -67,10 +68,27 @@ export default class TritanLoadPlanPage {
         this.saveButton_LOC = this.popupPage.locator("//input[@onclick='doSubmit()']");
     }
 
-    async clickSaveButton() {
-        await commonReusables.dialogHandler(this.popupPage);
+      /**
+     * Clicks Save on the currently open status popup.
+     * If `expectedAlert` is provided, validates the alert on the popup (where it actually fires)
+     * and returns the alert message. Otherwise auto-accepts any dialog and returns null.
+     * @author AI Agent
+     * @created 2026-06-17
+     * @param expectedAlert - Optional regex/string the popup alert must match
+     * @returns The alert message when `expectedAlert` is provided, else null
+     */
+    async clickSaveButton(expectedAlert?: string | RegExp): Promise<string | null> {
         const popupClosePromise = this.popupPage.waitForEvent("close");
+        if (expectedAlert !== undefined) {
+            const alertPromise = commonReusables.validateAlert(this.popupPage, expectedAlert, 30);
+            await this.saveButton_LOC.click();
+            const message = await alertPromise;
+            await popupClosePromise;
+            return message;
+        }
+        await commonReusables.dialogHandler(this.popupPage);
         await this.saveButton_LOC.click();
-        await popupClosePromise; //wait for popup to close
+        await popupClosePromise;
+        return null;
     }
 }

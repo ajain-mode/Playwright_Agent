@@ -90,28 +90,28 @@ test.describe.serial(
         await test.step("Steps 14-18 [82786 14-18]: Plan — Pickup PRO, Drop status, Delivered alert", async () => {
           await tritanPages.tritanLoadDetailsPage.clickOnPlanTab();
           await tritanPages.tritanAdminPage.clickPlusPickupButton();
-          await tritanPages.tritanAdminPage.enterProNumberValue(testData.TrailerNumber);
+          const proNumber = commonReusables.generateRandomNumber(6);
+          await tritanPages.tritanAdminPage.enterProNumberValue(proNumber);
           await tritanPages.tritanAdminPage.enterDateAndTime(
             await commonReusables.getDate("today", "MM/DD/YYYY"),
             testData.shipperEarliestTime,
           );
-          const statusAlert = tritanPages.commonReusables.validateAlert(
-            tritanPage,
+          const pickupAlertMessage = await tritanPages.tritanAdminPage.clickPickupSaveAndValidateAlert(
             /Status message added/i,
           );
-          await tritanPages.tritanAdminPage.clickPickupSaveButton();
-          await statusAlert;
+          expect(pickupAlertMessage, "Expected pickup Save to fire 'Status message added' alert").toMatch(
+            /Status message added/i,
+          );
+          await commonReusables.waitForPageStable(tritanPage, { timeout: WAIT.LARGE });
 
-          const dropStatusAlert = tritanPages.commonReusables.validateAlert(
-            tritanPage,
-            /Status message added/i,
-          );
           await tritanPages.tritanLoadPlanPage.setDropStatus(
             await commonReusables.getDate("today", "MM/DD/YYYY"),
             testData.consigneeEarliestTime,
           );
-          await tritanPages.tritanLoadPlanPage.clickSaveButton();
-          await dropStatusAlert;
+          const dropAlertMessage = await tritanPages.tritanLoadPlanPage.clickSaveButton(/Status message added/i);
+          expect(dropAlertMessage, "Expected drop Save to fire 'Status message added' alert").toMatch(
+            /Status message added/i,
+          );
         });
 
         await test.step("Steps 19-22 [82786 19-22]: Shipment Delivered status on Shipment Details", async () => {
@@ -165,6 +165,8 @@ test.describe.serial(
             await btmsPages.loadBillingPage.enterCarrierInvoiceAmount(btmsOverInvoiceAmount);
             await btmsPages.loadBillingPage.clickSaveCarrierInvoice();
             await btmsPages.commonReusables.reloadAndAcceptDialogs(btmsPage, WAIT.SMALL);
+            await btmsPages.page.reload();
+            await commonReusables.waitForPageStable(btmsPage, { timeout: WAIT.XXLARGE });
 
             const payableToggle = await btmsPages.loadBillingPage.getPayableToggleValue();
             expect(payableToggle, "Expected after 33: Payables toggle moves to Agent").toBe(
@@ -190,7 +192,7 @@ test.describe.serial(
           await tritanPages.tritanDashboardPage.clickOnDetailsTab();
           await tritanPages.shipmentDetailsPage.clickOnLoadNumber(shipmentId);
 
-          const carrierPopup = await tritanPages.tritanLoadDetailsPage.clickOnCarrierTotalAmount();
+          const carrierPopup = await tritanPages.tritanLoadDetailsPage.clickOnCarrierInvoiceBillTotalAmount();
           await tritanPages.tritanLoadDetailsPage.applyCarrierShortPaySettlement(
             carrierPopup,
             SELECT_QUEUE_ACTION.FORTY_VALID_APPROVED,

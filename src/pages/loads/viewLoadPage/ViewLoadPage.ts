@@ -221,9 +221,7 @@ export default class ViewLoadPage {
     this.sourceSystemValue_LOC = page.locator(
       "//td[@class='fn' and normalize-space(.)='Source System']/following-sibling::td[1]",
     );
-    this.createdByValue_LOC = page.locator(
-      "//td[@class='fn' and normalize-space(.)='Created By']/following-sibling::td[1]",
-    );
+    this.createdByValue_LOC = page.locator('td.fn:text-is("Created By") + td .pull-left');
     this.viewHistory_LOC = this.page.locator("//input[@value='View History']");
     this.historyHeader_LOC = "//font[contains(normalize-space(.), 'History of Edits for Load')]";
     this.historyHeader = (page: Page = this.page) => page.locator(this.historyHeader_LOC);

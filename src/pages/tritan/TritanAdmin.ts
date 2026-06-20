@@ -402,5 +402,31 @@ class TritanAdmin {
 
         console.log("Old rate and rerated amount are different.");
     }
+
+     /**
+     * Clicks the Pickup popup Save button and validates the alert that fires
+     * on the popup window (Tritan's `doSubmit()` raises the alert inside the popup,
+     * not on the parent page). Returns the captured alert message.
+     * @author AI Agent
+     * @created 2026-06-17
+     * @param expectedAlert - Regex/string the popup alert must match (e.g. /Status message added/i)
+     * @param timeoutSeconds - Seconds to wait for the popup alert (default 30)
+     * @returns The accepted alert message
+     */
+    async clickPickupSaveAndValidateAlert(
+        expectedAlert: string | RegExp,
+        timeoutSeconds: number = 30,
+    ): Promise<string | null> {
+        const popupClosePromise = this.popupPage.waitForEvent("close");
+        const alertPromise = commonReusables.validateAlert(
+            this.popupPage,
+            expectedAlert,
+            timeoutSeconds,
+        );
+        await this.pickupSaveButton_LOC.click();
+        const message = await alertPromise;
+        await popupClosePromise;
+        return message;
+    }
 }
 export default TritanAdmin;
