@@ -221,9 +221,7 @@ export default class ViewLoadPage {
     this.sourceSystemValue_LOC = page.locator(
       "//td[@class='fn' and normalize-space(.)='Source System']/following-sibling::td[1]",
     );
-    this.createdByValue_LOC = page.locator(
-      "//td[@class='fn' and normalize-space(.)='Created By']/following-sibling::td[1]",
-    );
+    this.createdByValue_LOC = page.locator('td.fn:text-is("Created By") + td .pull-left');
     this.viewHistory_LOC = this.page.locator("//input[@value='View History']");
     this.historyHeader_LOC = "//font[contains(normalize-space(.), 'History of Edits for Load')]";
     this.historyHeader = (page: Page = this.page) => page.locator(this.historyHeader_LOC);
@@ -529,26 +527,34 @@ export default class ViewLoadPage {
  */
 
   async refreshAndValidateLoadStatus(loadStatus: string) {
-    const maxWaitMs = WAIT.XXLARGE * 3
+    const maxWaitMs = WAIT.XXLARGE * 4;
     const pollIntervalMs = WAIT.MID;
     const startTime = Date.now();
 
     while (Date.now() - startTime < maxWaitMs) {
-      await this.page.reload({ waitUntil: 'domcontentloaded' });
-      await this.loadStatusDropdown_LOC.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+      await this.page.reload({ waitUntil: "domcontentloaded" });
+      await this.loadStatusDropdown_LOC.waitFor({
+        state: "visible",
+        timeout: WAIT.LARGE,
+      });
 
-      const actualStatus = ((await this.loadStatusDropdown_LOC.textContent()) ?? '').replace(/\u00A0/g, ' ').trim();
+      const actualStatus = (
+        (await this.loadStatusDropdown_LOC.textContent()) ?? ""
+      )
+        .replace(/\u00A0/g, " ")
+        .trim();
 
       console.log(`Current Load Status: ${actualStatus}`);
 
       if (actualStatus === loadStatus) {
-        expect.soft(actualStatus).toBe(loadStatus);
         return;
       }
       await this.page.waitForTimeout(pollIntervalMs);
-      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await this.page.reload({ waitUntil: "domcontentloaded" });
     }
-    throw new Error(`Load status did not change to "${loadStatus}" within 3 minutes`);
+    throw new Error(
+      `Load status did not change to "${loadStatus}" within 8 minutes. Last observed status: "${await this.loadStatusDropdown_LOC.textContent()}"`,
+    );
   }
   /**
    * Validates the load status

@@ -143,6 +143,28 @@ class EditLoadLoadTabPage {
         await this.clickLoadTab();
         await this.selectRateCardValue(rateType);
     }
+
+    /**
+     * Selects Rate Type on the Load tab when empty. Targets native `#load_rate_type_select`
+     * (loadform.php) which may be hidden when wrapped by Select2 — selection does not require visibility.
+     * @author AI Agent
+     * @created 2026-06-18
+     * @param rateType - Option label (e.g. SPOT)
+     */
+    async ensureRateTypeSelected(rateType: string): Promise<void> {
+        await this.clickLoadTab();
+        const dropdown = this.rateCardLoadSubTabDropdown_LOC;
+        if ((await dropdown.count()) === 0) {
+            return;
+        }
+        const selectedValue = (await dropdown.inputValue().catch(() => "")) ?? "";
+        if (selectedValue.trim() !== "") {
+            console.log(`Rate type already set: ${selectedValue}`);
+            return;
+        }
+        await dropdown.selectOption({ label: rateType });
+        console.log(`Rate type selected: ${rateType}`);
+    }
     /**
      * Selects the load status from the dropdown
      * @author Rohit Singh

@@ -10,7 +10,7 @@ export default class ShipmentActivities {
     constructor(private page: Page) {
         this.BTMSExtractCheckbox_LOC = page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame().locator("(//tr[td[@title='Type' and normalize-space()='BTMS Extract']])[1]//input[@type='checkbox']");
         this.shipmentActivitiesSelectActionDropdown_LOC = page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame().locator('#sAction');
-        this.submitButton_LOC = page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame().locator("//input[@value=' Submit ']");
+        this.submitButton_LOC = page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame().getByRole('button', { name: 'Submit' });
     }
     /**
 * Select BTMS Extract checkbox

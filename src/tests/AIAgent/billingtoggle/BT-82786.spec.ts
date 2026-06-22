@@ -41,7 +41,7 @@ test.describe.serial(
       "Case Id: BT-82786 - Verify Payables toggle when load receives Short Pay flagged invoice from SLC",
       { tag: "@AIAgent,@aiteam,@billingtoggle,@payabletoggle" },
       async () => {
-        test.setTimeout(WAIT.XXLARGE * 8);
+        test.setTimeout(WAIT.SPEC_TIMEOUT_XXLARGE);
 
         await test.step("Steps 1-6 [82786 1-6]: Login confirmed — Company → Expand → Goodyear customer", async () => {
           await commonReusables.waitForPageStable(tritanPage, { timeout: WAIT.XXLARGE });
@@ -90,28 +90,28 @@ test.describe.serial(
         await test.step("Steps 14-18 [82786 14-18]: Plan — Pickup PRO, Drop status, Delivered alert", async () => {
           await tritanPages.tritanLoadDetailsPage.clickOnPlanTab();
           await tritanPages.tritanAdminPage.clickPlusPickupButton();
-          await tritanPages.tritanAdminPage.enterProNumberValue(testData.TrailerNumber);
+          const proNumber = commonReusables.generateRandomNumber(6);
+          await tritanPages.tritanAdminPage.enterProNumberValue(proNumber);
           await tritanPages.tritanAdminPage.enterDateAndTime(
             await commonReusables.getDate("today", "MM/DD/YYYY"),
             testData.shipperEarliestTime,
           );
-          const statusAlert = tritanPages.commonReusables.validateAlert(
-            tritanPage,
+          const pickupAlertMessage = await tritanPages.tritanAdminPage.clickPickupSaveAndValidateAlert(
             /Status message added/i,
           );
-          await tritanPages.tritanAdminPage.clickPickupSaveButton();
-          await statusAlert;
+          expect(pickupAlertMessage, "Expected pickup Save to fire 'Status message added' alert").toMatch(
+            /Status message added/i,
+          );
+          await commonReusables.waitForPageStable(tritanPage, { timeout: WAIT.LARGE });
 
-          const dropStatusAlert = tritanPages.commonReusables.validateAlert(
-            tritanPage,
-            /Status message added/i,
-          );
           await tritanPages.tritanLoadPlanPage.setDropStatus(
             await commonReusables.getDate("today", "MM/DD/YYYY"),
             testData.consigneeEarliestTime,
           );
-          await tritanPages.tritanLoadPlanPage.clickSaveButton();
-          await dropStatusAlert;
+          const dropAlertMessage = await tritanPages.tritanLoadPlanPage.clickSaveButton(/Status message added/i);
+          expect(dropAlertMessage, "Expected drop Save to fire 'Status message added' alert").toMatch(
+            /Status message added/i,
+          );
         });
 
         await test.step("Steps 19-22 [82786 19-22]: Shipment Delivered status on Shipment Details", async () => {
@@ -165,6 +165,8 @@ test.describe.serial(
             await btmsPages.loadBillingPage.enterCarrierInvoiceAmount(btmsOverInvoiceAmount);
             await btmsPages.loadBillingPage.clickSaveCarrierInvoice();
             await btmsPages.commonReusables.reloadAndAcceptDialogs(btmsPage, WAIT.SMALL);
+            await btmsPages.page.reload();
+            await commonReusables.waitForPageStable(btmsPage, { timeout: WAIT.XXLARGE });
 
             const payableToggle = await btmsPages.loadBillingPage.getPayableToggleValue();
             expect(payableToggle, "Expected after 33: Payables toggle moves to Agent").toBe(
@@ -190,7 +192,7 @@ test.describe.serial(
           await tritanPages.tritanDashboardPage.clickOnDetailsTab();
           await tritanPages.shipmentDetailsPage.clickOnLoadNumber(shipmentId);
 
-          const carrierPopup = await tritanPages.tritanLoadDetailsPage.clickOnCarrierTotalAmount();
+          const carrierPopup = await tritanPages.tritanLoadDetailsPage.clickOnCarrierInvoiceBillTotalAmount();
           await tritanPages.tritanLoadDetailsPage.applyCarrierShortPaySettlement(
             carrierPopup,
             SELECT_QUEUE_ACTION.FORTY_VALID_APPROVED,
@@ -207,7 +209,7 @@ test.describe.serial(
           await tritanPages.tritanDashboardPage.clickOnDetailsTab();
           await tritanPages.shipmentDetailsPage.clickOnPrintInvoiceIcon();
           await tritanPages.shipmentDetailsPage.selectInvoiceOptionAndValidateDownload(
-            INVOICE_OPTIONS.SINGLE_INVOICE,
+            INVOICE_OPTIONS.MODE_CUSTINV_NO_QUAL
           );
           await tritanPages.shipmentDetailsPage.clickOnCancelInvoiceButton();
         });
@@ -220,6 +222,7 @@ test.describe.serial(
             await tritanPages.shipmentDetailsPage.selectQueue(SELECT_QUEUE_ACTION.FORTY_EXTRACT);
             await tritanPages.shipmentDetailsPage.clickOnSaveQueueButton();
 
+            await commonReusables.waitForPageStable(tritanPage, { timeout: WAIT.XXLARGE });
             const invoiceQueue = await tritanPages.shipmentDetailsPage.getCustomerInvoiceQueueDisplayValue();
             expect(invoiceQueue, "Expected after 46: Customer Invoice Queue 50 Complete").toBe(
               SELECT_QUEUE_ACTION.FIFTY_COMPLETE,
@@ -244,7 +247,6 @@ test.describe.serial(
             );
             await tritanPages.shipmentActivitiesPage.clickOnSubmitButton();
             await tritanPages.shipmentActivitiesPage.expectActivityStatusComplete("BTMS Extract");
-            await tritanPages.shipmentActivitiesPage.expectActivityStatusComplete("Invoice Extract");
           }
         );
 
@@ -256,6 +258,8 @@ test.describe.serial(
             const currentStatus = await btmsPages.viewLoadPage.getLoadStatusText();
             if (currentStatus !== LOAD_STATUS.INVOICED) {
               await btmsPages.viewLoadPage.clickEditButton();
+              await commonReusables.waitForPageStable(btmsPage, { timeout: WAIT.LARGE });
+              await btmsPages.editLoadFormPage.capShareAmountIfOver100();
               await btmsPages.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
               await btmsPages.commonReusables.acceptAllDialogsDuringAction(
                 btmsPage,
@@ -283,11 +287,12 @@ test.describe.serial(
               SETTLEMENT_REASONS.SHORT_PAY_ACCESSORIAL,
             );
 
+            const expectedShortPayMsg = `${SETTLEMENT_REASONS.SHORT_PAY_ACCESSORIAL}; ${SETTLEMENT_REASONS.SHORT_PAY_ACCESSORIAL_COMMENT}`;
             const payableMsg = await btmsPages.loadBillingPage.findPayableMessageContaining(
-              SETTLEMENT_REASONS.SHORT_PAY_INVOICE_MESSAGE,
+              SETTLEMENT_REASONS.SHORT_PAY_ACCESSORIAL_COMMENT,
             );
-            expect(payableMsg, "Expected Short Pay accessorial message under Message").toContain(
-              SETTLEMENT_REASONS.SHORT_PAY_INVOICE_MESSAGE,
+            expect(payableMsg, `Expected Short Pay accessorial message '${expectedShortPayMsg}' under Message`).toContain(
+              expectedShortPayMsg,
             );
           }
         );

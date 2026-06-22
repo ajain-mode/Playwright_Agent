@@ -1693,3 +1693,397 @@ After step 60:
 After step 63:
 - Billing toggle value should be set to Agent.
 - Validate the price difference value under BILLING ISSUES is $300.00. (Calculation: 300 = total carrier invoice amount 900 (700 + 200) - flat rate carrier value from load page 600)",,"aiteam, billingtoggle"
+82715,,FD-37551,Verify that user with Manager-level or less cannot set toggle to neutral.,,"1. Log in to BTMS in a valid environment: http://brokerage.stage.suntecktts.com/
+2. Click Sign in with Single Sign-On.
+3. Enter the User ID and click Next.
+4. Enter the Password.
+5. Click Sign In.
+6. Hover over the ADMIN menu.
+7. Click On AGENT SEARCH.
+8. Enter "" FRISCO TL"" in the Agent field and Click Search.
+9. Click on the Agent Profile.
+10. Confirm the Agent Info page is displayed.
+11. On Agent Info page verify Auth Lvel should be set to ""MANAGER"".
+12. User role should be ""BTMS_USER,  PRINCIPAL "" and should not contain ADMIN , SYSTEM_ADMIN.
+13. If step 11 and 12 set correctly then skip step(14 to 16).
+14. If not then click on Edit and select Auth Level field as MANAGER.
+15. From User roles select BTMS_USER,  PRINCIPAL if ADMIN , SYSTEM_ADMIN available then remove them.
+16. Click on Save.
+17. Hover over ADMIN again and click it.
+18. On the ADMIN main page, enter  FRISCO TL in the Switch User field.
+19. Select  FRISCO TL from the suggestion list.
+20. After the user switch, hover over the HOME tab and select OFFICE CONFIG.
+21. Click the POST AUTOMATION button.
+22. Search for the customer  MillerCoors Accessorial.
+23. If a rule already exists for this customer, select it using the checkbox and click Delete.
+24. Hover over Customers and click Search.
+25. Enter  MillerCoors Accessorial in the Customer field.
+26. Click Search.
+27. Click the Customer Profile.
+28. Scroll down on the View Customer page and click the hyperlink ""CREATE TL *NEW*"".
+29. On the Enter New Load page, confirm the Customer field is selected.
+30. If the Customer field is not selected, select the customer.
+31. Ensure Salesperson and Dispatcher are preselected as  FRISCO TL.
+32. If Salesperson and Dispatcher are not preselected as   FRISCO TL, select them.
+33. Select the Shipper location: |COHO DIST|SANTA ROSA|CA.
+34. Confirm the Name, Address, City, State, Zip, and Country fields auto-populate.
+35. Select the Earliest Date as tomorrow.
+36. Select the Latest Date as tomorrow.
+37. Enter Earliest Time as 09:00.
+38. Enter Latest Time as 09:00.
+39. Select the Consignee location: |EUCLID BEVERAGE OF NORTH AURORA|NORTH AURORA|IL.
+40. Confirm the Name, Address, City, State, Zip, and Country fields auto-populate.
+41. Select the Earliest Date as day after tomorrow.
+42. Select the Latest Date as day after tomorrow.
+43. Enter Earliest Time as 10:00.
+44. Enter Latest Time as 10:00.
+45. Enter Qty as 45.
+46. Select UoM as Case/Cases.
+47. Enter Description as Total 45 cases.
+48. Enter Weight as 3000.
+49. Select Equipment as FLATBED.
+50. Enter Length as 54.
+51. Select Mileage Engine as Current.
+52. Select Method as Practical.
+53. Confirm Linehaul and Fuel Surcharge are set to Flat Rate.
+54. Click Create Load.
+55. Under the Load tab, select Rate Type as SPOT if not already selected.
+56. Click the Carrier tab on the Edit Load page.
+57. Enter 2000 in the Offer Rate field.
+58. Click On Save.
+59. On View Load page Click On View Billing Button.
+60. Under Payable details section Click on Payable toggle to move Payables.
+61. Refresh the page and Try to move toogle towards Agent.
+62. Refresh the page and try to set the toggle to Neutral.
+
+Test Scenario 2: Sales Agent Flow
+
+Repeat Steps 1–62 from the above test case with the following modifications:
+
+Step 8: Enter ""COMMERCIAL SALES HOUSE (SALES)"" in Agent field  
+Step 11: Verify Auth Level should set to SALES.
+Step 12:  User role should be ""BTMS_USER,  PRINCIPAL, PAYABLES_MANAGER "" and should not contain ADMIN , SYSTEM_ADMIN.
+Step 14: If not then click on Edit and select Auth Level field as SALES.
+Step 15: From User roles select BTMS_USER,  PRINCIPAL, PAYABLES_MANAGER  if ADMIN , SYSTEM_ADMIN available then remove them.
+Step 18: Enter ""COMMERCIAL SALES HOUSE (SALES)"" in Switch User field  
+Step 22: Search for the customer  CRESCENT SPECIALTY FOODS INC.
+Step 25: Enter  CRESCENT SPECIALTY FOODS INC in the Customer field.
+Step 31: Salesperson should be ""COMMERCIAL SALES HOUSE (SALES)""  
+Step 32: Dispatcher should be ""COMMERCIAL SALES HOUSE (SALES)""  
+Step 33: Select the Shipper location: BLB VERGINIA LLC
+Step 39: Select the Consignee location: |CRESCENT SPECIALTY FOODS|EVERETT|WA","60. After step 60. Validate with hard assertion payables toggle should set to ""Payables"".
+61. After step 61. Validate with hard assertion payables toggle should set to ""Agent"".
+62. After step 62 Validate with hard assertion payables toggle should Not set to ""Neutral"" Its value is either Payables or Agent.
+
+Repeat the same validations In step 60, 61 and 62 for sales agent.",,"aiteam, payabletoggle"
+86999,,FD-37983,Validate payables toggle and message for EDI Exception with description “Carrier is not Booked on Load”,,"1. Login to BTMS in any valid environment (http://brokerage.stage.suntecktts.com/).
+2. Click on Sign in with Single Sign-On.
+3. Enter the User ID and click Next.
+4. Enter the Password.
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (NY OFFIC).
+9. Click on Search.
+10. Click on Office profile.
+11. Check Invoice Process is set as Central. (If already set, skip steps 12 and 13.)
+12. Click on Edit.
+13. Set Invoice Process as Central and click on Save.
+14. Hover and click on ADMIN.
+15. On the ADMIN main page, in the Switch User field enter value as NATASHA TINSLEY NY.
+16. Once the suggestion is shown, click on NATASHA TINSLEY NY (NY OFFIC) -7663.
+17. Hover to Customers and click Search.
+18. Enter the Customer name in the ""Customer"" field (A & Z PHARMACEUTICAL INC).
+19. Click on the ""Search"" button.
+20. Click on the Customer detail row.
+21. Scroll down on the VIEW CUSTOMER page and click the hyperlink ""CREATE TL *NEW*"".
+22. On the ENTER NEW LOAD page, verify the ""Customer"" field is already selected; if not, select A & Z PHARMACEUTICAL INC.
+23. Verify ""Salesperson"" and ""Dispatcher"" fields have preselected values; if not, select them.
+24. Select the location from the ""Shipper"" field (ADAMS WAREHOUSE).
+25. Verify Name, Address, City, State, Zip, Country auto-populate from the selected Shipper.
+26. Select the Shipper ""Earliest Date"" as tomorrow's date.
+27. Select the Shipper ""Latest Date"" as tomorrow's date.
+28. Enter the Shipper ""Earliest Time"" as 09:00.
+29. Enter the Shipper ""Latest Time"" as 09:00.
+30. Select the location from the ""Consignee"" field (ARK LOGISTICS).
+31. Verify Name, Address, City, State, Zip, Country auto-populate from the selected Consignee.
+32. Select the Consignee ""Earliest Date"" as day after tomorrow.
+33. Select the Consignee ""Latest Date"" as day after tomorrow.
+34. Enter the Consignee ""Earliest Time"" as 10:00.
+35. Enter the Consignee ""Latest Time"" as 10:00.
+36. In the ""Whose Instructions"" field, enter value as TestData.
+37. Enter Quantity in the ""Qty"" field as 40.
+38. Select the ""UoM"" field as Cases.
+39. Enter description in the ""Description"" field as ""Total 40 cases"".
+40. Enter weight in the ""Weight"" field as 1000.
+41. Select the ""Equipment"" field as FLATBED.
+42. Enter the ""length"" field as 54.
+43. Select the ""Mileage Engine"" field as Current.
+44. Select the ""Method"" as Practical.
+45. Verify ""Linehaul"" and ""Fuel Surcharge"" default value is Flat Rate.
+46. Click on the ""Create Load"" button.
+47. On the Edit Load page, select Rate Type as SPOT if not already selected, then click the ""Carrier"" tab.
+48. Enter a valid value for the Offer Rate field on the load as 1000.
+49. Enter trailer length 10 if not filled.
+50. Enter total miles 100 if not filled.
+51. Click on the Save button and capture the created Load ID.
+52. Send a POST request to https://tms.stage.modetrans.com/sterling/edi/210 with bearer token authentication and the following JSON body, replacing the LoadId value with the Load ID captured in step 51:
+
+{
+    ""CarrierInvoices"": {
+        ""Invoice"": {
+            ""SourceSystem"": """",
+            ""CarrierName"": ""XPO LOGISTICS FREIGHT, INC."",
+            ""CarrierId"": ""32467"",
+            ""InvoiceDate"": ""04/17/2026"",
+            ""InvoiceNumber"": ""32670a"",
+            ""AuthorityNumber"": ""TEST"",
+            ""InvoiceTotal"": ""784"",
+            ""LoadId"": ""<CREATED_LOAD_ID>"",
+            ""EquipmentNumber"": """",
+            ""BillToName"": ""Suntecktts"",
+            ""BillToAddress"": ""Attn: Accounts Payable"",
+            ""BillToCity"": ""Frisco"",
+            ""BillToState"": ""TX"",
+            ""BillToZip"": ""75033"",
+            ""PlannedFreight"": ""true"",
+            ""ReferenceNumbers"": {
+                ""ReferenceNumber"": [
+                    { ""Qualifier"": ""TH"",  ""Value"": ""TRITAN"" },
+                    { ""Qualifier"": ""11"",  ""Value"": ""ETSPL1"" },
+                    { ""Qualifier"": ""DO"",  ""Value"": ""9133102"" },
+                    { ""Qualifier"": ""YY"",  ""Value"": ""Y"" },
+                    { ""Qualifier"": ""111"", ""Value"": ""ETSPL1"" },
+                    { ""Qualifier"": ""OCD"", ""Value"": ""99"" },
+                    { ""Qualifier"": ""SQ"",  ""Value"": ""80886152"" }
+                ]
+            },
+            ""Charges"": {
+                ""Charge"": [
+                    { ""Description"": ""MINIMUM CHARGE"",                 ""FeeCode"": ""MIN"", ""Quantity"": ""1"", ""Rate"": ""87.21"", ""RateCode"": ""FR"", ""Total"": ""87.21"" },
+                    { ""Description"": ""HIGH COST SERVICE AREA (FLAT C"", ""FeeCode"": ""MSG"", ""Quantity"": ""1"", ""Rate"": ""87.21"", ""RateCode"": ""FR"", ""Total"": ""87.21"" },
+                    { ""Description"": ""PEAK DEMAND SURCHARGE (PERCENT"", ""FeeCode"": ""PDS"", ""Quantity"": ""1"", ""Rate"": ""87.21"", ""RateCode"": ""FR"", ""Total"": ""87.21"" },
+                    { ""Description"": ""FUEL ADJUSTMENT"",                ""FeeCode"": ""FUE"", ""Quantity"": ""1"", ""Rate"": ""87.21"", ""RateCode"": ""FR"", ""Total"": ""87.21"" },
+                    { ""Description"": ""LUMPER FEES (KGL1)"",             ""FeeCode"": ""UNL"", ""Quantity"": ""1"", ""Rate"": ""87.21"", ""RateCode"": ""FR"", ""Total"": ""87.21"" }
+                ]
+            }
+        }
+    }
+}
+
+53. Navigate to the BTMS and click View Billing on view load page .
+54. Click on the ""Unassigned Invoice"" tab.
+55.  Click on View History link near Message text  on unassigned Invoiced tab.","54. The ""Unassigned Invoice"" tab is opened on the View Billing page and the invoice ingested via the EDI 210 API is displayed for the created Load ID with the following details:
+    - Source is displayed as ""API 210"".
+    - load_number matches the Load ID captured in step 51.
+    - carr_name is displayed as ""XPO LOGISTICS FREIGHT, INC."".
+    - descrip is displayed as ""Carrier is not booked on load"".
+    - The Waiting On ""Payables / Agent"" toggle is set to ""Agent"".
+
+55. The History modal opens and displays a single entry with the following values:
+        - MESSAGE: ""XPO LOGISTICS FREIGHT, INC. is Billing $784 but carrier is not assigned to the load.""",,"aiteam, payabletoggle"
+87001,,FD-37983,Validate EDI- exception in database.,,"1. Login to BTMS in any valid environment (http://brokerage.stage.suntecktts.com/).
+2. Click on Sign in with Single Sign-On.
+3. Enter the User ID and click Next.
+4. Enter the Password.
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (NY OFFIC).
+9. Click on Search.
+10. Click on Office profile.
+11. Check Invoice Process is set as Central. (If already set, skip steps 12 and 13.)
+12. Click on Edit.
+13. Set Invoice Process as Central and click on Save.
+14. Hover and click on ADMIN.
+15. On the ADMIN main page, in the Switch User field enter value as NATASHA TINSLEY NY.
+16. Once the suggestion is shown, click on NATASHA TINSLEY NY (NY OFFIC) -7663.
+17. Hover to Customers and click Search.
+18. Enter the Customer name in the ""Customer"" field (A & Z PHARMACEUTICAL INC).
+19. Click on the ""Search"" button.
+20. Click on the Customer detail row.
+21. Scroll down on the VIEW CUSTOMER page and click the hyperlink ""CREATE TL *NEW*"".
+22. On the ENTER NEW LOAD page, verify the ""Customer"" field is already selected; if not, select A & Z PHARMACEUTICAL INC.
+23. Verify ""Salesperson"" and ""Dispatcher"" fields have preselected values; if not, select them.
+24. Select the location from the ""Shipper"" field (ADAMS WAREHOUSE).
+25. Verify Name, Address, City, State, Zip, Country auto-populate from the selected Shipper.
+26. Select the Shipper ""Earliest Date"" as tomorrow's date.
+27. Select the Shipper ""Latest Date"" as tomorrow's date.
+28. Enter the Shipper ""Earliest Time"" as 09:00.
+29. Enter the Shipper ""Latest Time"" as 09:00.
+30. Select the location from the ""Consignee"" field (ARK LOGISTICS).
+31. Verify Name, Address, City, State, Zip, Country auto-populate from the selected Consignee.
+32. Select the Consignee ""Earliest Date"" as day after tomorrow.
+33. Select the Consignee ""Latest Date"" as day after tomorrow.
+34. Enter the Consignee ""Earliest Time"" as 10:00.
+35. Enter the Consignee ""Latest Time"" as 10:00.
+36. In the ""Whose Instructions"" field, enter value as TestData.
+37. Enter Quantity in the ""Qty"" field as 40.
+38. Select the ""UoM"" field as Cases.
+39. Enter description in the ""Description"" field as ""Total 40 cases"".
+40. Enter weight in the ""Weight"" field as 1000.
+41. Select the ""Equipment"" field as FLATBED.
+42. Enter the ""length"" field as 54.
+43. Select the ""Mileage Engine"" field as Current.
+44. Select the ""Method"" as Practical.
+45. Verify ""Linehaul"" and ""Fuel Surcharge"" default value is Flat Rate.
+46. Click on the ""Create Load"" button.
+47. On the Edit Load page, select Rate Type as SPOT if not already selected, then click the ""Carrier"" tab.
+48. Enter a valid value for the Offer Rate field on the load as 1000.
+49. Enter trailer length 10 if not filled.
+50. Enter total miles 100 if not filled.
+51. Click on the Save button and capture the created Load ID.
+52. Send a POST request to https://tms.stage.modetrans.com/sterling/edi/210 with bearer token authentication and the following JSON body, replacing the LoadId value with the Load ID captured in step 51:
+
+{
+    ""CarrierInvoices"": {
+        ""Invoice"": {
+            ""SourceSystem"": """",
+            ""CarrierName"": ""XPO LOGISTICS FREIGHT, INC."",
+            ""CarrierId"": ""32467"",
+            ""InvoiceDate"": ""04/17/2026"",
+            ""InvoiceNumber"": ""32670a"",
+            ""AuthorityNumber"": ""TEST"",
+            ""InvoiceTotal"": ""784"",
+            ""LoadId"": ""<CREATED_LOAD_ID>"",
+            ""EquipmentNumber"": """",
+            ""BillToName"": ""Suntecktts"",
+            ""BillToAddress"": ""Attn: Accounts Payable"",
+            ""BillToCity"": ""Frisco"",
+            ""BillToState"": ""TX"",
+            ""BillToZip"": ""75033"",
+            ""PlannedFreight"": ""true"",
+            ""ReferenceNumbers"": {
+                ""ReferenceNumber"": [
+                    { ""Qualifier"": ""TH"",  ""Value"": ""TRITAN"" },
+                    { ""Qualifier"": ""11"",  ""Value"": ""ETSPL1"" },
+                    { ""Qualifier"": ""DO"",  ""Value"": ""9133102"" },
+                    { ""Qualifier"": ""YY"",  ""Value"": ""Y"" },
+                    { ""Qualifier"": ""111"", ""Value"": ""ETSPL1"" },
+                    { ""Qualifier"": ""OCD"", ""Value"": ""99"" },
+                    { ""Qualifier"": ""SQ"",  ""Value"": ""80886152"" }
+                ]
+            },
+            ""Charges"": {
+                ""Charge"": [
+                    { ""Description"": ""MINIMUM CHARGE"",                 ""FeeCode"": ""MIN"", ""Quantity"": ""1"", ""Rate"": ""87.21"", ""RateCode"": ""FR"", ""Total"": ""87.21"" },
+                    { ""Description"": ""HIGH COST SERVICE AREA (FLAT C"", ""FeeCode"": ""MSG"", ""Quantity"": ""1"", ""Rate"": ""87.21"", ""RateCode"": ""FR"", ""Total"": ""87.21"" },
+                    { ""Description"": ""PEAK DEMAND SURCHARGE (PERCENT"", ""FeeCode"": ""PDS"", ""Quantity"": ""1"", ""Rate"": ""87.21"", ""RateCode"": ""FR"", ""Total"": ""87.21"" },
+                    { ""Description"": ""FUEL ADJUSTMENT"",                ""FeeCode"": ""FUE"", ""Quantity"": ""1"", ""Rate"": ""87.21"", ""RateCode"": ""FR"", ""Total"": ""87.21"" },
+                    { ""Description"": ""LUMPER FEES (KGL1)"",             ""FeeCode"": ""UNL"", ""Quantity"": ""1"", ""Rate"": ""87.21"", ""RateCode"": ""FR"", ""Total"": ""87.21"" }
+                ]
+            }
+        }
+    }
+}
+53. Navigate to the BTMS and click View Billing on view load page .
+54. Click on the ""Unassigned Invoice"" tab.
+55.  Click on View History link near Message text  on unassigned Invoiced tab.
+56. Connect to the Stage BTMS database from the test using a MySQL client (mysql2) over the pre-established SSH tunnel. Connection parameters are read from environment variables:
+    - Host: btms.db.stage.modetrans.com
+    - Port: 3306
+    - User: readonly
+    - Password: take it from env variables
+    - Schema: sunteck_fats
+57. Execute the parameterized query against the edi_exception table:
+    SELECT id,
+           created,
+           descrip,
+           load_number,
+           carr_id,
+           invoice_total,
+           assigned_to_payables
+    FROM sunteck_fats.edi_exception
+    WHERE load_number = :loadId;
+    Capture the returned `id` value as :ediExceptionId for the next query.
+58. Execute the parameterized query against the edi_exception_toggle_history table:
+    SELECT id,
+           edi_exception_id,
+           created_by,
+           role,
+           message,
+           created_at
+    FROM sunteck_fats.edi_exception_toggle_history
+    WHERE edi_exception_id = :ediExceptionId;
+59. Close the DB connection.","54. The ""Unassigned Invoice"" tab is opened on the View Billing page and the invoice ingested via the EDI 210 API is displayed for the created Load ID with the following details:
+    - Source is displayed as ""API 210"".
+    - load_number matches the Load ID captured in step 51.
+    - carr_name is displayed as ""XPO LOGISTICS FREIGHT, INC."".
+    - descrip is displayed as ""Carrier is not booked on load"".
+    - The Waiting On ""Payables / Agent"" toggle is set to ""Agent"".
+
+55. The History modal opens and displays a single entry with the following values:
+        - MESSAGE: ""XPO LOGISTICS FREIGHT, INC. is Billing $784 but carrier is not assigned to the load.""
+
+57. Query returns exactly one row for :loadId where:
+    - `load_number` equals the Load ID captured in step 51.
+    - `carr_id` equals the carrier id sent in the step 52 payload (32467).
+    - `invoice_total` equals the InvoiceTotal sent in the step 52 payload (784).
+    - `descrip` equals the expected exception message shown under ""View History"" in step 55.
+    - `assigned_to_payables` equals 0.
+    - `created` timestamp falls within the current test execution window.
+    - `id` is captured as :ediExceptionId.
+
+58. Query returns at least one row for :ediExceptionId where:
+    - `edi_exception_id` equals :ediExceptionId.
+    - `created_by` equals the user id of the MATT BROWN user switched to in step 16.
+    - `role` equals the expected toggle-history role value (0 for the initial system entry).
+    - `message` equals the message text displayed under ""View History"" in step 55.
+    - `created_at` timestamp is on/after the `created` timestamp from step 57 and within the current test execution window.
+",,"aiteam, payabletoggle"
+74422,,FD-36107,"Verify the Billing toggle behaviour when Load is ""Booked - Delivered final"" and billing issues are checked.",,"Test Steps:
+
+1. Login to BTMS in any valid environment (http://brokerage.stage.suntecktts.com/).
+2. Click on ""Sign in with Single Sign-On"".
+3. Enter the User ID and click ""Next"".
+4. Enter the Password.
+5. Click ""Sign In"".
+6. Switch to SVC_TESTAUTOMATION and make sure you are on the SVC_TESTAUTOMATION user.
+7. Hover over ADMIN.
+8. Click on ""OFFICE SEARCH"".
+9. Enter the office code (CORP).
+10. Click on ""Search"".
+11. Click on ""Office Profile"".
+12. Verify that ""Invoice Process"" is set as ""Central"". (If already set, skip steps 13 and 14.)
+13. Click on ""Edit"".
+14. Set ""Invoice Process"" as ""Central"" and click on ""Save"".
+15. Hover over ""Customers"" and click ""Search"".
+16. Enter the customer name in the ""Customer"" field (BALLOHKNEE COLDCUTS).
+17. Click on the ""Search"" button.
+18. Click on the customer detail row.
+19. Scroll down on the ""VIEW CUSTOMER"" page and click the hyperlink ""CREATE TL *NEW*"".
+20. On the ""ENTER NEW LOAD"" page, verify the ""Customer"" field is already selected; if not, select BALLOHKNEE COLDCUTS.
+21. Verify that ""Salesperson"" and ""Dispatcher"" fields have preselected values; if not, select them.
+22. Select the location from the ""Shipper"" field (ALASKA).
+23. Once the location is selected, verify that ""Name"", ""Address"", ""City"", ""State"", ""Zip"", and ""Country"" are automatically populated.
+24. Select the ""Earliest Date"" (select tomorrow's date).
+25. Select the ""Latest Date"" (select tomorrow's date).
+26. Enter the ""Earliest Time"" (e.g., 09:00).
+27. Enter the ""Latest Time"" (e.g., 09:00).
+28. Select the location from the ""Consignee"" field (AMPORTS JACKSONVILLE).
+29. Once the location is selected, verify that ""Name"", ""Address"", ""City"", ""State"", ""Zip"", and ""Country"" are automatically populated.
+30. Select the ""Earliest Date"" (select the day after tomorrow).
+31. Select the ""Latest Date"" (select the day after tomorrow).
+32. Enter the ""Earliest Time"" (e.g., 10:00).
+33. Enter the ""Latest Time"" (e.g., 10:00).
+34. In the field Whose Instructions, enter value as TestData.
+35. Enter the quantity in the ""Qty"" field (e.g., 40).
+36. Select the ""UoM"" field (e.g., Case or Cases).
+37. Enter the description in the ""Description"" field (e.g., ""Total 40 cases"").
+38. Enter the weight in the ""Weight"" field (e.g., 1000).
+39. Select the ""Equipment"" field as ""FLATBED"".
+40. Enter the ""Length"" field (e.g., 54).
+41. Select the ""Mileage Engine"" field as ""Current"".
+42. Select the ""Method"" as ""Practical"".
+43. Verify that ""Linehaul"" and ""Fuel Surcharge"" default to ""Flat Rate"".
+44. Click on the ""Create Load"" button.
+45.  On the load page, select Rate Type as SPOT if not selected.Click the ""Carrier tab"" in the ""Edit load"" page.
+46. Enter a valid value in the ""Offer Rate"" field as ""1000"".
+47. Enter trailer length as 10 if the value is not already filled.
+48. Enter total miles (e.g., 100) if not already filled.
+49. Click on the ""Choose a Carrier"" button, enter ""ZONA TRUCKING LLC"", and once it is fully visible, select it.
+50. Click on the ""Save"" button. The alert ""STATUS HAS BEEN SET TO BOOKED"" should be displayed; accept the alert.
+51. On the load page, click on the ""View Billing"" button.
+52. Under Billing Issue check the ""OS/D "" checkbox.
+53. Under ""Missing Paperwork"", check the ""Miscellaneous"" checkbox and observe Billing Toogle.
+",53. After step 53. Validate Billing toggle is not set to Agent.,,"aiteam, billingtoggle, loadsearch"

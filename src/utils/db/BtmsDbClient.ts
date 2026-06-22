@@ -14,6 +14,25 @@ export interface LoadToggleDatesRow {
   agent_to_billing_toggle_date: Date | null;
 }
 
+export interface EdiExceptionRow {
+  id: number;
+  created: Date;
+  descrip: string;
+  load_number: string;
+  carr_id: number;
+  invoice_total: string;
+  assigned_to_payables: number;
+}
+
+export interface EdiExceptionToggleHistoryRow {
+  id: number;
+  edi_exception_id: number;
+  created_by: number;
+  role: number;
+  message: string;
+  created_at: Date;
+}
+
 interface SshTunnelHandle {
   sshClient: SshClient;
   localServer: net.Server;
@@ -122,6 +141,90 @@ export class BtmsDbClient {
       last_finance_contact_date: (row.last_finance_contact_date as Date | null) ?? null,
       agent_to_billing_toggle_date: (row.agent_to_billing_toggle_date as Date | null) ?? null,
     };
+  }
+
+  /**
+   * Reads one edi_exception row for a load number.
+   * @author AI Agent
+   * @created 2026-06-16
+   * @param loadNumber - load_number from edi_exception
+   */
+  async getEdiExceptionByLoadNumber(loadNumber: string | number): Promise<EdiExceptionRow | null> {
+    if (!this.connection) {
+      throw new Error("BtmsDbClient.connect() must be called before querying");
+    }
+
+    const [rows] = await this.connection.execute<RowDataPacket[]>(
+      `SELECT id, created, descrip, load_number, carr_id, invoice_total, assigned_to_payables
+       FROM edi_exception WHERE load_number = ?`,
+      [String(loadNumber)]
+    );
+
+    if (!rows.length) {
+      return null;
+    }
+
+    const row = rows[0];
+    return {
+      id: Number(row.id),
+      created: row.created as Date,
+      descrip: String(row.descrip ?? ""),
+      load_number: String(row.load_number ?? ""),
+      carr_id: Number(row.carr_id),
+      invoice_total: String(row.invoice_total ?? ""),
+      assigned_to_payables: Number(row.assigned_to_payables),
+    };
+  }
+
+  /**
+   * Reads edi_exception_toggle_history rows for an exception id.
+   * @author AI Agent
+   * @created 2026-06-16
+   * @param ediExceptionId - edi_exception.id
+   */
+  async getEdiExceptionToggleHistory(
+    ediExceptionId: number
+  ): Promise<EdiExceptionToggleHistoryRow[]> {
+    if (!this.connection) {
+      throw new Error("BtmsDbClient.connect() must be called before querying");
+    }
+
+    const [rows] = await this.connection.execute<RowDataPacket[]>(
+      `SELECT id, edi_exception_id, created_by, role, message, created_at
+       FROM edi_exception_toggle_history WHERE edi_exception_id = ?`,
+      [ediExceptionId]
+    );
+
+    return rows.map((row) => ({
+      id: Number(row.id),
+      edi_exception_id: Number(row.edi_exception_id),
+      created_by: Number(row.created_by),
+      role: Number(row.role),
+      message: String(row.message ?? ""),
+      created_at: row.created_at as Date,
+    }));
+  }
+
+  /**
+   * Resolves agent.id by partial display name (e.g. NATASHA TINSLEY).
+   * @author AI Agent
+   * @created 2026-06-16
+   * @param nameFragment - substring matched against agents.name
+   */
+  async getAgentIdByNameFragment(nameFragment: string): Promise<number | null> {
+    if (!this.connection) {
+      throw new Error("BtmsDbClient.connect() must be called before querying");
+    }
+
+    const [rows] = await this.connection.execute<RowDataPacket[]>(
+      `SELECT id FROM agents WHERE name LIKE ? LIMIT 1`,
+      [`%${nameFragment}%`]
+    );
+
+    if (!rows.length) {
+      return null;
+    }
+    return Number(rows[0].id);
   }
 
   /**

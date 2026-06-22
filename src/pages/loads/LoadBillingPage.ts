@@ -41,6 +41,10 @@ class LoadBillingPage {
     // Payable Toggle locators (top slider)
     private readonly payableToggleHiddenField_LOC: Locator;
     private readonly payableToggleSliderInput_LOC: Locator;
+    private readonly payableToggleTrack_LOC: Locator;
+    private readonly payableToggleHandle_LOC: Locator;
+    private readonly unassignedInvoiceActivePanel_LOC: Locator;
+    private readonly unassignedInvoiceViewHistoryLink_LOC: Locator;
 
     // Not Delivered Final checkbox locators
     private readonly notDeliveredFinalCheckbox_LOC: Locator;
@@ -78,6 +82,9 @@ class LoadBillingPage {
     /** Missing Paperwork — Miscellaneous — billing.php `#Miscellaneouss` (value `mpw`) */
     private readonly miscellaneousCheckbox_LOC: Locator;
     private readonly miscellaneousLabel_LOC: Locator;
+    /** Billing Issues — OS/D — billing.php `input.fi_ckb[value="osd"]` / `loadsh_fi_osd` */
+    private readonly osdCheckbox_LOC: Locator;
+    private readonly osdLabel_LOC: Locator;
 
     // Billing Issues View History popup: table.hist rows with cells (header row uses th).
     private readonly BILLING_ISSUES_HISTORY_TABLE_DATA_ROWS_SELECTOR = 'table.hist tr:has(td)';
@@ -97,6 +104,11 @@ class LoadBillingPage {
     private readonly autoBillingSuccessLoad: (page?: Page) => Locator;
     private readonly autoBillingSuccessCarrier_LOC: string;
     private readonly autoBillingSuccessCarrier: (page?: Page) => Locator;
+    private readonly unassignedTabToggleCheckbox: Locator;
+    private readonly viewHistoryDialog_LOC: Locator;
+    private readonly viewHistoryFirstRowOrEmpty_LOC: Locator;
+    /** Unassigned Invoice → View History dialog body rows — used as a child selector via `dialog.locator(...)`. */
+    private readonly VIEW_HISTORY_DIALOG_HISTORY_BODY_SELECTOR = "tbody[id^='history_body_'] tr.popup-table-tr";
 
     constructor(private page: Page) {
         this.carrierIdValue_LOC = this.page.locator("//div[contains(@class,'active')]//strong[text()='Carrier ID:']/parent::p");
@@ -143,11 +155,23 @@ class LoadBillingPage {
         // (AppSourceIndexer: modetrans/mono.git → btms/php/src; same IDs listed in src/agent/config/PromptsConfig.ts pomLocators).
         this.billingToggleHiddenField_LOC = this.page.locator("#fi_waiting_on");
 
-        // Payable Toggle — per-carrier slider. Hidden input has dynamic ID: payables_waiting_on-[lscarr_id]
-        // Both the text slider input and hidden input share name="payables_waiting_on"
-        // Target the hidden input specifically for reading the value
+        // Payable Toggle — per-carrier slider under Payable Details (billing.php payables_waiting_on).
         this.payableToggleHiddenField_LOC = this.page.locator("input[type='hidden'][name='payables_waiting_on']").first();
         this.payableToggleSliderInput_LOC = this.page.locator("input.payables_waiting_on_select").first();
+        this.payableToggleTrack_LOC = this.page
+            .locator(
+                "xpath=//input[contains(@class,'payables_waiting_on_select')]/ancestor::div[contains(@class,'slider')]//div[contains(@class,'slider-track')]",
+            )
+            .first();
+        this.payableToggleHandle_LOC = this.page
+            .locator(
+                "xpath=//input[contains(@class,'payables_waiting_on_select')]/ancestor::div[contains(@class,'slider')]//div[contains(@class,'slider-handle') and not(contains(@class,'hide'))]",
+            )
+            .first();
+        this.unassignedInvoiceActivePanel_LOC = this.page.locator("div.tab-pane.active[id^='exception_']");
+        this.unassignedInvoiceViewHistoryLink_LOC =
+            this.unassignedInvoiceActivePanel_LOC.getByRole("link", { name: /View History/i });
+         this.unassignedTabToggleCheckbox = this.unassignedInvoiceActivePanel_LOC.locator("input[type='checkbox'][id^='checkbox_id_']");    
 
         // Not Delivered Final checkbox
         this.notDeliveredFinalCheckbox_LOC = this.page.locator("#Delivs");
@@ -185,16 +209,27 @@ class LoadBillingPage {
         this.lumperLabel_LOC = this.page.locator("label[for='Lumpers'].ckb");
         this.miscellaneousCheckbox_LOC = this.page.locator("#Miscellaneouss");
         this.miscellaneousLabel_LOC = this.page.locator("label[for='Miscellaneouss'].ckb");
+        this.osdCheckbox_LOC = this.financeIssuesBlock_LOC.locator('input.fi_ckb[value="osd"]');
+        this.osdLabel_LOC = this.financeIssuesBlock_LOC.locator("label.ckb", { hasText: /^OS\/D/ });
 
         // Carrier Payable Status dropdown (first carrier), Remainder, and Total Invoices
         this.carrierPayableStatusSelect_LOC = this.page.locator("select[id^='carr_'][id$='_post_status']").first();
         this.carrierRemainderAmount_LOC = this.page.locator("span[id^='carr_'][id$='_carr_balance']").first();
         // Total Invoices label uses &nbsp; in PHP source ("Total&nbsp;Invoices"), so match words separately
         this.carrierTotalInvoicesAmount_LOC = this.page.locator("//span[contains(@class, 'pmt-label')][contains(., 'Total') and contains(., 'Invoices')]/following-sibling::span").first();
+        // Payable Reason is a native <select> per carrier row, id pattern: carr_<n>_vendor_invoice_reason_code
+        // (also identifiable by class js-carr_vendor_invoice_reason_code). Use the id pattern so the
+        // locator is stable regardless of which carrier index (carr_1_*, carr_2_*, ...) renders.
         this.payableReasonDisplay_LOC = this.page.locator(
-            "//div[contains(@id,'payables-note-container')]//td[contains(normalize-space(.),'Payable Reason')]/following-sibling::td[1]",
+            "select[id^='carr_'][id$='_vendor_invoice_reason_code']",
         );
+        this.viewHistoryDialog_LOC = this.page
+            .locator("div.ui-dialog:visible:has(div[id^='view_history_dialog_'])")
+            .last();
 
+        this.viewHistoryFirstRowOrEmpty_LOC = this.viewHistoryDialog_LOC
+            .locator("tbody[id^='history_body_'] tr.popup-table-tr, div[id^='no_history_']")
+            .first();
     }
     /**
      * @author Rohit Singh
@@ -676,6 +711,21 @@ class LoadBillingPage {
     }
 
     /**
+     * Clicks a proportional segment on the Payable Details payables slider track.
+     * @author AI Agent
+     * @created 2026-06-17
+     */
+    private async clickPayablesToggleTrackSegment(
+        targetRawValue: string,
+        trackBox: { width: number; height: number },
+    ): Promise<void> {
+        const clickX = this.billingToggleTrackSegmentClickX(trackBox.width, targetRawValue);
+        const clickY = Math.max(1, Math.round(trackBox.height / 2));
+        await this.payableToggleTrack_LOC.click({ position: { x: clickX, y: clickY } });
+        await commonReusables.waitForPageStable(this.page);
+    }
+
+    /**
      * Sets Billing Issues "Waiting On" toggle to Billing, Agent, or Neutral.
      * Clicks slider track and validates hidden source field (`#fi_waiting_on`) reaches target raw value.
      * Uses incremental handle-adjacent clicks first; falls back to proportional track segment when needed
@@ -788,6 +838,226 @@ class LoadBillingPage {
             console.error(`getPayableToggleValue: ${(err as Error).message}`);
             throw err;
         }
+    }
+
+    /**
+     * Scrolls Payables toggle slider into view on View Billing.
+     * @author AI Agent
+     * @created 2026-06-16
+     */
+    async scrollPayablesToggleIntoView(): Promise<void> {
+        const payablesDetailsHeading = this.page.getByRole("heading", { name: /Payable Details/i });
+        await payablesDetailsHeading.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await payablesDetailsHeading.scrollIntoViewIfNeeded();
+        await this.payableToggleSliderInput_LOC.waitFor({ state: "attached", timeout: WAIT.LARGE });
+        await this.payableToggleHiddenField_LOC.waitFor({ state: "attached", timeout: WAIT.LARGE });
+        await this.payableToggleTrack_LOC.scrollIntoViewIfNeeded();
+    }
+
+    /**
+     * Reloads View Billing and waits for Payables toggle.
+     * @author AI Agent
+     * @created 2026-06-16
+     */
+    async reloadBillingPageAndWaitForPayablesToggle(): Promise<void> {
+        await commonReusables.reloadAndAcceptDialogs(this.page, WAIT.SMALL);
+        await this.scrollPayablesToggleIntoView();
+    }
+
+    /**
+     * Sets Payables / Agent / Neutral slider on View Billing Payable details.
+     * billing.php: hidden input name="payables_waiting_on" (1=Payables, 2=Neutral, 3=Agent).
+     * @author AI Agent
+     * @created 2026-06-16
+     * @param expectedToggle - PAYABLES_TOGGLE_VALUE.PAYABLES | AGENT | NEUTRAL
+     */
+    async setPayablesToggle(expectedToggle: string): Promise<void> {
+        const targetRawValueMap: Record<string, string> = {
+            [PAYABLES_TOGGLE_VALUE.PAYABLES]: "1",
+            [PAYABLES_TOGGLE_VALUE.NEUTRAL]: "2",
+            [PAYABLES_TOGGLE_VALUE.AGENT]: "3",
+        };
+
+        const targetRawValue = targetRawValueMap[expectedToggle];
+        if (!targetRawValue) {
+            throw new Error(`Unsupported payables toggle target: ${expectedToggle}`);
+        }
+
+        await this.scrollPayablesToggleIntoView();
+        await this.payableToggleTrack_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await this.payableToggleHandle_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+
+        let currentRawValue = await this.payableToggleHiddenField_LOC.inputValue();
+        if (currentRawValue === targetRawValue) {
+            return;
+        }
+
+        const trackBox = await this.payableToggleTrack_LOC.boundingBox();
+        if (!trackBox || trackBox.width <= 4 || trackBox.height <= 2) {
+            throw new Error("Payables toggle track is not clickable");
+        }
+
+        const rawGap = Math.abs(Number(targetRawValue) - Number(currentRawValue));
+        if (rawGap > 1) {
+            await this.clickPayablesToggleTrackSegment(targetRawValue, trackBox);
+            currentRawValue = await this.payableToggleHiddenField_LOC.inputValue();
+        }
+
+        const maxMoves = 2;
+        for (let move = 0; move < maxMoves && currentRawValue !== targetRawValue; move++) {
+            const handleBox = await this.payableToggleHandle_LOC.boundingBox();
+            if (!handleBox) {
+                throw new Error("Payables toggle handle is not clickable");
+            }
+
+            const moveLeft = Number(currentRawValue) > Number(targetRawValue);
+            const handleCenterXInTrack = handleBox.x + handleBox.width / 2 - trackBox.x;
+            const clickX = moveLeft
+                ? Math.max(2, Math.round(handleCenterXInTrack - 12))
+                : Math.min(trackBox.width - 2, Math.round(handleCenterXInTrack + 12));
+            const clickY = Math.max(1, Math.round(trackBox.height / 2));
+
+            await this.payableToggleTrack_LOC.click({ position: { x: clickX, y: clickY } });
+            await commonReusables.waitForPageStable(this.page);
+            currentRawValue = await this.payableToggleHiddenField_LOC.inputValue();
+        }
+
+        if (currentRawValue !== targetRawValue) {
+            await this.clickPayablesToggleTrackSegment(targetRawValue, trackBox);
+            currentRawValue = await this.payableToggleHiddenField_LOC.inputValue();
+        }
+
+        await expect
+            .poll(async () => await this.payableToggleHiddenField_LOC.inputValue(), {
+                timeout: WAIT.LARGE,
+                message: `Payables toggle raw value should reach ${targetRawValue}`,
+            })
+            .toBe(targetRawValue);
+    }
+
+    /**
+     * Sets Payables toggle and hard-asserts resolved display value.
+     * @author AI Agent
+     * @created 2026-06-16
+     * @param expectedToggle - PAYABLES_TOGGLE_VALUE.*
+     */
+    async setAndAssertPayablesToggle(expectedToggle: string): Promise<void> {
+        await this.setPayablesToggle(expectedToggle);
+        await expect
+            .poll(async () => await this.getPayableToggleValue(), {
+                timeout: WAIT.LARGE,
+                message: `Payables toggle should resolve to ${expectedToggle}`,
+            })
+            .toBe(expectedToggle);
+    }
+
+    /**
+     * Hard-asserts Unassigned Invoice tab EDI 210 row details (sample steps 54 Expected).
+     * @author AI Agent
+     * @created 2026-06-16
+     */
+    async assertUnassignedInvoiceEdi210Details(options: {
+        source: string;
+        loadId: string;
+        carrierName: string;
+        description: string;
+        expectedPayablesToggle: string;
+    }): Promise<void> {
+        await this.clickUnassignedInvoiceTab();
+        const panel = this.unassignedInvoiceActivePanel_LOC;
+        await panel.waitFor({ state: "visible", timeout: WAIT.LARGE });
+
+        await expect(panel, "Expected: Unassigned Invoice source").toContainText(options.source);
+        await expect(panel, "Expected: Unassigned Invoice load_number").toContainText(options.loadId);
+        await expect(panel, "Expected: Unassigned Invoice carr_name").toContainText(options.carrierName);
+        await expect(panel, "Expected: Unassigned Invoice descrip").toContainText(options.description);
+
+        const payablesToggle = await this.getUnassignedInvoicePayablesToggleValue();
+        expect(
+            payablesToggle,
+            `Expected: Payables / Agent toggle set to ${options.expectedPayablesToggle}`,
+        ).toBe(options.expectedPayablesToggle);
+    }
+
+    /**
+     * Opens the Unassigned Invoice "View History" dialog and returns its in-page locator.
+     * The dialog is a jQuery UI overlay (NOT a new browser window) rendered as
+     * `div.ui-dialog` containing `div#view_history_dialog_<exceptionId>` and a
+     * `table.popup-table` with columns: TIMESTAMP | USERNAME | ROLE | MESSAGE.
+     * @author AI Agent
+     * @created 2026-06-22
+     */
+    async openUnassignedInvoiceViewHistoryDialog(): Promise<Locator> {
+        await this.unassignedInvoiceViewHistoryLink_LOC.scrollIntoViewIfNeeded();
+        await this.unassignedInvoiceViewHistoryLink_LOC.waitFor({
+            state: "visible",
+            timeout: WAIT.LARGE,
+        });
+        await this.unassignedInvoiceViewHistoryLink_LOC.click();
+
+        const dialog = this.viewHistoryDialog_LOC;
+        await dialog.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        // Wait for the history body to render at least one row (or the no_history div) before reading.
+        await this.viewHistoryFirstRowOrEmpty_LOC.waitFor({ state: "attached", timeout: WAIT.LARGE });
+        return dialog;
+    }
+
+    /**
+     * Closes the View History jQuery UI dialog using its "Back" button (falls back to titlebar close).
+     * @author AI Agent
+     * @created 2026-06-22
+     */
+    async closeViewHistoryDialog(dialog: Locator): Promise<void> {
+        const backBtn = dialog.locator("input[type='button'][value='Back']");
+        if (await backBtn.isVisible().catch(() => false)) {
+            await backBtn.click();
+        } else {
+            await dialog.locator("button.ui-dialog-titlebar-close").click();
+        }
+        await dialog.waitFor({ state: "hidden", timeout: WAIT.LARGE }).catch(() => undefined);
+    }
+
+    /**
+     * Asserts a single MESSAGE entry in the Unassigned Invoice View History dialog.
+     * Reads only the MESSAGE column (4th `td.td_data`) so noise from TIMESTAMP / USERNAME / ROLE
+     * cells (e.g. dates, "Intelys API Portal", "Agent") cannot accidentally satisfy `toContain`.
+     *
+     * Money comparison is tolerant of trailing zero cents — `$784.00`, `$784.0`, and `$784` are
+     * treated as equivalent so CSV-formatted amounts match the UI's whole-dollar display.
+     *
+     * @author AI Agent
+     * @modified 2026-06-22
+     * @param expectedMessage - Full message text from sample step 55 Expected
+     */
+    async assertUnassignedInvoiceViewHistoryMessage(expectedMessage: string): Promise<void> {
+        const dialog = await this.openUnassignedInvoiceViewHistoryDialog();
+
+        const rows = dialog.locator(this.VIEW_HISTORY_DIALOG_HISTORY_BODY_SELECTOR);
+        const rowCount = await rows.count();
+        expect(rowCount, "Expected: at least one row in View History dialog").toBeGreaterThan(0);
+
+        // Normalize: strip trailing zero-cents from any `$<amount>` so "$784.00" === "$784".
+        const normalizeMoney = (s: string): string =>
+            s.replace(REGEX_PATTERNS.TRAILING_NUMBERS.TRAILING_ZERO_CENTS, "$1");
+
+        const messages: string[] = [];
+        for (let i = 0; i < rowCount; i++) {
+            // Columns: 0 TIMESTAMP | 1 USERNAME | 2 ROLE | 3 MESSAGE
+            const messageCell = rows.nth(i).locator("td.td_data").nth(3);
+            const text = ((await messageCell.textContent()) || "").trim();
+            if (text) messages.push(text);
+        }
+
+        const normalizedExpected = normalizeMoney(expectedMessage);
+        const matched = messages.some((m) => normalizeMoney(m).includes(normalizedExpected));
+        expect(
+            matched,
+            `Expected: View History MESSAGE column to contain "${expectedMessage}" (money-normalized: "${normalizedExpected}"). Found rows: ${messages
+                .map((m) => `"${m}"`)
+                .join(", ") || "(none)"}`,
+        ).toBe(true);
+
+        await this.closeViewHistoryDialog(dialog);
     }
 
     /**
@@ -1254,6 +1524,42 @@ class LoadBillingPage {
     }
 
     /**
+     * Clicks the "OS/D" checkbox label in Billing Issues section.
+     * billing.php — `input.fi_ckb[value="osd"]` / `loadsh_fi_osd`.
+     * @author AI Agent
+     * @created 2026-06-17
+     */
+    async clickOsdCheckbox(): Promise<void> {
+        await this.osdLabel_LOC.scrollIntoViewIfNeeded();
+        await this.osdLabel_LOC.click();
+        await commonReusables.waitForPageStable(this.page);
+    }
+
+    /**
+     * Ensures the "OS/D" Billing Issues checkbox is checked (idempotent).
+     * billing.php — `input.fi_ckb[value="osd"]` / `loadsh_fi_osd`.
+     * @author AI Agent
+     * @created 2026-06-17
+     */
+    async ensureOsdChecked(): Promise<void> {
+        if (!(await this.isOsdChecked())) {
+            await this.clickOsdCheckbox();
+        }
+        await expect(this.osdCheckbox_LOC).toBeChecked({ timeout: WAIT.DEFAULT });
+    }
+
+    /**
+     * Checks whether the "OS/D" Billing Issues checkbox is checked.
+     * @author AI Agent
+     * @created 2026-06-17
+     * @returns True when the OS/D checkbox is checked
+     */
+    async isOsdChecked(): Promise<boolean> {
+        await this.osdCheckbox_LOC.waitFor({ state: "attached", timeout: WAIT.DEFAULT });
+        return this.osdCheckbox_LOC.isChecked();
+    }
+
+    /**
      * Extracts a dollar value from a string. Matches patterns like $1,500.00, $900, $2,000.00, etc.
      * Delegates to commonReusables.extractDollarValue().
      * @param text - The text to extract the dollar value from
@@ -1370,15 +1676,51 @@ class LoadBillingPage {
     }
 
     /**
-     * Reads Payable Reason display text from the Payables section on View Billing.
+     * Reads the currently selected Payable Reason from the carrier vendor-invoice reason
+     * `<select>` in the Payables section on View Billing. Returns the selected option's
+     * visible text (falling back to its `value` attribute) so any reason can be validated
+     * dynamically — not just Short Pay variants.
+     * @returns trimmed selected option text (empty string if no option is selected)
      * @author AI Agent
      * @created 2026-06-01
      */
     async getPayableReasonDisplayValue(): Promise<string> {
-        await this.payableReasonDisplay_LOC.first().waitFor({ state: "visible", timeout: WAIT.LARGE });
-        const text = ((await this.payableReasonDisplay_LOC.first().textContent()) || "").trim();
-        console.log(`Payable Reason: ${text}`);
+        const select = this.payableReasonDisplay_LOC.first();
+        await select.waitFor({ state: "attached", timeout: WAIT.LARGE });
+        // Prefer the selected <option>'s text; fall back to inputValue (the value attribute).
+        const selectedText = (
+            (await select.locator("option:checked").first().textContent()) || ""
+        ).trim();
+        const text = selectedText.length ? selectedText : (await select.inputValue()).trim();
+        console.log(`Payable Reason: '${text}'`);
         return text;
     }
+
+    /**
+ * Reads the Payables ↔ Agent toggle on the Unassigned Invoice (EDI 210) exception panel.
+ * The switch is a checkbox sandwiched between the two labels:
+ *   <label id="payables">Payables</label>
+ *   <input type="checkbox" id="checkbox_id_<exceptionId>" checked value="on">
+ *   <label id="Agent" value="1">Agent</label>
+ *
+ * checked  → Agent
+ * unchecked → Payables
+ *
+ * @author AI Agent
+ * @created 2026-06-22
+ * @returns PAYABLES_TOGGLE_VALUE.AGENT | PAYABLES_TOGGLE_VALUE.PAYABLES
+ */
+async getUnassignedInvoicePayablesToggleValue(): Promise<string> {
+    const toggleCheckbox = this.unassignedTabToggleCheckbox;
+    await toggleCheckbox.waitFor({ state: "attached", timeout: WAIT.LARGE });
+
+    const isChecked = await toggleCheckbox.isChecked();
+    const toggleValue = isChecked
+        ? PAYABLES_TOGGLE_VALUE.AGENT
+        : PAYABLES_TOGGLE_VALUE.PAYABLES;
+
+    console.log(`Unassigned Invoice toggle: ${toggleValue} (checked=${isChecked})`);
+    return toggleValue;
+}
 }
 export default LoadBillingPage;

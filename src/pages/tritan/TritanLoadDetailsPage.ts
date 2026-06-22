@@ -10,6 +10,15 @@ export default class TritanLoadDetailsPage {
     private readonly loadNumberCell_LOC: (loadNumber: string) => Locator;
     private readonly carrierTotalAmount_LOC: Locator;
     private readonly customerTotalAmount_LOC: Locator;
+    private readonly carrierInvoicesFrame_LOC: FrameLocator;
+
+    // Carrier invoice popup selectors (used via `carrierPopup.locator(...)` — popup Page is not bound at construction).
+    private readonly EDIT_CHARGES_LINK_SELECTOR = "//a[normalize-space()='[edit charges]']";
+    private readonly QUEUE_DROPDOWN_SELECTOR = "#sQueue";
+    private readonly SETTLE_REASON_DROPDOWN_SELECTOR = "#sSettleReason";
+    private readonly COMMENTS_INPUT_SELECTOR = "#sComments";
+    private readonly FUEL_SURCHARGE_RATE_INPUT_SELECTOR = "#BilledCharge3Rate";
+    private readonly SAVE_BUTTON_SELECTOR = "//input[@value=' Save ']";
 
     constructor(private page: Page) {
         this.detailsFrame = this.page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame();
@@ -17,14 +26,12 @@ export default class TritanLoadDetailsPage {
         this.linksTab_LOC = this.detailsFrame.getByRole('button', { name: 'Links' });
         this.planTab_LOC = this.detailsFrame.getByRole('button', { name: 'Plan' });
         this.detailsTab_LOC = this.detailsFrame.getByRole('button', { name: 'Detail' });
-        this.loadNumberCell_LOC = (loadNumber: string) => this.page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame().locator('#Plan-innerCt iframe').contentFrame()
+        this.loadNumberCell_LOC = (loadNumber: string) => this.detailsFrame.locator('#Plan-innerCt iframe').contentFrame()
             .getByRole('link', { name: loadNumber }).first();
-
-        this.carrierTotalAmount_LOC = this.page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame().locator('iframe').contentFrame().locator('#carrRatesWin').contentFrame()
-            .locator("//td[@class='total']/a");
-        this.customerTotalAmount_LOC = this.page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame().locator('iframe').contentFrame().locator('#custRatesWin').contentFrame()
-            .locator("//table//tr[td[normalize-space()='Mode Transportation - TL']]//td[5]/a");
-
+        this.carrierInvoicesFrame_LOC = this.detailsFrame.locator('iframe').contentFrame()
+        this.carrierTotalAmount_LOC = this.carrierInvoicesFrame_LOC.locator('#carrRatesWin').contentFrame().locator("//td[@class='total']/a");
+        this.customerTotalAmount_LOC = this.carrierInvoicesFrame_LOC.locator('#custRatesWin').contentFrame().locator("//table//tr[td[normalize-space()='Mode Transportation - TL']]//td[5]/a");
+        
     }
 
     /**
@@ -287,17 +294,13 @@ export default class TritanLoadDetailsPage {
      */
     async clickAddCarrierInvoicePlusIcon(): Promise<void> {
         await commonReusables.waitForPageStable(this.page);
-        const transportFrame = this.detailsFrame.locator('iframe[src*="editTransport"]').contentFrame();
-        await transportFrame.locator("body").waitFor({ state: "attached", timeout: WAIT.XXLARGE });
+        // const transportFrame = this.detailsFrame.locator('iframe[src*="editTransport"]').contentFrame();
+        // await transportFrame.locator("body").waitFor({ state: "attached", timeout: WAIT.XXLARGE });
         const invoiceWindowIds = ['#carrInvoicesWin', '#vendInvoicesWin', '#invoicesWin'];
         for (const winId of invoiceWindowIds) {
-            const addIcon = transportFrame
-                .locator(winId)
-                .contentFrame()
-                .locator('.right > a, a img[alt*="Add"], a img[alt="Add"]')
-                .first();
+            const addIcon =this.detailsFrame.locator('iframe').contentFrame().locator('#invoicesWin').contentFrame().getByRole('link', { name: 'Add Invoice' });
             try {
-                await addIcon.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+                await addIcon.waitFor({ state: 'visible', timeout: WAIT.LARGE }); 
                 await addIcon.click();
                 await commonReusables.waitForPageStable(this.page);
                 console.log(`Clicked Carrier Invoices add (+) icon via ${winId}`);
@@ -314,23 +317,58 @@ export default class TritanLoadDetailsPage {
      * @author AI Agent
      * @created 2026-06-01
      */
-    async getLatestCarrierInvoiceDetails(): Promise<{ invoiceNumber: string; billTotal: string }> {
-        const frame = this.carrierInvoicesFrame();
-        const invoiceNumber = (
-            (await frame.locator("//td[@class='type' and normalize-space()='Invoice']/parent::tr//td[1]").last().textContent()) ||
-            ''
-        ).trim();
-        const billTotalRaw = (
-            (await frame.locator("//td[@class='type' and normalize-space()='Invoice']/parent::tr//td[@class='total']//a").last().textContent()) ||
-            ''
-        ).trim();
-        const billTotal = billTotalRaw.match(/\d+(?:\.\d+)?/)?.[0] ?? billTotalRaw;
+   async getLatestCarrierInvoiceDetails(): Promise<{ invoiceNumber: string; billTotal: string }> {
+        const invoicesFrame = this.detailsFrame.locator('iframe').contentFrame().locator('#invoicesWin').contentFrame();
+        const dataRows = invoicesFrame.locator('tr:has(td.number)');
+
+        await dataRows.first().waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        const latestRow = dataRows.last();
+
+        const invoiceNumber = ((await latestRow.locator('td.number').textContent()) ?? '').trim();
+        const billTotalText = ((await latestRow.locator('td.total a').textContent()) ?? '').trim();
+        const billTotal = billTotalText.match(/\d+(?:\.\d+)?/)?.[0] ?? billTotalText;
+
         console.log(`Latest carrier invoice: ${invoiceNumber}, bill total: ${billTotal}`);
         return { invoiceNumber, billTotal };
     }
 
     /**
-     * Opens carrier rate popup Edit Charges and applies short-pay settlement fields.
+     * Selects an `<option>` in a native `<select>` using a whitespace-tolerant match.
+     * Resolves the live option list, normalizes inner whitespace, and selects by the
+     * exact `value` attribute. This avoids the silent `did not find some options`
+     * failure when a label has different spacing than the constant.
+     * @author AI Agent
+     * @created 2026-06-20
+     */
+    private async selectOptionByLabelLoose(
+        select: Locator,
+        wantedLabel: string,
+    ): Promise<void> {
+        await select.waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        const norm = (s: string) => s.replace(/\s+/g, ' ').trim().toLowerCase();
+        const target = norm(wantedLabel);
+        const options = await select.locator('option').evaluateAll((els) =>
+            (els as HTMLOptionElement[]).map((o) => ({ value: o.value, text: o.textContent ?? '' })),
+        );
+        const match = options.find((o) => norm(o.text) === target || norm(o.value) === target);
+        if (!match) {
+            const available = options.map((o) => `'${o.text.trim()}'`).join(', ');
+            throw new Error(
+                `selectOptionByLabelLoose: no option matching '${wantedLabel}' in select. Available: [${available}]`,
+            );
+        }
+        await select.selectOption({ value: match.value });
+    }
+
+    /**
+     * Opens carrier rate popup Edit Charges and applies short-pay settlement fields:
+     * Settlement Total (`#sSettleTotal`), Queue (`#sQueue`), Settlement Reason (`#sSettleReason`),
+     * Comments (`#sComments`), then clicks Save and waits for the popup to close.
+     * @param carrierPopup carrier invoice popup Page returned by clickOnCarrierInvoiceBillTotalAmount
+     * @param queueLabel Queue dropdown label (e.g., '40 Valid / Approved')
+     * @param settlementReason Settlement Reason dropdown label (e.g., 'Short Pay - Accessorial')
+     * @param comment value for the Comments input
+     * @param settlementTotal amount to enter in the Settlement Total input (e.g., '125.00')
      * @author AI Agent
      * @created 2026-06-01
      */
@@ -341,21 +379,44 @@ export default class TritanLoadDetailsPage {
         comment: string,
         fuelSurchargeAmount: string,
     ): Promise<void> {
-        const editCharges = carrierPopup.locator("//a[normalize-space()='[edit charges]']");
+        const editCharges = carrierPopup.locator(this.EDIT_CHARGES_LINK_SELECTOR);
         await editCharges.waitFor({ state: 'visible', timeout: WAIT.LARGE });
         await editCharges.click();
-        await carrierPopup.locator('#sQueue').selectOption({ label: queueLabel });
-        await carrierPopup.locator('#sSettleReason').selectOption({ label: settlementReason });
-        await carrierPopup.locator('#sComments').fill(comment);
-        const fuelInput = carrierPopup.locator(
-            "//td[contains(normalize-space(.),'Fuel Surcharges')]/following-sibling::td//input",
-        );
-        if (await fuelInput.count()) {
-            await fuelInput.first().fill(fuelSurchargeAmount);
-        }
+
+        await this.selectOptionByLabelLoose(carrierPopup.locator(this.QUEUE_DROPDOWN_SELECTOR), queueLabel);
+        await this.selectOptionByLabelLoose(carrierPopup.locator(this.SETTLE_REASON_DROPDOWN_SELECTOR), settlementReason);
+        await carrierPopup.locator(this.COMMENTS_INPUT_SELECTOR).fill(comment);
+
+        const fuelSurcharge = carrierPopup.locator(this.FUEL_SURCHARGE_RATE_INPUT_SELECTOR);
+        await fuelSurcharge.waitFor({ state: 'visible', timeout: WAIT.SMALL });
+        await fuelSurcharge.fill(fuelSurchargeAmount);
+
         await Promise.all([
             carrierPopup.waitForEvent('close'),
-            carrierPopup.locator("//input[@value=' Save ']").click(),
+            carrierPopup.locator(this.SAVE_BUTTON_SELECTOR).click(),
         ]);
+        console.log(
+            `Applied carrier short-pay settlement: queue='${queueLabel}', reason='${settlementReason}', fuelSurchargeAmount='${fuelSurchargeAmount}'`,
+        );
     }
+
+/**
+ * Click the Bill Total link on the latest Carrier Invoice row and return the opened popup.
+ * @author AI Agent
+ * @created 2026-06-20
+ */
+async clickOnCarrierInvoiceBillTotalAmount(): Promise<Page> {
+    await commonReusables.waitForPageStable(this.page);
+
+    const billTotalLink = this.detailsFrame.locator('iframe').contentFrame().locator('#invoicesWin').contentFrame().locator('tr:has(td.number)').last().locator('td.total a');
+    await billTotalLink.waitFor({ state: 'visible', timeout: WAIT.SMALL });
+
+    const [carrierInvoicePage] = await Promise.all([
+        this.page.waitForEvent('popup'),
+        billTotalLink.click(),
+    ]);
+
+    await carrierInvoicePage.waitForLoadState('domcontentloaded');
+    return carrierInvoicePage;
+}
 }

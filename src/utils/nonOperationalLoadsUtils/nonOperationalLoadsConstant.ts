@@ -5,12 +5,13 @@ export class NonOperationalLoadsConstant {
 
     static readonly SELECT_QUEUE_ACTION = {
         FORTY_EXTRACT: "40 Extract",
-        FORTY_VALID_APPROVED: "40 Valid/Approved",
+        FORTY_VALID_APPROVED: "40 Valid / Approved",
         FIFTY_COMPLETE: "50 Complete",
     } as const;
 
     static readonly INVOICE_OPTIONS = {
         SINGLE_INVOICE: "Single Invoice",
+        MODE_CUSTINV_NO_QUAL: "Mode CustInv No Qual"
     } as const;
 
     static readonly LOAD_CHARGES = {

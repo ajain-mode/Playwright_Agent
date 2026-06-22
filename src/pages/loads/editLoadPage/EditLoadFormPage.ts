@@ -33,6 +33,11 @@ export class EditLoadFormPage {
   private readonly rateTypeDropdown_LOC: Locator;
   private readonly linehaulRateType_LOC: Locator;
   private readonly fuelSurchargeRateType_LOC: Locator;
+  private readonly shareRows_LOC: Locator;
+  /** Child selector — share amount input inside a share row. Used via `row.locator(...)`. */
+  private readonly SHARE_AMOUNT_INPUT_SELECTOR = "input.share_amt";
+  /** Child selector — share agent select inside a share row. Used via `row.locator(...)`. */
+  private readonly SHARE_AGENT_SELECT_SELECTOR = "select.share_agent_id";
 
   /**
    * Constructor to initialize page locators for form validation elements
@@ -75,6 +80,8 @@ export class EditLoadFormPage {
     this.totalMilesValue_LOC = page.locator(
       "//td[@class='fn' and contains(text(),'Total Miles')]//following-sibling::td//div"
     );
+
+    this.shareRows_LOC = page.locator("#share_frame tr.share_entry");
 
     this.amountInput_LOC = "input";
   }
@@ -687,6 +694,38 @@ export class EditLoadFormPage {
     await this.enterExpirationTime(time);
     console.log(`Entered future expiration: ${formattedDate} ${time} (${daysAhead} days ahead)`);
   }
+
+  async capShareAmountIfOver100(): Promise<void> {
+    const count = await this.shareRows_LOC.count();
+
+    for (let i = 0; i < count; i++) {
+      const row = this.shareRows_LOC.nth(i);
+
+      const amountInput = row.locator(this.SHARE_AMOUNT_INPUT_SELECTOR);
+      const agentSelect = row.locator(this.SHARE_AGENT_SELECT_SELECTOR);
+
+      // Skip if controls are not present in this row
+      if ((await amountInput.count()) === 0 || (await agentSelect.count()) === 0) {
+        continue;
+      }
+
+      const amountValue = (await amountInput.inputValue()).trim();
+      const agentValue = (await agentSelect.inputValue()).trim();
+
+      // Share is "filled" only when both amount and agent have values
+      if (amountValue === '' || agentValue === '') {
+        continue;
+      }
+
+      const amountNum = Number(amountValue);
+      if (Number.isFinite(amountNum) && amountNum > 100) {
+        await amountInput.fill('95');
+        // Trigger validation handler bound via onchange
+        await amountInput.dispatchEvent('change');
+      }
+    }
+}
+
 }
 
 export default EditLoadFormPage;

@@ -422,6 +422,87 @@ export default class ViewCustomerPage {
   }
 
   /**
+   * Scrolls the CREATE load hyperlink into view on View Customer, then clicks it.
+   * Falls back to {@link LOAD_TYPES.NEW_LOAD_TL} label or direct `loadform.php?p=add&custa_id=` when hidden.
+   * Use when the link is below the fold (sample-testcases.csv step 19).
+   * @author AI Agent
+   * @created 2026-06-17
+   * @param loadType - Link label (e.g. {@link LOAD_TYPES.CREATE_TL_NEW})
+   */
+  async scrollAndNavigateToLoad(loadType: string): Promise<void> {
+    await this.page.waitForLoadState("networkidle");
+    const linkLabels = [loadType, LOAD_TYPES.NEW_LOAD_TL];
+
+    for (const label of linkLabels) {
+      const link = this.createLoadLink_LOC(label);
+      try {
+        await link.scrollIntoViewIfNeeded({ timeout: WAIT.DEFAULT });
+        await link.click({ timeout: WAIT.DEFAULT });
+        await this.page.waitForLoadState("networkidle");
+        return;
+      } catch {
+        console.log(`CREATE load link not clickable for label: ${label}`);
+      }
+    }
+
+    const createLoadHref = await this.page.locator("a").evaluateAll(
+      (anchors, labels) => {
+        for (const anchor of anchors) {
+          const text = (anchor.textContent ?? "").trim();
+          if ((labels as string[]).some((label) => text === label)) {
+            return anchor.getAttribute("href");
+          }
+        }
+        return null;
+      },
+      linkLabels
+    );
+
+    if (createLoadHref) {
+      await this.page.goto(new URL(createLoadHref, this.page.url()).toString());
+      await this.page.waitForLoadState("networkidle");
+      return;
+    }
+
+    const currentUrl = new URL(this.page.url());
+    const custaId =
+      currentUrl.searchParams.get("custa_id") ??
+      currentUrl.href.match(/custa_id=(\d+)/i)?.[1];
+    if (custaId) {
+      const pCandidates = [
+        "non_tabular_new",
+        "non_tabular",
+        "nontabular_new",
+        "nontabular",
+        "new_tl",
+        "tl_new",
+      ];
+      for (const p of pCandidates) {
+        const target = new URL("loadform.php", currentUrl);
+        target.searchParams.set("p", p);
+        target.searchParams.set("custa_id", custaId);
+        await this.page.goto(target.toString());
+        await this.page.waitForLoadState("networkidle");
+        const enterNewLoadReady =
+          (await this.page.locator("#form_customer").count()) > 0 ||
+          (await this.page.locator("#form_shipper_ship_point").count()) > 0;
+        const loadErrorVisible = await this.page
+          .getByText("A valid ID is required")
+          .isVisible()
+          .catch(() => false);
+        if (enterNewLoadReady && !loadErrorVisible) {
+          console.log(`ENTER NEW LOAD opened via loadform.php?p=${p}&custa_id=${custaId}`);
+          return;
+        }
+      }
+    }
+
+    throw new Error(
+      `CREATE TL load link not found on View Customer (${linkLabels.join(", ")})`
+    );
+  }
+
+  /**
    * @author Aniket Nale
    * @created 19-Dec-25
    * @description Helper to parse currency strings from UI into numbers

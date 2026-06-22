@@ -30,7 +30,7 @@ export default class ShipmentDetailsPage {
             locator(`//td[@class='priref']/a[normalize-space()='${loadNumber}']`);
         this.loadStatusValue_LOC = this.page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame().locator("//td[.//b[normalize-space()='Reference:']]/following-sibling::td [.//b[normalize-space()='Status:']]");
         this.printInvoiceIcon_LOC = this.page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame().locator('#invoicesWin').contentFrame().getByRole('link', { name: 'Print Invoice' });
-        this.invoiceOptionRadio_LOC = (optionName: string) => this.popupPage!.locator(`//td[normalize-space(.)='${optionName}']/preceding-sibling::td[1]//input[@type='radio']`);
+        this.invoiceOptionRadio_LOC = (optionName: string) => this.popupPage!.getByRole('row', { name: optionName, exact: true }).getByRole('radio')
         this.cancelInvoiceBtn_LOC = () => this.popupPage!.locator("//input[@value='Cancel']");
         this.invoiceBillTotalValue_LOC = this.page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame().locator('#invoicesWin').contentFrame()
             .locator("//td[@class='type' and normalize-space()='Invoice']/parent::tr//td[@class='total']//a");
