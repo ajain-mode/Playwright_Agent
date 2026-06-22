@@ -75,7 +75,6 @@ test.describe.serial(
         });
 
         await test.step("Step 4 [86999 17-21]: Customer search and CREATE TL *NEW*", async () => {
-          await pages.basePage.navigateToBaseUrl();
           await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
           await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
           await pages.searchCustomerPage.enterCustomerName(testData.customerName);

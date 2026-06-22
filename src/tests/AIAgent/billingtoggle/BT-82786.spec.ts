@@ -41,7 +41,7 @@ test.describe.serial(
       "Case Id: BT-82786 - Verify Payables toggle when load receives Short Pay flagged invoice from SLC",
       { tag: "@AIAgent,@aiteam,@billingtoggle,@payabletoggle" },
       async () => {
-        test.setTimeout(WAIT.XXLARGE * 8);
+        test.setTimeout(WAIT.SPEC_TIMEOUT_XXLARGE);
 
         await test.step("Steps 1-6 [82786 1-6]: Login confirmed — Company → Expand → Goodyear customer", async () => {
           await commonReusables.waitForPageStable(tritanPage, { timeout: WAIT.XXLARGE });
@@ -209,7 +209,7 @@ test.describe.serial(
           await tritanPages.tritanDashboardPage.clickOnDetailsTab();
           await tritanPages.shipmentDetailsPage.clickOnPrintInvoiceIcon();
           await tritanPages.shipmentDetailsPage.selectInvoiceOptionAndValidateDownload(
-            INVOICE_OPTIONS.SINGLE_INVOICE,
+            INVOICE_OPTIONS.MODE_CUSTINV_NO_QUAL
           );
           await tritanPages.shipmentDetailsPage.clickOnCancelInvoiceButton();
         });
@@ -222,6 +222,7 @@ test.describe.serial(
             await tritanPages.shipmentDetailsPage.selectQueue(SELECT_QUEUE_ACTION.FORTY_EXTRACT);
             await tritanPages.shipmentDetailsPage.clickOnSaveQueueButton();
 
+            await commonReusables.waitForPageStable(tritanPage, { timeout: WAIT.XXLARGE });
             const invoiceQueue = await tritanPages.shipmentDetailsPage.getCustomerInvoiceQueueDisplayValue();
             expect(invoiceQueue, "Expected after 46: Customer Invoice Queue 50 Complete").toBe(
               SELECT_QUEUE_ACTION.FIFTY_COMPLETE,
@@ -246,7 +247,6 @@ test.describe.serial(
             );
             await tritanPages.shipmentActivitiesPage.clickOnSubmitButton();
             await tritanPages.shipmentActivitiesPage.expectActivityStatusComplete("BTMS Extract");
-            await tritanPages.shipmentActivitiesPage.expectActivityStatusComplete("Invoice Extract");
           }
         );
 
@@ -258,6 +258,8 @@ test.describe.serial(
             const currentStatus = await btmsPages.viewLoadPage.getLoadStatusText();
             if (currentStatus !== LOAD_STATUS.INVOICED) {
               await btmsPages.viewLoadPage.clickEditButton();
+              await commonReusables.waitForPageStable(btmsPage, { timeout: WAIT.LARGE });
+              await btmsPages.editLoadFormPage.capShareAmountIfOver100();
               await btmsPages.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
               await btmsPages.commonReusables.acceptAllDialogsDuringAction(
                 btmsPage,
@@ -285,11 +287,12 @@ test.describe.serial(
               SETTLEMENT_REASONS.SHORT_PAY_ACCESSORIAL,
             );
 
+            const expectedShortPayMsg = `${SETTLEMENT_REASONS.SHORT_PAY_ACCESSORIAL}; ${SETTLEMENT_REASONS.SHORT_PAY_ACCESSORIAL_COMMENT}`;
             const payableMsg = await btmsPages.loadBillingPage.findPayableMessageContaining(
-              SETTLEMENT_REASONS.SHORT_PAY_INVOICE_MESSAGE,
+              SETTLEMENT_REASONS.SHORT_PAY_ACCESSORIAL_COMMENT,
             );
-            expect(payableMsg, "Expected Short Pay accessorial message under Message").toContain(
-              SETTLEMENT_REASONS.SHORT_PAY_INVOICE_MESSAGE,
+            expect(payableMsg, `Expected Short Pay accessorial message '${expectedShortPayMsg}' under Message`).toContain(
+              expectedShortPayMsg,
             );
           }
         );

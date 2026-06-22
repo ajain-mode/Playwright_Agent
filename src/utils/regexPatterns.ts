@@ -32,6 +32,10 @@ export const REGEX_PATTERNS = {
     INITIAL_TOGGLE_DATE_LABEL: /Initial Toggle Date:\s*([^\n]+)/i,
     CURRENT_TOGGLE_DATE_LABEL: /Current Toggle Date:\s*([^\n]+)/i,
   },
+
+  TRAILING_NUMBERS:{
+    TRAILING_ZERO_CENTS: /(\$\d{1,3}(?:,\d{3})*|\$\d+)\.0+(?!\d)/g,
+  }
 } as const;
 
 export type RegexPatterns = typeof REGEX_PATTERNS;

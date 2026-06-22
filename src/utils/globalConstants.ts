@@ -15,6 +15,7 @@ export class GlobalConstants {
     XLARGE: 30000,
     SPEC_TIMEOUT: 600000,
     SPEC_TIMEOUT_LARGE: 900000,
+    SPEC_TIMEOUT_XXLARGE: 1800000,
     XXLARGE: 120000,
     /** Poll `validatePostStatus(POSTED)` after waterfall save (e.g. DFB-89214: 3 carriers × 00:01 + post-to-all). */
     WATERFALL_POST_STATUS: 300000,

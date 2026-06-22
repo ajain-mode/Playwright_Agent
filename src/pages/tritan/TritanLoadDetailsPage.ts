@@ -12,6 +12,14 @@ export default class TritanLoadDetailsPage {
     private readonly customerTotalAmount_LOC: Locator;
     private readonly carrierInvoicesFrame_LOC: FrameLocator;
 
+    // Carrier invoice popup selectors (used via `carrierPopup.locator(...)` — popup Page is not bound at construction).
+    private readonly EDIT_CHARGES_LINK_SELECTOR = "//a[normalize-space()='[edit charges]']";
+    private readonly QUEUE_DROPDOWN_SELECTOR = "#sQueue";
+    private readonly SETTLE_REASON_DROPDOWN_SELECTOR = "#sSettleReason";
+    private readonly COMMENTS_INPUT_SELECTOR = "#sComments";
+    private readonly FUEL_SURCHARGE_RATE_INPUT_SELECTOR = "#BilledCharge3Rate";
+    private readonly SAVE_BUTTON_SELECTOR = "//input[@value=' Save ']";
+
     constructor(private page: Page) {
         this.detailsFrame = this.page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame();
         this.loadStatusValue_LOC = this.detailsFrame.locator('#Detail-innerCt iframe').contentFrame().locator("//b[text()='Status:']/parent::td");
@@ -369,27 +377,26 @@ export default class TritanLoadDetailsPage {
         queueLabel: string,
         settlementReason: string,
         comment: string,
-        settlementTotal: string,
+        fuelSurchargeAmount: string,
     ): Promise<void> {
-        const editCharges = carrierPopup.locator("//a[normalize-space()='[edit charges]']");
+        const editCharges = carrierPopup.locator(this.EDIT_CHARGES_LINK_SELECTOR);
         await editCharges.waitFor({ state: 'visible', timeout: WAIT.LARGE });
         await editCharges.click();
 
-        await this.selectOptionByLabelLoose(carrierPopup.locator('#sQueue'), queueLabel);
+        await this.selectOptionByLabelLoose(carrierPopup.locator(this.QUEUE_DROPDOWN_SELECTOR), queueLabel);
+        await this.selectOptionByLabelLoose(carrierPopup.locator(this.SETTLE_REASON_DROPDOWN_SELECTOR), settlementReason);
+        await carrierPopup.locator(this.COMMENTS_INPUT_SELECTOR).fill(comment);
 
-        const settleTotalInput = carrierPopup.locator('#sSettleTotal');
-        await settleTotalInput.waitFor({ state: 'visible', timeout: WAIT.SMALL });
-        await settleTotalInput.fill(settlementTotal);
-
-        await this.selectOptionByLabelLoose(carrierPopup.locator('#sSettleReason'), settlementReason);
-        await carrierPopup.locator('#sComments').fill(comment);
+        const fuelSurcharge = carrierPopup.locator(this.FUEL_SURCHARGE_RATE_INPUT_SELECTOR);
+        await fuelSurcharge.waitFor({ state: 'visible', timeout: WAIT.SMALL });
+        await fuelSurcharge.fill(fuelSurchargeAmount);
 
         await Promise.all([
             carrierPopup.waitForEvent('close'),
-            carrierPopup.locator("//input[@value=' Save ']").click(),
+            carrierPopup.locator(this.SAVE_BUTTON_SELECTOR).click(),
         ]);
         console.log(
-            `Applied carrier short-pay settlement: queue='${queueLabel}', reason='${settlementReason}', settlementTotal='${settlementTotal}'`,
+            `Applied carrier short-pay settlement: queue='${queueLabel}', reason='${settlementReason}', fuelSurchargeAmount='${fuelSurchargeAmount}'`,
         );
     }
 
