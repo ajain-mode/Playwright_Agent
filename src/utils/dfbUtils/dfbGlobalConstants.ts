@@ -31,6 +31,16 @@ export class DFBGlobalConstants {
     OFFER_RATE_500: "500",
   } as const;
 
+
+  static DFB_MAIL_CONSTANTS({loadNo}: {
+      loadNo?: string;
+      
+    }) {
+      return {
+        AGENT_MATCH_SUBJECT: `Load Tender for Load ${loadNo}`,
+      } as const;
+  }
+
   // DFB Carrier Timing Constants
   static readonly CARRIER_TIMING = {
     TIMING_1: "00:01",
@@ -142,9 +152,10 @@ declare global {
   const TENDER_DETAILS_MODAL_TABS: typeof DFBGlobalConstants.TENDER_DETAILS_MODAL_TABS;
   const TNX_STATUS_HISTORY: typeof DFBGlobalConstants.TNX_STATUS_HISTORY;
   const CARRIER_DISPATCH_NAME: typeof DFBGlobalConstants.CARRIER_DISPATCH_NAME;
-   const CARRIER_CONTACT: typeof DFBGlobalConstants.CARRIER_CONTACT;
-   const CARRIER_DISPATCH_EMAIL: typeof DFBGlobalConstants.CARRIER_DISPATCH_EMAIL;
-   const CARRIER_VISIBILITY: typeof DFBGlobalConstants.CARRIER_VISIBILITY;
+  const CARRIER_CONTACT: typeof DFBGlobalConstants.CARRIER_CONTACT;
+  const CARRIER_DISPATCH_EMAIL: typeof DFBGlobalConstants.CARRIER_DISPATCH_EMAIL;
+  const CARRIER_VISIBILITY: typeof DFBGlobalConstants.CARRIER_VISIBILITY;
+  const DFB_MAIL_CONSTANTS: typeof DFBGlobalConstants.DFB_MAIL_CONSTANTS;
 }
 
 // Global exports for backward compatibility
@@ -178,4 +189,5 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).CARRIER_CONTACT = DFBGlobalConstants.CARRIER_CONTACT;
   (globalThis as any).CARRIER_DISPATCH_EMAIL = DFBGlobalConstants.CARRIER_DISPATCH_EMAIL;
   (globalThis as any).CARRIER_VISIBILITY = DFBGlobalConstants.CARRIER_VISIBILITY;
+  (globalThis as any).DFB_MAIL_CONSTANTS = DFBGlobalConstants.DFB_MAIL_CONSTANTS;
 }

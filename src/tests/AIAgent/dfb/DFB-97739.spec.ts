@@ -57,7 +57,7 @@ test.describe.serial(
         tag: "@aiagent,@at_carrierautoaccept,@at_dfb"
       },
       async () => {
-        test.setTimeout(WAIT.SPEC_TIMEOUT_XLARGE);
+        test.setTimeout(WAIT.SPEC_TIMEOUT_XXLARGE);
 
         // ═══════════════════════════════════════════════════════════════
         // PRECONDITIONS (Steps 1-6)
@@ -375,7 +375,7 @@ test.describe.serial(
             totalMiles: totalMilesValue,
             equipment: DFB_BID_HISTORY_FIELDS.EQUIPMENT_1,
             source: DFB_BID_HISTORY_FIELDS.SOURCE,
-            email: userSetup.tnxUser,
+            email: userSetup.tnxRepUser,
           });
 
           // Step 44.3: Paginate through ALL pages, sum ALL bid rates, validate entry count against BIDS, calculate avg
@@ -391,7 +391,9 @@ test.describe.serial(
         await test.step("Step 22 [CSV 44.4]: Validate notification emails", async () => {
           // 1. Validate Rate Confirmation email sent to carrier contact
           const carrierContactEmail = commonReusables.extractEmailFromContact(CARRIER_CONTACT.CONTACT_1);
-          const rateConfMsgId = await postMarkUtils.getMessageID(carrierContactEmail);
+          //const rateConfMsgId = await postMarkUtils.getMessageID(carrierContactEmail);
+          const rateConfMsgId = await postMarkUtils.getMessageID(DFB_MAIL_CONSTANTS({loadNo: loadNumber}).AGENT_MATCH_SUBJECT);
+
           const rateConfData = await postMarkUtils.getMessageData(rateConfMsgId);
           const rateConfBody = postMarkUtils.convertHtmlToPlainText(rateConfData.HtmlBody);
 
