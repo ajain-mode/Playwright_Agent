@@ -105,6 +105,7 @@ export class GlobalConstants {
   /** Date preset labels on sizzle report filters — DatePresetBuilder.php */
   static readonly DATE_PRESET = {
     LAST_WEEK: "Last Week",
+    LAST_MONTH: "Last Month"
   } as const;
 
   //Agent Sub-Menu Items

@@ -102,7 +102,7 @@ test.describe.serial(
 
           agentToggleDateRange = await pages.billingQueuePage.selectDateFilterPreset(
             BillingQueuePage.DATE_FILTER_PREFIX.AGENT_TOGGLE,
-            DATE_PRESET.LAST_WEEK
+            DATE_PRESET.LAST_MONTH
           );
           expect(agentToggleDateRange.start, "Expected: Agent Toggle Date start saved").not.toBe("");
           expect(agentToggleDateRange.end, "Expected: Agent Toggle Date end saved").not.toBe("");

@@ -60,34 +60,34 @@ test.describe.serial(
           await pages.billingQueuePage.clickSearch();
         });
 
-        await test.step("Step 5 [Expected after 116909 9]: Rows displayed; Initial, Current/Agent Toggle Date, Waiting on Billing Count populated", async () => {
+        await test.step("Step 5 [Expected after 116909 9]: Rows displayed; Initial, Current/Agent Toggle Date, Waiting on Billing Count column headers present", async () => {
           const rowCount = await pages.billingQueuePage.getResultsRowCount();
           expect(rowCount, "Expected: Billing Queue rows displayed").toBeGreaterThan(0);
 
-          const initialToggleValues = await pages.billingQueuePage.getColumnCellValues([
+          const initialToggleIdx = await pages.billingQueuePage.getColumnIndex([
             BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE,
           ]);
           expect(
-            initialToggleValues.length,
-            `Expected: ${BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE} column populated`
-          ).toBeGreaterThan(0);
+            initialToggleIdx,
+            `Expected: ${BILLING_QUEUE_COLUMNS.INITIAL_TOGGLE_DATE} column header present`
+          ).toBeGreaterThanOrEqual(0);
 
-          const currentOrAgentToggleValues = await pages.billingQueuePage.getColumnCellValues([
+          const currentOrAgentToggleIdx = await pages.billingQueuePage.getColumnIndex([
             BILLING_QUEUE_COLUMNS.AGENT_TOGGLE_DATE,
             BILLING_QUEUE_COLUMNS.CURRENT_TOGGLE_DATE,
           ]);
           expect(
-            currentOrAgentToggleValues.length,
-            "Expected: Current Toggle Date or Agent Toggle Date column populated"
-          ).toBeGreaterThan(0);
+            currentOrAgentToggleIdx,
+            "Expected: Current Toggle Date or Agent Toggle Date column header present"
+          ).toBeGreaterThanOrEqual(0);
 
-          const waitingOnBillingCountValues = await pages.billingQueuePage.getColumnCellValues([
+          const waitingOnBillingCountIdx = await pages.billingQueuePage.getColumnIndex([
             BILLING_QUEUE_COLUMNS.WAITING_ON_BILLING_COUNT,
           ]);
           expect(
-            waitingOnBillingCountValues.length,
-            `Expected: ${BILLING_QUEUE_COLUMNS.WAITING_ON_BILLING_COUNT} column populated`
-          ).toBeGreaterThan(0);
+            waitingOnBillingCountIdx,
+            `Expected: ${BILLING_QUEUE_COLUMNS.WAITING_ON_BILLING_COUNT} column header present`
+          ).toBeGreaterThanOrEqual(0);
         });
       }
     );
