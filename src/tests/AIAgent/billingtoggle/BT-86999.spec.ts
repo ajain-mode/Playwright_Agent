@@ -1,5 +1,3 @@
-import fs from "fs";
-import path from "path";
 import { BrowserContext, expect, Page, test } from "@playwright/test";
 import apiHeaders from "@api/apiHeader";
 import { MultiAppManager } from "@utils/dfbUtils/MultiAppManager";
@@ -12,25 +10,12 @@ import commonReusables from "@utils/commonReusables";
 const testcaseID = "BT-86999";
 const testData = dataConfig.getTestDataFromCsv(dataConfig.billingtoggleData, testcaseID);
 
-const EDI210_PAYLOAD_PATH = path.resolve(
-  __dirname,
-  "../../../data/api/billingtoggle/edi210_carrier_not_booked.json",
-);
-
 let loadNumber = "";
 let sharedContext: BrowserContext;
 let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
 
-function buildEdi210Payload(loadId: string): string {
-  const template = fs.readFileSync(EDI210_PAYLOAD_PATH, "utf8");
-  return template.replace(/\{LoadId\}/g, loadId);
-}
-
-function expectedUnassignedHistoryMessage(): string {
-  return `${CARRIER_NAME.CARRIER_XPO_LOGISTICS_FREIGHT} is Billing $${testData.carrierInvoiceAmount1} ${FINANCE_MESSAGES.CARRIER_NOT_ASSIGNED_TO_LOAD}`;
-}
 
 test.describe.configure({ retries: 1 });
 test.describe.serial(
@@ -120,7 +105,7 @@ test.describe.serial(
         });
 
         await test.step("Step 7 [86999 52]: POST EDI 210 API — carrier not booked on load", async () => {
-          const payload = buildEdi210Payload(loadNumber);
+          const payload = commonReusables.buildEdi210Payload(loadNumber);
           const response = await request.post(
             `${loginSetup.tmsApiBaseUrl}edi/${EDI_CODE.EDI_210}`,
             {
@@ -144,7 +129,7 @@ test.describe.serial(
         });
 
         await test.step("Step 9 [86999 55 + Expected]: View History — carrier not assigned message", async () => {
-          const expectedMessage = expectedUnassignedHistoryMessage();
+          const expectedMessage = commonReusables.expectedUnassignedHistoryMessage(testData);
           await pages.loadBillingPage.assertUnassignedInvoiceViewHistoryMessage(expectedMessage);
         });
       },

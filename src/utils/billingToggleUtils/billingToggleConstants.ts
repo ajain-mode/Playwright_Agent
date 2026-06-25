@@ -95,6 +95,8 @@ export class BillingToggleConstants {
       SALES_COMMERCIAL_HOUSE: "Sales Agent (COMMERCIAL SALES HOUSE)",
     },
   } as const;
+
+  static readonly EDI210_PAYLOAD_PATH = "src/data/api/billingtoggle/edi210_carrier_not_booked.json" as const;
 }
 
 /** Uppercase agent display name without parenthetical suffix (salesperson/dispatcher checks). */
@@ -181,6 +183,7 @@ declare global {
   const SHIP_LOCATIONS: typeof BillingToggleConstants.SHIP_LOCATIONS;
   const AGENT_AUTH_EXPECTATIONS: typeof BillingToggleConstants.AGENT_AUTH_EXPECTATIONS;
   const PAYABLES_TOGGLE: typeof BillingToggleConstants.PAYABLES_TOGGLE;
+  const EDI210_PAYLOAD_PATH: typeof BillingToggleConstants.EDI210_PAYLOAD_PATH;
 }
 
 if (typeof globalThis !== "undefined") {
@@ -191,4 +194,5 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).SHIP_LOCATIONS = BillingToggleConstants.SHIP_LOCATIONS;
   (globalThis as any).AGENT_AUTH_EXPECTATIONS = BillingToggleConstants.AGENT_AUTH_EXPECTATIONS;
   (globalThis as any).PAYABLES_TOGGLE = BillingToggleConstants.PAYABLES_TOGGLE;
+  (globalThis as any).EDI210_PAYLOAD_PATH = BillingToggleConstants.EDI210_PAYLOAD_PATH;
 }

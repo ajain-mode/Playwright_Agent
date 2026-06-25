@@ -1,5 +1,3 @@
-import fs from "fs";
-import path from "path";
 import moment from "moment-timezone";
 import { BrowserContext, expect, Page, test } from "@playwright/test";
 import apiHeaders from "@api/apiHeader";
@@ -10,15 +8,9 @@ import dataConfig from "@config/dataConfig";
 import { PageManager } from "@utils/PageManager";
 import commonReusables from "@utils/commonReusables";
 import { BtmsDbClient, parseBtmsDbDateTime } from "@utils/db/BtmsDbClient";
-import { REGEX_PATTERNS } from "@utils/regexPatterns";
 
 const testcaseID = "BT-87001";
 const testData = dataConfig.getTestDataFromCsv(dataConfig.billingtoggleData, testcaseID);
-
-const EDI210_PAYLOAD_PATH = path.resolve(
-  __dirname,
-  "../../../data/api/billingtoggle/edi210_carrier_not_booked.json",
-);
 
 let loadNumber = "";
 let sharedContext: BrowserContext;
@@ -26,20 +18,6 @@ let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
 let ediPostedAt: Date;
-
-function buildEdi210Payload(loadId: string): string {
-  const template = fs.readFileSync(EDI210_PAYLOAD_PATH, "utf8");
-  return template.replace(/\{LoadId\}/g, loadId);
-}
-
-function expectedUnassignedHistoryMessage(): string {
-  return `${CARRIER_NAME.CARRIER_XPO_LOGISTICS_FREIGHT} is Billing $${testData.carrierInvoiceAmount1} ${FINANCE_MESSAGES.CARRIER_NOT_ASSIGNED_TO_LOAD}`;
-}
-
-/** Strips trailing zero cents from dollar amounts — aligns DB rows with UI View History display. */
-function normalizeMoneyInText(text: string): string {
-  return text.replace(REGEX_PATTERNS.TRAILING_NUMBERS.TRAILING_ZERO_CENTS, "$1");
-}
 
 test.describe.configure({ retries: 1 });
 test.describe.serial(
@@ -129,7 +107,7 @@ test.describe.serial(
         });
 
         await test.step("Step 7 [87001 52]: POST EDI 210 API — carrier not booked on load", async () => {
-          const payload = buildEdi210Payload(loadNumber);
+          const payload = commonReusables.buildEdi210Payload(loadNumber);
           const response = await request.post(
             `${loginSetup.tmsApiBaseUrl}edi/${EDI_CODE.EDI_210}`,
             {
@@ -153,8 +131,8 @@ test.describe.serial(
           });
         });
 
-        const historyMessage = expectedUnassignedHistoryMessage();
-        const normalizedHistoryMessage = normalizeMoneyInText(historyMessage);
+        const historyMessage = commonReusables.expectedUnassignedHistoryMessage(testData);
+        const normalizedHistoryMessage = commonReusables.normalizeMoneyInText(historyMessage);
 
         await test.step("Step 9 [87001 55 + Expected]: View History — carrier not assigned message", async () => {
           await pages.loadBillingPage.assertUnassignedInvoiceViewHistoryMessage(historyMessage);
@@ -219,7 +197,7 @@ test.describe.serial(
               const matchingHistory = historyRows.find(
                 (h) =>
                   h.edi_exception_id === ediExceptionId &&
-                  normalizeMoneyInText(h.message).includes(normalizedHistoryMessage) &&
+                  commonReusables.normalizeMoneyInText(h.message).includes(normalizedHistoryMessage) &&
                   h.role === EDI_EXCEPTION.TOGGLE_HISTORY_ROLE_INITIAL,
               );
               expect(
