@@ -59,7 +59,7 @@ test.describe.serial(
 
     test(
       "Case Id: BT-87001 - Validate EDI exception and toggle history rows in database",
-      { tag: "@AIAgent,@aiteam,@billingtoggle,@payabletoggle" },
+      { tag: "@AIAgent,@aiteam,@at_billingtoggle,@payabletoggle" },
       async ({ request }) => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 

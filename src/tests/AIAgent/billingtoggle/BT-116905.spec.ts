@@ -39,7 +39,7 @@ test.describe.serial(
 
     test(
       "Case Id: BT-116905 - Validate initial_billing_toggle_date captures first toggle movement",
-      { tag: "@AIAgent,@aiteam,@billingtoggle,@loadsearch" },
+      { tag: "@AIAgent,@aiteam,@at_billingtoggle,@loadsearch" },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 

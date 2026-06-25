@@ -1914,7 +1914,7 @@ export class SpecValidator {
    */
   private runCategorySpecificChecks(specCode: string, violations: ValidationViolation[]): void {
     const isBillingToggle =
-      /billingtoggleData/.test(specCode) || /@billingtoggle/.test(specCode);
+      /billingtoggleData/.test(specCode) || /@at_billingtoggle/.test(specCode);
 
     if (isBillingToggle) {
       const hasUserSwitch = /USER_ROLES\.BILLINGTOGGLE_USER/.test(specCode);

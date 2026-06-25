@@ -33,7 +33,7 @@ test.describe.serial(
 
     test(
       'Case Id: BT-74422 - Verify the Billing toggle behaviour when Load is "Booked - Delivered final" and billing issues are checked.',
-      { tag: "@AIAgent,@aiteam,@billingtoggle,@loadsearch" },
+      { tag: "@AIAgent,@aiteam,@at_billingtoggle,@loadsearch" },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 

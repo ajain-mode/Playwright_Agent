@@ -1657,7 +1657,7 @@ export const CATEGORY_CONFIG: Record<string, {
   billingtoggle: {
     dataFile: 'billingtoggleData',
     timeout: 300000,
-    defaultTags: ['@AIAgent', '@billingtoggle'],
+    defaultTags: ['@AIAgent', '@at_billingtoggle'],
     requiredImports: [],
   },
   custom: {

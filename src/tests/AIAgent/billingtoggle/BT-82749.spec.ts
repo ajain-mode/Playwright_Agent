@@ -33,7 +33,7 @@ test.describe.serial(
 
     test(
       "Case Id: BT-82749 - Verify Billing Toggle switches to Agent when Missing Paperwork is marked",
-      { tag: "@AIAgent,@aiteam,@billingtoggle" },
+      { tag: "@AIAgent,@aiteam,@at_billingtoggle" },
       async () => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 

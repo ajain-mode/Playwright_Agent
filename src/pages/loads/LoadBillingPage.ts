@@ -952,6 +952,27 @@ class LoadBillingPage {
     }
 
     /**
+     * Refreshes View Billing, attempts Neutral on Payables toggle, asserts it remains Payables or Agent.
+     * billing.php: Payables toggle slider — Neutral must not apply for Manager/Sales scenarios (BT-82715).
+     * @author AI Agent
+     * @created 2026-06-25
+     * @param allowedValues - e.g. PAYABLES_TOGGLE_VALUE.PAYABLES and AGENT
+     */
+    async assertPayablesToggleNeutralBlocked(allowedValues: readonly string[]): Promise<void> {
+        await this.reloadBillingPageAndWaitForPayablesToggle();
+        try {
+            await this.setPayablesToggle(PAYABLES_TOGGLE_VALUE.NEUTRAL);
+        } catch {
+            console.log("Neutral payables toggle move blocked or did not apply (expected)");
+        }
+        const payablesToggle = await this.getPayableToggleValue();
+        expect(payablesToggle, "Expected: Payables toggle must NOT be Neutral").not.toBe(
+            PAYABLES_TOGGLE_VALUE.NEUTRAL,
+        );
+        expect(allowedValues, "Expected: toggle remains Payables or Agent").toContain(payablesToggle);
+    }
+
+    /**
      * Hard-asserts Unassigned Invoice tab EDI 210 row details (sample steps 54 Expected).
      * @author AI Agent
      * @created 2026-06-16

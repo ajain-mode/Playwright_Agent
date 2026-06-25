@@ -50,7 +50,7 @@ test.describe.serial(
 
     test(
       "Case Id: BT-86999 - Validate payables toggle and message for EDI Exception Carrier is not Booked on Load",
-      { tag: "@AIAgent,@aiteam,@billingtoggle,@payabletoggle" },
+      { tag: "@AIAgent,@aiteam,@at_billingtoggle,@payabletoggle" },
       async ({ request }) => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
 

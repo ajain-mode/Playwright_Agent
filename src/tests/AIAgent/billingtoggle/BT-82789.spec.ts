@@ -39,7 +39,7 @@ test.describe.serial(
 
     test(
       "Case Id: BT-82789 - Verify payable toggle when load receives Short Pay flagged Adjustment Payload from SLC for central billing",
-      { tag: "@AIAgent,@aiteam,@billingtoggle,@payabletoggle" },
+      { tag: "@AIAgent,@aiteam,@at_billingtoggle,@payabletoggle" },
       async () => {
         test.setTimeout(WAIT.XXLARGE * 10);
 
