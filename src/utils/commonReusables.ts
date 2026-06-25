@@ -1,6 +1,8 @@
 // import * as xlsx from "xlsx";
 import { Locator, Page, expect } from "@playwright/test";
 import * as fs from "fs";
+import path from "path/win32";
+import { REGEX_PATTERNS } from "./regexPatterns";
 
 /***
  * @class CommonReusables
@@ -913,6 +915,23 @@ class CommonReusables {
     formatRateForDisplay(rate: string): string {
         return parseFloat(rate).toFixed(2);
     }
+
+  buildEdi210Payload(loadId: string): string {
+    const template = fs.readFileSync(path.resolve(
+      process.cwd(), EDI210_PAYLOAD_PATH
+    ), "utf8");
+    return template.replace(/\{LoadId\}/g, loadId);
+  }
+    
+  expectedUnassignedHistoryMessage(testData: any): string {
+    return `${CARRIER_NAME.CARRIER_XPO_LOGISTICS_FREIGHT} is Billing $${testData.carrierInvoiceAmount1} ${FINANCE_MESSAGES.CARRIER_NOT_ASSIGNED_TO_LOAD}`;
+  }
+
+    /** Strips trailing zero cents from dollar amounts — aligns DB rows with UI View History display. */
+  normalizeMoneyInText(text: string): string {
+    return text.replace(REGEX_PATTERNS.TRAILING_NUMBERS.TRAILING_ZERO_CENTS, "$1");
+  }
+
 }
 const commonReusables = new CommonReusables();
 export default commonReusables;

@@ -361,6 +361,17 @@ class EditLoadCarrierTabPage {
     await option.dblclick();
     await this.page.waitForTimeout(WAIT.DEFAULT);
   }
+
+  /**
+   * Dismisses the carrier Select2 overlay after carrier selection (Escape).
+   * @author AI Agent
+   * @created 2026-06-25
+   */
+  async dismissCarrierSelectOverlay(): Promise<void> {
+    await this.page.keyboard.press("Escape");
+    await commonReusables.waitForPageStable(this.page);
+  }
+
   /**
    * Selects Carrier 2 from the dropdown by entering the carrier ID
    * @param carrierID - The ID of the carrier to select

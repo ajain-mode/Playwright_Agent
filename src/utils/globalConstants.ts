@@ -19,6 +19,8 @@ export class GlobalConstants {
     XXLARGE: 120000,
     /** Poll `validatePostStatus(POSTED)` after waterfall save (e.g. DFB-89214: 3 carriers × 00:01 + post-to-all). */
     WATERFALL_POST_STATUS: 300000,
+    FIVE_MINUTES: 5 * 60 * 1000,
+
   } as const;
 
   /**

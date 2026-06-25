@@ -11,6 +11,7 @@ export default class TritanLoadDetailsPage {
     private readonly carrierTotalAmount_LOC: Locator;
     private readonly customerTotalAmount_LOC: Locator;
     private readonly carrierInvoicesFrame_LOC: FrameLocator;
+    private readonly carrierInvoicePlusIcon_LOC: Locator;
 
     // Carrier invoice popup selectors (used via `carrierPopup.locator(...)` — popup Page is not bound at construction).
     private readonly EDIT_CHARGES_LINK_SELECTOR = "//a[normalize-space()='[edit charges]']";
@@ -31,7 +32,7 @@ export default class TritanLoadDetailsPage {
         this.carrierInvoicesFrame_LOC = this.detailsFrame.locator('iframe').contentFrame()
         this.carrierTotalAmount_LOC = this.carrierInvoicesFrame_LOC.locator('#carrRatesWin').contentFrame().locator("//td[@class='total']/a");
         this.customerTotalAmount_LOC = this.carrierInvoicesFrame_LOC.locator('#custRatesWin').contentFrame().locator("//table//tr[td[normalize-space()='Mode Transportation - TL']]//td[5]/a");
-        
+        this.carrierInvoicePlusIcon_LOC=this.detailsFrame.locator('iframe').contentFrame().locator('#invoicesWin').contentFrame().getByRole('link', { name: 'Add Invoice' });
     }
 
     /**
@@ -294,11 +295,9 @@ export default class TritanLoadDetailsPage {
      */
     async clickAddCarrierInvoicePlusIcon(): Promise<void> {
         await commonReusables.waitForPageStable(this.page);
-        // const transportFrame = this.detailsFrame.locator('iframe[src*="editTransport"]').contentFrame();
-        // await transportFrame.locator("body").waitFor({ state: "attached", timeout: WAIT.XXLARGE });
         const invoiceWindowIds = ['#carrInvoicesWin', '#vendInvoicesWin', '#invoicesWin'];
         for (const winId of invoiceWindowIds) {
-            const addIcon =this.detailsFrame.locator('iframe').contentFrame().locator('#invoicesWin').contentFrame().getByRole('link', { name: 'Add Invoice' });
+            const addIcon = this.carrierInvoicePlusIcon_LOC
             try {
                 await addIcon.waitFor({ state: 'visible', timeout: WAIT.LARGE }); 
                 await addIcon.click();
@@ -363,12 +362,12 @@ export default class TritanLoadDetailsPage {
     /**
      * Opens carrier rate popup Edit Charges and applies short-pay settlement fields:
      * Settlement Total (`#sSettleTotal`), Queue (`#sQueue`), Settlement Reason (`#sSettleReason`),
-     * Comments (`#sComments`), then clicks Save and waits for the popup to close.
+     * Comments (`#sComments`), Fuel Surcharge (`#sFuelSurcharge`), then clicks Save and waits for the popup to close.
      * @param carrierPopup carrier invoice popup Page returned by clickOnCarrierInvoiceBillTotalAmount
      * @param queueLabel Queue dropdown label (e.g., '40 Valid / Approved')
      * @param settlementReason Settlement Reason dropdown label (e.g., 'Short Pay - Accessorial')
      * @param comment value for the Comments input
-     * @param settlementTotal amount to enter in the Settlement Total input (e.g., '125.00')
+     * @param fuelSurchargeAmount amount to enter in the Fuel Surcharge input (e.g., '125.00')
      * @author AI Agent
      * @created 2026-06-01
      */

@@ -1,13 +1,24 @@
-import { expect, Locator, Page } from "@playwright/test";
+import { expect, FrameLocator, Locator, Page } from "@playwright/test";
 import commonReusables from "@utils/commonReusables";
 
 export default class ListShipmentTemplate {
-
+    private readonly detailFrame: FrameLocator;
     private readonly truckloadShipmentTemplate_LOC: Locator;
+    private readonly templateRowAdd_LOC: (templateName: string) => Locator;
+
 
     constructor(private page: Page) {
+        this.detailFrame = this.page
+            .locator('iframe[name="AppBody"]').contentFrame()
+            .locator('#Detail').contentFrame();
 
-        this.truckloadShipmentTemplate_LOC = this.page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame().locator("//tr[td[@title='Mode' and normalize-space()='Truckload']]//a[img[@alt='Add Shipment']]")
+        this.truckloadShipmentTemplate_LOC = this.detailFrame.locator(
+            "//tr[td[@title='Mode' and normalize-space()='Truckload']]//a[img[@alt='Add Shipment']]"
+        );
+
+        this.templateRowAdd_LOC = (templateName: string) => this.detailFrame.locator(
+            `//tr[td[@title='Mode' and normalize-space()='LTL'] and contains(normalize-space(.),'${templateName}')]//a[img[@alt='Add Shipment']]`,
+        );
     }
 
     /**
@@ -31,14 +42,7 @@ export default class ListShipmentTemplate {
      */
     async clickOnLtlShipmentTemplateByName(templateName: string) {
         await commonReusables.waitForPageStable(this.page);
-        const templateRowAdd_LOC = this.page
-            .locator('iframe[name="AppBody"]')
-            .contentFrame()
-            .locator('#Detail')
-            .contentFrame()
-            .locator(
-                `//tr[td[@title='Mode' and normalize-space()='LTL'] and contains(normalize-space(.),'${templateName}')]//a[img[@alt='Add Shipment']]`,
-            );
+        const templateRowAdd_LOC = this.templateRowAdd_LOC(templateName);
         await templateRowAdd_LOC.first().waitFor({ state: 'visible', timeout: WAIT.LARGE });
         await templateRowAdd_LOC.first().click();
         console.log(`Clicked LTL shipment template: ${templateName}`);

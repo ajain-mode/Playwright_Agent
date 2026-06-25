@@ -82,7 +82,7 @@ class LoadBillingPage {
     /** Missing Paperwork — Miscellaneous — billing.php `#Miscellaneouss` (value `mpw`) */
     private readonly miscellaneousCheckbox_LOC: Locator;
     private readonly miscellaneousLabel_LOC: Locator;
-    /** Billing Issues — OS/D — billing.php `input.fi_ckb[value="osd"]` / `loadsh_fi_osd` */
+    /** Billing Issues — OS/D — billing.php `div#loadsh_fi_block_osd` → `input#OSD1` (value `osd`) */
     private readonly osdCheckbox_LOC: Locator;
     private readonly osdLabel_LOC: Locator;
 
@@ -209,8 +209,8 @@ class LoadBillingPage {
         this.lumperLabel_LOC = this.page.locator("label[for='Lumpers'].ckb");
         this.miscellaneousCheckbox_LOC = this.page.locator("#Miscellaneouss");
         this.miscellaneousLabel_LOC = this.page.locator("label[for='Miscellaneouss'].ckb");
-        this.osdCheckbox_LOC = this.financeIssuesBlock_LOC.locator('input.fi_ckb[value="osd"]');
-        this.osdLabel_LOC = this.financeIssuesBlock_LOC.locator("label.ckb", { hasText: /^OS\/D/ });
+        this.osdCheckbox_LOC = this.financeIssuesBlock_LOC.locator("#loadsh_fi_block_osd input#OSD1");
+        this.osdLabel_LOC = this.page.locator("label[for='OSD1'].ckb");
 
         // Carrier Payable Status dropdown (first carrier), Remainder, and Total Invoices
         this.carrierPayableStatusSelect_LOC = this.page.locator("select[id^='carr_'][id$='_post_status']").first();
@@ -952,6 +952,27 @@ class LoadBillingPage {
     }
 
     /**
+     * Refreshes View Billing, attempts Neutral on Payables toggle, asserts it remains Payables or Agent.
+     * billing.php: Payables toggle slider — Neutral must not apply for Manager/Sales scenarios (BT-82715).
+     * @author AI Agent
+     * @created 2026-06-25
+     * @param allowedValues - e.g. PAYABLES_TOGGLE_VALUE.PAYABLES and AGENT
+     */
+    async assertPayablesToggleNeutralBlocked(allowedValues: readonly string[]): Promise<void> {
+        await this.reloadBillingPageAndWaitForPayablesToggle();
+        try {
+            await this.setPayablesToggle(PAYABLES_TOGGLE_VALUE.NEUTRAL);
+        } catch {
+            console.log("Neutral payables toggle move blocked or did not apply (expected)");
+        }
+        const payablesToggle = await this.getPayableToggleValue();
+        expect(payablesToggle, "Expected: Payables toggle must NOT be Neutral").not.toBe(
+            PAYABLES_TOGGLE_VALUE.NEUTRAL,
+        );
+        expect(allowedValues, "Expected: toggle remains Payables or Agent").toContain(payablesToggle);
+    }
+
+    /**
      * Hard-asserts Unassigned Invoice tab EDI 210 row details (sample steps 54 Expected).
      * @author AI Agent
      * @created 2026-06-16
@@ -1525,7 +1546,7 @@ class LoadBillingPage {
 
     /**
      * Clicks the "OS/D" checkbox label in Billing Issues section.
-     * billing.php — `input.fi_ckb[value="osd"]` / `loadsh_fi_osd`.
+     * billing.php — `div#loadsh_fi_block_osd` → `label[for='OSD1'].ckb`.
      * @author AI Agent
      * @created 2026-06-17
      */
@@ -1537,7 +1558,7 @@ class LoadBillingPage {
 
     /**
      * Ensures the "OS/D" Billing Issues checkbox is checked (idempotent).
-     * billing.php — `input.fi_ckb[value="osd"]` / `loadsh_fi_osd`.
+     * billing.php — `div#loadsh_fi_block_osd` → `input#OSD1` (value `osd`).
      * @author AI Agent
      * @created 2026-06-17
      */

@@ -578,7 +578,7 @@ export class TestCaseMatcher {
    */
   private detectCategoryFromTags(tags: string[]): string {
     const tagSet = new Set(tags.map(t => t.toLowerCase()));
-    if (tagSet.has('billingtoggle')) return 'billingtoggle';
+    if (tagSet.has('at_billingtoggle') || tagSet.has('billingtoggle')) return 'billingtoggle';
     if (tagSet.has('payabletoggle')) return 'billingtoggle';
     if (tagSet.has('dfb') || tagSet.has('carrierautoaccept')) return 'dfb';
     if (tagSet.has('carrier')) return 'carrier';

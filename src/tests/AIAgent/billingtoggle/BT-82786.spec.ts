@@ -156,8 +156,7 @@ test.describe.serial(
             await btmsPages.viewLoadPage.clickViewBillingButton();
             await btmsPages.loadBillingPage.scrollBillingIssuesBlockIntoView();
 
-            const overageIncrement = 125;
-            btmsOverInvoiceAmount = (parseFloat(carrierBillTotal) + overageIncrement).toFixed(2);
+            btmsOverInvoiceAmount = (parseFloat(carrierBillTotal) + PAYABLE_SHORT_PAY.FUEL_SURCHARGE_AMOUNT).toFixed(2);
             invoiceOverage = parseFloat(btmsOverInvoiceAmount) - parseFloat(carrierBillTotal);
 
             await btmsPages.loadBillingPage.clickAddNewCarrierInvoice();
