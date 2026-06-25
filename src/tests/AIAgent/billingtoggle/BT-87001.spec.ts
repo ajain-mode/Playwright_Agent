@@ -9,7 +9,8 @@ import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
 import { PageManager } from "@utils/PageManager";
 import commonReusables from "@utils/commonReusables";
-import { BtmsDbClient } from "@utils/db/BtmsDbClient";
+import { BtmsDbClient, parseBtmsDbDateTime } from "@utils/db/BtmsDbClient";
+import { REGEX_PATTERNS } from "@utils/regexPatterns";
 
 const testcaseID = "BT-87001";
 const testData = dataConfig.getTestDataFromCsv(dataConfig.billingtoggleData, testcaseID);
@@ -24,7 +25,7 @@ let sharedContext: BrowserContext;
 let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
-let testStartedAt: Date;
+let ediPostedAt: Date;
 
 function buildEdi210Payload(loadId: string): string {
   const template = fs.readFileSync(EDI210_PAYLOAD_PATH, "utf8");
@@ -33,6 +34,11 @@ function buildEdi210Payload(loadId: string): string {
 
 function expectedUnassignedHistoryMessage(): string {
   return `${CARRIER_NAME.CARRIER_XPO_LOGISTICS_FREIGHT} is Billing $${testData.carrierInvoiceAmount1} ${FINANCE_MESSAGES.CARRIER_NOT_ASSIGNED_TO_LOAD}`;
+}
+
+/** Strips trailing zero cents from dollar amounts — aligns DB rows with UI View History display. */
+function normalizeMoneyInText(text: string): string {
+  return text.replace(REGEX_PATTERNS.TRAILING_NUMBERS.TRAILING_ZERO_CENTS, "$1");
 }
 
 test.describe.configure({ retries: 1 });
@@ -56,7 +62,6 @@ test.describe.serial(
       { tag: "@AIAgent,@aiteam,@billingtoggle,@payabletoggle" },
       async ({ request }) => {
         test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
-        testStartedAt = new Date();
 
         await test.step("Step 1 [87001 1-5]: Login BTMS", async () => {
           await pages.btmsLoginPage.BTMSLogin(userSetup.globalUser);
@@ -79,7 +84,6 @@ test.describe.serial(
         });
 
         await test.step("Step 4 [87001 17-21]: Customer search and CREATE TL *NEW*", async () => {
-          await pages.basePage.navigateToBaseUrl();
           await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
           await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
           await pages.searchCustomerPage.enterCustomerName(testData.customerName);
@@ -89,7 +93,7 @@ test.describe.serial(
           await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         });
 
-        await test.step("Step 5 [87001 22-46]: Enter New Load", async () => {
+        await test.step("Step 5 [87001 22-46]: Enter New Load — shipper/consignee/commodity", async () => {
           await pages.nonTabularLoadPage.selectCustomerViaSelect2(testData["Customer Value"]);
           await pages.nonTabularLoadPage.ensureEnterNewLoadSalespersonDispatcherSelection();
           await pages.nonTabularLoadPage.createNonTabularLoad({
@@ -110,7 +114,7 @@ test.describe.serial(
           await pages.editLoadFormPage.selectMileageMethod(testData.Method);
         });
 
-        await test.step("Step 6 [87001 47-51]: Carrier tab, Save — capture Load ID", async () => {
+        await test.step("Step 6 [87001 47-51]: Rate Type SPOT, Carrier tab, offer/miles, Save — capture Load ID", async () => {
           await pages.nonTabularLoadPage.clickCreateLoadButton();
           await pages.editLoadLoadTabPage.checkLoadTabDetails(testData.rateType);
           await pages.editLoadPage.clickOnTab(TABS.CARRIER);
@@ -120,10 +124,11 @@ test.describe.serial(
           await pages.editLoadFormPage.clickOnSaveBtn();
           await pages.viewLoadPage.validateViewLoadHeading();
           loadNumber = await pages.dfbLoadFormPage.getLoadNumber();
-          expect(loadNumber).toBeTruthy();
+          expect(loadNumber, "Expected: Load ID captured in step 51").toBeTruthy();
+          pages.logger.info(`Load ID: ${loadNumber}`);
         });
 
-        await test.step("Step 7 [87001 52]: POST EDI 210 API", async () => {
+        await test.step("Step 7 [87001 52]: POST EDI 210 API — carrier not booked on load", async () => {
           const payload = buildEdi210Payload(loadNumber);
           const response = await request.post(
             `${loginSetup.tmsApiBaseUrl}edi/${EDI_CODE.EDI_210}`,
@@ -134,11 +139,10 @@ test.describe.serial(
           );
           pages.logger.info(`EDI 210 response status: ${response.status()}`);
           expect(response.status(), "Expected: EDI 210 ingest succeeds").toBeLessThan(500);
+          ediPostedAt = new Date();
         });
 
-        const historyMessage = expectedUnassignedHistoryMessage();
-
-        await test.step("Step 8 [87001 53-55 + Expected 54-55]: View Billing UI validations", async () => {
+        await test.step("Step 8 [87001 53-54 + Expected]: View Billing — Unassigned Invoice tab validations", async () => {
           await pages.viewLoadPage.clickViewBillingButton();
           await pages.loadBillingPage.assertUnassignedInvoiceEdi210Details({
             source: EDI_EXCEPTION.SOURCE_API_210,
@@ -147,64 +151,105 @@ test.describe.serial(
             description: EDI_EXCEPTION.DESCRIP_CARRIER_NOT_BOOKED_ON_LOAD,
             expectedPayablesToggle: PAYABLES_TOGGLE_VALUE.AGENT,
           });
+        });
+
+        const historyMessage = expectedUnassignedHistoryMessage();
+        const normalizedHistoryMessage = normalizeMoneyInText(historyMessage);
+
+        await test.step("Step 9 [87001 55 + Expected]: View History — carrier not assigned message", async () => {
           await pages.loadBillingPage.assertUnassignedInvoiceViewHistoryMessage(historyMessage);
         });
 
-        await test.step("Step 9 [87001 56-59 + Expected 57-58]: DB — edi_exception + toggle history", async () => {
+        await test.step("Step 10 [87001 56-59 + Expected 57-58]: DB — connect, validate, disconnect", async () => {
           const db = new BtmsDbClient();
-          await db.connect();
+          let ediExceptionId: number;
+          let exceptionCreatedMoment: moment.Moment;
+
+          await test.step("Step 10a [87001 56]: Connect to Stage BTMS database", async () => {
+            await db.connect();
+          });
 
           try {
-            const exceptionRow = await db.getEdiExceptionByLoadNumber(loadNumber);
-            expect(exceptionRow, "Expected: exactly one edi_exception row for load").not.toBeNull();
+            await test.step("Step 10b [87001 57 + Expected]: Query edi_exception for load", async () => {
+              const exceptionRow = await db.getEdiExceptionByLoadNumber(loadNumber);
+              expect(exceptionRow, "Expected: exactly one edi_exception row for load").not.toBeNull();
 
-            const row = exceptionRow!;
-            expect(row.load_number, "Expected: load_number matches captured Load ID").toBe(loadNumber);
-            expect(String(row.carr_id), "Expected: carr_id from EDI 210 payload").toBe(
-              String(testData.CarrierID),
-            );
-            expect(row.invoice_total, "Expected: invoice_total from EDI 210 payload").toBe(
-              String(testData.carrierInvoiceAmount1),
-            );
-            expect(row.descrip, "Expected: descrip matches View History message context").toBe(
-              EDI_EXCEPTION.DESCRIP_CARRIER_NOT_BOOKED_ON_LOAD,
-            );
-            expect(row.assigned_to_payables, "Expected: assigned_to_payables = 0").toBe(0);
+              const row = exceptionRow!;
+              ediExceptionId = row.id;
+              exceptionCreatedMoment = parseBtmsDbDateTime(row.created);
 
-            const createdMoment = moment(row.created);
-            expect(
-              createdMoment.isSameOrAfter(moment(testStartedAt).subtract(2, "minutes")),
-              "Expected: edi_exception.created within test execution window",
-            ).toBe(true);
-
-            const switchedAgentId = await db.getAgentIdByNameFragment("NATASHA TINSLEY");
-            expect(switchedAgentId, "Expected: NATASHA TINSLEY agent id resolvable").not.toBeNull();
-
-            const historyRows = await db.getEdiExceptionToggleHistory(row.id);
-            expect(historyRows.length, "Expected: at least one toggle history row").toBeGreaterThan(0);
-
-            const matchingHistory = historyRows.find(
-              (h) =>
-                h.edi_exception_id === row.id &&
-                h.message.includes(historyMessage) &&
-                h.role === EDI_EXCEPTION.TOGGLE_HISTORY_ROLE_INITIAL,
-            );
-            expect(
-              matchingHistory,
-              "Expected: toggle history row with initial role and View History message",
-            ).toBeTruthy();
-
-            if (matchingHistory && switchedAgentId) {
-              expect(matchingHistory.created_by, "Expected: created_by matches switched agent id").toBe(
-                switchedAgentId,
+              expect(row.load_number, "Expected [57]: load_number matches Load ID from step 51").toBe(
+                loadNumber,
+              );
+              expect(String(row.carr_id), "Expected [57]: carr_id from EDI 210 payload (32467)").toBe(
+                String(testData.CarrierID),
               );
               expect(
-                moment(matchingHistory.created_at).isSameOrAfter(createdMoment),
-                "Expected: toggle history created_at on/after edi_exception.created",
+                Number(row.invoice_total),
+                "Expected [57]: invoice_total from EDI 210 payload (784)",
+              ).toBe(Number(testData.carrierInvoiceAmount1));
+              // CSV Expected 57 references step 55 View History text; DB descrip matches UI descrip (step 54 Expected).
+              expect(row.descrip, "Expected [57]: descrip Carrier is not booked on load").toBe(
+                EDI_EXCEPTION.DESCRIP_CARRIER_NOT_BOOKED_ON_LOAD,
+              );
+              expect(row.assigned_to_payables, "Expected [57]: assigned_to_payables = 0").toBe(0);
+
+              const testWindowStart = moment(ediPostedAt).subtract(2, "minutes");
+              const testWindowEnd = moment().add(2, "minutes");
+              expect(
+                exceptionCreatedMoment.isBetween(testWindowStart, testWindowEnd, undefined, "[]"),
+                `Expected [57]: created within test execution window (edi posted ${moment(ediPostedAt).format("YYYY-MM-DD HH:mm:ss")}, db created ${exceptionCreatedMoment.format("YYYY-MM-DD HH:mm:ss")})`,
               ).toBe(true);
-            }
+            });
+
+            await test.step("Step 10c [87001 58 + Expected]: Query edi_exception_toggle_history", async () => {
+              const historyAuthorId = await db.getAgentIdByNameFragment(
+                LOAD_CREATED_BY.INTELYS_API_PORTAL,
+              );
+              expect(
+                historyAuthorId,
+                `Expected [58]: agent id resolvable for EDI API author (${LOAD_CREATED_BY.INTELYS_API_PORTAL})`,
+              ).not.toBeNull();
+
+              const historyRows = await db.getEdiExceptionToggleHistory(ediExceptionId!);
+              expect(historyRows.length, "Expected [58]: at least one toggle history row").toBeGreaterThan(
+                0,
+              );
+
+              const matchingHistory = historyRows.find(
+                (h) =>
+                  h.edi_exception_id === ediExceptionId &&
+                  normalizeMoneyInText(h.message).includes(normalizedHistoryMessage) &&
+                  h.role === EDI_EXCEPTION.TOGGLE_HISTORY_ROLE_INITIAL,
+              );
+              expect(
+                matchingHistory,
+                "Expected [58]: toggle history row with role 0 and View History message from step 55",
+              ).toBeTruthy();
+
+              if (matchingHistory && historyAuthorId) {
+                expect(
+                  matchingHistory.created_by,
+                  `Expected [58]: created_by matches EDI API author (${LOAD_CREATED_BY.INTELYS_API_PORTAL})`,
+                ).toBe(historyAuthorId);
+
+                const historyCreatedMoment = parseBtmsDbDateTime(matchingHistory.created_at);
+                const testWindowStart = moment(ediPostedAt).subtract(2, "minutes");
+                const testWindowEnd = moment().add(2, "minutes");
+                expect(
+                  historyCreatedMoment.isSameOrAfter(exceptionCreatedMoment!),
+                  "Expected [58]: created_at on/after edi_exception.created",
+                ).toBe(true);
+                expect(
+                  historyCreatedMoment.isBetween(testWindowStart, testWindowEnd, undefined, "[]"),
+                  "Expected [58]: created_at within test execution window",
+                ).toBe(true);
+              }
+            });
           } finally {
-            await db.disconnect();
+            await test.step("Step 10d [87001 59]: Close DB connection", async () => {
+              await db.disconnect();
+            });
           }
         });
       },

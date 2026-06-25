@@ -6,6 +6,9 @@ import loginSetup from "@loginHelpers/loginSetup";
 import { resolveSshPrivateKeyFromEnv } from "@utils/db/sshKeyUtils";
 import { REGEX_PATTERNS } from "@utils/regexPatterns";
 
+/** BTMS Stage DB stores naive DATETIME in US Eastern — must match mysql2 `timezone` option. */
+export const BTMS_DB_TIMEZONE = "America/New_York";
+
 /** Row shape for loadsh toggle date columns — billing.php UI maps Current → last_finance_contact_date. */
 export interface LoadToggleDatesRow {
   id: number;
@@ -305,6 +308,19 @@ export class BtmsDbClient {
         .connect(sshConfig);
     });
   }
+}
+
+/**
+ * Reinterprets mysql2 DATETIME values (naive US Eastern wall clock) for moment comparisons.
+ * mysql2 returns DATETIME using the Node process local TZ; BTMS stores Eastern wall time.
+ * @author AI Agent
+ * @created 2026-06-25
+ * @param value - Date from mysql2 row (edi_exception.created, toggle_history.created_at, etc.)
+ */
+export function parseBtmsDbDateTime(value: Date): moment.Moment {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const wallClock = `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())} ${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}`;
+  return moment.tz(wallClock, "YYYY-MM-DD HH:mm:ss", BTMS_DB_TIMEZONE);
 }
 
 /**
