@@ -114,7 +114,7 @@ test.describe.serial(
             },
           );
           pages.logger.info(`EDI 210 response status: ${response.status()}`);
-          expect(response.status(), "Expected: EDI 210 ingest succeeds").toBeLessThan(500);
+          expect(response.status(), "Expected: EDI 210 ingest succeeds").toEqual(201);
         });
 
         await test.step("Step 8 [86999 53-54 + Expected]: View Billing — Unassigned Invoice tab validations", async () => {
