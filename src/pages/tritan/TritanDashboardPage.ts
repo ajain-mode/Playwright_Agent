@@ -17,6 +17,8 @@ class TritanDashboardPage {
     // private readonly loadNumberCell_LOC: (loadNumber: string) => Locator;
     private readonly selectLoadActionDropdown_LOC: Locator;
     private readonly loadStatusValue_LOC: Locator;
+    private readonly shipmentTemplateLink: Locator;
+    private readonly closeIcon: (tabLabelPart: string) => Locator;
 
     constructor(private page: Page) {
         this.companyButton_LOC = this.page.locator("//span[text()='Company']");
@@ -35,6 +37,10 @@ class TritanDashboardPage {
         //     locator(`//td[@class='priref']/a[normalize-space()='${loadNumber}']`);
         this.selectLoadActionDropdown_LOC = this.page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame().locator('iframe').contentFrame().getByRole('combobox');
         this.loadStatusValue_LOC = this.page.locator('iframe[name="AppBody"]').contentFrame().locator('#Detail').contentFrame().locator('iframe').contentFrame().locator("//b[text()='Status:']/parent::td");
+        this.shipmentTemplateLink = this.page.getByText('Shipment Templates', { exact: true });
+        this.closeIcon = (tabLabelPart: string) => this.page.frameLocator('iframe[name="AppBody"]').locator(
+            `//td[contains(normalize-space(.),'${tabLabelPart}')]//img[contains(@alt,'Close')]`,
+        );
     }
 
     /**
@@ -98,7 +104,7 @@ class TritanDashboardPage {
         await commonReusables.waitForPageStable(this.page);
         await this.viewCells_LOC.waitFor({ state: 'visible', timeout: WAIT.SMALL });
         await this.viewCells_LOC.hover();
-        const shipmentTemplateLink = this.page.getByText("Shipment Templates", { exact: true }).first();
+        const shipmentTemplateLink = this.shipmentTemplateLink.first();
         await shipmentTemplateLink.waitFor({ state: "visible", timeout: WAIT.SMALL });
         await shipmentTemplateLink.click();
     }
@@ -110,10 +116,7 @@ class TritanDashboardPage {
      * @param tabLabelPart - Substring of the bottom tab title (e.g. Intermodal)
      */
     async closeMdiWindowIfPresent(tabLabelPart: string): Promise<void> {
-        const appBody = this.page.frameLocator('iframe[name="AppBody"]');
-        const closeIcon = appBody.locator(
-            `//td[contains(normalize-space(.),'${tabLabelPart}')]//img[contains(@alt,'Close')]`,
-        );
+        const closeIcon = this.closeIcon(tabLabelPart);
         if ((await closeIcon.count()) > 0) {
             await closeIcon.first().click();
             await commonReusables.waitForPageStable(this.page);

@@ -32,6 +32,7 @@ export class BillingToggleConstants {
     ACCESSORIAL_AGAIN_COMMENT: "Carrier Agreed to include fuel surcharge in linehaul again",
     ACCESSORIAL_AGAIN_MESSAGE:
       "Short Pay - Accessorial; Carrier Agreed to include fuel surcharge in linehaul again",
+    FUEL_SURCHARGE_AMOUNT: 125,
   } as const;
 
   /** Agent display names used across payables-toggle scenarios. */

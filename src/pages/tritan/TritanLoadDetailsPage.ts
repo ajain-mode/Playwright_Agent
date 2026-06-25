@@ -362,12 +362,12 @@ export default class TritanLoadDetailsPage {
     /**
      * Opens carrier rate popup Edit Charges and applies short-pay settlement fields:
      * Settlement Total (`#sSettleTotal`), Queue (`#sQueue`), Settlement Reason (`#sSettleReason`),
-     * Comments (`#sComments`), then clicks Save and waits for the popup to close.
+     * Comments (`#sComments`), Fuel Surcharge (`#sFuelSurcharge`), then clicks Save and waits for the popup to close.
      * @param carrierPopup carrier invoice popup Page returned by clickOnCarrierInvoiceBillTotalAmount
      * @param queueLabel Queue dropdown label (e.g., '40 Valid / Approved')
      * @param settlementReason Settlement Reason dropdown label (e.g., 'Short Pay - Accessorial')
      * @param comment value for the Comments input
-     * @param settlementTotal amount to enter in the Settlement Total input (e.g., '125.00')
+     * @param fuelSurchargeAmount amount to enter in the Fuel Surcharge input (e.g., '125.00')
      * @author AI Agent
      * @created 2026-06-01
      */
