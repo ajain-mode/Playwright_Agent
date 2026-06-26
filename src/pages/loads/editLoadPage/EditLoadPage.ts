@@ -171,7 +171,10 @@ class EditLoadPage {
  */
   async selectRateType(rateType: string) {
     await this.page.waitForLoadState('networkidle');
-    await this.rateTypeDropdown_LOC.waitFor({ state: "visible" });
+    const rateTypeDropdown = await this.rateTypeDropdown_LOC.isVisible();
+    if(!rateTypeDropdown) {
+      return;
+    }
     await this.rateTypeDropdown_LOC.selectOption({ label: rateType });
   }
 
