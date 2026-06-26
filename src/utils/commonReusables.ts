@@ -1,7 +1,7 @@
 // import * as xlsx from "xlsx";
 import { Locator, Page, expect } from "@playwright/test";
 import * as fs from "fs";
-import path from "path/win32";
+import path from "path";
 import { REGEX_PATTERNS } from "./regexPatterns";
 
 /***
