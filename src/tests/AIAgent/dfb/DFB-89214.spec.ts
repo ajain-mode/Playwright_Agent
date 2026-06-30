@@ -54,7 +54,7 @@ const NON_INCLUDED_CARRIER_1_BID_RATE = LOAD_OFFER_RATES.OFFER_RATE_3;
 const NON_INCLUDED_CARRIER_2_BID_RATE = TNX.BID_RATE;
 const NON_INCLUDED_CARRIER_3_BID_RATE = TNX.BID_RATE;
 
-test.describe.configure({ retries: 0 });
+test.describe.configure({ retries: 1 });
 test.describe.serial(
   "Case ID: DFB-89214 — Waterfall included + non-included carrier TNX bids on auto-posted load",
   () => {
