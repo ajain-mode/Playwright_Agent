@@ -277,7 +277,7 @@ class DMELoadPage {
    */
   async validateAuctionAssignedText(
     loadNumber?: string,
-    dmeDashboardPage?: any
+    dmeDashboardPage?: any,
   ): Promise<void> {
     const maxRetryTime = 5 * 60 * 1000; // 5 minutes
     const startTime = Date.now();
@@ -289,8 +289,8 @@ class DMELoadPage {
         const elapsedTime = Date.now() - startTime;
         console.log(
           `Auction assigned text not found. Elapsed: ${Math.round(
-            elapsedTime / 1000
-          )}s`
+            elapsedTime / 1000,
+          )}s`,
         );
 
         if (elapsedTime < maxRetryTime) {
@@ -300,13 +300,13 @@ class DMELoadPage {
           throw new Error(
             `Auction assigned status not found after ${
               maxRetryTime / 1000
-            }s of retrying`
+            }s of retrying`,
           );
         }
       }
     }
     throw new Error(
-      `Auction assigned status validation failed after ${maxRetryTime / 1000}s`
+      `Auction assigned status validation failed after ${maxRetryTime / 1000}s`,
     );
   }
 

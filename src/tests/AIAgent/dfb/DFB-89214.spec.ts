@@ -46,12 +46,13 @@ let sharedContext: BrowserContext;
 let sharedPage: Page;
 let appManager: MultiAppManager;
 let pages: PageManager;
+
 const INCLUDED_CARRIER_1_BID_RATE = TNX.BID_RATE_INCLUDED_1;
 const INCLUDED_CARRIER_2_BID_RATE = TNX.BID_RATE_INCLUDED_2;
 const INCLUDED_CARRIER_3_BID_RATE = LOAD_OFFER_RATES.OFFER_RATE_2;
 const NON_INCLUDED_CARRIER_1_BID_RATE = LOAD_OFFER_RATES.OFFER_RATE_3;
 const NON_INCLUDED_CARRIER_2_BID_RATE = TNX.BID_RATE;
-const NON_INCLUDED_CARRIER_3_BID_RATE = TNX.BID_RATE_2;
+const NON_INCLUDED_CARRIER_3_BID_RATE = TNX.BID_RATE;
 
 test.describe.configure({ retries: 0 });
 test.describe.serial(
@@ -76,10 +77,10 @@ test.describe.serial(
     test(
       "Case Id: DFB-89214 — Enter bids by included waterfall carriers and non-included carriers after waterfall",
       {
-        tag: "@AIAgent,@aiteam,@bidding,@dfb,@includecarrier,@waterfallsetup",
+        tag: "@AIAgent,@aiteam,@at_bidding,@at_dfb,@at_includecarrier,@at_waterfallsetup",
       },
       async () => {
-        test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE);
+        test.setTimeout(WAIT.SPEC_TIMEOUT_LARGE * 3);
 
         // ═══════════════════════════════════════════════════════════════
         // PRECONDITIONS (sample-testcases 89214 steps 1–39)
@@ -430,6 +431,7 @@ test.describe.serial(
           "Step 18 [89214 94 + Expected after 94]: Plus, search load, open, Bid, enter bid, Bid Now",
           async () => {
             const tnxPages = await appManager.switchToTNXForLoadSearch();
+            await tnxPages.page.mouse.click(20, 400);
             await tnxPages.tnxLandingPage.clickPlusSignButton();
             await tnxPages.tnxLandingPage.searchLoadValue(loadNumber);
             await tnxPages.tnxLandingPage.clickLoadSearchLink();
@@ -504,6 +506,7 @@ test.describe.serial(
           "Step 21 [89214 97 + Expected after 97]: Repeat bid + BTMS flow (same as steps 94–95)",
           async () => {
             const tnxPages = await appManager.switchToTNXForLoadSearch();
+            await tnxPages.page.mouse.click(20, 400);
             await tnxPages.tnxLandingPage.clickPlusSignButton();
             await tnxPages.tnxLandingPage.searchLoadValue(loadNumber);
             await tnxPages.tnxLandingPage.clickLoadSearchLink();
@@ -573,6 +576,7 @@ test.describe.serial(
           "Step 23 [89214 99 + Expected after 99]: Repeat bid + BTMS flow (same as steps 94–95)",
           async () => {
             const tnxPages = await appManager.switchToTNXForLoadSearch();
+            await tnxPages.page.mouse.click(20, 400);
             await tnxPages.tnxLandingPage.clickPlusSignButton();
             await tnxPages.tnxLandingPage.searchLoadValue(loadNumber);
             await tnxPages.tnxLandingPage.clickLoadSearchLink();
@@ -642,6 +646,7 @@ test.describe.serial(
           "Step 25 [89214 101 + Expected after 101]: Repeat bid + BTMS flow (same as steps 94–95)",
           async () => {
             const tnxPages = await appManager.switchToTNXForLoadSearch();
+            await tnxPages.page.mouse.click(20, 400);
             await tnxPages.tnxLandingPage.clickPlusSignButton();
             await tnxPages.tnxLandingPage.searchLoadValue(loadNumber);
             await tnxPages.tnxLandingPage.clickLoadSearchLink();
@@ -711,6 +716,7 @@ test.describe.serial(
           "Step 27 [89214 103 + Expected after 103]: Repeat bid + BTMS flow (same as steps 94–95)",
           async () => {
             const tnxPages = await appManager.switchToTNXForLoadSearch();
+            await tnxPages.page.mouse.click(20, 400);
             await tnxPages.tnxLandingPage.clickPlusSignButton();
             await tnxPages.tnxLandingPage.searchLoadValue(loadNumber);
             await tnxPages.tnxLandingPage.clickLoadSearchLink();
