@@ -1,0 +1,696 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic "BTMS STAGING": BTMS STAGING BTMS STAGING
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - link "SunteckTTS TMS" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "SunteckTTS TMS" [ref=e8]
+      - list [ref=e9]:
+        - listitem [ref=e10]:
+          - link "Home" [ref=e11] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e12]: Home
+        - listitem [ref=e13]:
+          - link "Customers" [ref=e14] [cursor=pointer]:
+            - /url: /web/customers/main
+            - generic [ref=e15]: Customers
+        - listitem [ref=e16]:
+          - link "Loads" [ref=e17] [cursor=pointer]:
+            - /url: /web/loads/main
+            - generic [ref=e18]: Loads
+        - listitem [ref=e19]:
+          - link "Carriers" [ref=e20] [cursor=pointer]:
+            - /url: /web/carriers/main
+            - generic [ref=e21]: Carriers
+      - generic [ref=e22]:
+        - button "" [ref=e23] [cursor=pointer]:
+          - generic [ref=e24]: 
+        - text: 
+      - list [ref=e26]:
+        - listitem [ref=e27]:
+          - link "BRENT DURHAM" [ref=e28] [cursor=pointer]:
+            - /url: /web/admin/main
+            - text: BRENT DURHAM
+            - generic [ref=e29]: 
+    - table [ref=e31]:
+      - rowgroup [ref=e32]:
+        - row [ref=e33]:
+          - cell [ref=e34]:
+            - generic [ref=e36]:
+              - table [ref=e40]:
+                - rowgroup [ref=e41]:
+                  - 'row "View Load #16239875 Centralized View Billing View Edit Overlay Duplicate Template Save Save & Return Return" [ref=e42]':
+                    - 'cell "View Load #16239875 Centralized" [ref=e43]':
+                      - text: "View Load #16239875"
+                      - generic "Centralized Load" [ref=e44]: Centralized
+                    - cell "View Billing View Edit Overlay Duplicate Template Save Save & Return Return" [ref=e45]:
+                      - generic [ref=e46]:
+                        - button "View Billing" [ref=e47] [cursor=pointer]
+                        - button "View" [disabled] [ref=e48]
+                        - button "Edit" [ref=e49] [cursor=pointer]
+                        - button "Overlay" [ref=e50] [cursor=pointer]
+                        - button "Duplicate" [ref=e51] [cursor=pointer]
+                        - button "Template" [ref=e52] [cursor=pointer]
+                        - button "Save" [ref=e53] [cursor=pointer]
+                        - button "Save & Return" [ref=e54] [cursor=pointer]
+                        - button "Return" [ref=e55] [cursor=pointer]
+              - link "" [ref=e57] [cursor=pointer]:
+                - /url: javascript:void(0)
+                - generic [ref=e58]: 
+              - generic:
+                - list:
+                  - listitem:
+                    - link "Load" [ref=e59] [cursor=pointer]:
+                      - /url: javascript:showMainTab('Load')
+                  - listitem:
+                    - link "Customer" [ref=e60] [cursor=pointer]:
+                      - /url: javascript:showMainTab('Customer')
+                  - listitem:
+                    - generic [ref=e61]: Carrier
+                  - listitem:
+                    - link "Pick" [ref=e62] [cursor=pointer]:
+                      - /url: javascript:showMainTab('Pick_1_1')
+                  - listitem:
+                    - link "Drop" [ref=e63] [cursor=pointer]:
+                      - /url: javascript:showMainTab('Drop_1_2')
+                  - listitem:
+                    - link "Tracking" [ref=e64] [cursor=pointer]:
+                      - /url: javascript:showMainTab('Tracking')
+                  - listitem:
+                    - link "EDI" [ref=e65] [cursor=pointer]:
+                      - /url: javascript:showMainTab('EDI')
+              - generic:  
+              - table [ref=e69]:
+                - rowgroup [ref=e70]:
+                  - row [ref=e71]:
+                    - cell [ref=e72]:
+                      - table [ref=e73]:
+                        - rowgroup [ref=e74]:
+                          - row [ref=e75]:
+                            - cell [ref=e76]:
+                              - table [ref=e77]:
+                                - rowgroup [ref=e78]:
+                                  - row [ref=e79]:
+                                    - 'cell "Your Predicted Rate $5,875.00 Confidence Level MODERATE Source Avg Rate Reports MODE $0.00 0 DAT $5,881.20 8 ITS $0.00 0 BIDS $2,000.00 70 *Offer Rate $ 2000.00 ZZOO LOGISTICS LLC 5401 28TH AVE S APT 202 FARGO, ND 58104 zzoologistics@gmail.com Tel: (612) 481-8080 Fax: TollFree: ELD? N EDI Tend? N EDI Rev? N EDI Cancel? N MC Number: 01381573 DOT Number: 3819453 Cargo Ins: NORTHLAND INSURANCE COMPANY Auto Ins: NORTHLAND INSURANCE COMPANY Factor: TRIUMPH BUSINESS CAPITAL Awaiting Acceptance Satellite Office Dispatch Notes \"Disclaimer: Scheduled and Hired Auto Policy\" Special Instructions for BOL Available Trucks BID HISTORY CARRIER NOTES LANE HISTORYFAYETTEVILLE AR | FRESNO CA | TL | last 18 mo | 25 mi radius CARRIER MATCH" [ref=e80]':
+                                      - generic [ref=e81]:
+                                        - generic [ref=e83]:
+                                          - generic [ref=e84]: Your Predicted Rate
+                                          - heading "$5,875.00" [level=2] [ref=e86]:
+                                            - strong [ref=e87]: $5,875.00
+                                          - generic [ref=e88]:
+                                            - text: Confidence Level
+                                            - generic [ref=e90]: MODERATE
+                                        - table [ref=e94]:
+                                          - rowgroup [ref=e95]:
+                                            - row "Source Avg Rate Reports" [ref=e96]:
+                                              - columnheader "Source" [ref=e97]
+                                              - columnheader "Avg Rate" [ref=e98]
+                                              - columnheader "Reports" [ref=e99]
+                                          - rowgroup [ref=e100]:
+                                            - row "MODE $0.00 0" [ref=e101]:
+                                              - cell "MODE" [ref=e102]:
+                                                - strong [ref=e103]: MODE
+                                              - cell "$0.00" [ref=e104]
+                                              - cell "0" [ref=e105]
+                                            - row "DAT $5,881.20 8" [ref=e106]:
+                                              - cell "DAT" [ref=e107]:
+                                                - strong [ref=e108]: DAT
+                                              - cell "$5,881.20" [ref=e109]
+                                              - cell "8" [ref=e110]
+                                            - row "ITS $0.00 0" [ref=e111]:
+                                              - cell "ITS" [ref=e112]:
+                                                - strong [ref=e113]: ITS
+                                              - cell "$0.00" [ref=e114]
+                                              - cell "0" [ref=e115]
+                                            - row "BIDS $2,000.00 70" [ref=e116]:
+                                              - cell "BIDS" [ref=e117]:
+                                                - strong [ref=e118]: BIDS
+                                              - cell "$2,000.00" [ref=e119]
+                                              - cell "70" [ref=e120]
+                                        - generic [ref=e121]:
+                                          - generic [ref=e122]: "*Offer Rate"
+                                          - generic [ref=e123]:
+                                            - text: $
+                                            - spinbutton [ref=e124]: "2000.00"
+                                      - link:
+                                        - /url: "#"
+                                      - generic [ref=e125]:
+                                        - table [ref=e126]:
+                                          - rowgroup [ref=e127]:
+                                            - 'row "ZZOO LOGISTICS LLC 5401 28TH AVE S APT 202 FARGO, ND 58104 zzoologistics@gmail.com Tel: (612) 481-8080 Fax: TollFree: ELD? N EDI Tend? N EDI Rev? N EDI Cancel? N MC Number: 01381573 DOT Number: 3819453 Cargo Ins: NORTHLAND INSURANCE COMPANY Auto Ins: NORTHLAND INSURANCE COMPANY Factor: TRIUMPH BUSINESS CAPITAL Awaiting Acceptance" [ref=e128]':
+                                              - 'cell "ZZOO LOGISTICS LLC 5401 28TH AVE S APT 202 FARGO, ND 58104 zzoologistics@gmail.com Tel: (612) 481-8080 Fax: TollFree: ELD? N EDI Tend? N EDI Rev? N EDI Cancel? N MC Number: 01381573 DOT Number: 3819453 Cargo Ins: NORTHLAND INSURANCE COMPANY Auto Ins: NORTHLAND INSURANCE COMPANY Factor: TRIUMPH BUSINESS CAPITAL Awaiting Acceptance" [ref=e129]':
+                                                - table [ref=e130]:
+                                                  - rowgroup [ref=e131]:
+                                                    - 'row "ZZOO LOGISTICS LLC 5401 28TH AVE S APT 202 FARGO, ND 58104 zzoologistics@gmail.com Tel: (612) 481-8080 Fax: TollFree: ELD? N EDI Tend? N EDI Rev? N EDI Cancel? N" [ref=e132]':
+                                                      - cell "ZZOO LOGISTICS LLC 5401 28TH AVE S APT 202 FARGO, ND 58104 zzoologistics@gmail.com" [ref=e133]:
+                                                        - link "ZZOO LOGISTICS LLC" [ref=e135] [cursor=pointer]:
+                                                          - /url: carrform.php?id=254939
+                                                        - text: 5401 28TH AVE S
+                                                        - text: APT 202
+                                                        - text: FARGO, ND 58104
+                                                        - link "zzoologistics@gmail.com" [ref=e136] [cursor=pointer]:
+                                                          - /url: mailto:zzoologistics@gmail.com
+                                                      - 'cell "Tel: (612) 481-8080 Fax: TollFree:" [ref=e137]':
+                                                        - table [ref=e138]:
+                                                          - rowgroup [ref=e139]:
+                                                            - 'row "Tel: (612) 481-8080" [ref=e140]':
+                                                              - cell "Tel:" [ref=e141]
+                                                              - cell "(612) 481-8080" [ref=e142]
+                                                            - row "Fax:" [ref=e143]:
+                                                              - cell "Fax:" [ref=e144]
+                                                              - cell [ref=e145]
+                                                            - row "TollFree:" [ref=e146]:
+                                                              - cell "TollFree:" [ref=e147]
+                                                              - cell [ref=e148]
+                                                            - row:
+                                                              - cell
+                                                      - cell "ELD? N EDI Tend? N EDI Rev? N EDI Cancel? N" [ref=e149]:
+                                                        - table [ref=e150]:
+                                                          - rowgroup [ref=e151]:
+                                                            - row "ELD? N" [ref=e152]:
+                                                              - cell "ELD?" [ref=e153]
+                                                              - cell "N" [ref=e154]
+                                                            - row "EDI Tend? N" [ref=e155]:
+                                                              - cell "EDI Tend?" [ref=e156]
+                                                              - cell "N" [ref=e157]
+                                                            - row "EDI Rev? N" [ref=e158]:
+                                                              - cell "EDI Rev?" [ref=e159]
+                                                              - cell "N" [ref=e160]
+                                                            - row "EDI Cancel? N" [ref=e161]:
+                                                              - cell "EDI Cancel?" [ref=e162]
+                                                              - cell "N" [ref=e163]
+                                                    - 'row "MC Number: 01381573 DOT Number: 3819453 Cargo Ins: NORTHLAND INSURANCE COMPANY Auto Ins: NORTHLAND INSURANCE COMPANY Factor: TRIUMPH BUSINESS CAPITAL Awaiting Acceptance" [ref=e164]':
+                                                      - 'cell "MC Number: 01381573 DOT Number: 3819453 Cargo Ins: NORTHLAND INSURANCE COMPANY Auto Ins: NORTHLAND INSURANCE COMPANY Factor: TRIUMPH BUSINESS CAPITAL Awaiting Acceptance" [ref=e165]':
+                                                        - table [ref=e166]:
+                                                          - rowgroup [ref=e167]:
+                                                            - 'row "MC Number: 01381573 DOT Number: 3819453 Cargo Ins: NORTHLAND INSURANCE COMPANY Auto Ins: NORTHLAND INSURANCE COMPANY Factor: TRIUMPH BUSINESS CAPITAL Awaiting Acceptance" [ref=e168]':
+                                                              - 'cell "MC Number: 01381573 DOT Number: 3819453 Cargo Ins: NORTHLAND INSURANCE COMPANY Auto Ins: NORTHLAND INSURANCE COMPANY Factor: TRIUMPH BUSINESS CAPITAL" [ref=e169]':
+                                                                - text: "MC Number: 01381573"
+                                                                - text: "DOT Number: 3819453"
+                                                                - text: "Cargo Ins: NORTHLAND INSURANCE COMPANY"
+                                                                - text: "Auto Ins: NORTHLAND INSURANCE COMPANY"
+                                                                - text: "Factor:"
+                                                                - link "TRIUMPH BUSINESS CAPITAL" [ref=e170] [cursor=pointer]:
+                                                                  - /url: carrform.php?id=154196
+                                                              - cell "Awaiting Acceptance" [ref=e171]:
+                                                                - button "Awaiting Acceptance" [ref=e172] [cursor=pointer]
+                                        - table [ref=e173]:
+                                          - rowgroup [ref=e174]:
+                                            - row "Satellite Office" [ref=e175]:
+                                              - cell "Satellite Office" [ref=e176]
+                                              - cell [ref=e177]
+                                            - 'row "Dispatch Notes \"Disclaimer: Scheduled and Hired Auto Policy\"" [ref=e178]':
+                                              - cell "Dispatch Notes" [ref=e179]
+                                              - 'cell "\"Disclaimer: Scheduled and Hired Auto Policy\"" [ref=e180]'
+                                      - table [ref=e181]:
+                                        - rowgroup [ref=e182]:
+                                          - row "Special Instructions for BOL" [ref=e183]:
+                                            - cell "Special Instructions for BOL" [ref=e184]
+                                            - cell [ref=e185]
+                                      - link "Available Trucks" [ref=e188] [cursor=pointer]:
+                                        - /url: available_trucks.php?&search_available_at=07%2F17%2F2026&search_equipment=&search_pickup_city=FAYETTEVILLE&search_pickup_state=AR&search_pickup_radius=100&search_name=&search_method=
+                                      - table [ref=e189]:
+                                        - rowgroup [ref=e190]:
+                                          - row [ref=e191]:
+                                            - cell [ref=e192]
+                                          - row "BID HISTORY CARRIER NOTES LANE HISTORYFAYETTEVILLE AR | FRESNO CA | TL | last 18 mo | 25 mi radius CARRIER MATCH" [ref=e193]:
+                                            - cell "BID HISTORY CARRIER NOTES LANE HISTORYFAYETTEVILLE AR | FRESNO CA | TL | last 18 mo | 25 mi radius CARRIER MATCH" [ref=e194]:
+                                              - link "BID HISTORY" [ref=e196] [cursor=pointer]:
+                                                - /url: ""
+                                              - link "CARRIER NOTES" [ref=e198] [cursor=pointer]:
+                                                - /url: ""
+                                              - generic [ref=e199]:
+                                                - link "LANE HISTORY" [ref=e200] [cursor=pointer]:
+                                                  - /url: javascript:;
+                                                - img "FAYETTEVILLE AR | FRESNO CA | TL | last 18 mo | 25 mi radius" [ref=e201]
+                                              - link "CARRIER MATCH" [ref=e204] [cursor=pointer]:
+                                                - /url: javascript:void(0);
+                                      - iframe [ref=e205]:
+                                        - generic [ref=f3e3]:
+                                          - generic [ref=f3e4]:
+                                            - generic [ref=f3e5]: Ship Date
+                                            - generic [ref=f3e6]:
+                                              - generic [ref=f3e7]: Start
+                                              - textbox [ref=f3e8]: 1/16/2026
+                                            - generic [ref=f3e9]:
+                                              - generic [ref=f3e10]: End
+                                              - textbox [ref=f3e11]
+                                            - link "presets" [ref=f3e13] [cursor=pointer]:
+                                              - /url: "#"
+                                          - generic [ref=f3e15]:
+                                            - generic [ref=f3e17]: Radius
+                                            - combobox "Radius" [ref=f3e19]:
+                                              - option "25 mi"
+                                              - option "50 mi" [selected]
+                                              - option "75 mi"
+                                              - option "100 mi"
+                                              - option "150 mi"
+                                              - option "175 mi"
+                                              - option "200 mi"
+                                              - option "300 mi"
+                                          - generic [ref=f3e21]:
+                                            - listbox [ref=f3e22]:
+                                              - option [ref=f3e23]: VAN
+                                              - option [ref=f3e24]: FLATBED
+                                              - option [ref=f3e25]: REEFER
+                                              - option [ref=f3e26]: DOUBLE DROP
+                                              - option [ref=f3e27]: STEP/DROP DECK
+                                              - option [ref=f3e28]: FLATBED (HAZMAT)
+                                              - option [ref=f3e29]: FLATBED W/CHAINS
+                                              - option [ref=f3e30]: REEFER (TEAM)
+                                              - option [ref=f3e31]: REEFER (HAZMAT)
+                                              - option [ref=f3e32]: VAN (TEAM)
+                                              - option [ref=f3e33]: AIR-RIDE VAN
+                                              - option [ref=f3e34]: HOTSHOT VAN
+                                              - option [ref=f3e35]: CARGO VAN
+                                              - option [ref=f3e36]: INTERMODAL VAN
+                                              - option [ref=f3e37]: REGULAR CONTAINER
+                                              - option [ref=f3e38]: POWER ONLY
+                                              - option [ref=f3e39]: AUTO CARRIER
+                                              - option [ref=f3e40]: ALUMINUM TANKER
+                                              - option [ref=f3e41]: CONVEYOR
+                                              - option [ref=f3e42]: LARGE STRAIGHT TRUCK
+                                              - option [ref=f3e43]: STEP DECK/REM GOOSENECK
+                                              - option [ref=f3e44]: OPEN TOP CONTAINER
+                                              - option [ref=f3e45]: DRY VAN
+                                              - option [ref=f3e46]: CONTAINER
+                                              - option [ref=f3e47]: VAN OR FLATBED
+                                              - option [ref=f3e48]: FLATBED OR VAN
+                                              - option [ref=f3e49]: FLAT/VAN/REEFER
+                                              - option [ref=f3e50]: REMOVABLE GOOSENECK
+                                              - option [ref=f3e51]: FLAT (TEAM)
+                                              - option [ref=f3e52]: AIR-RIDE FLATBED
+                                              - option [ref=f3e53]: VAN/FLAT TARPS
+                                              - option [ref=f3e54]: AIR-RIDE REEFER
+                                              - option [ref=f3e55]: REEFER CONTAINER
+                                              - option [ref=f3e56]: LIFT GATE VAN
+                                              - option [ref=f3e57]: VAN (HAZMAT)
+                                              - option [ref=f3e58]: INSULATED VAN
+                                              - option [ref=f3e59]: PLATED VAN
+                                              - option [ref=f3e60]: SPRINTER VAN
+                                              - option [ref=f3e61]: INSULATED CONTAINER
+                                              - option [ref=f3e62]: STRETCH TRAILER
+                                              - option [ref=f3e63]: DUMP TRAILER
+                                              - option [ref=f3e64]: STEEL TANKER
+                                              - option [ref=f3e65]: HIGH CUBE CONTAINER
+                                              - option [ref=f3e66]: STRAIGHT BOX TRUCK
+                                              - option [ref=f3e67]: SMALL STRAIGHT TRUCK
+                                              - option [ref=f3e68]: FLATRACK CONTAINER
+                                              - option [ref=f3e69]: FLAT RACK
+                                              - option [ref=f3e70]: ISO TANK
+                                              - option [ref=f3e71]: VAN OR REEFER
+                                              - option [ref=f3e72]: REEFER OR VAN
+                                              - option [ref=f3e73]: INSULATED VAN OR REEFER
+                                              - option [ref=f3e74]: LOWBOY
+                                              - option [ref=f3e75]: FLATBED W/SIDES
+                                              - option [ref=f3e76]: FLAT DOUBLE
+                                              - option [ref=f3e77]: FLATBED CONESTOGA
+                                              - option [ref=f3e78]: LOGISTICS REEFER
+                                              - option [ref=f3e79]: REEFER INTERMODAL
+                                              - option [ref=f3e80]: VAN DOUBLE
+                                              - option [ref=f3e81]: VAN WITH CURTAINS
+                                              - option [ref=f3e82]: LOGISTICS VAN
+                                              - option [ref=f3e83]: VAN WITH ROLLER BED
+                                              - option [ref=f3e84]: VAN CONESTOGA
+                                              - option [ref=f3e85]: AIR FREIGHT
+                                              - option [ref=f3e86]: TRUCK AND TRAILER
+                                              - option [ref=f3e87]: HOPPER BOTTOM
+                                              - option [ref=f3e88]: PNEUMATIC
+                                              - option [ref=f3e89]: LOWBOY OVERDIMENSION
+                                              - option [ref=f3e90]: STAND CONTAINER
+                                              - option [ref=f3e91]: TANKER INTERMODAL
+                                              - option [ref=f3e92]: HAZMAT CONTAINER
+                                              - option [ref=f3e93]: DROP DECK
+                                              - option [ref=f3e94]: COMMON CARRIER
+                                              - option [ref=f3e95]: FLATBED/STEP DECK
+                                              - option [ref=f3e96]: FLATBED W/TARPS
+                                              - option [ref=f3e97]: HOTSHOT FLATBED
+                                              - option [ref=f3e98]: FLATBED OVERDIMENSION
+                                              - option [ref=f3e99]: REEFER DOUBLE
+                                              - option [ref=f3e100]: REEFER PALLET EXCHANGE
+                                              - option [ref=f3e101]: REEFER BOX TRUCK
+                                              - option [ref=f3e102]: REEFER CARGO VAN
+                                              - option [ref=f3e103]: REEFER SPRINTER VAN
+                                              - option [ref=f3e104]: REEFER LARGE STRAIGHT TRUCK
+                                              - option [ref=f3e105]: REEFER SMALL STRAIGHT TRUCK
+                                              - option [ref=f3e106]: VAN TRIPLE
+                                              - option [ref=f3e107]: OPEN-TOP VAN
+                                              - option [ref=f3e108]: MOVING VAN
+                                              - option [ref=f3e109]: VENTED VAN
+                                              - option [ref=f3e110]: VAN BLANKET WRAP
+                                              - option [ref=f3e111]: CONESTOGA
+                                              - option [ref=f3e112]: B-TRAIN
+                                              - option [ref=f3e113]: LAND ALL
+                                              - option [ref=f3e114]: MAXI
+                                              - option [ref=f3e115]: LOWBOY/REM GOOSENECK
+                                              - option [ref=f3e116]: STEP DECK CONESTOGA
+                                              - option [ref=f3e117]: STEP DECK W/RAMPS
+                                              - option [ref=f3e118]: BOXCAR
+                                              - option [ref=f3e119]: TOFC
+                                            - combobox [ref=f3e122]:
+                                              - list [ref=f3e123]:
+                                                - listitem:
+                                                  - textbox "Select an Equipment"
+                                          - button "Search" [ref=f3e126] [cursor=pointer]
+                                    - cell "Line Haul Customer Carrier Flat Rate $ 2,000.00 $ 2,000.00 Enable GPS Tracking GPS tracking is handled by Trucker Tools Tracking Method Tracking method will be set to APP if the assigned carrier is not ELD integrated ELD Equipment FLATBED Temp Control? NO Temperature Cooling Type Protective Service NO Carrier Dispatch Name Deepak Bohra Carrier Dispatch Email deepak.bohra+staging@modeglobal.com Carrier Dispatch Phone Number Ref# Driver Driver Cell Driver 2 Driver 2 Cell Truck# Trailer# Seal# Trailer Length 43 Trailer Used Cargo Value $10,000 or less Freight Risk LOW Total Weight 1000 Total Miles 1683.5" [ref=e206]:
+                                      - table [ref=e207]:
+                                        - rowgroup [ref=e208]:
+                                          - row "Line Haul Customer Carrier Flat Rate $ 2,000.00 $ 2,000.00" [ref=e209]:
+                                            - cell "Line Haul Customer Carrier Flat Rate $ 2,000.00 $ 2,000.00" [ref=e210]:
+                                              - table [ref=e211]:
+                                                - rowgroup [ref=e212]:
+                                                  - row "Line Haul Customer Carrier" [ref=e213]:
+                                                    - cell "Line Haul" [ref=e214]
+                                                    - cell "Customer" [ref=e215]
+                                                    - cell "Carrier" [ref=e216]
+                                                  - row "Flat Rate $ 2,000.00 $ 2,000.00" [ref=e217]:
+                                                    - cell "Flat Rate" [ref=e218]
+                                                    - cell "$ 2,000.00" [ref=e219]
+                                                    - cell "$ 2,000.00" [ref=e220]
+                                      - table [ref=e221]:
+                                        - rowgroup [ref=e222]:
+                                          - row "Enable GPS Tracking GPS tracking is handled by Trucker Tools" [ref=e223]:
+                                            - cell "Enable GPS Tracking GPS tracking is handled by Trucker Tools" [ref=e224]:
+                                              - text: Enable GPS Tracking
+                                              - img "GPS tracking is handled by Trucker Tools" [ref=e225]
+                                            - cell [ref=e226]:
+                                              - checkbox [disabled] [ref=e227]
+                                          - row "Tracking Method Tracking method will be set to APP if the assigned carrier is not ELD integrated ELD" [ref=e228]:
+                                            - cell "Tracking Method Tracking method will be set to APP if the assigned carrier is not ELD integrated" [ref=e229]:
+                                              - text: Tracking Method
+                                              - img "Tracking method will be set to APP if the assigned carrier is not ELD integrated" [ref=e230]
+                                            - cell "ELD" [ref=e231]
+                                          - row "Equipment FLATBED" [ref=e232]:
+                                            - cell "Equipment" [ref=e233]
+                                            - cell "FLATBED" [ref=e234]
+                                          - row "Temp Control? NO" [ref=e235]:
+                                            - cell "Temp Control?" [ref=e236]
+                                            - cell "NO" [ref=e237]
+                                          - row "Temperature" [ref=e238]:
+                                            - cell "Temperature" [ref=e239]
+                                            - cell [ref=e240]
+                                          - row "Cooling Type" [ref=e241]:
+                                            - cell "Cooling Type" [ref=e242]
+                                            - cell [ref=e243]
+                                          - row "Protective Service NO" [ref=e244]:
+                                            - cell "Protective Service" [ref=e245]
+                                            - cell "NO" [ref=e246]
+                                          - row [ref=e247]:
+                                            - cell [ref=e248]
+                                        - rowgroup [ref=e249]:
+                                          - row "Carrier Dispatch Name Deepak Bohra" [ref=e250]:
+                                            - cell "Carrier Dispatch Name" [ref=e251]
+                                            - cell "Deepak Bohra" [ref=e252]
+                                          - row "Carrier Dispatch Email deepak.bohra+staging@modeglobal.com" [ref=e253]:
+                                            - cell "Carrier Dispatch Email" [ref=e254]
+                                            - cell "deepak.bohra+staging@modeglobal.com" [ref=e255]:
+                                              - table [ref=e256]:
+                                                - rowgroup [ref=e257]:
+                                                  - row "deepak.bohra+staging@modeglobal.com" [ref=e258]:
+                                                    - cell "deepak.bohra+staging@modeglobal.com" [ref=e259]:
+                                                      - link "deepak.bohra+staging@modeglobal.com" [ref=e260] [cursor=pointer]:
+                                                        - /url: mailto:deepak.bohra+staging@modeglobal.com
+                                                    - cell [ref=e261]:
+                                                      - link [ref=e262] [cursor=pointer]:
+                                                        - /url: mailto:deepak.bohra+staging@modeglobal.com
+                                                        - img [ref=e263]
+                                          - row "Carrier Dispatch Phone Number" [ref=e264]:
+                                            - cell "Carrier Dispatch Phone Number" [ref=e265]
+                                            - cell [ref=e266]
+                                          - row "Ref#" [ref=e267]:
+                                            - cell "Ref#" [ref=e268]
+                                            - cell [ref=e269]
+                                          - row "Driver" [ref=e270]:
+                                            - cell "Driver" [ref=e271]
+                                            - cell [ref=e272]
+                                          - row "Driver Cell" [ref=e273]:
+                                            - cell "Driver Cell" [ref=e274]
+                                            - cell [ref=e275]
+                                          - row "Driver 2" [ref=e276]:
+                                            - cell "Driver 2" [ref=e277]
+                                            - cell [ref=e278]
+                                          - row "Driver 2 Cell" [ref=e279]:
+                                            - cell "Driver 2 Cell" [ref=e280]
+                                            - cell [ref=e281]
+                                          - row "Truck#" [ref=e282]:
+                                            - cell "Truck#" [ref=e283]
+                                            - cell [ref=e284]
+                                          - row "Trailer#" [ref=e285]:
+                                            - cell "Trailer#" [ref=e286]
+                                            - cell [ref=e287]
+                                          - row "Seal#" [ref=e288]:
+                                            - cell "Seal#" [ref=e289]
+                                            - cell [ref=e290]
+                                        - rowgroup [ref=e291]:
+                                          - row "Trailer Length 43" [ref=e292]:
+                                            - cell "Trailer Length" [ref=e293]
+                                            - cell "43" [ref=e294]:
+                                              - generic [ref=e295]: "43"
+                                          - row "Trailer Used" [ref=e296]:
+                                            - cell "Trailer Used" [ref=e297]
+                                            - cell [ref=e298]
+                                          - row [ref=e299]:
+                                            - cell [ref=e300]
+                                          - row "Cargo Value $10,000 or less" [ref=e301]:
+                                            - cell "Cargo Value" [ref=e302]
+                                            - cell "$10,000 or less" [ref=e303]:
+                                              - generic [ref=e304]: $10,000 or less
+                                          - row "Freight Risk LOW" [ref=e305]:
+                                            - cell "Freight Risk" [ref=e306]
+                                            - cell "LOW" [ref=e307]:
+                                              - generic [ref=e308]: LOW
+                                          - row "Total Weight 1000" [ref=e309]:
+                                            - cell "Total Weight" [ref=e310]
+                                            - cell "1000" [ref=e311]:
+                                              - generic [ref=e312]: "1000"
+                                          - row "Total Miles 1683.5" [ref=e313]:
+                                            - cell "Total Miles" [ref=e314]
+                                            - cell "1683.5" [ref=e315]:
+                                              - generic [ref=e316]: "1683.5"
+                                          - row:
+                                            - cell
+                                            - cell
+                                          - row:
+                                            - cell
+                                            - cell
+                                          - row:
+                                            - cell
+              - text: "* * *"
+              - dialog [active] [ref=e317]:
+                - document [ref=e318]:
+                  - generic [ref=e319]:
+                    - generic [ref=e320]:
+                      - heading "Bid History" [level=5] [ref=e321]
+                      - button "Close" [ref=e322] [cursor=pointer]: ×
+                    - generic [ref=e324]:
+                      - generic [ref=e325]:
+                        - generic [ref=e328]:
+                          - text: Show
+                          - combobox "Show entries" [ref=e329]:
+                            - option "10" [selected]
+                            - option "25"
+                            - option "50"
+                            - option "100"
+                          - text: entries
+                        - generic [ref=e332]:
+                          - text: "Search:"
+                          - searchbox "Search:" [ref=e333]
+                      - grid [ref=e337]:
+                        - rowgroup [ref=e338]:
+                          - 'row "Ship Date: activate to sort column ascending Ship City: activate to sort column ascending S St: activate to sort column ascending Cons City: activate to sort column ascending C St: activate to sort column ascending Carrier: activate to sort column ascending Email: activate to sort column ascending Bid Rate: activate to sort column ascending Timestamp: activate to sort column ascending Equip: activate to sort column ascending Miles: activate to sort column ascending Source: activate to sort column ascending" [ref=e339]':
+                            - 'columnheader "Ship Date: activate to sort column ascending" [ref=e340]': Ship Date
+                            - 'columnheader "Ship City: activate to sort column ascending" [ref=e341]': Ship City
+                            - 'columnheader "S St: activate to sort column ascending" [ref=e342]': S St
+                            - 'columnheader "Cons City: activate to sort column ascending" [ref=e343]': Cons City
+                            - 'columnheader "C St: activate to sort column ascending" [ref=e344]': C St
+                            - 'columnheader "Carrier: activate to sort column ascending" [ref=e345]': Carrier
+                            - 'columnheader "Email: activate to sort column ascending" [ref=e346]': Email
+                            - 'columnheader "Bid Rate: activate to sort column ascending" [ref=e347]': Bid Rate
+                            - 'columnheader "Timestamp: activate to sort column ascending" [ref=e348]': Timestamp
+                            - 'columnheader "Equip: activate to sort column ascending" [ref=e349]': Equip
+                            - 'columnheader "Miles: activate to sort column ascending" [ref=e350]': Miles
+                            - 'columnheader "Source: activate to sort column ascending" [ref=e351]': Source
+                        - rowgroup [ref=e352]:
+                          - row "07/17/2026 20:30:00 FAYETTEVILLE AR FRESNO CA ZZOO LOGISTICS LLC (254939) deepak.bohra+staging@modeglobal.com $2,000.00 07/16/2026 14:20:59 F 1683.446 DFB" [ref=e353]:
+                            - gridcell "07/17/2026 20:30:00" [ref=e354]
+                            - gridcell "FAYETTEVILLE" [ref=e355]
+                            - gridcell "AR" [ref=e356]
+                            - gridcell "FRESNO" [ref=e357]
+                            - gridcell "CA" [ref=e358]
+                            - gridcell "ZZOO LOGISTICS LLC (254939)" [ref=e359]
+                            - gridcell "deepak.bohra+staging@modeglobal.com" [ref=e360]
+                            - gridcell "$2,000.00" [ref=e361]
+                            - gridcell "07/16/2026 14:20:59" [ref=e362]
+                            - gridcell "F" [ref=e363]
+                            - gridcell "1683.446" [ref=e364]
+                            - gridcell "DFB" [ref=e365]
+                          - row "07/17/2026 20:30:00 FAYETTEVILLE AR FRESNO CA ZZOO LOGISTICS LLC (254939) deepak.bohra+staging@modeglobal.com $2,000.00 07/16/2026 14:11:59 F 1683.446 DFB" [ref=e366]:
+                            - gridcell "07/17/2026 20:30:00" [ref=e367]
+                            - gridcell "FAYETTEVILLE" [ref=e368]
+                            - gridcell "AR" [ref=e369]
+                            - gridcell "FRESNO" [ref=e370]
+                            - gridcell "CA" [ref=e371]
+                            - gridcell "ZZOO LOGISTICS LLC (254939)" [ref=e372]
+                            - gridcell "deepak.bohra+staging@modeglobal.com" [ref=e373]
+                            - gridcell "$2,000.00" [ref=e374]
+                            - gridcell "07/16/2026 14:11:59" [ref=e375]
+                            - gridcell "F" [ref=e376]
+                            - gridcell "1683.446" [ref=e377]
+                            - gridcell "DFB" [ref=e378]
+                          - row "07/17/2026 20:30:00 FAYETTEVILLE AR FRESNO CA ZZOO LOGISTICS LLC (254939) deepak.bohra+staging@modeglobal.com $2,000.00 07/16/2026 12:30:47 F 1683.446 DFB" [ref=e379]:
+                            - gridcell "07/17/2026 20:30:00" [ref=e380]
+                            - gridcell "FAYETTEVILLE" [ref=e381]
+                            - gridcell "AR" [ref=e382]
+                            - gridcell "FRESNO" [ref=e383]
+                            - gridcell "CA" [ref=e384]
+                            - gridcell "ZZOO LOGISTICS LLC (254939)" [ref=e385]
+                            - gridcell "deepak.bohra+staging@modeglobal.com" [ref=e386]
+                            - gridcell "$2,000.00" [ref=e387]
+                            - gridcell "07/16/2026 12:30:47" [ref=e388]
+                            - gridcell "F" [ref=e389]
+                            - gridcell "1683.446" [ref=e390]
+                            - gridcell "DFB" [ref=e391]
+                          - row "07/17/2026 20:30:00 FAYETTEVILLE AR FRESNO CA ZZOO LOGISTICS LLC (254939) deepak.bohra+staging@modeglobal.com $2,000.00 07/16/2026 12:22:11 F 1683.446 DFB" [ref=e392]:
+                            - gridcell "07/17/2026 20:30:00" [ref=e393]
+                            - gridcell "FAYETTEVILLE" [ref=e394]
+                            - gridcell "AR" [ref=e395]
+                            - gridcell "FRESNO" [ref=e396]
+                            - gridcell "CA" [ref=e397]
+                            - gridcell "ZZOO LOGISTICS LLC (254939)" [ref=e398]
+                            - gridcell "deepak.bohra+staging@modeglobal.com" [ref=e399]
+                            - gridcell "$2,000.00" [ref=e400]
+                            - gridcell "07/16/2026 12:22:11" [ref=e401]
+                            - gridcell "F" [ref=e402]
+                            - gridcell "1683.446" [ref=e403]
+                            - gridcell "DFB" [ref=e404]
+                          - row "07/17/2026 20:30:00 FAYETTEVILLE AR FRESNO CA ZZOO LOGISTICS LLC (254939) deepak.bohra+staging@modeglobal.com $2,000.00 07/16/2026 12:16:59 F 1683.446 DFB" [ref=e405]:
+                            - gridcell "07/17/2026 20:30:00" [ref=e406]
+                            - gridcell "FAYETTEVILLE" [ref=e407]
+                            - gridcell "AR" [ref=e408]
+                            - gridcell "FRESNO" [ref=e409]
+                            - gridcell "CA" [ref=e410]
+                            - gridcell "ZZOO LOGISTICS LLC (254939)" [ref=e411]
+                            - gridcell "deepak.bohra+staging@modeglobal.com" [ref=e412]
+                            - gridcell "$2,000.00" [ref=e413]
+                            - gridcell "07/16/2026 12:16:59" [ref=e414]
+                            - gridcell "F" [ref=e415]
+                            - gridcell "1683.446" [ref=e416]
+                            - gridcell "DFB" [ref=e417]
+                          - row "07/17/2026 20:30:00 FAYETTEVILLE AR FRESNO CA ZZOO LOGISTICS LLC (254939) deepak.bohra+staging@modeglobal.com $2,000.00 07/16/2026 12:12:57 F 1683.446 DFB" [ref=e418]:
+                            - gridcell "07/17/2026 20:30:00" [ref=e419]
+                            - gridcell "FAYETTEVILLE" [ref=e420]
+                            - gridcell "AR" [ref=e421]
+                            - gridcell "FRESNO" [ref=e422]
+                            - gridcell "CA" [ref=e423]
+                            - gridcell "ZZOO LOGISTICS LLC (254939)" [ref=e424]
+                            - gridcell "deepak.bohra+staging@modeglobal.com" [ref=e425]
+                            - gridcell "$2,000.00" [ref=e426]
+                            - gridcell "07/16/2026 12:12:57" [ref=e427]
+                            - gridcell "F" [ref=e428]
+                            - gridcell "1683.446" [ref=e429]
+                            - gridcell "DFB" [ref=e430]
+                          - row "07/17/2026 20:30:00 FAYETTEVILLE AR FRESNO CA ZZOO LOGISTICS LLC (254939) deepak.bohra+staging@modeglobal.com $2,000.00 07/16/2026 12:09:56 F 1683.446 DFB" [ref=e431]:
+                            - gridcell "07/17/2026 20:30:00" [ref=e432]
+                            - gridcell "FAYETTEVILLE" [ref=e433]
+                            - gridcell "AR" [ref=e434]
+                            - gridcell "FRESNO" [ref=e435]
+                            - gridcell "CA" [ref=e436]
+                            - gridcell "ZZOO LOGISTICS LLC (254939)" [ref=e437]
+                            - gridcell "deepak.bohra+staging@modeglobal.com" [ref=e438]
+                            - gridcell "$2,000.00" [ref=e439]
+                            - gridcell "07/16/2026 12:09:56" [ref=e440]
+                            - gridcell "F" [ref=e441]
+                            - gridcell "1683.446" [ref=e442]
+                            - gridcell "DFB" [ref=e443]
+                          - row "07/17/2026 20:30:00 FAYETTEVILLE AR FRESNO CA ZZOO LOGISTICS LLC (254939) deepak.bohra+staging@modeglobal.com $2,000.00 07/16/2026 12:05:58 F 1683.446 DFB" [ref=e444]:
+                            - gridcell "07/17/2026 20:30:00" [ref=e445]
+                            - gridcell "FAYETTEVILLE" [ref=e446]
+                            - gridcell "AR" [ref=e447]
+                            - gridcell "FRESNO" [ref=e448]
+                            - gridcell "CA" [ref=e449]
+                            - gridcell "ZZOO LOGISTICS LLC (254939)" [ref=e450]
+                            - gridcell "deepak.bohra+staging@modeglobal.com" [ref=e451]
+                            - gridcell "$2,000.00" [ref=e452]
+                            - gridcell "07/16/2026 12:05:58" [ref=e453]
+                            - gridcell "F" [ref=e454]
+                            - gridcell "1683.446" [ref=e455]
+                            - gridcell "DFB" [ref=e456]
+                          - row "07/17/2026 20:30:00 FAYETTEVILLE AR FRESNO CA ZZOO LOGISTICS LLC (254939) deepak.bohra+staging@modeglobal.com $2,000.00 07/16/2026 12:00:15 F 1683.446 DFB" [ref=e457]:
+                            - gridcell "07/17/2026 20:30:00" [ref=e458]
+                            - gridcell "FAYETTEVILLE" [ref=e459]
+                            - gridcell "AR" [ref=e460]
+                            - gridcell "FRESNO" [ref=e461]
+                            - gridcell "CA" [ref=e462]
+                            - gridcell "ZZOO LOGISTICS LLC (254939)" [ref=e463]
+                            - gridcell "deepak.bohra+staging@modeglobal.com" [ref=e464]
+                            - gridcell "$2,000.00" [ref=e465]
+                            - gridcell "07/16/2026 12:00:15" [ref=e466]
+                            - gridcell "F" [ref=e467]
+                            - gridcell "1683.446" [ref=e468]
+                            - gridcell "DFB" [ref=e469]
+                          - row "07/17/2026 20:30:00 FAYETTEVILLE AR FRESNO CA ZZOO LOGISTICS LLC (254939) deepak.bohra+staging@modeglobal.com $2,000.00 07/16/2026 11:58:57 F 1683.446 DFB" [ref=e470]:
+                            - gridcell "07/17/2026 20:30:00" [ref=e471]
+                            - gridcell "FAYETTEVILLE" [ref=e472]
+                            - gridcell "AR" [ref=e473]
+                            - gridcell "FRESNO" [ref=e474]
+                            - gridcell "CA" [ref=e475]
+                            - gridcell "ZZOO LOGISTICS LLC (254939)" [ref=e476]
+                            - gridcell "deepak.bohra+staging@modeglobal.com" [ref=e477]
+                            - gridcell "$2,000.00" [ref=e478]
+                            - gridcell "07/16/2026 11:58:57" [ref=e479]
+                            - gridcell "F" [ref=e480]
+                            - gridcell "1683.446" [ref=e481]
+                            - gridcell "DFB" [ref=e482]
+                      - generic [ref=e483]:
+                        - status [ref=e485]: Showing 1 to 10 of 70 entries
+                        - list [ref=e488]:
+                          - listitem:
+                            - link "Previous" [ref=e489]:
+                              - /url: "#"
+                          - listitem:
+                            - link "1" [ref=e490]:
+                              - /url: "#"
+                          - listitem:
+                            - link "2" [ref=e491] [cursor=pointer]:
+                              - /url: "#"
+                          - listitem:
+                            - link "3" [ref=e492] [cursor=pointer]:
+                              - /url: "#"
+                          - listitem:
+                            - link "4" [ref=e493] [cursor=pointer]:
+                              - /url: "#"
+                          - listitem:
+                            - link "5" [ref=e494] [cursor=pointer]:
+                              - /url: "#"
+                          - listitem:
+                            - link "6" [ref=e495] [cursor=pointer]:
+                              - /url: "#"
+                          - listitem:
+                            - link "7" [ref=e496] [cursor=pointer]:
+                              - /url: "#"
+                          - listitem:
+                            - link "Next" [ref=e497] [cursor=pointer]:
+                              - /url: "#"
+                    - button "Close" [ref=e499] [cursor=pointer]
+              - table [ref=e503]:
+                - rowgroup [ref=e504]:
+                  - row "View History View Billing View Edit Overlay Duplicate Template Save Save & Return Return" [ref=e505]:
+                    - cell "View History" [ref=e506]:
+                      - button "View History" [ref=e507] [cursor=pointer]
+                    - cell "View Billing View Edit Overlay Duplicate Template Save Save & Return Return" [ref=e508]:
+                      - generic [ref=e509]:
+                        - button "View Billing" [ref=e510] [cursor=pointer]
+                        - button "View" [disabled] [ref=e511]
+                        - button "Edit" [ref=e512] [cursor=pointer]
+                        - button "Overlay" [ref=e513] [cursor=pointer]
+                        - button "Duplicate" [ref=e514] [cursor=pointer]
+                        - button "Template" [ref=e515] [cursor=pointer]
+                        - button "Save" [ref=e516] [cursor=pointer]
+                        - button "Save & Return" [ref=e517] [cursor=pointer]
+                        - button "Return" [ref=e518] [cursor=pointer]
+    - contentinfo [ref=e519]:
+      - generic [ref=e520]: © MODE Global, LLC
+```

@@ -363,12 +363,12 @@ Pending carrier invoice with price difference
 14. Enter flat rate in Carrier as 600.
 15. Enter trailer length as 20.
 16. Navigate to the PICK tab.
-17. Select the location from the ""Shipper"" field � AAK USA LLC.
+17. Select the location from the ""Shipper"" field ï¿½ AAK USA LLC.
 18. Select the Actual Date (tomorrow's date).
 19. Enter the Actual Time (e.g. 09:00).
-20. Enter item details � QTY: 1, TYPE: CASE (select from dropdown), Description: Test Description (close pop-up if it appears), Dims L x W x H: 11 x 11 x 11 (close pop-up if it appears), Weight: 50.
+20. Enter item details ï¿½ QTY: 1, TYPE: CASE (select from dropdown), Description: Test Description (close pop-up if it appears), Dims L x W x H: 11 x 11 x 11 (close pop-up if it appears), Weight: 50.
 21. Navigate to the DROP tab.
-22. Select the location from the ""Consignee"" field � GHIRARDELL CHOCLATE CO.
+22. Select the location from the ""Consignee"" field ï¿½ GHIRARDELL CHOCLATE CO.
 23. Accept the alert by clicking OK.
 24. Select the Actual Date (tomorrow's date).
 25. Enter the Actual Time (e.g. 09:00).
@@ -376,14 +376,14 @@ Pending carrier invoice with price difference
 27. Accept the alert.
 28. Under the Load Documents section, click the upload icon against Payable.
 29. Select the radio button Payables and select Document Type as Carrier Invoice. Upload the document.
-30. Enter Invoice Number (e.g. 123456), enter Invoice Amount (e.g. 600), and click Attach � once attached, close the pop-up.
+30. Enter Invoice Number (e.g. 123456), enter Invoice Amount (e.g. 600), and click Attach ï¿½ once attached, close the pop-up.
 31. Click on VIEW BILLING and navigate to the Payable Status section and validate value present in Status Dropdown.
 32. Navigate to section CARRIER CHARGES and for field REMAINDER validate that its value should be greater than or equal to TOTAL INVOICES field Present adjacent to CARRIER INVOICES.","
 3.Ensure after Step 3 validate  that Invoice Process is ""OFFICE"" and   Enable Auto Pay for GA-LE790 is set to YES.
 6.1 Ensure after Step 6.1 validate  that Invoice Process is ""OFFICE"" and also  Enable Auto Pay for GA-LE790 is set to YES.
 27.Ensure after step 27 validate via hard assertion that alert with the message ""Status has been set to BOOKED"" should appear on the page.
 31.Ensure after step 31 validate via hard assertion  that Payable toggle should be set to ""Agent"".
-31  Ensure after step 31 validate via hard assertion that payable message shown as �Load is not Invoiced�.
+31  Ensure after step 31 validate via hard assertion that payable message shown as ï¿½Load is not Invoicedï¿½.
 31. Ensure after step 31 validate via Hard assertion that Carrier payable status is ""Invoice Received""
 32. Ensure After step 32 validate via Hard assertion that Carrier remainder amount is either greater than or equal to Carrier invoice amount",,"aiteam,billingtoggle"
 72259,,FD-36321,Verify the Payable Toggle setting when the Carrier remainder amount < Carrier invoice amount for Autopay load.,,"1. Login to BTMS application, hover over Admin and click on OFFICE SEARCH.
@@ -404,12 +404,12 @@ Pending carrier invoice with price difference
 14. Enter flat rate in Carrier as 600.
 15. Enter trailer length as 20.
 16. Navigate to the PICK tab.
-17. Select the location from the ""Shipper"" field � AAK USA LLC.
+17. Select the location from the ""Shipper"" field ï¿½ AAK USA LLC.
 18. Select the Actual Date (tomorrow's date).
 19. Enter the Actual Time (e.g. 09:00).
-20. Enter item details � QTY: 1, TYPE: CASE (select from dropdown), Description: Test Description (close pop-up if it appears), Dims L x W x H: 11 x 11 x 11 (close pop-up if it appears), Weight: 50.
+20. Enter item details ï¿½ QTY: 1, TYPE: CASE (select from dropdown), Description: Test Description (close pop-up if it appears), Dims L x W x H: 11 x 11 x 11 (close pop-up if it appears), Weight: 50.
 21. Navigate to the DROP tab.
-22. Select the location from the ""Consignee"" field � GHIRARDELL CHOCLATE CO.
+22. Select the location from the ""Consignee"" field ï¿½ GHIRARDELL CHOCLATE CO.
 23. Accept the alert by clicking OK.
 24. Select the Actual Date (tomorrow's date).
 25. Enter the Actual Time (e.g. 09:00).
@@ -417,14 +417,14 @@ Pending carrier invoice with price difference
 27. Accept the alert.
 28. Under the Load Documents section, click the upload icon against Payable.
 29. Select the radio button Payables and select Document Type as Carrier Invoice. Upload the document.
-30. Enter Invoice Number (e.g. 123456), enter Invoice Amount (e.g. 900), and click Attach � once attached, close the pop-up.
+30. Enter Invoice Number (e.g. 123456), enter Invoice Amount (e.g. 900), and click Attach ï¿½ once attached, close the pop-up.
 31. Click on VIEW BILLING and navigate to the Payable Status section and validate value present in Status Dropdown.
 32. Navigate to section CARRIER CHARGES and for field REMAINDER validate that its value should be greater than or equal to TOTAL INVOICES field Present adjacent to CARRIER INVOICES.","
 3.Ensure after Step 3 validate  that Invoice Process is ""OFFICE"" and   Enable Auto Pay for GA-LE790 is set to YES.
 6.1 Ensure after Step 6.1 validate  that Invoice Process is ""OFFICE"" and also  Enable Auto Pay for GA-LE790 is set to YES.
 27.Ensure after step 27 validate via hard assertion that alert with the message ""Status has been set to BOOKED"" should appear on the page.
 31.Ensure after step 31 validate via hard assertion  that Payable toggle should be set to ""Agent"".
-31  Ensure after step 31 validate via hard assertion that payable message shown as  �{Carrier Name} carrier invoiced $XXX over the total charge�
+31  Ensure after step 31 validate via hard assertion that payable message shown as  ï¿½{Carrier Name} carrier invoiced $XXX over the total chargeï¿½
 31. Ensure after step 31 Validate via Hard Assertion Carrier payable status is ""Invoice Received""
 32. Ensure After step 32 Validate via hard assertion that Carrier remainder amount is less than  Carrier invoice amount
 
@@ -543,7 +543,7 @@ Pending carrier invoice with price difference
 52. Click on SAVE button. [Are you sure you want to change this load to Delivered Final? alert will appear. Accept the alert by clicking OK button.]
 53. Under the Load Documents section, click the upload icon against Payable.
 54. Select the radio button Payables and select Document Type as Carrier Invoice.
-55. Enter Invoice Number (e.g.123456), enter Invoice Amount (e.g.1500), and click Attach � once attached, close the pop-up.
+55. Enter Invoice Number (e.g.123456), enter Invoice Amount (e.g.1500), and click Attach — once attached, close the pop-up.
 56. Click on View Billing button.
 57. Observe the Billing Toggle.","52. Ensure after step 52 validate via hard assertion that status of LOAD should be INVOICED.
 57. Validate via Hard assertion that Billing toggle remains unchanged and does not switch to Billing.",,"aiteam,billingtoggle"
@@ -671,7 +671,7 @@ Pending carrier invoice with price difference
 66. Click on Save Button on Edit Load Page.
 67. Verify load tab under View Load Page.
 68. Click on View Billing Button and observe billing toggle.","56. After step 56,  1. Hard Assert Billing toggle button at """"View Billing"""" screen should be set to """"Agent"""". 2. Validate Not Deliv. Final checkbox should be checked.
-57. After completing Step 57, validate the Load tab to ensure that the �Not Deliv. Final� and �Price Difference� tags are available, and verify that the Waiting On value is set to ""Agent"" under Billing.
+57. After completing Step 57, validate the Load tab to ensure that the “Not Deliv. Final” and “Price Difference” tags are available, and verify that the Waiting On value is set to ""Agent"" under Billing.
 61. After step 61. Validate Not Deliv.Final checkbox is unchecked now.
 67. Validate with hard assertion  that the Waiting On value is set to ""Billing"" under Billing section on load tab.
 68. After step 68, Validate with Hard assertion Billing toggle is set to value ""Billing"".",,"aiteam,billingtoggle"
@@ -736,7 +736,7 @@ Pending carrier invoice with price difference
 59. Select $100,001 to $250,000 for the Cargo Value field on the load.
 60.Select maximum 25 unique carrier for the Include Carriers field  based on search text either LLC or INC.Note: From selection dropdown select the carrier start with letter (P to Z).
 61. Click on ""View Details"" link of Include carriers. Include Carriers Data pop up will be visible.
-62. For each of the 25 carriers, start with the first carrier and complete all three fields before moving to the next: click the Carrier Priority pencil icon and enter the priority value starting from 1 (and increase sequentially for each next carrier as 2, 3, � up to 25), then for the same carrier click the Carrier Timing pencil icon and enter the required timing (e.g., 1:00), and finally click the Carrier Offer Rate pencil icon and enter the offer rate (e.g., 500); once all three values are saved for the first carrier, repeat the same process for the second carrier with the next priority number, and continue until all 25 carriers are completed.
+62. For each of the 25 carriers, start with the first carrier and complete all three fields before moving to the next: click the Carrier Priority pencil icon and enter the priority value starting from 1 (and increase sequentially for each next carrier as 2, 3, … up to 25), then for the same carrier click the Carrier Timing pencil icon and enter the required timing (e.g., 1:00), and finally click the Carrier Offer Rate pencil icon and enter the offer rate (e.g., 500); once all three values are saved for the first carrier, repeat the same process for the second carrier with the next priority number, and continue until all 25 carriers are completed.
 63. Check the checkbox labeled ""Post to all Carriers upon completion of the Waterfall"".
 64.Click the Save button on the Include Carriers Data modal.
 65. Click the Save button on the load. 
@@ -1226,9 +1226,9 @@ After step 64:
 
 13. After Step 13: The Initial Toggle Date should remain the same as in Step 12 (e.g. Initial Toggle Date: 05/20/2026 01:34:40). The Current Toggle Date should be updated to the time when the Toggle was moved in this step (e.g. Current Toggle Date: 05/20/2026 01:40:47).
 
-14. After Step 14: Same validation as Step 13 � the Initial Toggle Date should remain unchanged and the Current Toggle Date should be updated to the time when the Toggle was moved in this step.
+14. After Step 14: Same validation as Step 13 — the Initial Toggle Date should remain unchanged and the Current Toggle Date should be updated to the time when the Toggle was moved in this step.
 
-15. After Step 15: Same validation as Step 13 � the Initial Toggle Date should remain unchanged and the Current Toggle Date should be updated to the time when the Toggle was moved in this step.",,"aiteam, billingtoggle, loadsearch"
+15. After Step 15: Same validation as Step 13 — the Initial Toggle Date should remain unchanged and the Current Toggle Date should be updated to the time when the Toggle was moved in this step.",,"aiteam, billingtoggle, loadsearch"
 116909,,FD-39753,Validate Billing Queue columns.,,"1. Log in to BTMS in any valid environment. (http://brokerage.stage.suntecktts.com/)
 2. Click on Sign in with Single Sign-On.
 3. Enter the User ID and click Next.
@@ -1278,13 +1278,13 @@ After Step 12: Validate that the records displayed on screen fall within the Age
     FROM sunteck_fats.loadsh
     WHERE id = :loadId;
     Close the DB connection.
-14. Return to BTMS. Move the Billing Toggle for the first time. Refresh the View Billing page and capture the new Initial Toggle Date and Current Toggle Date values from the UI � both should now display the current timestamp.
+14. Return to BTMS. Move the Billing Toggle for the first time. Refresh the View Billing page and capture the new Initial Toggle Date and Current Toggle Date values from the UI — both should now display the current timestamp.
 15. Re-open the DB connection (same parameters as step 12).
 16. Re-execute the parameterized query against the loadsh table:
     SELECT id, initial_billing_toggle_date, current_billing_toggle_date
     FROM sunteck_fats.loadsh
     WHERE id = :loadId;
-    Close the DB connection.","After step 13 (fresh load � before any toggle movement):
+    Close the DB connection.","After step 13 (fresh load — before any toggle movement):
 - Both initial_billing_toggle_date and current_billing_toggle_date in the DB should be NULL/empty since the Billing Toggle has never been moved for this load.
 - The UI should also display empty values (N/A) for Initial Toggle Date and Current Toggle Date, consistent with the DB state observed in step 11.
 
@@ -1496,7 +1496,7 @@ Validate with hard assertion Billing toggle should NOT be set to ""Neutral"". It
 40. Under the ""Settlement Reason"" dropdown, select ""Short Pay - Accessorial"" and in the Comment section add the comment ""not approved short pay load"".
 41. For ""Fuel Surcharges"", enter the amount from step 33's expected result message (e.g., 125) and click ""Save"".
 42. Click the ""Plan"" tab and repeat step 21.
-43. On the Shipment Details page, click the printer icon of ""Customer Invoices"". A popup will open � select any radio button (e.g., the first one).
+43. On the Shipment Details page, click the printer icon of ""Customer Invoices"". A popup will open — select any radio button (e.g., the first one).
 44. A file save window will appear; click ""Cancel"". Also click ""Cancel"" on the popup.
 45. Click the Bill Total amount of the Customer Invoice. A popup window will open; click ""Edit Charges"".
 46. From the ""Queue"" dropdown, select ""40 Extract"" and click ""Save"".
@@ -1574,7 +1574,7 @@ After Step 50:
 40. Under the ""Settlement Reason"" dropdown, select ""Short Pay - Fuel Surcharge"" and in the Comment section add the comment ""Carrier Agreed to include fuel surcharge in linehaul"".
 41. For ""Fuel Surcharges"", enter the amount from step 33's expected result message (e.g., 125) and click ""Save"".
 42. Click the ""Plan"" tab and repeat step 21.
-43. On the Shipment Details page, click the printer icon of ""Customer Invoices"". A popup will open � select any radio button (e.g., the first one).
+43. On the Shipment Details page, click the printer icon of ""Customer Invoices"". A popup will open — select any radio button (e.g., the first one).
 44. A file save window will appear; click ""Cancel"". Also click ""Cancel"" on the popup.
 45. Click the Bill Total amount of the Customer Invoice. A popup window will open; click ""Edit Charges"".
 46. From the ""Queue"" dropdown, select ""40 Extract"" and click ""Save"".
@@ -1758,7 +1758,7 @@ After step 63:
 
 Test Scenario 2: Sales Agent Flow
 
-Repeat Steps 1�62 from the above test case with the following modifications:
+Repeat Steps 1–62 from the above test case with the following modifications:
 
 Step 8: Enter ""COMMERCIAL SALES HOUSE (SALES)"" in Agent field  
 Step 11: Verify Auth Level should set to SALES.
@@ -1776,7 +1776,7 @@ Step 39: Select the Consignee location: |CRESCENT SPECIALTY FOODS|EVERETT|WA","6
 62. After step 62 Validate with hard assertion payables toggle should Not set to ""Neutral"" Its value is either Payables or Agent.
 
 Repeat the same validations In step 60, 61 and 62 for sales agent.",,"aiteam, payabletoggle"
-86999,,FD-37983,Validate payables toggle and message for EDI Exception with description �Carrier is not Booked on Load�,,"1. Login to BTMS in any valid environment (http://brokerage.stage.suntecktts.com/).
+86999,,FD-37983,Validate payables toggle and message for EDI Exception with description “Carrier is not Booked on Load”,,"1. Login to BTMS in any valid environment (http://brokerage.stage.suntecktts.com/).
 2. Click on Sign in with Single Sign-On.
 3. Enter the User ID and click Next.
 4. Enter the Password.
@@ -2087,3 +2087,2586 @@ Repeat the same validations In step 60, 61 and 62 for sales agent.",,"aiteam, pa
 52. Under Billing Issue check the ""OS/D "" checkbox.
 53. Under ""Missing Paperwork"", check the ""Miscellaneous"" checkbox and observe Billing Toogle.
 ",53. After step 53. Validate Billing toggle is not set to Agent.,,"aiteam, billingtoggle, loadsearch"
+27450,,FD-34965,"Verify when “Stops (including fees & items)” is selected on customer EDI Pref's, the load’s stops are completely removed and replaced.","• Testing must be done using auto 204Configuration on EDI Pref's -• Apply 204 Change Orders To Load = ""YES""• Enable 204 Change Order Types• Enable the same Loads statuses to update• Enable Stops (including fees &amp; items) option in Stop Details• Matching must exist in BTMS so, that can be updated for Change, Reissue and Replace.• Matching load’s status is selected in the customer EDI Pref's “204 Change Order Options”",1. Login into the BTMS.2. Cilck on Admin &gt; Parse an EDI 204 or 214 Message.3. Update the Sender ID as (e.g. PSKL) and Received ID as (e.g. STKT).4. Use the below raw data for creating the EDI 204 load. (e.g)ST*204*83916B2**AVGD**SM506521327**PPB2A*00*LTL11*CA4516*RNL11*275.0*DHL11*606521307*CRL11*AUTO*AUTS5*1*LDL11*1*21G62*37*20250724*I*2100G62*38*20250724*K*2100N1*SF*HEARN INDUSTIAL SERVICES INC*93*GZ7WSN3*1200 W 145TH STREETN4*EAST CHICAGO*IN*46312*USAOID*SH-830772853OID*SH-830772117OID*SH-830772486S5*2*ULL11*2*21G62*53*20250725*G*1430G62*54*20250725*L*1430N1*ST*SUMITOMO ELECTRIC WIRING SYSTEMS*93*CPRHZN3*350 SALEM RDN4*JEFFERSONVILLE*IN*47130*USAOID*SH-830772853OID*SH-830772117OID*SH-830772486L3*40000SE*29*839165. Click on Submit.6. The 204 is created.7. Click on Loads &gt; EDI 204 Load tenders.8. Identify the load created by using the BOL number and Load ID would shown up.9. Click on Load ID and go toPick or Drop.10. The load stops should have been removed and replaced,"Ensure that when “Stops (including fees &amp; items)” is selected on customer EDI Pref's, the load’s stops are completely removed and replaced.",,"edi204,ediprefs"
+27451,,FD-34965,"Verify when other stops options other than “Stops (including fees & items)” are selected in the customer EDI Pref's and the 204’s location IDs exactly match the load’s location IDs, the selected stop options are updated without removing/replacing the load’s stops.","• Testing must be done using auto 204Configuration on EDI Pref's -• Apply 204 Change Orders To Load = ""YES""• Enable 204 Change Order Types• Enable the same Loads statuses to update• Enable other stops options other than “Stops (including fees &amp; items) in Stop Details.• Matching load exist so, that can be updated for Change, Reissue and Replace.• Matching load’s status is selected in the customer EDI Pref's “204 Change Order Options”• Use the exact match of load's location Id's for creating another 204 load.",1. Login into the BTMS.2. Cilck on Admin &gt; Parse an EDI 204 or 214 Message.3. Update the Sender ID as (e.g. PSKL) and Received ID as (e.g. STKT).4. Use the below raw data for creating the EDI 204 load. (e.g)ST*204*83916B2**AVGD**SM506521327**PPB2A*00*LTL11*CA4516*RNL11*275.0*DHL11*606521307*CRL11*AUTO*AUTS5*1*LDL11*1*21G62*37*20250724*I*2100G62*38*20250724*K*2100N1*SF*HEARN INDUSTIAL SERVICES INC*93*GZ7WSN3*1200 W 145TH STREETN4*EAST CHICAGO*IN*46312*USAOID*SH-830772853OID*SH-830772117OID*SH-830772486S5*2*ULL11*2*21G62*53*20250725*G*1430G62*54*20250725*L*1430N1*ST*SUMITOMO ELECTRIC WIRING SYSTEMS*93*CPRHZN3*350 SALEM RDN4*JEFFERSONVILLE*IN*47130*USAOID*SH-830772853OID*SH-830772117OID*SH-830772486L3*40000SE*29*839165. Click on Submit.6. The 204 is created.7. Click on Loads &gt; EDI 204 Load tenders.8. Identify the load created by using the BOL number and Load ID would shown up.9. Click on Load ID and go to Pick or Drop.10. The selected stop options are updated without removing/replacing the load’s stops.,Ensure that the selected stop options are updated without removing/replacing the load’s stops.,,"edi204,ediprefs"
+27452,,FD-34965,"Verify when the 204's location IDs do not match the load exactly (something with the stop order or location changed), and “Replace Stops When 204 Stop Order Does Not Match” is not checked, the 204 is not processed and not updated","• Testing must be done using auto 204Configuration on EDI Pref's -• Apply 204 Change Orders To Load = ""YES""• Enable 204 Change Order Types• Enable the same Loads statuses to update• Enable Stop Details• Matching load exist so, that can be updated for Change, Reissue and Replace.• Matching load’s status is selected in the customer EDI Pref's “204 Change Order Options”• Make sure 204's location IDs do not match the load exactly while creating the another one.• “Replace Stops When 204 Stop Order Does Not Match” is not checked",1. Login into the BTMS.2. Cilck on Admin &gt; Parse an EDI 204 or 214 Message.3. Update the Sender ID as (e.g. PSKL) and Received ID as (e.g. STKT).4. Use the below raw data for creating the EDI 204 load. (e.g)ST*204*83916B2**AVGD**SM506521327**PPB2A*00*LTL11*CA4516*RNL11*275.0*DHL11*606521307*CRL11*AUTO*AUTS5*1*LDL11*1*21G62*37*20250724*I*2100G62*38*20250724*K*2100N1*SF*HEARN INDUSTIAL SERVICES INC*93*GZ7WSN3*1200 W 145TH STREETN4*EAST CHICAGO*IN*46312*USAOID*SH-830772853OID*SH-830772117OID*SH-830772486S5*2*ULL11*2*21G62*53*20250725*G*1430G62*54*20250725*L*1430N1*ST*SUMITOMO ELECTRIC WIRING SYSTEMS*93*CPRHZN3*350 SALEM RDN4*JEFFERSONVILLE*IN*47130*USAOID*SH-830772853OID*SH-830772117OID*SH-830772486L3*40000SE*29*839165. Click on Submit.6. The 204 is created.7. Click on Loads &gt; EDI 204 Load tenders.8. Identify the load created by using the BOL number and Load ID would shown up.9. Click on Load ID and go to Pick or Drop.10. The 204 is not processed and not updated.,Ensure that the 204 is not processed and not updated.,,"edi204,ediprefs"
+171221,,FD-42835,Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with one or more intermediate stops.,"1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save","1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the EDI enabled Customer (Eg. OXYCHEM ERS - EDI --- [EDI])
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. P446300 - FW LOGISTICS &amp; WAREHOUSE - MODESTO, CA)
+11. Select the Drop Location (Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+12. Click on Plus icon and select another pickup location (Eg. P455300 -  STELLAR MANUF - SAUGET, IL)
+13. Click on Plus icon and select another pickup location (Eg. 0000104308 - 3M COMPANY, - PRAIRIE DU CHIEN, WI)
+14. Click on Plus icon and select one more drop location (Eg. PW103375 - ***FOR OFFICE USE*** S I WAREHOUSE - HOUSTON, TX)
+15. Select Equipment (Eg. FLATBED)
+16. Select Load Method (Eg. TL)
+17. Enter the Offer Rate (Eg. $800)
+18. Click on Create button. 
+19. Check the checkbox for the rule created.
+20. Click Edit.
+21. Verify the Rule is created and entered data is updated correctly.
+22. Hover to the Customer and click on Search. 
+23. Enter the EDI enabled customer that is selected while creating the rule (Eg. OXYCHEM ERS - EDI --- [EDI])
+25. Click on Search. 
+26. Click on customer profile. 
+27. Click on Create TL *NEW* on the View customer page.
+28.  In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer.
+29. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED) - 4773)
+30. Select the location from the ""Shipper"" field(Eg. P446300 - FW LOGISTICS &amp; WAREHOUSE - MODESTO, CA)
+31. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+32. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
+33. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
+34. Enter the ""Earliest Time"" (Eg. 09:00)
+35. Enter the ""Latest Time"" (Eg. 09:00)
+36. Select the location from the ""Consignee"" field.(Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+37. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+38. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
+39. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
+40. Enter the ""Earliest Time"" (Eg. 10:00)
+41. Enter the ""Latest Time"" (Eg. 10:00)
+42. Enter the Quantity in the ""Qty"" field (Eg. 95)
+43. Select the ""UoM"" field (Eg. TL)
+44. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+45. Enter the weight in the ""Weight"" field (Eg. 8500)
+46. Select the ""Equipment"" field as ""FLATBED""
+47. Enter the ""lenght"" field (Eg. 54)
+48. Select the ""Mileage Engine"" field as ""Current""
+49. Select the ""Method"" as ""Practical""
+50. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
+51. Click on ""Create Load"" button. 
+52. Under the load tab select Rate type as ""SPOT"" if no rate type is selected
+53. Click on Pickup Tab. 
+54. Click on Add pickup.
+55. Select the same pickup address which already picked in the rule. (Eg. P455300 -  STELLAR MANUF - SAUGET, IL)
+56. Click Ok on Update miles popup.
+57. Select actual date(Future date need to select)(select tommorw daayafter)
+58. Select actual time (Eg. 09:00)
+59. Select Deadline Date( Same as Actual Date)
+60. Click on Add pickup again. 
+61. Select the same pickup address which already picked in the rule. (Eg. 0000104308 - 3M COMPANY, - PRAIRIE DU CHIEN, WI)
+62. Click Ok on Update miles popup.
+63. Select actual date(Future date need to select)(select tommorw daayafter)
+64. Click Ok on Update miles popup.
+65. Select actual time (Eg. 09:00)
+66. Select Deadline Date( Same as Actual Date)
+67. Click on Add Delivery
+68. Select the same Drop address which already picked in the rule.  (Eg. PW103375 - ***FOR OFFICE USE*** S I WAREHOUSE - HOUSTON, TX)
+69. Click Ok on Update miles popup.
+70. Select actual date(Future date need to select)(select tommorw daayafter)
+71. Select actual time (Eg. 09:00)
+72. Select Deadline Date( Same as Actual Date)
+73. Click on save.
+74. Click on carrier tab.
+75. Log into DME(https://dme.stage.modetrans.com/login)
+76. Click on Loads.
+77. Enter the Load number and search it.
+78. Log into TNX (https://marketplace.modeglobal.com/)
+77. Enter the Email address and Password.
+79. Click Continue.
+80. Select the Carrier from the Dropdown
+81. Click on the plus icon and search the load
+82. Click the load 
+83. Click on Match Now.
+84. Click on Yes! I want it.
+85. Verify that load is matched.
+86. Click on Progress and Check the fields for providing execution notes are displayed.
+87. Go back to the load.
+88. Verify that the load is BOOKED
+89. Click on carrier tab.
+90. Verify that the carrier is assigned to the load.
+91. Go back to DME.
+92. Enter the Load number and search it.
+93. Verify and access all the related emails.","Ensure the step 75.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 76.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:85
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:86
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+Ensure after Step:92
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"dfb,loads,postautomationrules"
+171222,,FD-42835,Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with no intermediate stops.,"1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save","1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the EDI enabled Customer (Eg. OXYCHEM ERS - EDI --- [EDI])
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. P446300 - FW LOGISTICS &amp; WAREHOUSE - MODESTO, CA)
+11. Select the Drop Location (Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+12. Select Equipment (Eg. FLATBED)
+13. Select Load Method (Eg. TL)
+14. Enter the Offer Rate (Eg. $800)
+15. Click on Create button. 
+16. Check the checkbox for the rule created.
+17. Click Edit.
+18. Verify the Rule is created and entered data is updated correctly.
+19. Hover to the Customer and click on Search. 
+20. Enter the EDI enabled customer that is selected while creating the rule (Eg. OXYCHEM ERS - EDI --- [EDI])
+21. Click on Search. 
+22. Click on customer profile. 
+23. Click on Create TL *NEW* on the View customer page.
+24.  In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer.
+25. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED) - 4773)
+26. Select the location from the ""Shipper"" field(Eg. P446300 - FW LOGISTICS &amp; WAREHOUSE - MODESTO, CA)
+27. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+28. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
+29. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
+30. Enter the ""Earliest Time"" (Eg. 09:00)
+31. Enter the ""Latest Time"" (Eg. 09:00)
+32. Select the location from the ""Consignee"" field.(Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+33. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+34. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
+35. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
+36. Enter the ""Earliest Time"" (Eg. 10:00)
+37. Enter the ""Latest Time"" (Eg. 10:00)
+38. Enter the Quantity in the ""Qty"" field (Eg. 95)
+39. Select the ""UoM"" field (Eg. TL)
+40. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+41. Enter the weight in the ""Weight"" field (Eg. 8500)
+42. Select the ""Equipment"" field as ""FLATBED""
+43. Enter the ""lenght"" field (Eg. 54)
+44. Select the ""Mileage Engine"" field as ""Current""
+45. Select the ""Method"" as ""Practical""
+46. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
+47. Click on ""Create Load"" button. 
+48.Under the load tab select Rate type as ""SPOT"" if no rate type is selected
+49. Click on save.
+50. Click on carrier tab.
+51. Log into DME(https://dme.stage.modetrans.com/login)
+52. Click on Loads.
+53. Enter the Load number and search it.
+54. Log into TNX (https://marketplace.modeglobal.com/)
+55. Enter the Email address and Password.
+56. Click Continue.
+57. Select the Carrier from the Dropdown
+58. Click on the plus icon and search the load
+59. Click the load 
+60. Click on Match Now.
+61. Click on Yes! I want it.
+62. Verify that load is matched.
+63. Click on Progress and Check the fields for providing execution notes are displayed.
+64. Go back to the load.
+65. Verify that the load is BOOKED
+66. Click on carrier tab.
+67. Verify that the carrier is assigned to the load.
+68. Go back to DME.
+69. Enter the Load number and search it.
+70. Verify and access all the related emails.","Ensure the step 50.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 53.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:62
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:63
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+Ensure after Step:69
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"dfb,loads,postautomationrules"
+171223,,FD-42835,Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with Auto accept feature.,"1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save","1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the EDI enabled Customer (Eg. OXYCHEM ERS - EDI --- [EDI])
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. P446300 - FW LOGISTICS &amp; WAREHOUSE - MODESTO, CA)
+11. Select the Drop Location (Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+12. Select Equipment (Eg. FLATBED)
+13. Select Load Method (Eg. TL)
+14. Enter the Offer Rate (Eg. $800)
+15. Click show optional field.
+16. Enter a carrier under include carrier field
+17. Click the checkbox carrier auto accept.
+18. Select the mail id from Carrier Contact for Rate Confirmation.(Eg. mohammed.suhaib@modeglobal.com)
+19. Click on Create button. 
+20. Check the checkbox for the rule created.
+21. Click Edit.
+22. Verify the Rule is created and entered data is updated correctly.
+23. Hover to the Customer and click on Search. 
+24. Enter the EDI enabled customer that is selected while creating the rule (Eg. OXYCHEM ERS - EDI --- [EDI])
+25. Click on Search. 
+26. Click on customer profile. 
+27. Click on Create TL *NEW* on the View customer page.
+28.  In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer.
+29. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED) - 4773)
+30. Select the location from the ""Shipper"" field(Eg. P446300 - FW LOGISTICS &amp; WAREHOUSE - MODESTO, CA)
+31. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+32. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
+33. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
+34. Enter the ""Earliest Time"" (Eg. 09:00)
+35. Enter the ""Latest Time"" (Eg. 09:00)
+36. Select the location from the ""Consignee"" field.(Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+37. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+38. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
+39. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
+40. Enter the ""Earliest Time"" (Eg. 10:00)
+41. Enter the ""Latest Time"" (Eg. 10:00)
+42. Enter the Quantity in the ""Qty"" field (Eg. 95)
+43. Select the ""UoM"" field (Eg. TL)
+44. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+45. Enter the weight in the ""Weight"" field (Eg. 8500)
+46. Select the ""Equipment"" field as ""FLATBED""
+47. Enter the ""lenght"" field (Eg. 54)
+48. Select the ""Mileage Engine"" field as ""Current""
+49. Select the ""Method"" as ""Practical""
+50. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
+51. Click on ""Create Load"" button. 
+52. Under the load tab select Rate type as ""SPOT"" if no rate type is selected.
+53. Click on save.
+54. Verify that the load automatically booked and the load status will be BOOKED.
+55. Click on carrier tab.
+56. Verify that the carrier is assigned.
+57. Log into DME(https://dme.stage.modetrans.com/login)
+58. Click on Loads.
+59. Enter the Load number and search it.
+60. Log into TNX (https://marketplace.modeglobal.com/)
+61. Enter the Email address and Password.
+62. Click Continue.
+63. Select the Carrier from the Dropdown.
+64. Click on Active Jobs.
+65 Click on the plus icon and search the load
+66. Click the load and Ensure the load is Matched and check the offer rate match with the offer rate entered. 
+67. Click on Progress and Check the fields for providing execution notes are displayed.
+68. Verify and access all the related emails.","Ensure the step 56.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the load status is BOOKED.
+
+Ensure that the carrier is assigned.
+
+Ensure that the related email are received.
+
+Ensure after Step:59
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED
+
+Ensure after Step:66
+TNX
+- A load is matched for the included carrier and offer rate is also same 
+
+Ensure after Step:67
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip",,"dfb,loads,postautomationrules"
+171224,,FD-42835,Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with one or more carriers in the include carrier field.,"1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save","1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the EDI enabled Customer (Eg. OXYCHEM ERS - EDI --- [EDI])
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. P446300 - FW LOGISTICS &amp; WAREHOUSE - MODESTO, CA)
+11. Select the Drop Location (Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+12. Select Equipment (Eg. FLATBED)
+13. Select Load Method (Eg. TL)
+14. Enter the Offer Rate (Eg. $800)
+15. Click on Show Optional Fields.
+16. Enter one or more carrier name in the include carrier field.
+17. Click on Create button. 
+18. Check the checkbox for the rule created.
+19. Click Edit.
+20. Verify the Rule is created and entered data is updated correctly.
+21. Hover to the Customer and click on Search. 
+22. Enter the EDI enabled customer that is selected while creating the rule (Eg. OXYCHEM ERS - EDI --- [EDI])
+23. Click on Search. 
+24. Click on customer profile. 
+25. Click on Create TL *NEW* on the View customer page.
+26.  In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer.
+27. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED) - 4773)
+28. Select the location from the ""Shipper"" field(Eg. P446300 - FW LOGISTICS &amp; WAREHOUSE - MODESTO, CA)
+29. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+30. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
+31. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
+32. Enter the ""Earliest Time"" (Eg. 09:00)
+33. Enter the ""Latest Time"" (Eg. 09:00)
+34. Select the location from the ""Consignee"" field.(Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+35. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+36. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
+37. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
+38. Enter the ""Earliest Time"" (Eg. 10:00)
+39. Enter the ""Latest Time"" (Eg. 10:00)
+40. Enter the Quantity in the ""Qty"" field (Eg. 95)
+41. Select the ""UoM"" field (Eg. TL)
+42. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+43. Enter the weight in the ""Weight"" field (Eg. 8500)
+44. Select the ""Equipment"" field as ""FLATBED""
+45. Enter the ""lenght"" field (Eg. 54)
+46. Select the ""Mileage Engine"" field as ""Current""
+47. Select the ""Method"" as ""Practical""
+48. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
+49. Click on ""Create Load"" button. 
+50.Under the load tab select Rate type as ""SPOT"" if no rate type is selected
+51. Click on save.
+52. Click on carrier tab and Verify the carriers is added on the load which is selected in the rule.
+53. Log into DME(https://dme.stage.modetrans.com/login)
+54. Click on Loads.
+55. Enter the Load number and search it.
+56. Log into TNX (https://marketplace.modeglobal.com/)
+57. Enter the Email address and Password.
+58. Click Continue.
+59. Select and verify each carrier from the dropdown that is chosen in the rule, and confirm that the load is posted to all selected carriers.
+60. Click on the plus icon and search the load
+61. Click the load 
+62. Click on Match Now.
+63. Click on Yes! I want it.
+64. Verify that load is matched.
+65. Click on Progress and Check the fields for providing execution notes are displayed.
+66. Go back to the load.
+67. Verify that the load is BOOKED
+68. Click on carrier tab.
+69. Verify that the carrier is assigned to the load.
+70. Go back to DME.
+71. Enter the Load number and search it.
+72. Verify and access all the related emails.","Ensure the step 50.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the selected carriers in the rule is reflected in the load.
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 55.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:64
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:65
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+Ensure after Step:71
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"dfb,loads,postautomationrules"
+171225,,FD-42835,Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with one or more carriers in the Exclude carrier field.,"1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save","1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the EDI enabled Customer (Eg. OXYCHEM ERS - EDI --- [EDI])
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. P446300 - FW LOGISTICS &amp; WAREHOUSE - MODESTO, CA)
+11. Select the Drop Location (Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+12. Select Equipment (Eg. FLATBED)
+13. Select Load Method (Eg. TL)
+14. Enter the Offer Rate (Eg. $800)
+15. Click on Show Optional Fields.
+16. Enter one or more carrier name in the Exclude carrier field.
+17. Click on Create button. 
+18. Check the checkbox for the rule created.
+19. Click Edit.
+20. Verify the Rule is created and entered data is updated correctly.
+21. Hover to the Customer and click on Search. 
+22. Enter the EDI enabled customer that is selected while creating the rule (Eg. OXYCHEM ERS - EDI --- [EDI])
+23. Click on Search. 
+24. Click on customer profile. 
+25. Click on Create TL *NEW* on the View customer page.
+26.  In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer.
+27. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED) - 4773)
+28. Select the location from the ""Shipper"" field(Eg. P446300 - FW LOGISTICS &amp; WAREHOUSE - MODESTO, CA)
+29. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+30. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
+31. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
+32. Enter the ""Earliest Time"" (Eg. 09:00)
+33. Enter the ""Latest Time"" (Eg. 09:00)
+34. Select the location from the ""Consignee"" field.(Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+35. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+36. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
+37. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
+38. Enter the ""Earliest Time"" (Eg. 10:00)
+39. Enter the ""Latest Time"" (Eg. 10:00)
+40. Enter the Quantity in the ""Qty"" field (Eg. 95)
+41. Select the ""UoM"" field (Eg. TL)
+42. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+43. Enter the weight in the ""Weight"" field (Eg. 8500)
+44. Select the ""Equipment"" field as ""FLATBED""
+45. Enter the ""lenght"" field (Eg. 54)
+46. Select the ""Mileage Engine"" field as ""Current""
+47. Select the ""Method"" as ""Practical""
+48. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
+49. Click on ""Create Load"" button. 
+50.Under the load tab select Rate type as ""SPOT"" if no rate type is selected
+51. Click on save.
+52. Click on the Carrier tab and verify that the carriers selected in the rule are added to the load under the Excluded Carrier field.
+53. Log into DME(https://dme.stage.modetrans.com/login)
+54. Click on Loads.
+55. Enter the Load number and search it.
+56. Log into TNX (https://marketplace.modeglobal.com/)
+57. Enter the Email address and Password.
+58. Click Continue.
+59. Select and verify each carrier from the dropdown that is chosen in the rule, and confirm that the load is not posted to selected carriers.
+60. Select the carrier from dropdown which not selected in the rule. 
+61. Click on the plus icon and search the load.
+62. Click the load 
+63. Click on Match Now.
+64. Click on Yes! I want it.
+65. Verify that load is matched.
+66. Click on Progress and Check the fields for providing execution notes are displayed.
+67. Go back to the load.
+68. Verify that the load is BOOKED
+69. Click on carrier tab.
+70. Verify that the carrier is assigned to the load.
+71. Go back to DME.
+72. Enter the Load number and search it.
+73. Verify and access all the related emails.","Ensure the step 52.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the selected carriers in the rule is reflected in the load.
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 55.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:65
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:66
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+Ensure after Step:72
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"dfb,loads,postautomationrules"
+171226,,FD-42835,Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with waterfall configured.,"1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save","1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the EDI enabled Customer (Eg. OXYCHEM ERS - EDI --- [EDI])
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. P446300 - FW LOGISTICS &amp; WAREHOUSE - MODESTO, CA)
+11. Select the Drop Location (Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+12. Select Equipment (Eg. FLATBED)
+13. Select Load Method (Eg. TL)
+14. Enter the Offer Rate (Eg. $800)
+15. Click on Show Optional Fields.
+16. Enter one or more carrier name in the include carrier field.
+17. Click on View Details. 
+18. Enter Carrier Pirority(Eg. 1), Carrier timing (Eg. 00:01), Carrier Offer Rate (Eg. $600) for all the carriers selected for waterfall.
+19. Click the checkbox ""Post to all Carriers upon completion of the Waterfall""
+20. Enter the Offer rate (Eg. 700)
+21. Click on Close button. 
+22. Click on Create button. 
+23. Check the checkbox for the rule created.
+24. Click Edit.
+25. Verify the Rule is created and entered data is updated correctly.
+26. Hover to the Customer and click on Search. 
+27. Enter the EDI enabled customer that is selected while creating the rule (Eg. OXYCHEM ERS - EDI --- [EDI])
+28. Click on Search. 
+29. Click on customer profile. 
+30. Click on Create TL *NEW* on the View customer page.
+31.  In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer.
+32. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED) - 4773)
+33. Select the location from the ""Shipper"" field(Eg. P446300 - FW LOGISTICS &amp; WAREHOUSE - MODESTO, CA)
+34. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+35. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
+36. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
+37. Enter the ""Earliest Time"" (Eg. 09:00)
+38. Enter the ""Latest Time"" (Eg. 09:00)
+39. Select the location from the ""Consignee"" field.(Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+40. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+41. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
+42. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
+43. Enter the ""Earliest Time"" (Eg. 10:00)
+44. Enter the ""Latest Time"" (Eg. 10:00)
+45. Enter the Quantity in the ""Qty"" field (Eg. 95)
+46. Select the ""UoM"" field (Eg. TL)
+47. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+48. Enter the weight in the ""Weight"" field (Eg. 8500)
+49. Select the ""Equipment"" field as ""FLATBED""
+50. Enter the ""lenght"" field (Eg. 54)
+51. Select the ""Mileage Engine"" field as ""Current""
+52. Select the ""Method"" as ""Practical""
+53. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
+54. Click on ""Create Load"" button. 
+55.Under the load tab select Rate type as ""SPOT"" if no rate type is selected
+56. Click on save.
+57. Click on carrier tab and Verify the carriers is added on the load and verify the waterfall is configured by clicking on View Details. 
+58. Log into DME(https://dme.stage.modetrans.com/login)
+59. Click on Loads.
+60. Enter the Load number and search it.
+61. Log into TNX rep application(https://rep.tnx.co.nz/#/dashboard/unmatched-cargo)
+62. Enter email address and password.
+63. Click on continue. 
+64. Select the brand from the dropdown(Eg. Avenger logistics, Suntecktss)
+65. Enter the load id in the respective filed. 
+66. Verify the load is posted in the given interval of time to each carrier and verify the offer rate is correctly auto populated 
+68. Log into TNX (https://marketplace.modeglobal.com/)
+69. Enter the Email address and Password.
+70. Click Continue.
+71. Select and verify each carrier from the dropdown that is chosen in the rule, and confirm that the load is posted to all selected carriers in given interval of time. 
+72. Click on the plus icon and search the load
+73. Click the load 
+74. Click on Match Now.
+75. Click on Yes! I want it.
+76. Verify that load is matched.
+77. Click on Progress and Check the fields for providing execution notes are displayed.
+78. Go back to the load.
+79. Verify that the load is BOOKED
+80. Click on carrier tab.
+81. Verify that the carrier is assigned to the load.
+82. Go back to DME.
+83. Enter the Load number and search it.
+84. Verify and access all the related emails.","Ensure the step 57.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the selected carriers in the rule is reflected in the load.
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 60.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure the step 66.
+The load is posted in the given interval of time in the rep site and verify the offer rate values in the each carrier. 
+
+Ensure after Step:76
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:78
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+Ensure after Step:83
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"dfb,loads,postautomationrules"
+171227,,FD-42835,Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an NON-EDI customer with one or more intermediate stops.,"1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save","1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the Customer (Eg. BONDED CHEMICAL)
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. ABB MOLD TRANSIT - SCHENECTADY, NY)
+11. Select the Drop Location (ALCHEM - MEDINA, OH)
+12. Click on Plus icon and select another pickup location (Eg. ALCHEM - CHIPPEWA LAKE, OH)
+13. Click on Plus icon and select another pickup location (Eg. ALLIED MINERALS - ANNISTON, AL)
+14. Click on Plus icon and select one more drop location (Eg. AMERICAN MUNICIPAL POWER - FREMONT, OH)
+15. Select Equipment (Eg. FLATBED)
+16. Select Load Method (Eg. TL)
+17. Enter the Offer Rate (Eg. $800)
+18. Click on Create button. 
+19. Check the checkbox for the rule created.
+20. Click Edit.
+21. Verify the Rule is created and entered data is updated correctly.
+22. Hover to the Customer and click on Search. 
+23. Enter the customer that is selected while creating the rule (Eg. BONDED CHEMICALS)
+25. Click on Search. 
+26. Click on customer profile. 
+27. Click on Create TL *NEW* on the View customer page.
+28.  In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer.
+29. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED) - 4773)
+30. Select the location from the ""Shipper"" field(Eg. ABB MOLD TRANSIT - SCHENECTADY, NY)
+31. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+32. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
+33. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
+34. Enter the ""Earliest Time"" (Eg. 09:00)
+35. Enter the ""Latest Time"" (Eg. 09:00)
+36. Select the location from the ""Consignee"" field. (ALCHEM - MEDINA, OH)
+37. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+38. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
+39. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
+40. Enter the ""Earliest Time"" (Eg. 10:00)
+41. Enter the ""Latest Time"" (Eg. 10:00)
+42. Enter the Quantity in the ""Qty"" field (Eg. 95)
+43. Select the ""UoM"" field (Eg. TL)
+44. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+45. Enter the weight in the ""Weight"" field (Eg. 8500)
+46. Select the ""Equipment"" field as ""FLATBED""
+47. Enter the ""lenght"" field (Eg. 54)
+48. Select the ""Mileage Engine"" field as ""Current""
+49. Select the ""Method"" as ""Practical""
+50. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
+51. Click on ""Create Load"" button. 
+52. Under the load tab select Rate type as ""SPOT"" if no rate type is selected
+53. Click on Pickup Tab. 
+54. Click on Add pickup.
+55. Select the same pickup address which already picked in the rule. (Eg. ALCHEM - CHIPPEWA LAKE, OH)
+56. Click Ok on Update miles popup.
+57. Select actual date(Future date need to select)(select tommorw daayafter)
+58. Select actual time (Eg. 09:00)
+59. Select Deadline Date( Same as Actual Date)
+60. Click on Add pickup again. 
+61. Select the same pickup address which already picked in the rule. (Eg. ALLIED MINERALS - ANNISTON, AL)
+62. Click Ok on Update miles popup.
+63. Select actual date(Future date need to select)(select tommorw daayafter)
+64. Click Ok on Update miles popup.
+65. Select actual time (Eg. 09:00)
+66. Select Deadline Date( Same as Actual Date)
+67. Click on Add Delivery
+68. Select the same Drop address which already picked in the rule.  (Eg. AMERICAN MUNICIPAL POWER - FREMONT, OH)
+69. Click Ok on Update miles popup.
+70. Select actual date(Future date need to select)(select tommorw daayafter)
+71. Select actual time (Eg. 09:00)
+72. Select Deadline Date( Same as Actual Date)
+73. Click on save.
+74. Click on carrier tab.
+75. Log into DME(https://dme.stage.modetrans.com/login)
+76. Click on Loads.
+77. Enter the Load number and search it.
+78. Log into TNX (https://marketplace.modeglobal.com/)
+77. Enter the Email address and Password.
+79. Click Continue.
+80. Select the Carrier from the Dropdown
+81. Click on the plus icon and search the load
+82. Click the load 
+83. Click on Match Now.
+84. Click on Yes! I want it.
+85. Verify that load is matched.
+86. Click on Progress and Check the fields for providing execution notes are displayed.
+87. Go back to the load.
+88. Verify that the load is BOOKED
+89. Click on carrier tab.
+90. Verify that the carrier is assigned to the load.
+91. Go back to DME.
+92. Enter the Load number and search it.
+93. Verify and access all the related emails.","Ensure the step 75.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 76.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:85
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:86
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+Ensure after Step:92
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"dfb,loads,postautomationrules"
+171228,,FD-42835,Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an Non EDI customer with no intermediate stops.,"1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save","1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the Customer (Eg. BONDED CHEMICAL)
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. ABB MOLD TRANSIT - SCHENECTADY, NY)
+11. Select the Drop Location (ALCHEM - MEDINA, OH)
+12. Select Equipment (Eg. FLATBED)
+13. Select Load Method (Eg. TL)
+14. Enter the Offer Rate (Eg. $800)
+15. Click on Create button. 
+16. Check the checkbox for the rule created.
+17. Click Edit.
+18. Verify the Rule is created and entered data is updated correctly.
+19. Hover to the Customer and click on Search. 
+20. Enter the EDI enabled customer that is selected while creating the rule (Eg. BONDED CHEMICAL)
+21. Click on Search. 
+22. Click on customer profile. 
+23. Click on Create TL *NEW* on the View customer page.
+24.  In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer.
+25. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED) - 4773)
+26. Select the location from the ""Shipper"" field(Eg. P446300 - FW LOGISTICS &amp; WAREHOUSE - MODESTO, CA)
+27. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+28. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
+29. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
+30. Enter the ""Earliest Time"" (Eg. 09:00)
+31. Enter the ""Latest Time"" (Eg. 09:00)
+32. Select the location from the ""Consignee"" field.(Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+33. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+34. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
+35. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
+36. Enter the ""Earliest Time"" (Eg. 10:00)
+37. Enter the ""Latest Time"" (Eg. 10:00)
+38. Enter the Quantity in the ""Qty"" field (Eg. 95)
+39. Select the ""UoM"" field (Eg. TL)
+40. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+41. Enter the weight in the ""Weight"" field (Eg. 8500)
+42. Select the ""Equipment"" field as ""FLATBED""
+43. Enter the ""lenght"" field (Eg. 54)
+44. Select the ""Mileage Engine"" field as ""Current""
+45. Select the ""Method"" as ""Practical""
+46. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
+47. Click on ""Create Load"" button. 
+48.Under the load tab select Rate type as ""SPOT"" if no rate type is selected
+49. Click on save.
+50. Click on carrier tab.
+51. Log into DME(https://dme.stage.modetrans.com/login)
+52. Click on Loads.
+53. Enter the Load number and search it.
+54. Log into TNX (https://marketplace.modeglobal.com/)
+55. Enter the Email address and Password.
+56. Click Continue.
+57. Select the Carrier from the Dropdown
+58. Click on the plus icon and search the load
+59. Click the load 
+60. Click on Match Now.
+61. Click on Yes! I want it.
+62. Verify that load is matched.
+63. Click on Progress and Check the fields for providing execution notes are displayed.
+64. Go back to the load.
+65. Verify that the load is BOOKED
+66. Click on carrier tab.
+67. Verify that the carrier is assigned to the load.
+68. Go back to DME.
+69. Enter the Load number and search it.
+70. Verify and access all the related emails.","Ensure the step 50.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 53.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:62
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:63
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+Ensure after Step:69
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"dfb,loads,postautomationrules"
+171229,,FD-42835,Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an Non EDI customer with Auto accept feature.,"1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save","1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the Customer (Eg. BONDED CHEMICAL)
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. ABB MOLD TRANSIT - SCHENECTADY, NY)
+11. Select the Drop Location (ALCHEM - MEDINA, OH)
+12. Select Equipment (Eg. FLATBED)
+13. Select Load Method (Eg. TL)
+14. Enter the Offer Rate (Eg. $800)
+15. Click show optional field.
+16. Enter a carrier under include carrier field
+17. Click the checkbox carrier auto accept.
+18. Select the mail id from Carrier Contact for Rate Confirmation.(Eg. mohammed.suhaib@modeglobal.com)
+19. Click on Create button. 
+20. Check the checkbox for the rule created.
+21. Click Edit.
+22. Verify the Rule is created and entered data is updated correctly.
+23. Hover to the Customer and click on Search. 
+24. Enter the  customer that is selected while creating the rule  (Eg. BONDED CHEMICAL)
+25. Click on Search. 
+26. Click on customer profile. 
+27. Click on Create TL *NEW* on the View customer page.
+28.  In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer.
+29. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED) - 4773)
+30. Select the location from the ""Shipper"" field(Eg. ABB MOLD TRANSIT - SCHENECTADY, NY)
+31. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+32. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
+33. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
+34. Enter the ""Earliest Time"" (Eg. 09:00)
+35. Enter the ""Latest Time"" (Eg. 09:00)
+36. Select the location from the ""Consignee"" field.(ALCHEM - MEDINA, OH)
+37. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+38. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
+39. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
+40. Enter the ""Earliest Time"" (Eg. 10:00)
+41. Enter the ""Latest Time"" (Eg. 10:00)
+42. Enter the Quantity in the ""Qty"" field (Eg. 95)
+43. Select the ""UoM"" field (Eg. TL)
+44. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+45. Enter the weight in the ""Weight"" field (Eg. 8500)
+46. Select the ""Equipment"" field as ""FLATBED""
+47. Enter the ""lenght"" field (Eg. 54)
+48. Select the ""Mileage Engine"" field as ""Current""
+49. Select the ""Method"" as ""Practical""
+50. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
+51. Click on ""Create Load"" button. 
+52. Under the load tab select Rate type as ""SPOT"" if no rate type is selected.
+53. Click on save.
+54. Verify that the load automatically booked and the load status will be BOOKED.
+55. Click on carrier tab.
+56. Verify that the carrier is assigned.
+57. Log into DME(https://dme.stage.modetrans.com/login)
+58. Click on Loads.
+59. Enter the Load number and search it.
+60. Log into TNX (https://marketplace.modeglobal.com/)
+61. Enter the Email address and Password.
+62. Click Continue.
+63. Select the Carrier from the Dropdown.
+64. Click on Active Jobs.
+65 Click on the plus icon and search the load
+66. Click the load and Ensure the load is Matched and check the offer rate match with the offer rate entered. 
+67. Click on Progress and Check the fields for providing execution notes are displayed.
+68. Verify and access all the related emails.","Ensure the step 56.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the load status is BOOKED.
+
+Ensure that the carrier is assigned.
+
+Ensure that the related email are received.
+
+Ensure after Step:59
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED
+
+Ensure after Step:66
+TNX
+- A load is matched for the included carrier and offer rate is also same 
+
+Ensure after Step:67
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip",,"dfb,loads,postautomationrules"
+171324,,FD-42636,"Verify that when a load is posted to both DAT and TNX and is matched via TNX, the carrier does not receive a cancellation email from TNX after the match.","1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save 
+15. Hover to ADMIN again.
+16. Click on Agent Search
+17. Enter Agent name on Agent field (Eg.mohammed suhaib)
+18. Click on Search. 
+19. Click on agent profiel. 
+20. Click on Edit. 
+21. Enter ""user-dat-tts@modeglobal.com"" on DAT Username
+22. Click on Check Credentails.
+23. Click OK popup.
+24. Click on save.","1. Hover to the Customer and click on Search. 
+2. Enter the customer (Eg. BONDED CHEMICAL)
+3. Click on Search. 
+4. Click on customer profile. 
+5. Click on Create TL *NEW* on the View customer page.
+6.  In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer.
+7. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED) - 4773)
+8. Select the location from the ""Shipper"" field(Eg. P446300 - FW LOGISTICS &amp; WAREHOUSE - MODESTO, CA)
+9. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+9. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
+10. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
+11. Enter the ""Earliest Time"" (Eg. 09:00)
+12. Enter the ""Latest Time"" (Eg. 09:00)
+13. Select the location from the ""Consignee"" field.(Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+14. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+15. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
+16. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
+17. Enter the ""Earliest Time"" (Eg. 10:00)
+18. Enter the ""Latest Time"" (Eg. 10:00)
+19. Enter the Quantity in the ""Qty"" field (Eg. 95)
+20. Select the ""UoM"" field (Eg. TL)
+21. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+22. Enter the weight in the ""Weight"" field (Eg. 8500)
+23. Select the ""Equipment"" field as ""FLATBED""
+24. Enter the ""lenght"" field (Eg. 54)
+25. Select the ""Mileage Engine"" field as ""Current""
+26. Select the ""Method"" as ""Practical""
+27. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
+28. Click on ""Create Load"" button. 
+29. Under the load tab select Rate type as ""SPOT"" if no rate type is selected
+30. Check the checkbox ""Post to DAT Load Board""
+31. Click on Carrier tab. 
+32. Enter the Offer rate. 
+33. Click on save.
+34. Verify that the Post to DAT load Board is POSTED
+35. Click on carrier tab.
+36. Click on post 
+37. Verify the load is posted.
+38. Log into DME(https://dme.stage.modetrans.com/login)
+39. Click on Loads.
+40. Enter the Load number and search it.
+41. Log into TNX (https://marketplace.modeglobal.com/)
+42. Enter the Email address and Password.
+43. Click Continue.
+44. Select the Carrier from the Dropdown
+45. Click on the plus icon and search the load
+46. Click the load 
+47. Click on Match Now.
+48. Click on Yes! I want it.
+49. Verify that load is matched.
+50. Click on Progress and Check the fields for providing execution notes are displayed.
+51. Go back to the load.
+52. Verify that the load is BOOKED
+53. Click on carrier tab.
+54. Verify that the carrier is assigned to the load.
+55. Go back to DME.
+56. Enter the Load number and search it.
+57. Verify and access all the related emails.","Ensure the step 50. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly in the carrier tab. 
+
+Create rule button is displayed
+
+Ensure the Step 53.
+- Load is created in DME 
+- Vendor Statuses:
+- DAT: REQUESTED
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:62
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:63
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+Ensure after Step:69
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- DAT REQUESTED
+- BTMS CANCELLED
+- TNX BOOKED
+
+Ensure that after a load is matched via TNX, the load is not cancelled and the carrier does not receive a cancellation email.",,"dat,dfb,loads"
+171325,,FD-42835,Verify that a load is successfully posted to TNX,"1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save","1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the Customer (Eg. BONDED CHEMICAL)
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. ABB MOLD TRANSIT - SCHENECTADY, NY)
+11. Select the Drop Location (ALCHEM - MEDINA, OH)
+12. Select Equipment (Eg. FLATBED)
+13. Select Load Method (Eg. TL)
+14. Enter the Offer Rate (Eg. $800)
+15. Click on Create button. 
+16. Check the checkbox for the rule created.
+17. Click Edit.
+18. Verify the Rule is created and entered data is updated correctly.
+19. Hover to the Customer and click on Search. 
+20. Enter the EDI enabled customer that is selected while creating the rule (Eg. BONDED CHEMICAL)
+21. Click on Search. 
+22. Click on customer profile. 
+23. Click on Create TL *NEW* on the View customer page.
+24.  In ""ENTER NEW LOAD"" page ""Customer"" field is already selected or if not we need to select the customer.
+25. ""Salesperson"" and ""Dispatcher"" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED) - 4773)
+26. Select the location from the ""Shipper"" field(Eg. P446300 - FW LOGISTICS &amp; WAREHOUSE - MODESTO, CA)
+27. Once the location is selected from the ""Shipper"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+28. Select the ""Earliest Date"" (Future date need to select)(select tommorw date)
+29. Select the ""Latest Date"" (Future date need to select)(select tommorw date)
+30. Enter the ""Earliest Time"" (Eg. 09:00)
+31. Enter the ""Latest Time"" (Eg. 09:00)
+32. Select the location from the ""Consignee"" field.(Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+33. Once the location is selected from the ""Consignee"" field then ""Name"",""Address"",""City"",""State"",""Zip"",""Country"" will be automatically update the values in the corresponding fields. 
+34. Select the ""Earliest Date"" (Future date need to select)(select tommorw daayafter)
+35. Select the ""Latest Date"" (Future date need to select)(select tommorw daayafter)
+36. Enter the ""Earliest Time"" (Eg. 10:00)
+37. Enter the ""Latest Time"" (Eg. 10:00)
+38. Enter the Quantity in the ""Qty"" field (Eg. 95)
+39. Select the ""UoM"" field (Eg. TL)
+40. Enter the description in the ""Description"" field (Eg. Total 95 cases)
+41. Enter the weight in the ""Weight"" field (Eg. 8500)
+42. Select the ""Equipment"" field as ""FLATBED""
+43. Enter the ""lenght"" field (Eg. 54)
+44. Select the ""Mileage Engine"" field as ""Current""
+45. Select the ""Method"" as ""Practical""
+46. ""Linehaul"" and Fuel Surcharge"" default value will be ""Flat Rate""
+47. Click on ""Create Load"" button. 
+48.Under the load tab select Rate type as ""SPOT"" if no rate type is selected
+49. Click on save.
+50. Click on carrier tab.
+51. Log into DME(https://dme.stage.modetrans.com/login)
+52. Click on Loads.
+53. Enter the Load number and search it.
+54. Log into TNX (https://marketplace.modeglobal.com/)
+55. Enter the Email address and Password.
+56. Click Continue.
+57. Select the Carrier from the Dropdown
+58. Click on the plus icon and search the load
+59. Click the load 
+60. Click on Match Now.
+61. Click on Yes! I want it.
+62. Verify that load is matched.
+63. Click on Progress and Check the fields for providing execution notes are displayed.
+64. Go back to the load.
+65. Verify that the load is BOOKED
+66. Click on carrier tab.
+67. Verify that the carrier is assigned to the load.
+68. Go back to DME.
+69. Enter the Load number and search it.
+70. Verify and access all the related emails.","Ensure the step 50.
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly in the carrier tab. 
+
+Create rule button is displayed
+
+Ensure the Step 53.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:62
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:63
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+Ensure after Step:69
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"dfb,loads"
+196261,,FD-34836,"Verify a load matched in TNX, If the carrier user is NOT disabled and its Avenger Org is ON","1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save.
+15. Hover to CARRIER
+16. Enter the carrier name(Eg. 15. Hover to ADMIN again.)
+17. Click on Search. 
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Avenger toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.","1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the ""ENTER NEW LOAD"" page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Method as Practical.
+28. Verify Linehaul and Fuel Surcharge default to Flat Rate.
+29. Click on Create Load.
+30. Under the Load tab, select Rate Type as SPOT if none is selected.
+31. Click on the Carrier tab.
+32. Enter the Offer Rate.
+33. Select a carrier which made changes on the precondition.
+34. Click Save.
+35. Click on the Carrier tab again.
+36. Click Post.
+37. Verify the load is Posted.
+38. Log into DME (https://dme.stage.modetrans.com/login).
+39. Click on Loads.
+40. Enter the Load Number and search.
+41. Log into TNX (https://marketplace.modeglobal.com/).
+42. Enter Email Address and Password.
+43. Click Continue.
+44. Select the Carrier from the dropdown.
+45. Click on the plus (+) icon and search the load.
+46. Click on the load.
+47. Click on Match Now.
+48. Click on Yes! I want it.
+49. Verify the load is Matched.
+50. Click on Progress and verify fields for execution notes are displayed.
+51. Go back to the load.
+52. Verify the load status is BOOKED.
+53. Click on the Carrier tab.
+54. Verify the carrier is assigned to the load.
+55. Go back to DME.
+56. Enter the Load Number and search.
+57. Verify and access all related emails sent by DME (FD-43331 � currently emails are sent by TNX).","Ensure the step 36.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 38.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:41
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:50
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+Ensure after Step:56
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"carriers,dfb,loads"
+196262,,FD-34836,"Verify a load matched in TNX, If the carrier user is NOT disabled and its Hydrofarm Org is ON","1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save.
+15. Hover to CARRIER
+16. Enter the carrier name(Eg. 15. Hover to ADMIN again.)
+17. Click on Search. 
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Hydrofarm toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.","1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the ""ENTER NEW LOAD"" page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Method as Practical.
+28. Verify Linehaul and Fuel Surcharge default to Flat Rate.
+29. Click on Create Load.
+30. Under the Load tab, select Rate Type as SPOT if none is selected.
+31. Click on the Carrier tab.
+32. Enter the Offer Rate.
+33. Select a carrier which made changes on the precondition.
+34. Click Save.
+35. Click on the Carrier tab again.
+36. Click Post.
+37. Verify the load is Posted.
+38. Log into DME (https://dme.stage.modetrans.com/login).
+39. Click on Loads.
+40. Enter the Load Number and search.
+41. Log into TNX (https://marketplace.modeglobal.com/).
+42. Enter Email Address and Password.
+43. Click Continue.
+44. Select the Carrier from the dropdown.
+45. Click on the plus (+) icon and search the load.
+46. Click on the load.
+47. Click on Match Now.
+48. Click on Yes! I want it.
+49. Verify the load is Matched.
+50. Click on Progress and verify fields for execution notes are displayed.
+51. Go back to the load.
+52. Verify the load status is BOOKED.
+53. Click on the Carrier tab.
+54. Verify the carrier is assigned to the load.
+55. Go back to DME.
+56. Enter the Load Number and search.
+57. Verify and access all related emails sent by DME (FD-43331 � currently emails are sent by TNX).","Ensure the step 35.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 37.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:40
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:49
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+Ensure after Step:55
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"carriers,dfb,loads"
+196263,,FD-34836,"Verify a load matched in TNX, If the carrier user is NOT disabled and its Mode Org is ON","1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save.
+15. Hover to CARRIER
+16. Enter the carrier name(Eg. 15. Hover to ADMIN again.)
+17. Click on Search. 
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Mode toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.","1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the ""ENTER NEW LOAD"" page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Method as Practical.
+28. Verify Linehaul and Fuel Surcharge default to Flat Rate.
+29. Click on Create Load.
+30. Under the Load tab, select Rate Type as SPOT if none is selected.
+31. Click on the Carrier tab.
+32. Enter the Offer Rate.
+33. Select a carrier which made changes on the precondition.
+34. Click Save.
+35. Click on the Carrier tab again.
+36. Click Post.
+37. Verify the load is Posted.
+38. Log into DME (https://dme.stage.modetrans.com/login).
+39. Click on Loads.
+40. Enter the Load Number and search.
+41. Log into TNX (https://marketplace.modeglobal.com/).
+42. Enter Email Address and Password.
+43. Click Continue.
+44. Select the Carrier from the dropdown.
+45. Click on the plus (+) icon and search the load.
+46. Click on the load.
+47. Click on Match Now.
+48. Click on Yes! I want it.
+49. Verify the load is Matched.
+50. Click on Progress and verify fields for execution notes are displayed.
+51. Go back to the load.
+52. Verify the load status is BOOKED.
+53. Click on the Carrier tab.
+54. Verify the carrier is assigned to the load.
+55. Go back to DME.
+56. Enter the Load Number and search.
+57. Verify and access all related emails sent by DME (FD-43331 � currently emails are sent by TNX).","Ensure the step 35.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 37.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:40
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:49
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+Ensure after Step:55
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"carriers,dfb,loads"
+196264,,FD-34836,"Verify a load matched in TNX, If the carrier user is NOT disabled and its Suntecktts Org is ON","1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save.
+15. Hover to CARRIER
+16. Enter the carrier name(Eg. 15. Hover to ADMIN again.)
+17. Click on Search. 
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Suntecktts toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.","1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the ""ENTER NEW LOAD"" page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Method as Practical.
+28. Verify Linehaul and Fuel Surcharge default to Flat Rate.
+29. Click on Create Load.
+30. Under the Load tab, select Rate Type as SPOT if none is selected.
+31. Click on the Carrier tab.
+32. Enter the Offer Rate.
+33. Select a carrier which made changes on the precondition.
+34. Click Save.
+35. Click on the Carrier tab again.
+36. Click Post.
+37. Verify the load is Posted.
+38. Log into DME (https://dme.stage.modetrans.com/login).
+39. Click on Loads.
+40. Enter the Load Number and search.
+41. Log into TNX (https://marketplace.modeglobal.com/).
+42. Enter Email Address and Password.
+43. Click Continue.
+44. Select the Carrier from the dropdown.
+45. Click on the plus (+) icon and search the load.
+46. Click on the load.
+47. Click on Match Now.
+48. Click on Yes! I want it.
+49. Verify the load is Matched.
+50. Click on Progress and verify fields for execution notes are displayed.
+51. Go back to the load.
+52. Verify the load status is BOOKED.
+53. Click on the Carrier tab.
+54. Verify the carrier is assigned to the load.
+55. Go back to DME.
+56. Enter the Load Number and search.
+57. Verify and access all related emails sent by DME (FD-43331 � currently emails are sent by TNX).","Ensure the step 35.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 37.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:40
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:49
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+Ensure after Step:55
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"carriers,dfb,loads"
+196274,,FD-34836,"Verify the Load process that has a Bid accepted in BTMS, If the carrier user is NOT disabled and its Avenger Org is ON","1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save.
+15. Hover to CARRIER
+16. Click on Search. 
+17. Enter the carrier name.
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Avenger toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.","1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the ENTER NEW LOAD page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Method as Practical.
+28. Verify Linehaul and Fuel Surcharge default to Flat Rate.
+29. Click on Create Load.
+30. Under the Load tab, select Rate Type as SPOT if none is selected.
+31. Click on the Carrier tab.
+32. Enter the Offer Rate.
+33. Select the same carrier which is configured in the precondition.
+34. Click Save.
+35. Click on the Carrier tab again.
+36. Click Post.
+37. Verify the load is Posted.
+38. Log into DME (https://dme.stage.modetrans.com/login).
+39. Click on Loads.
+40. Enter the Load Number and search.
+41. Log into TNX (https://marketplace.modeglobal.com/).
+42. Enter Email Address and Password.
+43. Click Continue.
+44. Select the Carrier from the dropdown.
+45. Click on the plus (+) icon and search the load.
+46. Click on the load.
+47. Click on Bid button.
+48. Enter the Bid amount.
+49. Click on Bid Now and verify the bid is applied successfully.
+50. Go back to the load.
+51. Click on the Carrier tab.
+52. Verify the Bid is reflected in all sections mentioned in Expected Results.
+53. Click on View Bid Details.
+54. Click the Select dropdown from the Active Bid modal.
+55. Click on Accept Bid.
+56. Click OK on popup ""Are you sure you want to accept this bid?""
+57. Ensure the message displays ""Accept bid successful, carrier match in process.""
+58. Ensure the Post Status is changed to MATCHED.
+59. Reload the page.
+60. Ensure the load status is BOOKED.
+61. Click on the Carrier tab.
+62. Ensure the carrier is assigned to the load.
+63. Go back to DME.
+64. Enter the Load Number and search.
+65. Verify and access all related emails sent by DME (FD-43331 � currently emails are sent by TNX).","Ensure the step 37.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 38.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:52
+BID
+- Ensure that the values are correctly updated in the following fields.
+1. View Bid Details.
+2. Bid Result modal.
+3. Bids Avg rate and report.
+4. Bid History.
+
+Ensure after Step:53
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"carriers,dfb,loads"
+196275,,FD-34836,"Verify the Load process that has a Bid accepted in BTMS, If the carrier user is NOT disabled and its Hydrofarm Org is ON","1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save.
+15. Hover to CARRIER
+16. Click on Search. 
+17. Enter the carrier name.
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Avenger toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.","1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the ENTER NEW LOAD page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Method as Practical.
+28. Verify Linehaul and Fuel Surcharge default to Flat Rate.
+29. Click on Create Load.
+30. Under the Load tab, select Rate Type as SPOT if none is selected.
+31. Click on the Carrier tab.
+32. Enter the Offer Rate.
+33. Select the same carrier which is configured in the precondition.
+34. Click Save.
+35. Click on the Carrier tab again.
+36. Click Post.
+37. Verify the load is Posted.
+38. Log into DME (https://dme.stage.modetrans.com/login).
+39. Click on Loads.
+40. Enter the Load Number and search.
+41. Log into TNX (https://marketplace.modeglobal.com/).
+42. Enter Email Address and Password.
+43. Click Continue.
+44. Select the Carrier from the dropdown.
+45. Click on the plus (+) icon and search the load.
+46. Click on the load.
+47. Click on Bid button.
+48. Enter the Bid amount.
+49. Click on Bid Now and verify the bid is applied successfully.
+50. Go back to the load.
+51. Click on the Carrier tab.
+52. Verify the Bid is reflected in all sections mentioned in Expected Results.
+53. Click on View Bid Details.
+54. Click the Select dropdown from the Active Bid modal.
+55. Click on Accept Bid.
+56. Click OK on popup ""Are you sure you want to accept this bid?""
+57. Ensure the message displays ""Accept bid successful, carrier match in process.""
+58. Ensure the Post Status is changed to MATCHED.
+59. Reload the page.
+60. Ensure the load status is BOOKED.
+61. Click on the Carrier tab.
+62. Ensure the carrier is assigned to the load.
+63. Go back to DME.
+64. Enter the Load Number and search.
+65. Verify and access all related emails sent by DME (FD-43331 � currently emails are sent by TNX).","Ensure the step 37.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 38.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:52
+BID
+- Ensure that the values are correctly updated in the following fields.
+1. View Bid Details.
+2. Bid Result modal.
+3. Bids Avg rate and report.
+4. Bid History.
+
+Ensure after Step:53
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"carriers,dfb,loads"
+196276,,FD-34836,"Verify the Load process that has a Bid accepted in BTMS, If the carrier user is NOT disabled and its Mode Org is ON","1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save.
+15. Hover to CARRIER
+16. Click on Search. 
+17. Enter the carrier name.
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Avenger toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.","1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the ENTER NEW LOAD page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Method as Practical.
+28. Verify Linehaul and Fuel Surcharge default to Flat Rate.
+29. Click on Create Load.
+30. Under the Load tab, select Rate Type as SPOT if none is selected.
+31. Click on the Carrier tab.
+32. Enter the Offer Rate.
+33. Select the same carrier which is configured in the precondition.
+34. Click Save.
+35. Click on the Carrier tab again.
+36. Click Post.
+37. Verify the load is Posted.
+38. Log into DME (https://dme.stage.modetrans.com/login).
+39. Click on Loads.
+40. Enter the Load Number and search.
+41. Log into TNX (https://marketplace.modeglobal.com/).
+42. Enter Email Address and Password.
+43. Click Continue.
+44. Select the Carrier from the dropdown.
+45. Click on the plus (+) icon and search the load.
+46. Click on the load.
+47. Click on Bid button.
+48. Enter the Bid amount.
+49. Click on Bid Now and verify the bid is applied successfully.
+50. Go back to the load.
+51. Click on the Carrier tab.
+52. Verify the Bid is reflected in all sections mentioned in Expected Results.
+53. Click on View Bid Details.
+54. Click the Select dropdown from the Active Bid modal.
+55. Click on Accept Bid.
+56. Click OK on popup ""Are you sure you want to accept this bid?""
+57. Ensure the message displays ""Accept bid successful, carrier match in process.""
+58. Ensure the Post Status is changed to MATCHED.
+59. Reload the page.
+60. Ensure the load status is BOOKED.
+61. Click on the Carrier tab.
+62. Ensure the carrier is assigned to the load.
+63. Go back to DME.
+64. Enter the Load Number and search.
+65. Verify and access all related emails sent by DME (FD-43331 � currently emails are sent by TNX).","Ensure the step 37.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 38.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:52
+BID
+- Ensure that the values are correctly updated in the following fields.
+1. View Bid Details.
+2. Bid Result modal.
+3. Bids Avg rate and report.
+4. Bid History.
+
+Ensure after Step:53
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"carriers,dfb,loads"
+196277,,FD-34836,"Verify the Load process that has a Bid accepted in BTMS, If the carrier user is NOT disabled and its Suntecktts Org is ON","1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  ""TNX"" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as ""TNX"" and click on save.
+15. Hover to CARRIER
+16. Click on Search. 
+17. Enter the carrier name.
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Avenger toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.","1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the ENTER NEW LOAD page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Method as Practical.
+28. Verify Linehaul and Fuel Surcharge default to Flat Rate.
+29. Click on Create Load.
+30. Under the Load tab, select Rate Type as SPOT if none is selected.
+31. Click on the Carrier tab.
+32. Enter the Offer Rate.
+33. Select the same carrier which is configured in the precondition.
+34. Click Save.
+35. Click on the Carrier tab again.
+36. Click Post.
+37. Verify the load is Posted.
+38. Log into DME (https://dme.stage.modetrans.com/login).
+39. Click on Loads.
+40. Enter the Load Number and search.
+41. Log into TNX (https://marketplace.modeglobal.com/).
+42. Enter Email Address and Password.
+43. Click Continue.
+44. Select the Carrier from the dropdown.
+45. Click on the plus (+) icon and search the load.
+46. Click on the load.
+47. Click on Bid button.
+48. Enter the Bid amount.
+49. Click on Bid Now and verify the bid is applied successfully.
+50. Go back to the load.
+51. Click on the Carrier tab.
+52. Verify the Bid is reflected in all sections mentioned in Expected Results.
+53. Click on View Bid Details.
+54. Click the Select dropdown from the Active Bid modal.
+55. Click on Accept Bid.
+56. Click OK on popup ""Are you sure you want to accept this bid?""
+57. Ensure the message displays ""Accept bid successful, carrier match in process.""
+58. Ensure the Post Status is changed to MATCHED.
+59. Reload the page.
+60. Ensure the load status is BOOKED.
+61. Click on the Carrier tab.
+62. Ensure the carrier is assigned to the load.
+63. Go back to DME.
+64. Enter the Load Number and search.
+65. Verify and access all related emails sent by DME (FD-43331 � currently emails are sent by TNX).","Ensure the step 37.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 38.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:52
+BID
+- Ensure that the values are correctly updated in the following fields.
+1. View Bid Details.
+2. Bid Result modal.
+3. Bids Avg rate and report.
+4. Bid History.
+
+Ensure after Step:53
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED",,"carriers,dfb,loads"
+366505,,FD-44982,Volume-qualified load with gate ON returns multi-carrier quotes,Customer has allow_banyan_volume_quoting=1 in cust_master. Rated via Banyan v3 (LtlVendorBanyan3).,"1. Create an LTL quote for the gated customer with total weight &gt;=10,000 lbs or linear feet &gt;=13, mixed package types
+2. Submit the rate request to Banyan v3
+3. Inspect outbound request payload / btmsdb.quote_xml
+4. Call GET /v3/shipments/{id}","1. shipmentServices[0].serviceMode = ""Volume"" (exact case, not ""VOLUME"")
+2. Dims block present: length = linear_feet x 12, width = 96, height = 96, unitOfMeasurement = ""IN""
+3. Exactly ONE shipmentServices row for the mixed-package load (not one per package type); quantity = summed surviving group count (not zero); packageType = first surviving group's type
+4. Quote response includes rates from ODFL and/or ABF, not only Estes
+5. GET /v3/shipments/{id} shows dims stored in inches, not 0x0x0, not FT",,"banyan,ltl"
+25273,,FD-34366,Verify that the field type must be single select drop down.,"Step 1: Login to BTMS url based on environment configured in the Execution Environment key present in file config.json under src/loginHelpers.
+Step 2: An existing BTMS agent with credentials ""<username>"" and ""<password>"" should be entered respectively in username and password fields.
+Step 3: User needs to click on Login Button.
+Step 4: Once logged in and user is on Home Page, hover the mouse over the ADMIN tab and once OFFICE SEARCH sub field is available click on it.
+Step 5: On the Office Search page, navigate to the Office Code Search field and enter value as TX-RED, then click on the Search button.
+Step 6: Once the data is returned, click on the row.
+Step 7: After clicking, user is navigated to the office form page.
+Step 8: On this page validate the following settings:
+  - Match vendors field should already be set as TNX
+  - Enable Digital Matching Engine field is set to YES
+  If values are not matching then click on Edit button and update the Enable Digital Matching Engine field value to YES. After that update Match vendors field to TNX and save changes.
+Step 9: Now hover the mouse over the ADMIN tab and click on it.
+Step 10: On the ADMIN main page, in the Switch User field enter value as BRENT DURHAM (TX-RED).
+Step 11: Once the suggestion is shown, click on BRENT DURHAM (TX-RED).
+Step 12: Once user gets switched, hover the mouse on HOME tab and select sub tab OFFICE CONFIG and confirm the office is active.
+Step 13: Verify that the customer MARMAXX GROUP exists in the system and is accessible via Customer Search. If not, ensure a customer with EDI preferences enabled is available (e.g., MARMAXX GROUP).
+Step 14: Confirm the logged-in user account has VIEW and EDIT permissions for Customer Search and Customer EDI Preferences.","1. Once on the Home Page, hover the mouse over the CUSTOMERS tab in the top navigation menu and click on the SEARCH sub-menu item.
+2. On the Customer Search page, locate the ""Customer"" search input field and enter the value MARMAXX GROUP. Click the Search button.
+3. Once search results are returned, verify the row for MARMAXX GROUP appears in the results grid, then click on the MARMAXX GROUP row to open the Customer Agent page.
+4. On the Customer Agent page, locate and click the ""View Customer's Master Record"" hyperlink displayed near the top of the page.
+5. On the View Customer Master Record page, scroll down to the EDI preferences section and click on the ""More EDI Pref's"" hyperlink.
+6. On the More EDI Preferences page, locate the field labelled ""Place new load on hold when 204 auto-accepted"".
+7. Observe the rendered control type of the ""Place new load on hold when 204 auto-accepted"" field (e.g., dropdown, checkbox, text input, multi-select).
+8. Click on the ""Place new load on hold when 204 auto-accepted"" dropdown to expand it and observe all available options listed inside.","6. The field ""Place new load on hold when 204 auto-accepted"" is visible on the More EDI Pref's page within the Customer EDI Preferences section.
+7. The field renders as a single-select dropdown control — it must NOT be a multi-select list, free-text input, checkbox, or radio button group.
+8. The dropdown contains exactly two options: YES and NO — no additional or missing values are present.
+8. The default selected value displayed in the dropdown is NO for the existing customer MARMAXX GROUP.
+8. Only one value can be selected at a time; selecting YES automatically deselects NO, and selecting NO automatically deselects YES.",,"customersearch,edi"

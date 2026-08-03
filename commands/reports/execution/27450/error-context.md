@@ -1,0 +1,213 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic "BTMS STAGING": BTMS STAGING BTMS STAGING
+  - banner [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e5]:
+        - link "Logo" [ref=e7] [cursor=pointer]:
+          - /url: "/ "
+          - img "Logo" [ref=e8]
+        - text:  
+        - generic [ref=e9]:
+          - list [ref=e10]:
+            - listitem [ref=e11]:
+              - button "Home" [ref=e12] [cursor=pointer]
+              - text: 
+            - listitem [ref=e13]:
+              - button "Customers" [ref=e14] [cursor=pointer]
+              - text: 
+            - listitem [ref=e15]:
+              - button "Loads" [ref=e16] [cursor=pointer]
+              - text: 
+            - listitem [ref=e17]:
+              - button "Carriers" [ref=e18] [cursor=pointer]
+              - text: 
+            - listitem [ref=e19]:
+              - button "Finance" [ref=e20] [cursor=pointer]
+              - text: 
+            - listitem [ref=e21]:
+              - button "Executive" [ref=e22] [cursor=pointer]
+              - text: 
+            - listitem [ref=e23]:
+              - button "Admin" [ref=e24] [cursor=pointer]
+              - text: 
+          - generic [ref=e26]:
+            - button "" [ref=e27] [cursor=pointer]:
+              - generic [ref=e28]: 
+            - text: 
+        - list [ref=e30]:
+          - listitem [ref=e31]:
+            - button "SVC_TESTAUTOMATION" [ref=e32] [cursor=pointer]:
+              - text: SVC_TESTAUTOMATION
+              - generic [ref=e33]: 
+            - text: 
+  - generic [ref=e35]:
+    - generic [ref=e38]:
+      - list [ref=e40]:
+        - listitem [ref=e41]:
+          - link "Finance" [ref=e42] [cursor=pointer]:
+            - /url: finanmain.php
+          - text: ">"
+        - listitem [ref=e43]:
+          - text: EDI 204 Load Tenders
+          - link "Save As" [ref=e45] [cursor=pointer]:
+            - /url: ""
+      - generic [ref=e47]:
+        - generic [ref=e49]:
+          - button "Saved Reports" [ref=e50] [cursor=pointer]:
+            - generic [ref=e51]: Saved Reports
+          - text: 
+          - combobox "Saved Reports" [ref=e52]:
+            - option "Saved Reports" [selected]
+            - option "None" [disabled]
+        - button "Filter" [expanded] [ref=e53] [cursor=pointer]:
+          - text: Filter
+          - generic [ref=e54]: 
+          - text: 
+        - generic [ref=e55]:
+          - generic [ref=e57] [cursor=pointer]: 
+          - generic [ref=e59] [cursor=pointer]: 
+        - generic [ref=e61]:
+          - button "100 /pg" [ref=e62] [cursor=pointer]:
+            - generic [ref=e63]: 100 /pg
+          - text:    
+          - combobox [ref=e64]:
+            - option "10 /pg"
+            - option "25 /pg"
+            - option "50 /pg"
+            - option "100 /pg" [selected]
+        - button "Export Toggle Dropdown" [ref=e66] [cursor=pointer]:
+          - text: Export
+          - generic [ref=e67]: Toggle Dropdown
+    - text:                                                                                                                                                                                                                          
+    - generic [ref=e68]:
+      - generic [ref=e74]:
+        - button "Accept Checked Load Tenders" [ref=e77] [cursor=pointer]
+        - button "Reject Checked Load Tenders" [ref=e80] [cursor=pointer]
+      - generic [ref=e81]: "Query execution: 0.0 s"
+      - grid [ref=e86]:
+        - rowgroup [ref=e87]:
+          - row "SALESPERSON LOAD# ID POST TIME PURPOSE 204 BEHAVIOR CUSTOMER SENDER RECIPIENT L11 ID N104 ID BOL EXPIRY SHIP NAME SHIP CITY S STATE SHIP DATE CONS NAME CONS CITY C STATE CONS DATE QTY WEIGHT AC/DC CANCELLED EQUIPMENT NOTES MS304 OFFICE OUTSTANDING" [ref=e88]:
+            - columnheader [ref=e89] [cursor=pointer]
+            - columnheader [ref=e90] [cursor=pointer]:
+              - checkbox [ref=e91]
+            - columnheader "SALESPERSON" [ref=e92] [cursor=pointer]:
+              - paragraph: SALESPERSON
+            - columnheader "LOAD#" [ref=e93] [cursor=pointer]:
+              - paragraph: LOAD#
+            - columnheader "ID" [ref=e94] [cursor=pointer]:
+              - paragraph: ID
+            - columnheader "POST TIME" [ref=e95] [cursor=pointer]:
+              - paragraph: POST TIME
+            - columnheader "PURPOSE" [ref=e96] [cursor=pointer]:
+              - paragraph: PURPOSE
+            - columnheader "204 BEHAVIOR" [ref=e97] [cursor=pointer]:
+              - paragraph: 204 BEHAVIOR
+            - columnheader "CUSTOMER" [ref=e98] [cursor=pointer]:
+              - paragraph: CUSTOMER
+            - columnheader "SENDER" [ref=e99] [cursor=pointer]:
+              - paragraph: SENDER
+            - columnheader "RECIPIENT" [ref=e100] [cursor=pointer]:
+              - paragraph: RECIPIENT
+            - columnheader "L11 ID" [ref=e101] [cursor=pointer]:
+              - paragraph: L11 ID
+            - columnheader "N104 ID" [ref=e102] [cursor=pointer]:
+              - paragraph: N104 ID
+            - columnheader "BOL" [ref=e103] [cursor=pointer]:
+              - paragraph: BOL
+            - columnheader "EXPIRY" [ref=e104] [cursor=pointer]:
+              - paragraph: EXPIRY
+            - columnheader "SHIP NAME" [ref=e105] [cursor=pointer]:
+              - paragraph: SHIP NAME
+            - columnheader "SHIP CITY" [ref=e106] [cursor=pointer]:
+              - paragraph: SHIP CITY
+            - columnheader "S STATE" [ref=e107] [cursor=pointer]:
+              - paragraph: S STATE
+            - columnheader "SHIP DATE" [ref=e108] [cursor=pointer]:
+              - paragraph: SHIP DATE
+            - columnheader "CONS NAME" [ref=e109] [cursor=pointer]:
+              - paragraph: CONS NAME
+            - columnheader "CONS CITY" [ref=e110] [cursor=pointer]:
+              - paragraph: CONS CITY
+            - columnheader "C STATE" [ref=e111] [cursor=pointer]:
+              - paragraph: C STATE
+            - columnheader "CONS DATE" [ref=e112] [cursor=pointer]:
+              - paragraph: CONS DATE
+            - columnheader "QTY" [ref=e113] [cursor=pointer]:
+              - paragraph: QTY
+            - columnheader "WEIGHT" [ref=e114] [cursor=pointer]:
+              - paragraph: WEIGHT
+            - columnheader "AC/DC" [ref=e115] [cursor=pointer]:
+              - paragraph: AC/DC
+            - columnheader "CANCELLED" [ref=e116] [cursor=pointer]:
+              - paragraph: CANCELLED
+            - columnheader "EQUIPMENT" [ref=e117] [cursor=pointer]:
+              - paragraph: EQUIPMENT
+            - columnheader "NOTES" [ref=e118] [cursor=pointer]:
+              - paragraph: NOTES
+            - columnheader "MS304" [ref=e119] [cursor=pointer]:
+              - paragraph: MS304
+            - columnheader "OFFICE" [ref=e120] [cursor=pointer]:
+              - paragraph: OFFICE
+            - columnheader "OUTSTANDING" [ref=e121] [cursor=pointer]:
+              - paragraph: OUTSTANDING
+        - rowgroup [ref=e122]:
+          - row "1 FORD (TN-AVG) 3704190 7/17/2026 02:11:03 Original NEW FORD MOTOR C/O CASS INFO SYSTEMS PSKL STKT GZ7WSN3~ EDI20260717114050 HEARN INDUSTIAL SERVICES INC EAST CHICAGO IN 07/17/26 SUMITOMO ELECTRIC WIRING SYSTEMS JEFFERSONVILLE IN 07/18/26 40000 TN-AVG YES" [ref=e123] [cursor=pointer]:
+            - gridcell "1" [ref=e124]
+            - gridcell [ref=e125]:
+              - checkbox [ref=e126]
+            - gridcell "FORD (TN-AVG)" [ref=e127]
+            - gridcell [ref=e128]
+            - gridcell "3704190" [ref=e129]
+            - gridcell "7/17/2026 02:11:03" [ref=e130]
+            - gridcell "Original" [ref=e131]
+            - gridcell "NEW" [ref=e132]
+            - gridcell "FORD MOTOR C/O CASS INFO SYSTEMS" [ref=e133]
+            - gridcell "PSKL" [ref=e134]
+            - gridcell "STKT" [ref=e135]
+            - gridcell [ref=e136]
+            - gridcell "GZ7WSN3~" [ref=e137]
+            - gridcell "EDI20260717114050" [ref=e138]
+            - gridcell [ref=e139]
+            - gridcell "HEARN INDUSTIAL SERVICES INC" [ref=e140]
+            - gridcell "EAST CHICAGO" [ref=e141]
+            - gridcell "IN" [ref=e142]
+            - gridcell "07/17/26" [ref=e143]
+            - gridcell "SUMITOMO ELECTRIC WIRING SYSTEMS" [ref=e144]
+            - gridcell "JEFFERSONVILLE" [ref=e145]
+            - gridcell "IN" [ref=e146]
+            - gridcell "07/18/26" [ref=e147]
+            - gridcell [ref=e148]
+            - gridcell "40000" [ref=e149]
+            - gridcell [ref=e150]
+            - gridcell [ref=e151]
+            - gridcell [ref=e152]
+            - gridcell [ref=e153]
+            - gridcell [ref=e154]
+            - gridcell "TN-AVG" [ref=e155]
+            - gridcell "YES" [ref=e156]
+      - generic [ref=e159]:
+        - generic [ref=e161]:
+          - link [ref=e162] [cursor=pointer]:
+            - /url: /fats/loadlist.php?srid=25219173&page=1&perpage=100&my_report_edited=1
+            - generic [ref=e163]: 
+          - link [ref=e164] [cursor=pointer]:
+            - /url: /fats/loadlist.php?srid=25219173&page=1&perpage=100&my_report_edited=1
+            - generic [ref=e165]: 
+        - list [ref=e167]:
+          - listitem [ref=e168]: "Page:"
+          - listitem [ref=e169]:
+            - strong [ref=e170]: "1"
+        - generic [ref=e172]:
+          - link [ref=e173] [cursor=pointer]:
+            - /url: /fats/loadlist.php?srid=25219173&page=1&perpage=100&my_report_edited=1
+            - generic [ref=e174]: 
+          - link [ref=e175] [cursor=pointer]:
+            - /url: /fats/loadlist.php?srid=25219173&page=1&perpage=100&my_report_edited=1
+            - generic [ref=e176]: 
+    - text:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+  - contentinfo [ref=e177]:
+    - generic [ref=e178]: © MODE Global, LLC
+```

@@ -708,6 +708,45 @@ export class GlobalConstants {
   } as const;
 
   /**
+   * Customer EDI Prefs — 204 Change Order Options checkbox/select values.
+   * Source: CustomerMaster::EDI204_CHANGE_ORDER_* in mono `classes/CustomerMaster.php`.
+   * @author AI Agent
+   * @created 2026-07-17
+   */
+  static readonly EDI_PREFS = {
+    CHANGE_ORDER_TYPE: {
+      REPLACE: "replace",
+      REISSUE: "reissue",
+      CHANGE: "change",
+    },
+    STOP_DETAIL: {
+      STOPS_INCLUDING_FEES_ITEMS: "stops",
+      DATETIMES: "datetimes",
+      ITEMS: "items",
+      REF: "ref",
+      LOC: "loc",
+      FEES: "fees",
+      REPLACE_STOPS: "replace_stops",
+    },
+    LOAD_STATUS: {
+      ACTIVE: "ACTIVE",
+    },
+    /**
+     * Place new load on hold when 204 auto-accepted — cust_edi_prefs.php selectbox1.
+     * Option values: 0=NO, 1=YES.
+     * @author AI Agent
+     * @created 2026-07-29
+     */
+    PLACE_NEW_LOAD_ON_HOLD: {
+      LABEL: "Place new load on hold when 204 auto-accepted",
+      VALUE_NO: "0",
+      VALUE_YES: "1",
+      OPTION_NO: "NO",
+      OPTION_YES: "YES",
+    },
+  } as const;
+
+  /**
    * Billing Issues tag labels on View Load / billing (BTMS UI copy).
    * @author AI Agent
    * @created 2026-05-11
@@ -787,6 +826,21 @@ export class GlobalConstants {
     TIME: "18:00",
   } as const;
 
+  /**
+   * Banyan v3 volume-quote payload / UI assertion values (FD-44982 / Case 366505).
+   * @author AI Agent
+   * @created 2026-07-15
+   */
+  static readonly BANYAN_VOLUME_QUOTE = {
+    SERVICE_MODE: "Volume",
+    UNIT_OF_MEASUREMENT: "IN",
+    VOLUME_DIM_WIDTH: 96,
+    VOLUME_DIM_HEIGHT: 96,
+    CARRIER_ODFL: "ODFL",
+    CARRIER_ABF: "ABF",
+    CARRIER_ESTES: "Estes",
+  } as const;
+
 }
 /**
  * @author Deepak Bohra
@@ -864,6 +918,7 @@ declare global {
   const AUTOPAY_STATUS: typeof GlobalConstants.AUTOPAY_STATUS;
   const FINANCE_MESSAGES: typeof GlobalConstants.FINANCE_MESSAGES;
   const EDI_EXCEPTION: typeof GlobalConstants.EDI_EXCEPTION;
+  const EDI_PREFS: typeof GlobalConstants.EDI_PREFS;
   const BILLING_ISSUE_TAGS: typeof GlobalConstants.BILLING_ISSUE_TAGS;
   const VIEW_HISTORY_USER: typeof GlobalConstants.VIEW_HISTORY_USER;
   const CARRIER_PAYABLE_STATUS: typeof GlobalConstants.CARRIER_PAYABLE_STATUS;
@@ -871,6 +926,7 @@ declare global {
   const MILEAGE_ENGINE: typeof GlobalConstants.MILEAGE_ENGINE;
   const MILEAGE_METHOD: typeof GlobalConstants.MILEAGE_METHOD;
   const SUCCESS_MESSAGES: typeof GlobalConstants.SUCCESS_MESSAGES;
+  const BANYAN_VOLUME_QUOTE: typeof GlobalConstants.BANYAN_VOLUME_QUOTE;
 }
 /**
  * @author Deepak Bohra
@@ -954,6 +1010,7 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).AUTOPAY_STATUS = GlobalConstants.AUTOPAY_STATUS;
   (globalThis as any).FINANCE_MESSAGES = GlobalConstants.FINANCE_MESSAGES;
   (globalThis as any).EDI_EXCEPTION = GlobalConstants.EDI_EXCEPTION;
+  (globalThis as any).EDI_PREFS = GlobalConstants.EDI_PREFS;
   (globalThis as any).BILLING_ISSUE_TAGS = GlobalConstants.BILLING_ISSUE_TAGS;
   (globalThis as any).VIEW_HISTORY_USER = GlobalConstants.VIEW_HISTORY_USER;
   (globalThis as any).CARRIER_PAYABLE_STATUS = GlobalConstants.CARRIER_PAYABLE_STATUS;
@@ -961,4 +1018,5 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).MILEAGE_ENGINE = GlobalConstants.MILEAGE_ENGINE;
   (globalThis as any).MILEAGE_METHOD = GlobalConstants.MILEAGE_METHOD;
   (globalThis as any).SUCCESS_MESSAGES = GlobalConstants.SUCCESS_MESSAGES;
+  (globalThis as any).BANYAN_VOLUME_QUOTE = GlobalConstants.BANYAN_VOLUME_QUOTE;
 }

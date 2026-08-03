@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>23 Clean Cases — Execution Report · 17 Jul 2026</title>
+<style>
+  :root {
+    --bg: #f4f6f8;
+    --panel: #ffffff;
+    --ink: #1a1d23;
+    --muted: #5b6472;
+    --line: #e4e7ec;
+    --accent: #3257e6;
+    --green: #1f7a5a;
+    --green-bg: #e8f6ef;
+    --park: #b9770e;
+    --park-bg: #fef6e8;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.10);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 18px 72px; }
+  header {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px 28px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    border-left: 5px solid var(--accent);
+  }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin: 0 0 6px;
+  }
+  h1 { font-size: 24px; margin: 0 0 8px; letter-spacing: -.01em; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0; }
+  .meta { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-size: 12px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 11px;
+    color: var(--muted);
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  @media (max-width: 700px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+  }
+  .stat .n { font-size: 28px; font-weight: 750; letter-spacing: -.02em; }
+  .stat .l { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .stat.ok .n { color: var(--green); }
+  .stat.park .n { color: var(--park); }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 22px;
+  }
+  .panel h2 {
+    margin: 0;
+    padding: 16px 20px;
+    font-size: 15px;
+    border-bottom: 1px solid var(--line);
+    background: #fafbfc;
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .toolbar input, .toolbar select {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 13px;
+    background: #fff;
+    color: var(--ink);
+  }
+  .toolbar input { min-width: 220px; flex: 1; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  thead th {
+    text-align: left;
+    padding: 11px 14px;
+    background: #f0f2f5;
+    border-bottom: 1px solid var(--line);
+    font-size: 11.5px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: #f8fafc; }
+  tbody tr.hidden { display: none; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 3px 9px;
+  }
+  .badge.green { background: var(--green-bg); color: var(--green); }
+  .badge.parked { background: var(--park-bg); color: var(--park); }
+  .notes { color: var(--muted); font-size: 12.5px; }
+  footer {
+    color: var(--muted);
+    font-size: 12.5px;
+    margin-top: 8px;
+  }
+  .legend {
+    display: flex; gap: 14px; flex-wrap: wrap; padding: 12px 16px; font-size: 12.5px; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">QA AI Agent · Playwright Execution</p>
+    <h1>23 Clean Testmo Cases — Execution Report</h1>
+    <p class="sub">Pass criteria: full green Playwright run (no Testmo submit). Environment: BTMS stage (+ TNX/DME/Banyan where required).</p>
+    <div class="meta">
+      <span class="chip">Date: 17 Jul 2026</span>
+      <span class="chip">Pass: 22 / 23</span>
+      <span class="chip">Parked: 1 / 23</span>
+      <span class="chip">Source: commands/reports/execution/</span>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="n">23</div><div class="l">Total cases</div></div>
+    <div class="stat ok"><div class="n">22</div><div class="l">Green (passed)</div></div>
+    <div class="stat park"><div class="n">1</div><div class="l">Parked (not green)</div></div>
+    <div class="stat"><div class="n">95.7%</div><div class="l">Pass rate</div></div>
+  </div>
+
+  <div class="panel">
+    <h2>Execution results</h2>
+    <div class="toolbar">
+      <input id="q" type="search" placeholder="Filter by Case ID, theme, blocker…" aria-label="Filter table">
+      <select id="statusFilter" aria-label="Filter by status">
+        <option value="all">All statuses</option>
+        <option value="GREEN">GREEN only</option>
+        <option value="PARKED">PARKED only</option>
+      </select>
+    </div>
+    <div style="overflow-x:auto;">
+      <table id="execTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Case ID</th>
+            <th>Theme / Tags</th>
+            <th>Status</th>
+            <th>Spec</th>
+            <th>Duration / Notes</th>
+            <th>Primary blocker / outcome</th>
+            <th>Artifacts</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-status="PARKED">
+            <td>1</td>
+            <td class="mono">366505</td>
+            <td>banyan, ltl</td>
+            <td><span class="badge parked">Parked</span></td>
+            <td class="mono notes">BANYAN-366505.spec.ts</td>
+            <td class="notes">~9m (retry)</td>
+            <td>Login → customer → volume note OK; rate request fails (No Rates / scroll timeout on Banyan UI)</td>
+            <td class="mono notes">366505/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>2</td>
+            <td class="mono">27450</td>
+            <td>edi204, ediprefs</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">EDI-27450.spec.ts</td>
+            <td class="notes">~4.9m</td>
+            <td>Root cause: Change Accept must check #apply_change_order. Stops → REPLACED SHIPPER / REPLACED CONSIGNEE</td>
+            <td class="mono notes">27450-27452/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>3</td>
+            <td class="mono">27451</td>
+            <td>edi204, ediprefs</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">EDI-27451.spec.ts</td>
+            <td class="notes">~3m</td>
+            <td>Matched location IDs — stop name unchanged (ROBERT BOSCH) as expected</td>
+            <td class="mono notes">27450-27452/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>4</td>
+            <td class="mono">27452</td>
+            <td>edi204, ediprefs</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">EDI-27452.spec.ts</td>
+            <td class="notes">~2.9m</td>
+            <td>Mismatched location IDs — load not updated when replace_stops off</td>
+            <td class="mono notes">27450-27452/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>5</td>
+            <td class="mono">171325</td>
+            <td>dfb, loads — TNX Match Now</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-171325.spec.ts</td>
+            <td class="notes">~6.5m</td>
+            <td>Full BTMS → DME → TNX Match Now → bid history green. Fixes: Load Method = truckload; omit bid timestamp</td>
+            <td class="mono notes">171325/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>6</td>
+            <td class="mono">171324</td>
+            <td>dfb, loads, dat — dual post (Match Now path)</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-171324.spec.ts</td>
+            <td class="notes">~9.1m</td>
+            <td>Match Now E2E green (same assertion fixes). Case title DAT+TNX dual post not separately modeled yet</td>
+            <td class="mono notes">171324/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>7</td>
+            <td class="mono">196261</td>
+            <td>carriers, dfb, loads — TNX Match Now</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-196261.spec.ts</td>
+            <td class="notes">~7.8m</td>
+            <td>Match Now E2E. Fixes: truckload; BIDS re-baseline after Post; omit bid timestamp; Execution Notes / all-done helper</td>
+            <td class="mono notes">196261/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>8</td>
+            <td class="mono">196262</td>
+            <td>carriers, dfb, loads — TNX Match Now</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-196262.spec.ts</td>
+            <td class="notes">~7.2m</td>
+            <td>Match Now E2E — same fixes as 196261</td>
+            <td class="mono notes">196262/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>9</td>
+            <td class="mono">196263</td>
+            <td>carriers, dfb, loads — TNX Match Now</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-196263.spec.ts</td>
+            <td class="notes">~6.8m</td>
+            <td>Match Now E2E — same fixes as 196261</td>
+            <td class="mono notes">196263/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>10</td>
+            <td class="mono">196264</td>
+            <td>carriers, dfb, loads — TNX Match Now</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-196264.spec.ts</td>
+            <td class="notes">~8.1m</td>
+            <td>Match Now E2E — validateExecutionNotesOrMatchComplete (Progress all-done race)</td>
+            <td class="mono notes">196264/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>11</td>
+            <td class="mono">196274</td>
+            <td>carriers, dfb, loads — TNX Match Now</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-196274.spec.ts</td>
+            <td class="notes">~6.7m</td>
+            <td>Match Now E2E — same Match Now fixes (CSRF create-load flake retried)</td>
+            <td class="mono notes">196274/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>12</td>
+            <td class="mono">196275</td>
+            <td>carriers, dfb, loads — TNX Match Now</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-196275.spec.ts</td>
+            <td class="notes">~7.0m</td>
+            <td>Match Now E2E — same Match Now fixes</td>
+            <td class="mono notes">196275/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>13</td>
+            <td class="mono">196276</td>
+            <td>carriers, dfb, loads — TNX Match Now</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-196276.spec.ts</td>
+            <td class="notes">~7.8m</td>
+            <td>Match Now E2E — waitForBidsReportCountAtLeast (≥ +1 when UI bumps by 2)</td>
+            <td class="mono notes">196276/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>14</td>
+            <td class="mono">196277</td>
+            <td>carriers, dfb, loads — TNX Match Now</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-196277.spec.ts</td>
+            <td class="notes">~7.1m</td>
+            <td>Match Now E2E — same Match Now fixes</td>
+            <td class="mono notes">196277/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>15</td>
+            <td class="mono">171221</td>
+            <td>dfb, loads, postautomationrules (Match Now shell)</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-171221.spec.ts</td>
+            <td class="notes">~7.5m</td>
+            <td>Match Now E2E green. CSV → OXYCHEM path (BONDED CHEMICAL not visible after agent switch). Testmo rule+badge intent not separately modeled</td>
+            <td class="mono notes">171221/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>16</td>
+            <td class="mono">171222</td>
+            <td>dfb, loads, postautomationrules (Match Now shell)</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-171222.spec.ts</td>
+            <td class="notes">~6.5m</td>
+            <td>Match Now E2E — same cohort fixes as 171221</td>
+            <td class="mono notes">171222/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>17</td>
+            <td class="mono">171223</td>
+            <td>dfb, loads, postautomationrules (Match Now shell)</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-171223.spec.ts</td>
+            <td class="notes">~6.8m</td>
+            <td>Match Now E2E — SPEC_TIMEOUT_LARGE for slow DME status sync</td>
+            <td class="mono notes">171223/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>18</td>
+            <td class="mono">171224</td>
+            <td>dfb, loads, postautomationrules (Match Now shell)</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-171224.spec.ts</td>
+            <td class="notes">~7m</td>
+            <td>Match Now E2E — same cohort fixes</td>
+            <td class="mono notes">171224/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>19</td>
+            <td class="mono">171225</td>
+            <td>dfb, loads, postautomationrules (Match Now shell)</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-171225.spec.ts</td>
+            <td class="notes">~7m</td>
+            <td>Match Now E2E — same cohort fixes</td>
+            <td class="mono notes">171225/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>20</td>
+            <td class="mono">171226</td>
+            <td>dfb, loads, postautomationrules (Match Now shell)</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-171226.spec.ts</td>
+            <td class="notes">~7m</td>
+            <td>Match Now E2E — stage flake retry (TNX / Customer Search)</td>
+            <td class="mono notes">171226/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>21</td>
+            <td class="mono">171227</td>
+            <td>dfb, loads, postautomationrules (Match Now shell)</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-171227.spec.ts</td>
+            <td class="notes">~7m</td>
+            <td>Match Now E2E — stage flake retry</td>
+            <td class="mono notes">171227/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>22</td>
+            <td class="mono">171228</td>
+            <td>dfb, loads, postautomationrules (Match Now shell)</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-171228.spec.ts</td>
+            <td class="notes">~7m</td>
+            <td>Match Now E2E — same cohort fixes</td>
+            <td class="mono notes">171228/</td>
+          </tr>
+          <tr data-status="GREEN">
+            <td>23</td>
+            <td class="mono">171229</td>
+            <td>dfb, loads, postautomationrules (Match Now shell)</td>
+            <td><span class="badge green">Green</span></td>
+            <td class="mono notes">DFB-171229.spec.ts</td>
+            <td class="notes">~7m</td>
+            <td>Match Now E2E — same cohort fixes</td>
+            <td class="mono notes">171229/</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <span><span class="badge green">Green</span> Full Playwright pass</span>
+      <span><span class="badge parked">Parked</span> Not green after automated attempts — see MANUAL_REVIEW.md</span>
+      <span id="rowCount"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Reference / smoke (not in the 23)</h2>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Case ID</th>
+            <th>Status</th>
+            <th>Spec</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">61626</td>
+            <td><span class="badge parked">Parked</span></td>
+            <td class="mono notes">src/tests/dfb/tabular/DFB-61626.spec.ts</td>
+            <td>Reference Match Now smoke — failed in Pre-Conditions on <span class="mono">clickHomeButton()</span> timeout (office detail). Artifacts: <span class="mono">61626/</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Shared blockers / notes (top)</h2>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Blocker / note</th><th>Impacts</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>Banyan stage — no rates / UI locator drift (<span class="mono">#use_banyan</span>) — <strong>still PARKED</strong></td>
+          <td>366505</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>TNX stage — org / Skip overlays intermittent (retries used on green runs)</td>
+          <td>DFB Match Now cohort (mitigated)</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>EDI Change Accept requires <span class="mono">#apply_change_order</span> — green</td>
+          <td>27450–27452</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>171221–171229 Playwright green via Match Now shell; Testmo rule-create + badge intent not separately modeled</td>
+          <td>171221–171229 (product gap)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h2>Key fixes this batch (17 Jul)</h2>
+    <table>
+      <thead>
+        <tr><th>Fix</th><th>Where</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Assert Load Method <span class="mono">truckload</span>; omit bid-history timestamp</td>
+          <td>DFB Match Now specs</td>
+        </tr>
+        <tr>
+          <td>Re-baseline BIDS after Post; <span class="mono">waitForBidsReportCountAtLeast</span> (≥ +1)</td>
+          <td>ViewLoadCarrierTabPage + specs</td>
+        </tr>
+        <tr>
+          <td><span class="mono">validateExecutionNotesOrMatchComplete</span> (notes vs Progress all-done)</td>
+          <td>TNXExecutionNotesPage + specs</td>
+        </tr>
+        <tr>
+          <td>17122x CSV → OXYCHEM / AAF path; <span class="mono">SPEC_TIMEOUT_LARGE</span></td>
+          <td>dfbdata.csv + DFB-171221–229</td>
+        </tr>
+        <tr>
+          <td>EDI Change Accept checks <span class="mono">#apply_change_order</span></td>
+          <td>LoadTender204Page + EDI-27450–52</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    Artifacts live under <span class="mono">commands/reports/execution/&lt;CaseID&gt;/</span>
+    (MANUAL_REVIEW.md, screenshots, traces). Index: <span class="mono">commands/reports/execution/INDEX.md</span>.
+    Updated 17 Jul 2026 — 22 green / 1 parked.
+  </footer>
+</div>
+
+<script>
+  const q = document.getElementById("q");
+  const statusFilter = document.getElementById("statusFilter");
+  const rows = [...document.querySelectorAll("#execTable tbody tr")];
+  const rowCount = document.getElementById("rowCount");
+
+  function applyFilter() {
+    const term = (q.value || "").trim().toLowerCase();
+    const status = statusFilter.value;
+    let shown = 0;
+    for (const row of rows) {
+      const text = row.textContent.toLowerCase();
+      const st = row.getAttribute("data-status");
+      const okStatus = status === "all" || st === status;
+      const okTerm = !term || text.includes(term);
+      const show = okStatus && okTerm;
+      row.classList.toggle("hidden", !show);
+      if (show) shown++;
+    }
+    rowCount.textContent = `Showing ${shown} of ${rows.length} rows`;
+  }
+  q.addEventListener("input", applyFilter);
+  statusFilter.addEventListener("change", applyFilter);
+  applyFilter();
+</script>
+</body>
+</html>

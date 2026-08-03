@@ -1,0 +1,10 @@
+Case ID,JiraId,Tags,Case,Agent category tag?,Gold closeness,Steps chars,Step count,Expected chars
+7965,FD-33675,search,"Verify that enabling ""Central Dispatch Enabled"" field does not change the ""Dispatch Type"" of existing loads.",N,34.9,555,5,98
+196126,FD-40120,"admin,ltl",Verify that data loads correctly after salesperson selection and user can either delete or approve the checked commoditi,N,32.0,522,0,460
+171189,FD-36513,sharereport,Dispatch Note hover preview remains unchanged (latest note only),N,30.3,284,4,102
+196127,FD-40120,"admin,ltl",Verify that click on the switch to approved navigates user to Approved LTL Commodities page after salesperson selection ,N,30.2,492,0,341
+24777,FD-33648,loadreports,"Verify that the report accurately displays one row per stop, aligning with the format used in the STOP Report, ensuring ",N,27.7,455,0,174
+7967,FD-33684,loadtemplates,Verify that creating a template from a load captures the load’s Dispatch Type and Dispatch Office.,N,23.8,207,2,90
+196130,FD-40120,"admin,ltl",Verify that  result is not displayed until no salesperson is selected.,N,21.4,236,0,271
+366524,FD-42729,customersearch,Verify all supported Payment Term options can be selected and saved on Customer Master Record,N,13.5,280,5,74
+336595,CP-5840,"banyan,customerportal,hazmat,ltl",TC04: CP Banyan booking persists full hazmat details to approved_items,Y,11.1,276,5,254

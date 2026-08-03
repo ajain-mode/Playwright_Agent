@@ -443,6 +443,36 @@ class ViewLoadCarrierTabPage {
   }
 
   /**
+   * Polls until BIDS (`#bids-num-reports`) is at least previousCount + minIncrement.
+   * Stage Match Now can bump the count by more than 1 (Post residual / dual bid events);
+   * exact +1 checks hang forever when the UI already shows +2.
+   * @author AI Agent
+   * @created 2026-07-17
+   * @param previousCount BIDS count captured after Post (before Match Now)
+   * @param minIncrement Minimum increase required (default 1)
+   * @returns Promise<number> Current BIDS report count
+   */
+  async waitForBidsReportCountAtLeast(
+    previousCount: number,
+    minIncrement: number = 1
+  ): Promise<number> {
+    const minExpected = previousCount + minIncrement;
+    await expect
+      .poll(async () => this.readBidsReportCount(), {
+        message: `BIDS report count should be >= ${minExpected} (from ${previousCount})`,
+        timeout: WAIT.XLARGE,
+      })
+      .toBeGreaterThanOrEqual(minExpected);
+
+    const current = await this.readBidsReportCount();
+    this.capturedBidsValue = String(current);
+    console.log(
+      `✅ BIDS report count >= ${minExpected}: was ${previousCount}, now ${current} (#bids-num-reports)`
+    );
+    return current;
+  }
+
+  /**
    * Validates that the current bids report value increases by 1 within 30 retries
    * @author Parth Rastogi
    * @created 2025-01-09

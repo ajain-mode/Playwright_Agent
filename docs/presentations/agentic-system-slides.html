@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Playwright Agentic Test Automation — Current State &amp; Gaps</title>
+<style>
+  :root {
+    --primary: #1a365d;
+    --primary-light: #2b6cb0;
+    --accent: #ed8936;
+    --accent-dark: #dd6b20;
+    --bg: #f7fafc;
+    --card: #ffffff;
+    --text: #2d3748;
+    --text-light: #718096;
+    --border: #e2e8f0;
+    --success: #38a169;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; }
+
+  .cover {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white; padding: 80px 60px; min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .cover::before { content: ''; position: absolute; top: -50%; right: -20%; width: 600px; height: 600px; background: rgba(255,255,255,0.03); border-radius: 50%; }
+  .cover-badge { display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); padding: 6px 16px; border-radius: 20px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 30px; }
+  .cover h1 { font-size: 46px; font-weight: 700; line-height: 1.15; margin-bottom: 20px; max-width: 820px; }
+  .cover h1 span { color: var(--accent); }
+  .cover .subtitle { font-size: 19px; opacity: 0.92; max-width: 720px; margin-bottom: 40px; }
+  .cover-stats { display: flex; gap: 24px; margin-top: 30px; justify-content: center; flex-wrap: wrap; }
+  .stat-box { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 20px 24px; text-align: center; min-width: 130px; }
+  .stat-box .number { font-size: 34px; font-weight: 700; color: var(--accent); }
+  .stat-box .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.75; margin-top: 4px; }
+  .cover-meta { display: flex; gap: 40px; font-size: 14px; opacity: 0.8; margin-top: auto; padding-top: 60px; justify-content: center; flex-wrap: wrap; }
+  .cover-meta div { display: flex; flex-direction: column; gap: 4px; }
+  .cover-meta .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
+
+  .toc { background: var(--card); padding: 50px 60px; border-bottom: 1px solid var(--border); }
+  .toc h2 { font-size: 24px; color: var(--primary); margin-bottom: 24px; }
+  .toc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; max-width: 700px; }
+  .toc-item { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: var(--bg); border-radius: 8px; text-decoration: none; color: var(--text); border: 1px solid transparent; }
+  .toc-item:hover { border-color: var(--primary-light); background: white; }
+  .toc-num { width: 32px; height: 32px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+  .toc-label { font-size: 14px; font-weight: 500; }
+
+  .section { padding: 60px; max-width: 1100px; margin: 0 auto; }
+  .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .section-num { width: 44px; height: 44px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+  .section h2 { font-size: 28px; color: var(--primary); }
+  .section p { margin-bottom: 16px; color: var(--text); }
+
+  .success-banner {
+    background: #f0fff4; border: 1px solid #9ae6b4; border-left: 4px solid var(--success);
+    border-radius: 12px; padding: 20px 24px; margin-bottom: 28px; font-size: 15px; color: #22543d;
+  }
+  .success-banner strong { color: #276749; }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; }
+  .card h3 { font-size: 18px; color: var(--primary); margin-bottom: 8px; }
+  .card .tech { font-size: 12px; color: var(--text-light); margin-bottom: 12px; font-style: italic; }
+  .card p, .card li { font-size: 14px; }
+  .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .card-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  .agent-card { border-top: 4px solid var(--primary); text-align: center; padding: 20px 16px; }
+  .agent-card .alias { font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+  .agent-card .role { font-size: 12px; color: var(--text-light); margin-bottom: 10px; }
+  .agent-card p { font-size: 13px; text-align: left; }
+
+  .diagram-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 30px; margin: 24px 0; overflow-x: auto; }
+  .diagram-title { font-size: 14px; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 24px 0; }
+  .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; text-align: center; border-top: 4px solid var(--primary); }
+  .kpi .value { font-size: 28px; font-weight: 700; color: var(--primary); }
+  .kpi .label { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  thead { background: var(--primary); color: white; }
+  th { padding: 12px 16px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:hover { background: #f0f5ff; }
+  .highlight-row { background: #fffbeb; }
+  .tech-col { font-size: 12px; color: var(--text-light); }
+
+  .tag { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .tag-ai { background: #fefcbf; color: #975a16; }
+  .tag-rule { background: #ebf4ff; color: #2b6cb0; }
+  .tag-ok { background: #f0fff4; color: #276749; }
+
+  .impact-banner { background: #fff5f5; border: 1px solid #feb2b2; border-left: 4px solid #e53e3e; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; font-size: 15px; color: #742a2a; }
+  .issue-card { border-left: 4px solid var(--accent); }
+  .issue-card h3 { color: var(--accent-dark); }
+
+  .footer { background: var(--primary); color: white; padding: 40px 60px; text-align: center; font-size: 14px; opacity: 0.9; }
+
+  @media print { .cover { min-height: auto; padding: 40px; page-break-after: always; } .section { padding: 30px; page-break-inside: avoid; } .toc { page-break-after: always; } }
+  @media (max-width: 900px) { .card-grid, .card-grid-4, .kpi-grid, .toc-grid { grid-template-columns: 1fr; } .cover h1 { font-size: 32px; } .section { padding: 30px 24px; } }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-badge">Mode Global · SunTeck TMS · QA AI Agent</div>
+  <h1>Playwright <span>Agentic</span> Test Automation — Current State &amp; Gaps</h1>
+  <p class="subtitle">Hybrid rule-based + LLM multi-agent pipeline for SunTeck TMS — Claude-powered generation tiers, self-healing validation, structured test inputs, and Cursor-governed guardrails.</p>
+  <div class="cover-stats">
+    <div class="stat-box"><div class="number">4</div><div class="label">Specialized Agents</div></div>
+    <div class="stat-box"><div class="number">4</div><div class="label">AI Generation Calls</div></div>
+    <div class="stat-box"><div class="number">28</div><div class="label">Scripts Generated</div></div>
+    <div class="stat-box"><div class="number">130+</div><div class="label">Automation Patterns</div></div>
+    <div class="stat-box"><div class="number">3</div><div class="label">Apps Covered</div></div>
+  </div>
+  <div class="cover-meta">
+    <div><span class="label">Prepared By</span>R Systems International</div>
+    <div><span class="label">Prepared For</span>Mode Global</div>
+    <div><span class="label">Platform</span>SunTeck TMS (BTMS · DME · TNX)</div>
+    <div><span class="label">Date</span>June 29, 2026</div>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h2>Contents</h2>
+  <div class="toc-grid">
+    <a class="toc-item" href="#pipeline"><div class="toc-num">1</div><div class="toc-label">What We Built — The Agent Pipeline</div></a>
+    <a class="toc-item" href="#upstream-gaps"><div class="toc-num">2</div><div class="toc-label">Upstream Gaps &amp; Next Steps</div></a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ SECTION 1 ═══ -->
+<div class="section" id="pipeline">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <h2>What We Built — The Agent Pipeline</h2>
+  </div>
+
+  <div class="success-banner">
+    <strong>Outcome:</strong> Written test cases (CSV, Excel, or plain text) flow through a four-agent pipeline and emerge as validated, runnable Playwright test scripts — with AI filling gaps where rules alone cannot, and automated checks ensuring nothing is silently dropped.
+    <strong style="display:block;margin-top:10px;">Delivered:</strong> <strong>24 billing toggle</strong> and <strong>4 DFB</strong> test scripts successfully generated through this architecture.
+  </div>
+
+  <p>The pipeline combines <strong>deterministic automation rules</strong> (proven patterns, real UI locators from application source code) with <strong>Claude AI calls</strong> at four strategic points. Every AI-generated script is reviewed by the Quality Guardian and Coverage Ensurer before it is saved.</p>
+
+  <!-- Agent roster for business -->
+  <div class="card-grid-4">
+    <div class="card agent-card" style="border-top-color:#6b46c1;">
+      <div class="alias">✦ AI Script Writer</div>
+      <div class="role">Claude · 4 generation calls</div>
+      <p>Writes and adapts test scripts from natural-language test cases. Uses Claude CLI as the primary engine; Anthropic API as backup.</p>
+    </div>
+    <div class="card agent-card">
+      <div class="alias">① Step Interpreter</div>
+      <div class="role">Agent 1 · StepProcessor</div>
+      <p>Reads each test step and understands intent — which screen, which tab, edit vs view mode, which application (BTMS/DME/TNX).</p>
+    </div>
+    <div class="card agent-card" style="border-top-color:#3182ce;">
+      <div class="alias">② Code Mapper</div>
+      <div class="role">Agent 2 · POMMethodMatcher</div>
+      <p>Maps understood steps to proven automation actions using 130+ patterns and 5,900+ real UI element IDs from application source.</p>
+    </div>
+    <div class="card agent-card" style="border-top-color:#38a169;">
+      <div class="alias">③ Quality Guardian</div>
+      <div class="role">Agent 3 · SpecValidator</div>
+      <p>Validates every generated script — auto-fixes violations, checks step coverage, enforces quality rules. Up to 2 correction passes.</p>
+    </div>
+  </div>
+  <div class="card agent-card" style="border-top-color:#9f7aea; margin-bottom: 24px;">
+    <div class="alias">④ Coverage Ensurer</div>
+    <div class="role">Agent 4 · SpecFeedbackLoop &nbsp;·&nbsp; 1 pass · up to 8 missing steps filled</div>
+    <p style="text-align:left; margin-top:8px;">Compares the finished script against the original test case. Injects code for steps that were missed; flags uncertain matches for human review; triggers a final Quality Guardian pass if changes were made.</p>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="value">24</div><div class="label">Billing toggle scripts successfully generated</div></div>
+    <div class="kpi"><div class="value">4</div><div class="label">DFB scripts successfully generated</div></div>
+    <div class="kpi"><div class="value">5,900+</div><div class="label">Real UI elements indexed from app source</div></div>
+    <div class="kpi"><div class="value">25+</div><div class="label">Auto-fix quality rules</div></div>
+  </div>
+
+  <!-- Main pipeline diagram -->
+  <div class="diagram-container">
+    <div class="diagram-title">End-to-End Pipeline — How a Test Case Becomes a Script</div>
+    <svg viewBox="0 0 920 660" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:920px;margin:0 auto;display:block;">
+      <defs>
+        <linearGradient id="agentGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#1a365d"/><stop offset="100%" style="stop-color:#2b6cb0"/></linearGradient>
+        <linearGradient id="orchGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#2c5282"/><stop offset="100%" style="stop-color:#4299e1"/></linearGradient>
+        <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/></filter>
+        <marker id="ab" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#2b6cb0"/></marker>
+        <marker id="ao" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#d69e2e"/></marker>
+        <marker id="ag" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#38a169"/></marker>
+        <marker id="ap" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#9f7aea"/></marker>
+        <marker id="ar" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#e53e3e"/></marker>
+      </defs>
+
+      <!-- Input -->
+      <rect x="290" y="8" width="340" height="44" rx="22" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5" filter="url(#shadow)"/>
+      <text x="460" y="35" text-anchor="middle" font-size="12" font-weight="600" fill="#975a16">Written Test Cases — CSV · Excel · JSON · Plain Text</text>
+
+      <!-- Prep row -->
+      <rect x="40" y="68" width="190" height="50" rx="8" fill="#ebf4ff" stroke="#3182ce" stroke-width="1" filter="url(#shadow)"/>
+      <text x="135" y="88" text-anchor="middle" font-size="10" font-weight="600" fill="#2b6cb0">Test Case Reader</text>
+      <text x="135" y="104" text-anchor="middle" font-size="8" fill="#718096">Parses steps &amp; expected results</text>
+
+      <rect x="250" y="68" width="190" height="50" rx="8" fill="#ebf4ff" stroke="#3182ce" stroke-width="1" filter="url(#shadow)"/>
+      <text x="345" y="88" text-anchor="middle" font-size="10" font-weight="600" fill="#2b6cb0">App Context Sync</text>
+      <text x="345" y="104" text-anchor="middle" font-size="8" fill="#718096">Clones BTMS + DME source repos</text>
+
+      <rect x="460" y="68" width="190" height="50" rx="8" fill="#ebf4ff" stroke="#3182ce" stroke-width="1" filter="url(#shadow)"/>
+      <text x="555" y="88" text-anchor="middle" font-size="10" font-weight="600" fill="#2b6cb0">UI Element Index</text>
+      <text x="555" y="104" text-anchor="middle" font-size="8" fill="#718096">5,900+ real HTML element IDs</text>
+
+      <!-- AI Script Writer -->
+      <rect x="670" y="62" width="210" height="62" rx="10" fill="#fefcbf" stroke="#d69e2e" stroke-width="2" filter="url(#shadow)"/>
+      <text x="775" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#975a16">✦ AI Script Writer</text>
+      <text x="775" y="100" text-anchor="middle" font-size="9" fill="#744210">Claude CLI (primary) · API (backup)</text>
+      <text x="775" y="114" text-anchor="middle" font-size="8" fill="#744210">4 AI calls — see table below</text>
+
+      <!-- AI call to reader -->
+      <path d="M135 118 L135 128 L775 128 L775 124" stroke="#d69e2e" stroke-width="1.5" stroke-dasharray="4,3" fill="none"/>
+      <text x="400" y="124" font-size="8" fill="#975a16">Call 1: enrich missing test data fields</text>
+
+      <path d="M460 52 L460 130" stroke="#d69e2e" stroke-width="2" fill="none" marker-end="url(#ao)"/>
+
+      <!-- Script Assembler -->
+      <rect x="40" y="138" width="840" height="120" rx="12" fill="url(#orchGrad)" filter="url(#shadow)"/>
+      <text x="460" y="158" text-anchor="middle" font-size="13" font-weight="700" fill="white">Script Assembler — builds the draft test script</text>
+
+      <rect x="55" y="170" width="235" height="72" rx="8" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)"/>
+      <text x="172" y="192" text-anchor="middle" font-size="11" font-weight="700" fill="white">① Step Interpreter</text>
+      <text x="172" y="208" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.8)">Understands each test step</text>
+      <text x="172" y="224" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.6)">Screen · tab · edit/view · app context</text>
+
+      <rect x="310" y="170" width="290" height="72" rx="8" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)"/>
+      <text x="455" y="192" text-anchor="middle" font-size="11" font-weight="700" fill="white">② Code Mapper</text>
+      <text x="455" y="208" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.8)">Maps steps → automation actions</text>
+      <text x="455" y="224" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.6)">130+ patterns · real UI locators · reference tests</text>
+
+      <rect x="620" y="170" width="240" height="72" rx="8" fill="#f0fff4" stroke="#38a169"/>
+      <text x="740" y="192" text-anchor="middle" font-size="11" font-weight="700" fill="#276749">Draft Script</text>
+      <text x="740" y="208" text-anchor="middle" font-size="9" fill="#276749">Assembled .spec.ts file</text>
+      <text x="740" y="224" text-anchor="middle" font-size="8" fill="#718096">→ Quality Guardian</text>
+
+      <path d="M290 206 L310 206" stroke="white" stroke-width="2" marker-end="url(#ab)"/>
+      <path d="M600 206 L620 206" stroke="#38a169" stroke-width="2" marker-end="url(#ag)"/>
+
+      <!-- AI calls into assembler -->
+      <path d="M775 124 L775 138 L455 138 L455 170" stroke="#d69e2e" stroke-width="2" stroke-dasharray="5,3" fill="none" marker-end="url(#ao)"/>
+      <text x="620" y="152" font-size="8" fill="#fefcbf" font-weight="600">Calls 2–4: full script · adapt reference · per-step</text>
+
+      <!-- Quality Guardian -->
+      <rect x="480" y="278" width="400" height="96" rx="12" fill="url(#agentGrad)" filter="url(#shadow)"/>
+      <text x="680" y="302" text-anchor="middle" font-size="13" font-weight="700" fill="white">③ Quality Guardian</text>
+      <text x="680" y="320" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">Receives: draft script + step context + Code Mapper</text>
+      <text x="680" y="338" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">25+ auto-fix rules · guardrails · step coverage check</text>
+      <text x="680" y="356" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.6)">Up to 2 correction passes · sends fixes back to Code Mapper</text>
+      <rect x="820" y="286" width="52" height="20" rx="10" fill="#fefcbf" stroke="#d69e2e"/>
+      <text x="846" y="300" text-anchor="middle" font-size="8" font-weight="700" fill="#975a16">≤2 passes</text>
+
+      <path d="M740 242 L740 260 L680 260 L680 278" stroke="#38a169" stroke-width="2.5" fill="none" marker-end="url(#ag)"/>
+      <path d="M172 242 L172 326 L480 326" stroke="#2b6cb0" stroke-width="1.5" stroke-dasharray="5,3" fill="none" marker-end="url(#ab)"/>
+      <path d="M480 320 L430 320 L430 206 L310 206" stroke="#e53e3e" stroke-width="2" stroke-dasharray="5,3" fill="none" marker-end="url(#ar)"/>
+      <text x="420" y="270" font-size="8" fill="#e53e3e" transform="rotate(-90 420 270)">fixes → Code Mapper</text>
+
+      <!-- Coverage Ensurer -->
+      <rect x="480" y="398" width="400" height="88" rx="12" fill="#faf5ff" stroke="#9f7aea" stroke-width="1.5" filter="url(#shadow)"/>
+      <text x="680" y="422" text-anchor="middle" font-size="13" font-weight="700" fill="#6b46c1">④ Coverage Ensurer</text>
+      <text x="680" y="440" text-anchor="middle" font-size="10" fill="#6b46c1">Compares script vs original test case steps</text>
+      <text x="680" y="458" text-anchor="middle" font-size="10" fill="#805ad5">Fills up to 8 missing steps · flags uncertain matches for review</text>
+      <text x="680" y="476" text-anchor="middle" font-size="9" fill="#805ad5">If changes made → re-runs Quality Guardian (1 pass)</text>
+      <rect x="820" y="406" width="52" height="20" rx="10" fill="#fefcbf" stroke="#d69e2e"/>
+      <text x="846" y="420" text-anchor="middle" font-size="8" font-weight="700" fill="#975a16">1 pass</text>
+
+      <path d="M680 374 L680 398" stroke="#9f7aea" stroke-width="2.5" fill="none" marker-end="url(#ap)"/>
+      <path d="M135 58 L135 440 L480 440" stroke="#d69e2e" stroke-width="1.5" stroke-dasharray="5,3" fill="none" marker-end="url(#ao)"/>
+      <text x="148" y="430" font-size="8" fill="#975a16">original test case steps</text>
+      <path d="M480 450 L390 450 L390 242 L310 242" stroke="#ed8936" stroke-width="2" stroke-dasharray="5,3" fill="none" marker-end="url(#ao)"/>
+      <text x="370" y="360" font-size="8" fill="#dd6b20" transform="rotate(-90 370 360)">missing steps → Script Assembler</text>
+      <path d="M880 450 L900 450 L900 360 L860 360" stroke="#e53e3e" stroke-width="2" stroke-dasharray="5,3" fill="none" marker-end="url(#ar)"/>
+
+      <!-- Governance -->
+      <rect x="40" y="278" width="200" height="68" rx="10" fill="#faf5ff" stroke="#9f7aea" stroke-width="1" filter="url(#shadow)"/>
+      <text x="140" y="300" text-anchor="middle" font-size="10" font-weight="600" fill="#6b46c1">Governance Rules</text>
+      <text x="140" y="316" text-anchor="middle" font-size="8" fill="#6b46c1">Cursor rules enforce standards</text>
+      <text x="140" y="330" text-anchor="middle" font-size="8" fill="#6b46c1">across all agents &amp; AI calls</text>
+      <path d="M240 312 L480 312" stroke="#9f7aea" stroke-width="1" stroke-dasharray="4,3"/>
+
+      <!-- Output -->
+      <path d="M680 486 L680 512" stroke="#38a169" stroke-width="2.5" fill="none" marker-end="url(#ag)"/>
+      <rect x="510" y="518" width="340" height="50" rx="10" fill="#f0fff4" stroke="#38a169" stroke-width="1.5" filter="url(#shadow)"/>
+      <text x="680" y="540" text-anchor="middle" font-size="12" font-weight="600" fill="#276749">✓ Runnable Playwright Test Script</text>
+      <text x="680" y="556" text-anchor="middle" font-size="9" fill="#276749">Ready for CI · Allure reports · Testmo submission</text>
+
+      <!-- Legend -->
+      <rect x="40" y="590" width="840" height="58" rx="8" fill="#ebf4ff" stroke="#90cdf4"/>
+      <text x="55" y="610" font-size="9" fill="#2b6cb0" font-weight="700">LEGEND</text>
+      <line x1="100" y1="606" x2="135" y2="606" stroke="#38a169" stroke-width="2"/><text x="140" y="610" font-size="9" fill="#4a5568">Forward flow</text>
+      <line x1="210" y1="606" x2="245" y2="606" stroke="#d69e2e" stroke-width="2" stroke-dasharray="4,3"/><text x="250" y="610" font-size="9" fill="#4a5568">AI Script Writer calls</text>
+      <line x1="370" y1="606" x2="405" y2="606" stroke="#e53e3e" stroke-width="2" stroke-dasharray="4,3"/><text x="410" y="610" font-size="9" fill="#4a5568">Self-healing correction loop</text>
+      <text x="55" y="632" font-size="9" fill="#4a5568">Quality Guardian: ≤2 passes · Coverage Ensurer: 1 pass (max 8 steps filled) · AI calls always followed by rule-based validation</text>
+    </svg>
+  </div>
+
+  <!-- AI Calls table - business friendly -->
+  <div class="card" style="border-top:4px solid #d69e2e;">
+    <h3>✦ AI Script Writer — Four Claude Calls in the Pipeline</h3>
+    <p style="margin-bottom:16px;">Claude is invoked at four strategic points. Each call uses governed prompts (framework schema, quality rules, reference test patterns). If a call cannot produce a result, the pipeline falls back to the next tier automatically.</p>
+    <table>
+      <thead>
+        <tr><th>Call</th><th>Business Name</th><th>What It Does</th><th>When It Runs</th><th>If It Fails</th></tr>
+      </thead>
+      <tbody>
+        <tr class="highlight-row">
+          <td><span class="tag tag-ai">Call 1</span></td>
+          <td><strong>Data Enricher</strong></td>
+          <td>Fills in missing test data fields (customer name, rates, office code, etc.) that could not be parsed from the written test case</td>
+          <td>Before script generation, when test data is incomplete</td>
+          <td>Continues with partial data; warning logged</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-ai">Call 2</span></td>
+          <td><strong>Full Script Writer</strong></td>
+          <td>Writes the entire test script in one pass, using a proven reference test as a structural template</td>
+          <td>First attempt for every test case (when ≤ 40 steps and a reference exists)</td>
+          <td>Falls back to Call 3 or rule-based generation</td>
+        </tr>
+        <tr class="highlight-row">
+          <td><span class="tag tag-ai">Call 3</span></td>
+          <td><strong>Smart Adapter</strong></td>
+          <td>Clones a proven reference test and rewrites only the steps that differ from the new test case</td>
+          <td>When the new test case is ≥ 70% similar to an existing automated test</td>
+          <td>Keeps reference code or falls back to Call 4</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-ai">Call 4</span></td>
+          <td><strong>Step Writer</strong></td>
+          <td>Writes automation code for individual steps that no rule or pattern could match</td>
+          <td>Last resort — when Step Interpreter + Code Mapper cannot resolve a step</td>
+          <td>Placeholder flagged for manual completion</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:13px;margin-top:14px;margin-bottom:0;color:var(--text-light);">
+      <strong>AI engine:</strong> Claude Sonnet 4.6 via <strong>Claude CLI</strong> (primary) → Anthropic API (secondary fallback if CLI unavailable).
+      <strong>Generation order:</strong> Call 2 → Call 3 → Rule-based (Step Interpreter + Code Mapper) → Call 4.
+      <strong>Safety net:</strong> All AI output passes through Quality Guardian and Coverage Ensurer before saving.
+    </p>
+  </div>
+
+  <!-- Agent detail table -->
+  <div class="card">
+    <h3>Agent Roster — Business Names &amp; Responsibilities</h3>
+    <table>
+      <thead>
+        <tr><th>Business Name</th><th>Technical Component</th><th>Role</th><th>Inputs</th><th>Output / Loops</th></tr>
+      </thead>
+      <tbody>
+        <tr class="highlight-row">
+          <td><strong>✦ AI Script Writer</strong></td>
+          <td class="tech-col">LLMService · LLMPrompts</td>
+          <td>4 Claude calls for data enrichment and script generation</td>
+          <td>Test case text · reference tests · framework schema</td>
+          <td>Enriched data or generated script code → Script Assembler</td>
+        </tr>
+        <tr>
+          <td><strong>① Step Interpreter</strong></td>
+          <td class="tech-col">Agent 1 · StepProcessor</td>
+          <td>Understands what each written step means in application context</td>
+          <td>Raw step text from Test Case Reader</td>
+          <td>Structured step context → Code Mapper + Quality Guardian</td>
+        </tr>
+        <tr class="highlight-row">
+          <td><strong>② Code Mapper</strong></td>
+          <td class="tech-col">Agent 2 · POMMethodMatcher</td>
+          <td>Maps understood steps to proven automation actions</td>
+          <td>Step context · UI element index · 130+ patterns</td>
+          <td>Draft script · also receives correction requests from Agents 3 &amp; 4</td>
+        </tr>
+        <tr>
+          <td><strong>③ Quality Guardian</strong></td>
+          <td class="tech-col">Agent 3 · SpecValidator</td>
+          <td>Validates and auto-fixes the script against quality rules</td>
+          <td>Draft script · step context · Code Mapper</td>
+          <td>Validated script → Coverage Ensurer · ≤2 passes · loops to Code Mapper on violations</td>
+        </tr>
+        <tr class="highlight-row">
+          <td><strong>④ Coverage Ensurer</strong></td>
+          <td class="tech-col">Agent 4 · SpecFeedbackLoop</td>
+          <td>Ensures every written test step appears in the final script</td>
+          <td>Validated script · original test case steps</td>
+          <td>Complete script · 1 pass · max 8 missing steps filled · re-runs Quality Guardian if changed</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card-grid">
+    <div class="card" style="border-top:4px solid var(--success);">
+      <h3>What Goes In</h3>
+      <ul style="font-size:14px;padding-left:18px;line-height:2;">
+        <li>Written test cases — CSV catalog, Excel, JSON, or plain text</li>
+        <li>Step-by-step actions and expected results per test case</li>
+        <li>Runtime test data per category (customer, rates, office, etc.)</li>
+        <li>Application source code (BTMS + DME repos) for real UI locators</li>
+      </ul>
+    </div>
+    <div class="card" style="border-top:4px solid var(--primary);">
+      <h3>What Comes Out</h3>
+      <ul style="font-size:14px;padding-left:18px;line-height:2;">
+        <li>Executable Playwright <code>.spec.ts</code> test scripts — <strong>24 billing toggle</strong> and <strong>4 DFB</strong> successfully generated to date</li>
+        <li>Organized by product category (DFB, billing toggle, EDI, etc.)</li>
+        <li>Traceable to original test case step numbers</li>
+        <li>Parsed data from test cases saved to dedicated module data files</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Governance &amp; Evidence — How Quality Is Enforced</h3>
+    <table>
+      <thead><tr><th>Artifact</th><th>What It Ensures</th><th>Type</th></tr></thead>
+      <tbody>
+        <tr class="highlight-row"><td>Cursor governance rules</td><td>Architecture standards, spec guardrails, POM protection — applied to every generation and AI call</td><td><span class="tag tag-ok">Always on</span></td></tr>
+        <tr><td>130+ automation patterns</td><td>Proven step-to-code mappings — deterministic, no guessing</td><td><span class="tag tag-rule">Rule-based</span></td></tr>
+        <tr class="highlight-row"><td>5,900+ indexed UI elements</td><td>Real locators from application source — never fabricated</td><td><span class="tag tag-rule">App source</span></td></tr>
+        <tr><td>Reference test catalog</td><td>Proven tests cloned when new case is ≥ 70% similar</td><td><span class="tag tag-rule">Pattern reuse</span></td></tr>
+        <tr class="highlight-row"><td>25+ auto-fix rules</td><td>Quality Guardian corrects common issues before human review</td><td><span class="tag tag-rule">Self-healing</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ SECTION 2 ═══ -->
+<div class="section" id="upstream-gaps">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <h2>Upstream Gaps &amp; Next Steps</h2>
+  </div>
+
+  <div class="impact-banner">
+    <strong>The pipeline is built and working — but its effectiveness depends on the quality of inputs.</strong>
+    Thin test cases, undocumented business rules, or restricted application access will limit what the agents and AI Script Writer can produce.
+  </div>
+
+  <div class="card-grid">
+    <div class="card issue-card">
+      <h3>① Test Cases Lack Sufficient Detail</h3>
+      <ul style="font-size:14px;padding-left:18px;line-height:1.9;margin-top:8px;">
+        <li>Testmo cases must include full step-by-step actions and expected outcomes — the agents cannot work from high-level summaries</li>
+        <li>Manual QA spends <strong>3–5 hours per test case</strong> reaching that level of detail — the largest upstream effort today</li>
+        <li>Without sufficient detail, automated spec generation is inaccurate and requires heavy manual correction</li>
+      </ul>
+    </div>
+    <div class="card issue-card">
+      <h3>② Tribal Knowledge — Scenarios Without Executable Steps</h3>
+      <ul style="font-size:14px;padding-left:18px;line-height:1.9;margin-top:8px;">
+        <li>Test scenarios and business context exist in JIRA and team knowledge — the <strong>what</strong> is often documented</li>
+        <li>Detailed step-by-step instructions the agent pipeline can use are frequently missing — the <strong>how</strong> is not</li>
+        <li>Without agent-ready steps, precondition paths and business rules cannot be automated reliably</li>
+      </ul>
+    </div>
+    <div class="card issue-card">
+      <h3>③ Limited Application Source Access</h3>
+      <p>The UI Element Index currently syncs BTMS and DME repos only. Other products under test may lack ingested context for locator discovery.</p>
+      <ul style="font-size:14px;padding-left:18px;line-height:1.9;margin-top:8px;">
+        <li>Without source access, the Code Mapper cannot discover new UI element IDs</li>
+        <li>Broader repo sync permissions needed for full product coverage</li>
+      </ul>
+    </div>
+    <div class="card issue-card">
+      <h3>④ Execution Time — Monolithic Scripts</h3>
+      <p>Large test cases become single long-running scripts rather than phased, reusable segments — increasing run time and debug effort.</p>
+      <ul style="font-size:14px;padding-left:18px;line-height:1.9;margin-top:8px;">
+        <li>No decomposition into shared preconditions or phased build-up</li>
+        <li>Multi-app flows (BTMS → DME → TNX) multiply wall-clock time per run</li>
+        <li>Example: DFB-89214 — 768 lines, 103 steps, three applications</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="border-left:4px solid var(--success);">
+    <h3>Recommended Next Steps</h3>
+    <div class="card-grid" style="margin-bottom:0;">
+      <ul style="font-size:14px;padding-left:18px;line-height:2.2;">
+        <li>Enrich test cases with explicit expected results per step</li>
+        <li>Add agent-ready step detail to JIRA scenarios</li>
+        <li>Approve additional application repo sync for products under test</li>
+      </ul>
+      <ul style="font-size:14px;padding-left:18px;line-height:2.2;">
+        <li>Decompose large cases into phased specs or shared fixtures</li>
+        <li>Grow the reference test catalog per category</li>
+        <li>Cap step count per generated script with continuation links</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <p><strong>R Systems International</strong> | Confidential — Prepared for Mode Global</p>
+  <p style="margin-top:8px;opacity:0.7;">Agentic Test Automation Pipeline · SunTeck TMS · June 2026</p>
+</div>
+
+</body>
+</html>

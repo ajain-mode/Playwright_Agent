@@ -885,5 +885,22 @@ class TNXLandingPage {
     const tnxOfferRate = await this.getLoadOfferRateValue();
     return tnxOfferRate.replace(/[\$,]/g, '').split('.')[0];
   }
+
+  /**
+   * Selects org when `orgSelector` is visible within a bounded timeout (fails fast if TNX shell changed).
+   * @author AI Agent
+   * @created 2026-07-16
+   * @param orgText - Organization label
+   * @param timeoutMs - Max wait for org selector (default WAIT.XLARGE)
+   */
+  async selectOrganizationByTextBounded(
+    orgText: string,
+    timeoutMs: number = WAIT.XLARGE,
+  ): Promise<void> {
+    await this.page.waitForLoadState("domcontentloaded");
+    await this.orgSelectorDropdown_LOC.waitFor({ state: "visible", timeout: timeoutMs });
+    await this.orgSelectorDropdown_LOC.selectOption({ label: orgText });
+    console.log(`✅ Selected organization (bounded): ${orgText}`);
+  }
 }
 export default TNXLandingPage;

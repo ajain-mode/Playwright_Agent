@@ -358,6 +358,57 @@ export default class ViewLoadPage {
     await this.page.waitForLoadState("domcontentloaded");
     await this.dropTab_LOC.click();
   }
+
+  /**
+   * Opens the first stop tab — classic Pick_1_1 or Centralized Location_1_1.
+   * @author AI Agent
+   * @created 2026-07-17
+   * Locator source: loadform.php showMainTab('Pick_1_1' | 'Location_1_1')
+   */
+  async clickPickOrFirstLocationTab(): Promise<void> {
+    await this.page.waitForLoadState("domcontentloaded");
+    const pick = this.page.locator("a[href*=\"Pick_1_1\"]");
+    if (await pick.first().isVisible().catch(() => false)) {
+      await pick.first().click();
+      return;
+    }
+    const location = this.page.locator("a[href*=\"Location_1_1\"]");
+    await location.first().waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await location.first().click();
+  }
+
+  /**
+   * Opens the second stop tab — classic Drop_1_1 or Centralized Location_1_2.
+   * @author AI Agent
+   * @created 2026-07-17
+   * Locator source: loadform.php showMainTab('Drop_1_1' | 'Location_1_2')
+   */
+  async clickDropOrSecondLocationTab(): Promise<void> {
+    await this.page.waitForLoadState("domcontentloaded");
+    const drop = this.page.locator("a[href*=\"Drop_1_1\"]");
+    if (await drop.first().isVisible().catch(() => false)) {
+      await drop.first().click();
+      return;
+    }
+    const location = this.page.locator("a[href*=\"Location_1_2\"]");
+    await location.first().waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await location.first().click();
+  }
+
+  /**
+   * Clicks Overlay on View Load to apply a pending EDI 204 onto the load.
+   * @author AI Agent
+   * @created 2026-07-17
+   * Locator source: loadform header button `value` Overlay
+   */
+  async clickOverlayButton(): Promise<void> {
+    await this.page.waitForLoadState("domcontentloaded");
+    const overlay = this.page.getByRole("button", { name: /^Overlay$/i });
+    await overlay.first().waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await overlay.first().click();
+    await this.page.waitForLoadState("domcontentloaded");
+  }
+
   /**
    * Clicks on the EDI tab
    * @author Rohit Singh

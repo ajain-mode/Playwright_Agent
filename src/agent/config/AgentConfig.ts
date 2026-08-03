@@ -59,8 +59,8 @@ export class AgentConfig {
       'BTMSLoginPage', 'BTMSAcceptTermPage', 'CustomerPortalLogin', 'DMELoginPage',
       'LegacyCustomerPortalLogin', 'TNXLoginPage', 'TNXRepLoginPage', 'TRITANLoginPage'
     ],
-    admin: ['AdminPage', 'OfficePage', 'SimulateEDispatch', 'ViewOfficeInfoPage', 'EditOfficeInfoPage'],
-    customers: ['CustomerPage', 'EditCustomerPage', 'SearchCustomerPage', 'ViewCustomerPage', 'ViewMasterCustomerPage'],
+    admin: ['AdminPage', 'OfficePage', 'SimulateEDispatch', 'ViewOfficeInfoPage', 'EditOfficeInfoPage', 'AdminParseEdiPage'],
+    customers: ['CustomerPage', 'EditCustomerPage', 'SearchCustomerPage', 'ViewCustomerPage', 'ViewMasterCustomerPage', 'CustomerEdiPrefsPage'],
     finance: ['FinancePage', 'AccountsPayablePage', 'BillingAdjustmentsQueue', 'BillingQueuePage', 'OfficeCommissionsDetailPage'],
     home: ['HomePage', 'PostAutomationRulePage'],
     salesLead: ['NewSalesLeadPage', 'MySalesLeadPage', 'ViewSalesLeadPage', 'AccountClearanceQueuePage'],

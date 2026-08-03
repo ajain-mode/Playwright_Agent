@@ -414,4 +414,31 @@ export default class LTLQuoteRequestPage {
         console.log("No rates returned for volume quote as expected.");
         await expect.soft(this.noRatesMessage_LOC).toBeVisible({ timeout: WAIT.MID });
     }
+
+    /**
+     * Returns tariff results table text for carrier / mode assertions.
+     * Locator: `#rating_engine_results_table` (LTL quote rating results).
+     * @author AI Agent
+     * @created 2026-07-15
+     * @returns Visible tariff table inner text
+     */
+    async getTariffTableText(): Promise<string> {
+        await this.tariffTable.waitFor({ state: "visible", timeout: WAIT.XLARGE });
+        return (await this.tariffTable.innerText()) || "";
+    }
+
+    /**
+     * Asserts ODFL and/or ABF appear in tariff rates (not Estes-only).
+     * @author AI Agent
+     * @created 2026-07-15
+     */
+    async verifyVolumeQuoteIncludesOdflOrAbf(): Promise<void> {
+        const text = await this.getTariffTableText();
+        const hasOdfl = text.toUpperCase().includes(BANYAN_VOLUME_QUOTE.CARRIER_ODFL.toUpperCase());
+        const hasAbf = text.toUpperCase().includes(BANYAN_VOLUME_QUOTE.CARRIER_ABF.toUpperCase());
+        expect(
+            hasOdfl || hasAbf,
+            `Expected ODFL and/or ABF in tariff rates; table text:\n${text}`,
+        ).toBe(true);
+    }
 }

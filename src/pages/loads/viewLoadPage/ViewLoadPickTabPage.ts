@@ -225,4 +225,25 @@ export default class ViewLoadPickTabPage {
     return await this.pickInMinutesValue_LOC.innerText();
   }
 
+  /**
+   * Reads shipper/stop name from classic Pick view or Centralized Location view.
+   * @author AI Agent
+   * @created 2026-07-17
+   * @returns Stop name text
+   * Locator source: loadform.php stop name cell / Location tab Name row
+   */
+  async getVisibleStopName(): Promise<string> {
+    if (await this.pickOneNameValue_LOC.isVisible().catch(() => false)) {
+      return (await this.pickOneNameValue_LOC.textContent())?.trim() ?? "";
+    }
+    // Centralized Location tab (view mode) — Name label + sibling value cell
+    const locationName = this.page
+      .locator("td")
+      .filter({ hasText: /^Name$/ })
+      .locator("xpath=following-sibling::td[1]")
+      .first();
+    await locationName.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    return (await locationName.textContent())?.trim() ?? "";
+  }
+
 }

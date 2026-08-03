@@ -1,0 +1,775 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic "BTMS STAGING": BTMS STAGING BTMS STAGING
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - link "SunteckTTS TMS" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "SunteckTTS TMS" [ref=e8]
+      - list [ref=e9]:
+        - listitem [ref=e10]:
+          - link "Home" [ref=e11] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e12]: Home
+        - listitem [ref=e13]:
+          - link "Customers" [ref=e14] [cursor=pointer]:
+            - /url: /web/customers/main
+            - generic [ref=e15]: Customers
+        - listitem [ref=e16]:
+          - link "Loads" [ref=e17] [cursor=pointer]:
+            - /url: /web/loads/main
+            - generic [ref=e18]: Loads
+        - listitem [ref=e19]:
+          - link "Carriers" [ref=e20] [cursor=pointer]:
+            - /url: /web/carriers/main
+            - generic [ref=e21]: Carriers
+      - generic [ref=e22]:
+        - button "" [ref=e23] [cursor=pointer]:
+          - generic [ref=e24]: 
+        - text: 
+      - list [ref=e26]:
+        - listitem [ref=e27]:
+          - link "BRENT DURHAM" [ref=e28] [cursor=pointer]:
+            - /url: /web/admin/main
+            - text: BRENT DURHAM
+            - generic [ref=e29]: 
+    - table [ref=e31]:
+      - rowgroup [ref=e32]:
+        - row [ref=e33]:
+          - cell [ref=e34]:
+            - generic [ref=e36]:
+              - table [ref=e40]:
+                - rowgroup [ref=e41]:
+                  - 'row "View Load #16239797 Centralized View Billing View Edit Overlay Duplicate Template Save Save & Return Return" [ref=e42]':
+                    - 'cell "View Load #16239797 Centralized" [ref=e43]':
+                      - text: "View Load #16239797"
+                      - generic "Centralized Load" [ref=e44]: Centralized
+                    - cell "View Billing View Edit Overlay Duplicate Template Save Save & Return Return" [ref=e45]:
+                      - generic [ref=e46]:
+                        - button "View Billing" [ref=e47] [cursor=pointer]
+                        - button "View" [disabled] [ref=e48]
+                        - button "Edit" [ref=e49] [cursor=pointer]
+                        - button "Overlay" [ref=e50] [cursor=pointer]
+                        - button "Duplicate" [ref=e51] [cursor=pointer]
+                        - button "Template" [ref=e52] [cursor=pointer]
+                        - button "Save" [ref=e53] [cursor=pointer]
+                        - button "Save & Return" [ref=e54] [cursor=pointer]
+                        - button "Return" [ref=e55] [cursor=pointer]
+              - link "" [ref=e57] [cursor=pointer]:
+                - /url: javascript:void(0)
+                - generic [ref=e58]: 
+              - generic:
+                - list:
+                  - listitem:
+                    - link "Load" [ref=e59] [cursor=pointer]:
+                      - /url: javascript:showMainTab('Load')
+                  - listitem:
+                    - link "Customer" [ref=e60] [cursor=pointer]:
+                      - /url: javascript:showMainTab('Customer')
+                  - listitem:
+                    - generic [ref=e61]: Carrier
+                  - listitem:
+                    - link "Pick" [ref=e62] [cursor=pointer]:
+                      - /url: javascript:showMainTab('Pick_1_1')
+                  - listitem:
+                    - link "Drop" [ref=e63] [cursor=pointer]:
+                      - /url: javascript:showMainTab('Drop_1_2')
+                  - listitem:
+                    - link "EDI" [ref=e64] [cursor=pointer]:
+                      - /url: javascript:showMainTab('EDI')
+              - generic:  
+              - table [ref=e68]:
+                - rowgroup [ref=e69]:
+                  - row [ref=e70]:
+                    - cell [ref=e71]:
+                      - table [ref=e72]:
+                        - rowgroup [ref=e73]:
+                          - row [ref=e74]:
+                            - cell [ref=e75]:
+                              - table [ref=e76]:
+                                - rowgroup [ref=e77]:
+                                  - row [ref=e78]:
+                                    - cell "Your Predicted Rate $5,875.00 Confidence Level MODERATE Source Avg Rate Reports MODE $0.00 0 DAT $5,881.20 8 ITS $0.00 0 BIDS $2,000.00 68 *Offer Rate $ 2000.00 Digital Freight Board Post Status MATCHED Last posted Details Last Posted Details Origin Zip 72701 Destination Zip 93725 Equipment FLATBED Load Method TruckLoad Offer Rate $2000.00 *Expiration Time 11:00 *Expiration Date 07/17/2026 *Email for Notifications Commodity Notes Carrier Auto Accept Auto accept Conditions Carrier Contact for Rate Confirmation Select a carrier user... Include Carriers View Details Exclude Carriers View Details Create Rule Clear Form Post No Carrier Selected Special Instructions for BOL Available Trucks (0) BID HISTORY CARRIER NOTES LANE HISTORYFAYETTEVILLE AR | FRESNO CA | TL | last 18 mo | 25 mi radius CARRIER MATCH" [ref=e79]:
+                                      - generic [ref=e80]:
+                                        - generic [ref=e82]:
+                                          - generic [ref=e83]: Your Predicted Rate
+                                          - heading "$5,875.00" [level=2] [ref=e85]:
+                                            - strong [ref=e86]: $5,875.00
+                                          - generic [ref=e87]:
+                                            - text: Confidence Level
+                                            - generic [ref=e89]: MODERATE
+                                        - table [ref=e93]:
+                                          - rowgroup [ref=e94]:
+                                            - row "Source Avg Rate Reports" [ref=e95]:
+                                              - columnheader "Source" [ref=e96]
+                                              - columnheader "Avg Rate" [ref=e97]
+                                              - columnheader "Reports" [ref=e98]
+                                          - rowgroup [ref=e99]:
+                                            - row "MODE $0.00 0" [ref=e100]:
+                                              - cell "MODE" [ref=e101]:
+                                                - strong [ref=e102]: MODE
+                                              - cell "$0.00" [ref=e103]
+                                              - cell "0" [ref=e104]
+                                            - row "DAT $5,881.20 8" [ref=e105]:
+                                              - cell "DAT" [ref=e106]:
+                                                - strong [ref=e107]: DAT
+                                              - cell "$5,881.20" [ref=e108]
+                                              - cell "8" [ref=e109]
+                                            - row "ITS $0.00 0" [ref=e110]:
+                                              - cell "ITS" [ref=e111]:
+                                                - strong [ref=e112]: ITS
+                                              - cell "$0.00" [ref=e113]
+                                              - cell "0" [ref=e114]
+                                            - row "BIDS $2,000.00 68" [ref=e115]:
+                                              - cell "BIDS" [ref=e116]:
+                                                - strong [ref=e117]: BIDS
+                                              - cell "$2,000.00" [ref=e118]
+                                              - cell "68" [ref=e119]
+                                        - generic [ref=e120]:
+                                          - generic [ref=e121]: "*Offer Rate"
+                                          - generic [ref=e122]:
+                                            - text: $
+                                            - spinbutton [ref=e123]: "2000.00"
+                                      - generic [ref=e124]:
+                                        - separator [ref=e125]
+                                        - generic [ref=e127]:
+                                          - generic [ref=e128]: Digital Freight Board
+                                          - generic [ref=e130]:
+                                            - generic [ref=e131]: Post Status
+                                            - generic [ref=e132]: MATCHED
+                                            - img "Last posted Details" [ref=e133]
+                                            - generic [ref=e134]:
+                                              - generic [ref=e135]: Last Posted Details
+                                              - table [ref=e136]:
+                                                - rowgroup [ref=e137]:
+                                                  - row "Origin Zip 72701" [ref=e138]:
+                                                    - cell "Origin Zip" [ref=e139]
+                                                    - cell "72701" [ref=e140]
+                                                  - row "Destination Zip 93725" [ref=e141]:
+                                                    - cell "Destination Zip" [ref=e142]
+                                                    - cell "93725" [ref=e143]
+                                                  - row "Equipment FLATBED" [ref=e144]:
+                                                    - cell "Equipment" [ref=e145]
+                                                    - cell "FLATBED" [ref=e146]
+                                                  - row "Load Method TruckLoad" [ref=e147]:
+                                                    - cell "Load Method" [ref=e148]
+                                                    - cell "TruckLoad" [ref=e149]
+                                                  - row "Offer Rate $2000.00" [ref=e150]:
+                                                    - cell "Offer Rate" [ref=e151]
+                                                    - cell "$2000.00" [ref=e152]
+                                        - generic [ref=e153]:
+                                          - generic [ref=e155]:
+                                            - generic [ref=e156]:
+                                              - generic [ref=e157]: "*Expiration Time"
+                                              - textbox "*Expiration Time" [disabled]: 11:00
+                                            - generic [ref=e158]:
+                                              - generic [ref=e159]: "*Expiration Date"
+                                              - textbox "*Expiration Date" [disabled]: 07/17/2026
+                                            - generic [ref=e160]:
+                                              - generic [ref=e161]: "*Email for Notifications"
+                                              - listbox [disabled] [ref=e162]:
+                                                - option [ref=e163]: aaron.gagnon@suntecktts.com
+                                                - option [ref=e164]: abigail.fallon@suntecktts.com
+                                                - option [ref=e165]: adrian.patton@suntecktts.com
+                                                - option [ref=e166]: alejandro.petro@suntecktts.com
+                                                - option [ref=e167]: alex.golen@suntecktts.com
+                                                - option [ref=e168]: alison.wortman@suntecktts.com
+                                                - option [ref=e169]: allie.greer@suntecktts.com
+                                                - option [ref=e170]: ally.winters@suntecktts.com
+                                                - option [ref=e171]: amanda.chapman@suntecktts.com
+                                                - option [ref=e172]: amanda.young@suntecktts.com
+                                                - option [ref=e173]: amber.rish@suntecktts.com
+                                                - option [ref=e174]: amy.scott@suntecktts.com
+                                                - option [ref=e175]: andres.pastrana@suntecktts.com
+                                                - option [ref=e176]: andrew.childers@suntecktts.com
+                                                - option [ref=e177]: andrew.naraine@suntecktts.com
+                                                - option [ref=e178]: andrew.sammon@suntecktts.com
+                                                - option [ref=e179]: annabeth.rinehart@suntecktts.com
+                                                - option [ref=e180]: anthony.merlo@suntecktts.com
+                                                - option [ref=e181]: ardagh@modeglobal.com
+                                                - option [ref=e182]: ariel.fantasia@suntecktts.com
+                                                - option [ref=e183]: ashley.floyd@suntecktts.com
+                                                - option [ref=e184]: ashley.franks@suntecktts.com
+                                                - option [ref=e185]: ashley.loague@suntecktts.com
+                                                - option [ref=e186]: ashlye.box@suntecktts.com
+                                                - option [ref=e187]: athomas@ardentx.com
+                                                - option [ref=e188]: autumn.kemler@modetransportation.com
+                                                - option [ref=e189]: becky.white@suntecktts.com
+                                                - option [ref=e190]: ben.buckner@avengerlogistics.com
+                                                - option [ref=e191]: ben.howard@suntecktts.com
+                                                - option [ref=e192]: benjamin.dove@suntecktts.com
+                                                - option [ref=e193]: blake.burris@avengerlogistics.com
+                                                - option [ref=e194]: blake.schofield@ardentx.com
+                                                - option [ref=e195]: bob.grogan@modetransportation.com
+                                                - option [ref=e196]: bob.knoepfel@suntecktts.com
+                                                - option [ref=e197]: bob.steele@avengerlogistics.com
+                                                - option [ref=e198]: bobby.koenig@modetransportation.com
+                                                - option [ref=e199]: brad.lutman@modetransportation.com
+                                                - option [ref=e200]: bradyn.denton@suntecktts.com
+                                                - option [ref=e201]: brandi.kyle@suntecktts.com
+                                                - option [ref=e202]: bre.shepard@suntecktts.com
+                                                - option [ref=e203]: brendan.ondick@modetransportation.com
+                                                - option [ref=e204]: brenfro@ardentx.com
+                                                - option [selected] [ref=e205]: brent.durham@suntecktts.com
+                                                - option [ref=e206]: brian.mensinger@suntecktts.com
+                                                - option [ref=e207]: brian.schmid@suntecktts.com
+                                                - option [ref=e208]: brian.sewak@ardentx.com
+                                                - option [ref=e209]: brittany.adkins@suntecktts.com
+                                                - option [ref=e210]: brittany.ernst@suntecktts.com
+                                                - option [ref=e211]: bwhite@ardentx.com
+                                                - option [ref=e212]: caitlyn.smith@suntecktts.com
+                                                - option [ref=e213]: cali.cole@suntecktts.com
+                                                - option [ref=e214]: cami.chrestman@suntecktts.com
+                                                - option [ref=e215]: carrie.botts@suntecktts.com
+                                                - option [ref=e216]: carry.franklin@suntecktts.com
+                                                - option [ref=e217]: caryn.gillean@suntecktts.com
+                                                - option [ref=e218]: cdemelle@halogistics.com
+                                                - option [ref=e219]: charles.lane@avengerlogistics.com
+                                                - option [ref=e220]: chase.camp@suntecktts.com
+                                                - option [ref=e221]: chelsey.lawson@avengerlogistics.com
+                                                - option [ref=e222]: chris.bass@modeglobal.com
+                                                - option [ref=e223]: chris.grunditz@suntecktts.com
+                                                - option [ref=e224]: chris.heiserman@modetransportation.com
+                                                - option [ref=e225]: christin.malone@suntecktts.com
+                                                - option [ref=e226]: christopher.altemus@suntecktts.com
+                                                - option [ref=e227]: christopher.andersen@suntecktts.com
+                                                - option [ref=e228]: christopher.decapua@suntecktts.com
+                                                - option [ref=e229]: conan.spears@suntecktts.com
+                                                - option [ref=e230]: connor.laiewski@suntecktts.com
+                                                - option [ref=e231]: d.adam@suntecktts.com
+                                                - option [ref=e232]: david.schwartz@suntecktts.com
+                                                - option [ref=e233]: delaynne.taylor@suntecktts.com
+                                                - option [ref=e234]: demetrius.gilbert@ardentx.com
+                                                - option [ref=e235]: dispatch@modetransportation.com
+                                                - option [ref=e236]: dj.wiles@suntecktts.com
+                                                - option [ref=e237]: donald.mckenna@suntecktts.com
+                                                - option [ref=e238]: dsudak@ardentx.com
+                                                - option [ref=e239]: duban.cruz@suntecktts.com
+                                                - option [ref=e240]: dwayne.reedy@suntecktts.com
+                                                - option [ref=e241]: dylan.graham@suntecktts.com
+                                                - option [ref=e242]: eastpenn@avengerlogistics.com
+                                                - option [ref=e243]: eddie.morin@modetransportation.com
+                                                - option [ref=e244]: edgar.garza@modeglobal.com
+                                                - option [ref=e245]: eftracking@modetransportation.com
+                                                - option [ref=e246]: eludecke@ardentx.com
+                                                - option [ref=e247]: eric.gilmore@suntecktts.com
+                                                - option [ref=e248]: eric.siu@suntecktts.com
+                                                - option [ref=e249]: frankie.hinds@suntecktts.com
+                                                - option [ref=e250]: fred.fabrizio@suntecktts.com
+                                                - option [ref=e251]: gary.dove@suntecktts.com
+                                                - option [ref=e252]: gemma.perez@suntecktts.com
+                                                - option [ref=e253]: georgi.cressman@modetransportation.com
+                                                - option [ref=e254]: gieze.ababa@suntecktts.com
+                                                - option [ref=e255]: glen.hinds@suntecktts.com
+                                                - option [ref=e256]: haleontracking@modetransportation.com
+                                                - option [ref=e257]: hamp.shaw@suntecktts.com
+                                                - option [ref=e258]: happyrobotuser@modeglobal.com
+                                                - option [ref=e259]: hayden.westerfield@suntecktts.com
+                                                - option [ref=e260]: hydrofarm.otr@suntecktts.com
+                                                - option [ref=e261]: jack.howard@suntecktts.com
+                                                - option [ref=e262]: jackie.vazquez@modetransportation.com
+                                                - option [ref=e263]: jacob.fink@avengerlogistics.com
+                                                - option [ref=e264]: jake.clanton@suntecktts.com
+                                                - option [ref=e265]: james.snipes@suntecktts.com
+                                                - option [ref=e266]: jamie.kennedy@modetransportation.com
+                                                - option [ref=e267]: jason.alford@suntecktts.com
+                                                - option [ref=e268]: jennifer.gonzalez@suntecktts.com
+                                                - option [ref=e269]: jennifer.spears@suntecktts.com
+                                                - option [ref=e270]: jeremy.buchanan@modeglobal.com
+                                                - option [ref=e271]: jesse.l.sanchez@modetransportation.com
+                                                - option [ref=e272]: jessica.fleming@suntecktts.com
+                                                - option [ref=e273]: jessica.lee@suntecktts.com
+                                                - option [ref=e274]: jevat.biba@suntecktts.com
+                                                - option [ref=e275]: jimmy.ferlaino@suntecktts.com
+                                                - option [ref=e276]: joe.montgomery@avengerlogistics.com
+                                                - option [ref=e277]: john.agustin@suntecktts.com
+                                                - option [ref=e278]: john.blancarte@suntecktts.com
+                                                - option [ref=e279]: john.pendel@modetransportation.com
+                                                - option [ref=e280]: jonathan.morgan@suntecktts.com
+                                                - option [ref=e281]: joshua.wynn@suntecktts.com
+                                                - option [ref=e282]: jprevatt@ardentx.com
+                                                - option [ref=e283]: justin.kahoun@modetransportation.com
+                                                - option [ref=e284]: kalisha.peralta@modetransportation.com
+                                                - option [ref=e285]: kalisha.webb@modetransportation.com
+                                                - option [ref=e286]: karen.leach@suntecktts.com
+                                                - option [ref=e287]: karlie.hall@suntecktts.com
+                                                - option [ref=e288]: katie.denton@suntecktts.com
+                                                - option [ref=e289]: katie.durham@suntecktts.com
+                                                - option [ref=e290]: katie.kimble@suntecktts.com
+                                                - option [ref=e291]: katie.thacker@avengerlogistics.com
+                                                - option [ref=e292]: kay.harbin@suntecktts.com
+                                                - option [ref=e293]: keisha.bland@suntecktts.com
+                                                - option [ref=e294]: kelsey.brooks@suntecktts.com
+                                                - option [ref=e295]: kim.mullis@suntecktts.com
+                                                - option [ref=e296]: kyle.boehling@suntecktts.com
+                                                - option [ref=e297]: kyle.foote@suntecktts.com
+                                                - option [ref=e298]: kyle.seabury@suntecktts.com
+                                                - option [ref=e299]: kyle.tardif@suntecktts.com
+                                                - option [ref=e300]: kyleigh.boehling@suntecktts.com
+                                                - option [ref=e301]: lily.rinaldi@suntecktts.com
+                                                - option [ref=e302]: madalyn.dickson@suntecktts.com
+                                                - option [ref=e303]: madelynn.fleetwood@suntecktts.com
+                                                - option [ref=e304]: mark.campbell@avengerlogistics.com
+                                                - option [ref=e305]: mark.kelley@avengerlogistics.com
+                                                - option [ref=e306]: marshall.brown@suntecktts.com
+                                                - option [ref=e307]: matt.brown@suntecktts.com
+                                                - option [ref=e308]: matt.kuruc@suntecktts.com
+                                                - option [ref=e309]: megan.mercado@suntecktts.com
+                                                - option [ref=e310]: meri.hollingsworth@suntecktts.com
+                                                - option [ref=e311]: mia.sanangelo@suntecktts.com
+                                                - option [ref=e312]: michael.crowe@suntecktts.com
+                                                - option [ref=e313]: michael.thomas@suntecktts.com
+                                                - option [ref=e314]: miguel.ramirez@suntecktts.com
+                                                - option [ref=e315]: mike.hallak@suntecktts.com
+                                                - option [ref=e316]: mike.long@suntecktts.com
+                                                - option [ref=e317]: mitch.mallard@avengerlogistics.com
+                                                - option [ref=e318]: morgan.bassett-smith@suntecktts.com
+                                                - option [ref=e319]: morgan.stewart@suntecktts.com
+                                                - option [ref=e320]: mparker@ardentx.com
+                                                - option [ref=e321]: nick.krimmer@suntecktts.com
+                                                - option [ref=e322]: nick.wiesner@suntecktts.com
+                                                - option [ref=e323]: office.boro@modetransportation.com
+                                                - option [ref=e324]: paige.fritts@suntecktts.com
+                                                - option [ref=e325]: patrick.alcantara@suntecktts.com
+                                                - option [ref=e326]: patrick.osborne@avengerlogistics.com
+                                                - option [ref=e327]: paul.joiner@suntecktts.com
+                                                - option [ref=e328]: paula.franklin@suntecktts.com
+                                                - option [ref=e329]: peter.argila@suntecktts.com
+                                                - option [ref=e330]: raja.moughrabi@avengerlogistics.com
+                                                - option [ref=e331]: ramon.sanchez@avengerlogistics.com
+                                                - option [ref=e332]: randall.swoffer@suntecktts.com
+                                                - option [ref=e333]: rcarvalho@ardentx.com
+                                                - option [ref=e334]: rebecca.mahoney@modeglobal.com
+                                                - option [ref=e335]: rebecca.pierce@suntecktts.com
+                                                - option [ref=e336]: redden.group@suntecktts.com
+                                                - option [ref=e337]: reece.spears@suntecktts.com
+                                                - option [ref=e338]: roanderson@suntecktts.com
+                                                - option [ref=e339]: rob.harris@suntecktts.com
+                                                - option [ref=e340]: robert.huhn@suntecktts.com
+                                                - option [ref=e341]: robert.ricci@suntecktts.com
+                                                - option [ref=e342]: ross.guinn@suntecktts.com
+                                                - option [ref=e343]: ryan.ruppel@suntecktts.com
+                                                - option [ref=e344]: ryann.spears@suntecktts.com
+                                                - option [ref=e345]: sadina.mann@suntecktts.com
+                                                - option [ref=e346]: salina.hunsberger@suntecktts.com
+                                                - option [ref=e347]: sandra.cantu@modetransportation.com
+                                                - option [ref=e348]: scott.draper@suntecktts.com
+                                                - option [ref=e349]: sdevereaux@ardentx.com
+                                                - option [ref=e350]: seth.botts@suntecktts.com
+                                                - option [ref=e351]: shaela.ferone@suntecktts.com
+                                                - option [ref=e352]: shane.foley@modetransportation.com
+                                                - option [ref=e353]: shea.johnson@suntecktts.com
+                                                - option [ref=e354]: sheila.garcia@suntecktts.com
+                                                - option [ref=e355]: shelby.ocmand@suntecktts.com
+                                                - option [ref=e356]: shirley.swoffer@suntecktts.com
+                                                - option [ref=e357]: stephanie.perrotti@suntecktts.com
+                                                - option [ref=e358]: steve.davis@suntecktts.com
+                                                - option [ref=e359]: steven.cintron@suntecktts.com
+                                                - option [ref=e360]: steven.johnson@suntecktts.com
+                                                - option [ref=e361]: susan.bowles@suntecktts.com
+                                                - option [ref=e362]: tabitha.beasley@suntecktts.com
+                                                - option [ref=e363]: tabitha.reeves@suntecktts.com
+                                                - option [ref=e364]: tara.mcgrath@suntecktts.com
+                                                - option [ref=e365]: tayler.cofer@suntecktts.com
+                                                - option [ref=e366]: taylor.rajeski@modeglobal.com
+                                                - option [ref=e367]: taylor.rajeski@suntecktts.com
+                                                - option [ref=e368]: tcarvalho@ardentx.com
+                                                - option [ref=e369]: teamalt@suntecktts.com
+                                                - option [ref=e370]: teamdavali@suntecktts.com
+                                                - option [ref=e371]: tennille.rogers@avengerlogistics.com
+                                                - option [ref=e372]: thomas.anderson@suntecktts.com
+                                                - option [ref=e373]: thomas.best@suntecktts.com
+                                                - option [ref=e374]: thomas.ruff@modetransportation.com
+                                                - option [ref=e375]: tim.bowles@suntecktts.com
+                                                - option [ref=e376]: tina.emery@modetransportation.com
+                                                - option [ref=e377]: tina.verell@suntecktts.com
+                                                - option [ref=e378]: todd.mcglaughlin@suntecktts.com
+                                                - option [ref=e379]: tommy.bruce@avengerlogistics.com
+                                                - option [ref=e380]: tommy.howard@suntecktts.com
+                                                - option [ref=e381]: toria.neal@suntecktts.com
+                                                - option [ref=e382]: travis.merrill@modetransportation.com
+                                                - option [ref=e383]: trent.collins@suntecktts.com
+                                                - option [ref=e384]: trey.gertsen@avengerlogistics.com
+                                                - option [ref=e385]: treyden.klein@avengerlogistics.com
+                                                - option [ref=e386]: tricia.agnew@suntecktts.com
+                                                - option [ref=e387]: troy.boodie@suntecktts.com
+                                                - option [ref=e388]: trucks@jetexfreight.com
+                                                - option [ref=e389]: tx-red_manager@suntecktts.com
+                                                - option [ref=e390]: tx-red_sales@suntecktts.com
+                                                - option [ref=e391]: tyler.vanderwall@suntecktts.com
+                                                - option [ref=e392]: uber.novolex@avengerlogistics.com
+                                                - option [ref=e393]: usen.isong@avengerlogistics.com
+                                                - option [ref=e394]: vanessa.dominguez@suntecktts.com
+                                                - option [ref=e395]: victoria.floyd@suntecktts.com
+                                                - option [ref=e396]: wahoo@suntecktts.com
+                                                - option [ref=e397]: will.taylor@suntecktts.com
+                                                - option [ref=e398]: william.powell@suntecktts.com
+                                                - option [ref=e399]: wmcconnico@halogistics.com
+                                                - option [ref=e400]: yesica.villalona@suntecktts.com
+                                                - option [ref=e401]: zachary.martin@suntecktts.com
+                                                - option [ref=e402]: zsmith@ardentx.com
+                                              - combobox [ref=e405]:
+                                                - list [ref=e406]:
+                                                  - listitem "brent.durham@suntecktts.com" [ref=e407]
+                                                  - listitem [ref=e408]:
+                                                    - textbox [disabled] [ref=e409]
+                                            - generic [ref=e410]:
+                                              - generic [ref=e411]: Commodity
+                                              - listbox [disabled] [ref=e412]:
+                                                - option [ref=e413]: Chemicals Hazmat
+                                                - option [ref=e414]: Courier
+                                                - option [ref=e415]: Freight of All Kinds
+                                                - option [ref=e416]: Fixtures
+                                                - option [ref=e417]: Machinery
+                                                - option [ref=e418]: Metal
+                                                - option [ref=e419]: Packaging
+                                                - option [ref=e420]: Paper Materials
+                                                - option [ref=e421]: Plastics
+                                                - option [ref=e422]: Raw Materials
+                                                - option [ref=e423]: Show Materials
+                                                - option [ref=e424]: Warehouse Storage
+                                                - option [ref=e425]: Packaged Goods
+                                                - option [ref=e426]: Alcoholic Beverages
+                                                - option [ref=e427]: Agricultural
+                                                - option [ref=e428]: Mail
+                                                - option [ref=e429]: Industrial
+                                                - option [ref=e430]: Chemical Non-Hazmat
+                                                - option [ref=e431]: Mulch/Soil
+                                                - option [ref=e432]: Retail Merchandise
+                                                - option [ref=e433]: Cable Reels
+                                                - option [ref=e434]: Bottled Water
+                                                - option [ref=e435]: Glass Product
+                                                - option [ref=e436]: Electronics
+                                                - option [ref=e437]: Appliances
+                                                - option [ref=e438]: Automotive
+                                                - option [ref=e439]: Apparel
+                                                - option [ref=e440]: Food
+                                                - option [ref=e441]: Construction
+                                              - combobox [ref=e444]:
+                                                - list [ref=e445]:
+                                                  - listitem [ref=e446]:
+                                                    - textbox "Type to search" [disabled] [ref=e447]
+                                            - generic [ref=e448]:
+                                              - generic [ref=e450]: Notes
+                                              - textbox "Notes" [disabled]:
+                                                - /placeholder: Enter notes here (limit of 255 characters)
+                                            - generic:
+                                              - generic [ref=e452]:
+                                                - checkbox "Carrier Auto Accept" [disabled] [ref=e453]
+                                                - generic [ref=e454]: Carrier Auto Accept
+                                                - img "Auto accept Conditions" [ref=e456]
+                                              - generic [ref=e457]:
+                                                - generic [ref=e458]: Carrier Contact for Rate Confirmation
+                                                - combobox [disabled] [ref=e459]
+                                                - combobox "Select a carrier user..." [ref=e462]:
+                                                  - generic [ref=e465]: Select a carrier user...
+                                            - generic [ref=e466]:
+                                              - generic [ref=e467]: Include Carriers
+                                              - link "View Details" [ref=e468] [cursor=pointer]:
+                                                - /url: "#"
+                                              - listbox [disabled] [ref=e469]
+                                              - combobox [ref=e472]:
+                                                - list [ref=e473]:
+                                                  - listitem [ref=e474]:
+                                                    - textbox "Type to search" [disabled] [ref=e475]
+                                            - generic [ref=e476]:
+                                              - generic [ref=e477]: Exclude Carriers
+                                              - link "View Details" [ref=e478] [cursor=pointer]:
+                                                - /url: "#"
+                                              - listbox [disabled] [ref=e479]
+                                              - combobox [ref=e482]:
+                                                - list [ref=e483]:
+                                                  - listitem [ref=e484]:
+                                                    - textbox "Type to search" [disabled] [ref=e485]
+                                          - generic [ref=e486]:
+                                            - button "Create Rule" [disabled] [ref=e488]
+                                            - generic [ref=e489]:
+                                              - button "Clear Form" [disabled] [ref=e490]
+                                              - button "Post" [disabled] [ref=e491]
+                                      - separator [ref=e492]
+                                      - link:
+                                        - /url: "#"
+                                      - table [ref=e494]:
+                                        - rowgroup [ref=e495]:
+                                          - row "No Carrier Selected" [ref=e496]:
+                                            - cell "No Carrier Selected" [ref=e497]:
+                                              - generic [ref=e499]: No Carrier Selected
+                                      - table [ref=e500]:
+                                        - rowgroup [ref=e501]:
+                                          - row "Special Instructions for BOL" [ref=e502]:
+                                            - cell "Special Instructions for BOL" [ref=e503]
+                                            - cell [ref=e504]
+                                      - link "Available Trucks (0)" [ref=e507] [cursor=pointer]:
+                                        - /url: available_trucks.php?&search_available_at=07%2F17%2F2026&search_equipment=&search_pickup_city=FAYETTEVILLE&search_pickup_state=AR&search_pickup_radius=100&search_name=&search_method=
+                                      - table [ref=e508]:
+                                        - rowgroup [ref=e509]:
+                                          - row [ref=e510]:
+                                            - cell [ref=e511]
+                                          - row "BID HISTORY CARRIER NOTES LANE HISTORYFAYETTEVILLE AR | FRESNO CA | TL | last 18 mo | 25 mi radius CARRIER MATCH" [ref=e512]:
+                                            - cell "BID HISTORY CARRIER NOTES LANE HISTORYFAYETTEVILLE AR | FRESNO CA | TL | last 18 mo | 25 mi radius CARRIER MATCH" [ref=e513]:
+                                              - link "BID HISTORY" [ref=e515] [cursor=pointer]:
+                                                - /url: ""
+                                              - link "CARRIER NOTES" [ref=e517] [cursor=pointer]:
+                                                - /url: ""
+                                              - generic [ref=e518]:
+                                                - link "LANE HISTORY" [ref=e519] [cursor=pointer]:
+                                                  - /url: javascript:;
+                                                - img "FAYETTEVILLE AR | FRESNO CA | TL | last 18 mo | 25 mi radius" [ref=e520]
+                                              - link "CARRIER MATCH" [ref=e523] [cursor=pointer]:
+                                                - /url: javascript:void(0);
+                                      - iframe [ref=e524]:
+                                        - generic [ref=f2e3]:
+                                          - generic [ref=f2e4]:
+                                            - generic [ref=f2e5]: Ship Date
+                                            - generic [ref=f2e6]:
+                                              - generic [ref=f2e7]: Start
+                                              - textbox [ref=f2e8]: 1/16/2026
+                                            - generic [ref=f2e9]:
+                                              - generic [ref=f2e10]: End
+                                              - textbox [ref=f2e11]
+                                            - link "presets" [ref=f2e13] [cursor=pointer]:
+                                              - /url: "#"
+                                          - generic [ref=f2e15]:
+                                            - generic [ref=f2e17]: Radius
+                                            - combobox "Radius" [ref=f2e19]:
+                                              - option "25 mi"
+                                              - option "50 mi" [selected]
+                                              - option "75 mi"
+                                              - option "100 mi"
+                                              - option "150 mi"
+                                              - option "175 mi"
+                                              - option "200 mi"
+                                              - option "300 mi"
+                                          - generic [ref=f2e21]:
+                                            - listbox [ref=f2e22]:
+                                              - option [ref=f2e23]: VAN
+                                              - option [ref=f2e24]: FLATBED
+                                              - option [ref=f2e25]: REEFER
+                                              - option [ref=f2e26]: DOUBLE DROP
+                                              - option [ref=f2e27]: STEP/DROP DECK
+                                              - option [ref=f2e28]: FLATBED (HAZMAT)
+                                              - option [ref=f2e29]: FLATBED W/CHAINS
+                                              - option [ref=f2e30]: REEFER (TEAM)
+                                              - option [ref=f2e31]: REEFER (HAZMAT)
+                                              - option [ref=f2e32]: VAN (TEAM)
+                                              - option [ref=f2e33]: AIR-RIDE VAN
+                                              - option [ref=f2e34]: HOTSHOT VAN
+                                              - option [ref=f2e35]: CARGO VAN
+                                              - option [ref=f2e36]: INTERMODAL VAN
+                                              - option [ref=f2e37]: REGULAR CONTAINER
+                                              - option [ref=f2e38]: POWER ONLY
+                                              - option [ref=f2e39]: AUTO CARRIER
+                                              - option [ref=f2e40]: ALUMINUM TANKER
+                                              - option [ref=f2e41]: CONVEYOR
+                                              - option [ref=f2e42]: LARGE STRAIGHT TRUCK
+                                              - option [ref=f2e43]: STEP DECK/REM GOOSENECK
+                                              - option [ref=f2e44]: OPEN TOP CONTAINER
+                                              - option [ref=f2e45]: DRY VAN
+                                              - option [ref=f2e46]: CONTAINER
+                                              - option [ref=f2e47]: VAN OR FLATBED
+                                              - option [ref=f2e48]: FLATBED OR VAN
+                                              - option [ref=f2e49]: FLAT/VAN/REEFER
+                                              - option [ref=f2e50]: REMOVABLE GOOSENECK
+                                              - option [ref=f2e51]: FLAT (TEAM)
+                                              - option [ref=f2e52]: AIR-RIDE FLATBED
+                                              - option [ref=f2e53]: VAN/FLAT TARPS
+                                              - option [ref=f2e54]: AIR-RIDE REEFER
+                                              - option [ref=f2e55]: REEFER CONTAINER
+                                              - option [ref=f2e56]: LIFT GATE VAN
+                                              - option [ref=f2e57]: VAN (HAZMAT)
+                                              - option [ref=f2e58]: INSULATED VAN
+                                              - option [ref=f2e59]: PLATED VAN
+                                              - option [ref=f2e60]: SPRINTER VAN
+                                              - option [ref=f2e61]: INSULATED CONTAINER
+                                              - option [ref=f2e62]: STRETCH TRAILER
+                                              - option [ref=f2e63]: DUMP TRAILER
+                                              - option [ref=f2e64]: STEEL TANKER
+                                              - option [ref=f2e65]: HIGH CUBE CONTAINER
+                                              - option [ref=f2e66]: STRAIGHT BOX TRUCK
+                                              - option [ref=f2e67]: SMALL STRAIGHT TRUCK
+                                              - option [ref=f2e68]: FLATRACK CONTAINER
+                                              - option [ref=f2e69]: FLAT RACK
+                                              - option [ref=f2e70]: ISO TANK
+                                              - option [ref=f2e71]: VAN OR REEFER
+                                              - option [ref=f2e72]: REEFER OR VAN
+                                              - option [ref=f2e73]: INSULATED VAN OR REEFER
+                                              - option [ref=f2e74]: LOWBOY
+                                              - option [ref=f2e75]: FLATBED W/SIDES
+                                              - option [ref=f2e76]: FLAT DOUBLE
+                                              - option [ref=f2e77]: FLATBED CONESTOGA
+                                              - option [ref=f2e78]: LOGISTICS REEFER
+                                              - option [ref=f2e79]: REEFER INTERMODAL
+                                              - option [ref=f2e80]: VAN DOUBLE
+                                              - option [ref=f2e81]: VAN WITH CURTAINS
+                                              - option [ref=f2e82]: LOGISTICS VAN
+                                              - option [ref=f2e83]: VAN WITH ROLLER BED
+                                              - option [ref=f2e84]: VAN CONESTOGA
+                                              - option [ref=f2e85]: AIR FREIGHT
+                                              - option [ref=f2e86]: TRUCK AND TRAILER
+                                              - option [ref=f2e87]: HOPPER BOTTOM
+                                              - option [ref=f2e88]: PNEUMATIC
+                                              - option [ref=f2e89]: LOWBOY OVERDIMENSION
+                                              - option [ref=f2e90]: STAND CONTAINER
+                                              - option [ref=f2e91]: TANKER INTERMODAL
+                                              - option [ref=f2e92]: HAZMAT CONTAINER
+                                              - option [ref=f2e93]: DROP DECK
+                                              - option [ref=f2e94]: COMMON CARRIER
+                                              - option [ref=f2e95]: FLATBED/STEP DECK
+                                              - option [ref=f2e96]: FLATBED W/TARPS
+                                              - option [ref=f2e97]: HOTSHOT FLATBED
+                                              - option [ref=f2e98]: FLATBED OVERDIMENSION
+                                              - option [ref=f2e99]: REEFER DOUBLE
+                                              - option [ref=f2e100]: REEFER PALLET EXCHANGE
+                                              - option [ref=f2e101]: REEFER BOX TRUCK
+                                              - option [ref=f2e102]: REEFER CARGO VAN
+                                              - option [ref=f2e103]: REEFER SPRINTER VAN
+                                              - option [ref=f2e104]: REEFER LARGE STRAIGHT TRUCK
+                                              - option [ref=f2e105]: REEFER SMALL STRAIGHT TRUCK
+                                              - option [ref=f2e106]: VAN TRIPLE
+                                              - option [ref=f2e107]: OPEN-TOP VAN
+                                              - option [ref=f2e108]: MOVING VAN
+                                              - option [ref=f2e109]: VENTED VAN
+                                              - option [ref=f2e110]: VAN BLANKET WRAP
+                                              - option [ref=f2e111]: CONESTOGA
+                                              - option [ref=f2e112]: B-TRAIN
+                                              - option [ref=f2e113]: LAND ALL
+                                              - option [ref=f2e114]: MAXI
+                                              - option [ref=f2e115]: LOWBOY/REM GOOSENECK
+                                              - option [ref=f2e116]: STEP DECK CONESTOGA
+                                              - option [ref=f2e117]: STEP DECK W/RAMPS
+                                              - option [ref=f2e118]: BOXCAR
+                                              - option [ref=f2e119]: TOFC
+                                            - combobox [ref=f2e122]:
+                                              - list [ref=f2e123]:
+                                                - listitem:
+                                                  - textbox "Select an Equipment"
+                                          - button "Search" [ref=f2e126] [cursor=pointer]
+                                    - cell "Line Haul Customer Carrier Flat Rate $ 2,000.00 $ 0.00 Equipment FLATBED Temp Control? NO Temperature Cooling Type Protective Service NO Carrier Dispatch Name Carrier Dispatch Email Carrier Dispatch Phone Number Ref# Driver Driver Cell Driver 2 Driver 2 Cell Truck# Trailer# Seal# Trailer Length 43 Trailer Used Cargo Value $10,000 or less Freight Risk LOW Total Weight 1000 Total Miles 1683.5" [ref=e525]:
+                                      - table [ref=e526]:
+                                        - rowgroup [ref=e527]:
+                                          - row "Line Haul Customer Carrier Flat Rate $ 2,000.00 $ 0.00" [ref=e528]:
+                                            - cell "Line Haul Customer Carrier Flat Rate $ 2,000.00 $ 0.00" [ref=e529]:
+                                              - table [ref=e530]:
+                                                - rowgroup [ref=e531]:
+                                                  - row "Line Haul Customer Carrier" [ref=e532]:
+                                                    - cell "Line Haul" [ref=e533]
+                                                    - cell "Customer" [ref=e534]
+                                                    - cell "Carrier" [ref=e535]
+                                                  - row "Flat Rate $ 2,000.00 $ 0.00" [ref=e536]:
+                                                    - cell "Flat Rate" [ref=e537]
+                                                    - cell "$ 2,000.00" [ref=e538]
+                                                    - cell "$ 0.00" [ref=e539]
+                                      - table [ref=e540]:
+                                        - rowgroup [ref=e541]:
+                                          - row "Equipment FLATBED" [ref=e542]:
+                                            - cell "Equipment" [ref=e543]
+                                            - cell "FLATBED" [ref=e544]
+                                          - row "Temp Control? NO" [ref=e545]:
+                                            - cell "Temp Control?" [ref=e546]
+                                            - cell "NO" [ref=e547]
+                                          - row "Temperature" [ref=e548]:
+                                            - cell "Temperature" [ref=e549]
+                                            - cell [ref=e550]
+                                          - row "Cooling Type" [ref=e551]:
+                                            - cell "Cooling Type" [ref=e552]
+                                            - cell [ref=e553]
+                                          - row "Protective Service NO" [ref=e554]:
+                                            - cell "Protective Service" [ref=e555]
+                                            - cell "NO" [ref=e556]
+                                          - row [ref=e557]:
+                                            - cell [ref=e558]
+                                        - rowgroup [ref=e559]:
+                                          - row "Carrier Dispatch Name" [ref=e560]:
+                                            - cell "Carrier Dispatch Name" [ref=e561]
+                                            - cell [ref=e562]
+                                          - row "Carrier Dispatch Email" [ref=e563]:
+                                            - cell "Carrier Dispatch Email" [ref=e564]
+                                            - cell [ref=e565]:
+                                              - table [ref=e566]:
+                                                - rowgroup:
+                                                  - row:
+                                                    - cell
+                                                    - cell
+                                          - row "Carrier Dispatch Phone Number" [ref=e567]:
+                                            - cell "Carrier Dispatch Phone Number" [ref=e568]
+                                            - cell [ref=e569]
+                                          - row "Ref#" [ref=e570]:
+                                            - cell "Ref#" [ref=e571]
+                                            - cell [ref=e572]
+                                          - row "Driver" [ref=e573]:
+                                            - cell "Driver" [ref=e574]
+                                            - cell [ref=e575]
+                                          - row "Driver Cell" [ref=e576]:
+                                            - cell "Driver Cell" [ref=e577]
+                                            - cell [ref=e578]
+                                          - row "Driver 2" [ref=e579]:
+                                            - cell "Driver 2" [ref=e580]
+                                            - cell [ref=e581]
+                                          - row "Driver 2 Cell" [ref=e582]:
+                                            - cell "Driver 2 Cell" [ref=e583]
+                                            - cell [ref=e584]
+                                          - row "Truck#" [ref=e585]:
+                                            - cell "Truck#" [ref=e586]
+                                            - cell [ref=e587]
+                                          - row "Trailer#" [ref=e588]:
+                                            - cell "Trailer#" [ref=e589]
+                                            - cell [ref=e590]
+                                          - row "Seal#" [ref=e591]:
+                                            - cell "Seal#" [ref=e592]
+                                            - cell [ref=e593]
+                                        - rowgroup [ref=e594]:
+                                          - row "Trailer Length 43" [ref=e595]:
+                                            - cell "Trailer Length" [ref=e596]
+                                            - cell "43" [ref=e597]:
+                                              - generic [ref=e598]: "43"
+                                          - row "Trailer Used" [ref=e599]:
+                                            - cell "Trailer Used" [ref=e600]
+                                            - cell [ref=e601]
+                                          - row [ref=e602]:
+                                            - cell [ref=e603]
+                                          - row "Cargo Value $10,000 or less" [ref=e604]:
+                                            - cell "Cargo Value" [ref=e605]
+                                            - cell "$10,000 or less" [ref=e606]:
+                                              - generic [ref=e607]: $10,000 or less
+                                          - row "Freight Risk LOW" [ref=e608]:
+                                            - cell "Freight Risk" [ref=e609]
+                                            - cell "LOW" [ref=e610]:
+                                              - generic [ref=e611]: LOW
+                                          - row "Total Weight 1000" [ref=e612]:
+                                            - cell "Total Weight" [ref=e613]
+                                            - cell "1000" [ref=e614]:
+                                              - generic [ref=e615]: "1000"
+                                          - row "Total Miles 1683.5" [ref=e616]:
+                                            - cell "Total Miles" [ref=e617]
+                                            - cell "1683.5" [ref=e618]:
+                                              - generic [ref=e619]: "1683.5"
+                                          - row:
+                                            - cell
+                                            - cell
+                                          - row:
+                                            - cell
+                                            - cell
+                                          - row:
+                                            - cell
+              - text: "* * *"
+              - table [ref=e623]:
+                - rowgroup [ref=e624]:
+                  - row "View History View Billing View Edit Overlay Duplicate Template Save Save & Return Return" [ref=e625]:
+                    - cell "View History" [ref=e626]:
+                      - button "View History" [ref=e627] [cursor=pointer]
+                    - cell "View Billing View Edit Overlay Duplicate Template Save Save & Return Return" [ref=e628]:
+                      - generic [ref=e629]:
+                        - button "View Billing" [ref=e630] [cursor=pointer]
+                        - button "View" [disabled] [ref=e631]
+                        - button "Edit" [ref=e632] [cursor=pointer]
+                        - button "Overlay" [ref=e633] [cursor=pointer]
+                        - button "Duplicate" [ref=e634] [cursor=pointer]
+                        - button "Template" [ref=e635] [cursor=pointer]
+                        - button "Save" [ref=e636] [cursor=pointer]
+                        - button "Save & Return" [ref=e637] [cursor=pointer]
+                        - button "Return" [ref=e638] [cursor=pointer]
+    - contentinfo [ref=e639]:
+      - generic [ref=e640]: © MODE Global, LLC
+```

@@ -1,0 +1,184 @@
+Case ID,JiraId,Tags,Primary tag,Case,Issue2 Incomplete procedure,Issue3 Role/cross-app,Issue4 Unclear Expected/screens,Other-issue count,Clean of issues 2-4,Agent category tag?,Steps chars,Step count,Expected chars,Has login wording,Has hover wording,CSV field count,Gold closeness,Depth % of gold median
+7965,FD-33675,search,search,"Verify that enabling ""Central Dispatch Enabled"" field does not change the ""Dispatch Type"" of existing loads.",N,N,N,0,Y,N,555,5,98,Y,N,1,34.9,15.0
+196126,FD-40120,"admin,ltl",admin,Verify that data loads correctly after salesperson selection and user can either delete or approve the checked commoditi,N,N,N,0,Y,N,522,0,460,Y,N,1,32.0,14.1
+171189,FD-36513,sharereport,sharereport,Dispatch Note hover preview remains unchanged (latest note only),N,N,N,0,Y,N,284,4,102,Y,Y,0,30.3,7.7
+196127,FD-40120,"admin,ltl",admin,Verify that click on the switch to approved navigates user to Approved LTL Commodities page after salesperson selection ,N,N,N,0,Y,N,492,0,341,Y,N,1,30.2,13.3
+24777,FD-33648,loadreports,loadreports,"Verify that the report accurately displays one row per stop, aligning with the format used in the STOP Report, ensuring ",N,N,N,0,Y,N,455,0,174,Y,N,1,27.7,12.3
+7967,FD-33684,loadtemplates,loadtemplates,Verify that creating a template from a load captures the load’s Dispatch Type and Dispatch Office.,N,N,N,0,Y,N,207,2,90,Y,N,1,23.8,5.6
+196130,FD-40120,"admin,ltl",admin,Verify that  result is not displayed until no salesperson is selected.,N,N,N,0,Y,N,236,0,271,Y,N,2,21.4,6.4
+366524,FD-42729,customersearch,customersearch,Verify all supported Payment Term options can be selected and saved on Customer Master Record,N,N,N,0,Y,N,280,5,74,N,N,1,13.5,7.6
+336595,CP-5840,"banyan,customerportal,hazmat,ltl",banyan,TC04: CP Banyan booking persists full hazmat details to approved_items,N,N,N,0,Y,Y,276,5,254,N,N,2,11.1,7.5
+366479,FD-44878,happyrobot,happyrobot,Verify BTMS API: New HappyRobot load search endpoint returning load + carrier details for all matches,Y,Y,Y,3,N,N,2409,42,1247,N,Y,0,72.7,65.2
+89381,FD-36167,commissionsincentives,commissionsincentives,Validate that a user can create a new Commission Incentive with Expiry Date left blank.,Y,N,Y,2,N,Y,751,10,218,Y,N,0,42.4,20.3
+7719,FD-33073,search,search,"Verify when user  save & share report with Individual Viewer, Editor & Office Group with Updated Columns, the column con",Y,N,Y,2,N,N,620,16,107,Y,N,1,39.3,16.8
+7716,FD-33073,search,search,"Verify when user  save & share report with Individual Viewer with Updated Columns, the column configuration for Viewer i",Y,N,N,1,N,N,595,16,80,Y,N,1,38.7,16.1
+7718,FD-33073,search,search,"Verify when user  save & share report with Individual Editor with Updated Columns, the column configuration for Editor i",Y,N,N,1,N,N,595,16,80,Y,N,1,38.7,16.1
+261947,FD-35941,"comchek,reports",comchek,Verify Advanced Sort by APPROVED DATE DESC works correctly,Y,N,Y,2,N,N,439,12,163,Y,N,0,37.1,11.9
+89382,FD-36167,commissionsincentives,commissionsincentives,Validate that a user can edit an existing Commission Incentive with Expiry Date left blank.,Y,N,N,1,N,Y,526,5,211,Y,N,0,36.2,14.2
+262052,FD-36185,"commissionsincentives,payables",commissionsincentives,Verify by creating a new Customer Incentive. If the selected customer already has an active incentive within the same in,Y,N,N,1,N,Y,227,9,368,N,Y,1,35.5,6.1
+61622,FD-33357,bulkchange,bulkchange,Verify intermediate stops remain unchanged after location update for both (Origin and Destination).,Y,Y,Y,3,N,Y,444,10,84,Y,N,0,35.3,12.0
+61577,FD-36679,passwordreset,passwordreset,Verify Password Reset Functionality,Y,N,N,1,N,N,463,10,62,Y,N,0,35.2,12.5
+74446,FD-33356,bulkchange,bulkchange,"Verify that when the �Send Carrier Confirmation� method is selected as EMAIL, and the assigned carrier(s) on the non-ELT",Y,Y,N,2,N,Y,565,7,271,Y,N,0,35.0,15.3
+89242,FD-36176,payables,payables,Validate recurring office adjustment is saved when 'Number to make' and 'Total' field is blank.,Y,N,N,1,N,N,548,7,177,Y,N,0,34.9,14.8
+261950,FD-35941,"comchek,reports",comchek,Verify APPROVED DATE column is included in the downloaded Excel/CSV file,Y,N,N,1,N,N,493,8,220,Y,N,0,34.2,13.3
+261945,FD-35941,"comchek,reports",comchek,Verify basic column sort (Descending) on APPROVED DATE column header,Y,N,N,1,N,N,458,9,165,Y,N,0,33.6,12.4
+261944,FD-35941,"comchek,reports",comchek,Verify basic column sort (Ascending) on APPROVED DATE column header,Y,N,N,1,N,N,404,9,168,Y,N,0,33.2,10.9
+261942,FD-35941,"comchek,reports",comchek,Verify report results return correctly when filtered by Approved Date range,Y,N,N,1,N,N,290,8,212,Y,N,0,32.6,7.8
+7782,FD-32549,rateandmatch,rateandmatch,Verfity that below field are present on the Carrier and Rate Match IF Greenscreens is enabled for that office then:The G,Y,N,N,1,N,N,540,0,507,N,Y,1,32.0,14.6
+7747,FD-33480,shipment,shipment,User should be able to perform BTMS extract after the load is created in Tritan,Y,N,N,1,N,N,429,8,47,Y,N,0,31.5,11.6
+196378,FD-40398,billingqueue,billingqueue,Verify Delivered Date filter works with Doc RecD? toggle set to No,Y,N,N,1,N,N,150,5,60,Y,N,1,31.4,4.1
+196377,FD-40398,billingqueue,billingqueue,Verify Delivered Date filter works with Doc RecD? toggle set to Yes,Y,N,N,1,N,N,151,5,57,Y,N,1,31.3,4.1
+74447,FD-33356,bulkchange,bulkchange,"Verify that when the �Send Carrier Confirmation� method is selected as EMAIL, and the assigned carrier(s) on the non-ELT",Y,Y,N,2,N,Y,550,1,263,Y,N,0,31.3,14.9
+196008,FD-42184,carrierportal,carrierportal,"Verify Edit Company Profile page loads for  ""WE MOVE CARGO LLC"" carrier.",N,Y,N,1,N,Y,315,6,80,Y,N,0,30.3,8.5
+196011,FD-42184,carrierportal,carrierportal,"Verify Edit Company Profile page loads for""A K TRANSPORTATION INC"" carrier.",N,Y,N,1,N,Y,320,6,80,Y,N,0,30.3,8.7
+61527,FD-33352,bulkchange,bulkchange,Verify that the system prevents submission and displays an appropriate error message when loads with methods other than ,Y,Y,N,2,N,Y,536,1,168,Y,N,1,29.9,14.5
+171193,FD-36513,sharereport,sharereport,Modal note layout + formatting (two-column + timestamp/date formats + plain text note),Y,N,N,1,N,N,275,4,416,Y,N,1,29.4,7.4
+67977,FD-33357,bulkchange,bulkchange,"Verify that the User has selected loads across multiple customers And  All locations, both Pick and Drop that meet the s",Y,Y,N,2,N,Y,385,1,213,Y,N,1,29.4,10.4
+336480,FD-42750,highway,highway,Highway returns 'Verification Required' → contact is blocked from selection and NO audit entry is created,Y,N,N,1,N,N,334,6,208,Y,N,0,29.1,9.0
+196374,FD-40398,billingqueue,billingqueue,Verify Billing Queue returns loads within selected Delivered Date range,Y,N,N,1,N,N,159,5,103,Y,N,0,29.0,4.3
+27628,FD-33060,loadimportutility,loadimportutility,Verify Render Load Details for SUCCESS Status for bulk change.,Y,Y,N,2,N,N,446,1,59,Y,N,0,29.0,12.1
+336489,FD-42750,highway,highway,Same email entered twice on the same load — verify whether duplicate entries are created,Y,N,N,1,N,N,318,8,149,Y,N,0,29.0,8.6
+336476,FD-42750,highway,highway,Highway returns 'Verified' alert → audit entry is created in load history,Y,N,N,1,N,N,347,7,287,Y,N,1,28.8,9.4
+336479,FD-42750,highway,highway,Highway returns 'Bad Actor' → contact is blocked from selection and NO audit entry is created,Y,N,N,1,N,N,322,6,196,Y,N,0,28.8,8.7
+336477,FD-42750,highway,highway,Highway returns 'Identity Alert' → audit entry is created in load history,Y,N,N,1,N,N,333,7,281,Y,N,0,28.6,9.0
+336478,FD-42750,highway,highway,Highway returns 'Informational' alert → audit entry is created in load history,Y,N,N,1,N,N,332,7,280,Y,N,0,28.6,9.0
+196379,FD-40398,billingqueue,billingqueue,Verify Delivered Date filter works with Doc RecD? toggle set to Neutral,Y,N,N,1,N,N,155,5,64,Y,N,1,28.4,4.2
+86946,FD-35559,sharereport,sharereport,"Verify that all selected viewers and editors of an office group are displayed for the shared report, along with any non-",N,Y,N,1,N,N,459,0,207,Y,N,0,28.2,12.4
+27474,FD-34535,"agentsearch,sso",agentsearch,Verify dropdown does not preload all agents.,Y,N,N,1,N,N,306,3,87,Y,N,0,27.9,8.3
+27485,FD-33389,"agentsearch,sso",agentsearch,Validate linking or delinking changes are saving properly and correctly reflecting.,Y,N,N,1,N,N,421,1,78,Y,N,0,27.9,11.4
+117100,FD-34889,carrierportal,carrierportal,Verify SUPER_ADMIN role is assigned to each specified user (via UI/DB as available).,Y,Y,N,2,N,Y,193,4,63,Y,N,0,27.1,5.2
+7692,FD-33266,search,search,"Verify that  the pop-up list shows only the 3rd Party BOL templates selected in ""Display Cust BOL Logo in"" on the Custom",Y,N,N,1,N,N,610,0,184,N,Y,1,27.0,16.5
+125397,,"ltl,nmfc",ltl,"Validate the functionality of saving LTL Load when commodity class is missing with Load status= ""Active"".",Y,N,N,1,N,N,259,6,88,Y,N,1,26.9,7.0
+125398,,"ltl,nmfc",ltl,"Validate the functionality of saving LTL Load when commodity class is missing with Load status= ""On Hold"".",Y,N,N,1,N,N,260,6,88,Y,N,1,26.9,7.0
+117099,FD-34889,carrierportal,carrierportal,Verify SUPER_ADMIN users can log in successfully to Carrier Portal.,Y,Y,N,2,N,Y,132,3,107,Y,N,0,26.8,3.6
+7994,FD-33698,passwordreset,passwordreset,Verify that the forgot password email is sent to the agent's actual email address in Staging and QC,Y,N,N,1,N,N,251,1,94,Y,N,0,26.8,6.8
+196113,INV-168,customerportal,customerportal,Validate login without diagnostic_mode works normally,Y,N,N,1,N,N,83,3,110,Y,N,0,26.5,2.2
+27505,FD-35574,loadreports,loadreports,Verify when editor changes the configuration of columns in the shared report by any of the following- 1.Adding columns  ,N,Y,N,1,N,N,1021,0,571,Y,N,0,26.4,27.6
+27484,FD-33389,"agentsearch,sso",agentsearch,"Validate User is able to delink/remove the email id present in the dropdown of  ""SSO Account"" field.",Y,N,N,1,N,N,353,0,125,Y,N,0,26.3,9.5
+89139,FD-39074,officeconfig,officeconfig,Verify all agents are available in dropdowns on first render without refresh under Individual Viewers.,N,Y,N,1,N,N,319,0,116,Y,N,0,25.9,8.6
+89140,FD-39074,officeconfig,officeconfig,Verify all agents are available in dropdowns on first render without refresh under Individual Editors.,N,Y,N,1,N,N,319,0,116,Y,N,0,25.9,8.6
+27513,FD-33640,sso,sso,Verify SSO Login Functionality,Y,N,N,1,N,N,121,1,64,Y,N,0,25.4,3.3
+27471,FD-33262,"sso,switchaccount",sso,Check if users all agent accounts are sync with same email address.,Y,Y,N,2,N,N,312,0,75,Y,N,0,25.3,8.4
+27651,FD-33300,sharereport,sharereport,Verify Saved Reports visibility and sorting logic in dropdown,Y,N,N,1,N,N,440,1,321,Y,N,0,25.2,11.9
+7743,FD-33414,forgotpassword,forgotpassword,Validate login after resetting password,Y,N,N,1,N,N,66,1,75,Y,N,0,25.1,1.8
+171190,FD-36513,sharereport,sharereport,Row click (non-Dispatch Note area) still opens Load Details,Y,N,N,1,N,N,304,4,55,Y,N,0,24.8,8.2
+27466,FD-33261,"sso,switchaccount",sso,Check if user is able to switch between different accounts.,Y,Y,N,2,N,N,236,0,50,Y,N,0,24.4,6.4
+27524,FD-33496,loadreports,loadreports,Validating the behavior when a Shared Report Group gets unselected from an existing shared report.,N,Y,N,1,N,N,251,1,141,Y,N,0,24.4,6.8
+349935,FD-39556,emaildocsforload,emaildocsforload,Auto-book REEFER load – Actual email received by carrier contains only carrier confirmation attachment,Y,N,N,1,N,N,468,8,286,Y,N,1,24.1,12.7
+150290,FD-40550,truckertools,truckertools,Verify TT alerts are sent to Dispatcher when AM field is not present.,Y,N,N,1,N,N,254,5,70,Y,N,0,23.3,6.9
+7779,FD-32549,rateandmatch,rateandmatch,"Verfity that below field are present on the Carrier and Rate Match IF Greenscreens is enabled for that office then:
+
+The",Y,N,N,1,N,N,486,0,462,N,N,0,23.0,13.1
+27525,FD-33496,loadreports,loadreports,"Verifying If  viewers or editors are unselected for the existing report, the S icon should be removed wherever the repor",N,Y,N,1,N,N,424,1,137,Y,N,0,22.6,11.5
+27627,FD-33060,loadimportutility,loadimportutility,Verify Render Load Details for SUCCESS Status for import.,Y,Y,N,2,N,N,339,3,59,Y,N,0,21.8,9.2
+150291,FD-40550,truckertools,truckertools,Verify AM takes precedence when both AM and Dispatcher are present.,Y,N,N,1,N,N,235,4,70,Y,N,0,21.5,6.4
+366501,FD-35902,"customers,leads",customers,Verify expiration date is NOT updated when status changes from ACTIVATE to CLEARED,Y,Y,N,2,N,N,329,6,156,N,N,0,21.4,8.9
+150289,FD-40550,truckertools,truckertools,Verify TT alerts are sent to AM when AM field is present on the load.,Y,N,N,1,N,N,223,4,61,Y,N,0,21.3,6.0
+278594,INV-2086,reports,reports,Verify that filtering by variance threshold returns only loads meeting that threshold and the URL contains no filter= pa,Y,N,N,1,N,N,108,4,148,N,N,1,20.6,2.9
+27593,FD-33059,loadimportutility,loadimportutility,"Verify that the summary results of bulk load records are displayed correctly after submission using the ""load import"" fe",Y,Y,N,2,N,N,174,1,117,Y,N,0,20.5,4.7
+27618,FD-33060,loadimportutility,loadimportutility,Verify that user receives an email which includes a hyperlink to a �My Bulk Loads (Changes & Imports)� report for Bulk l,Y,Y,N,2,N,N,195,1,109,Y,N,0,20.5,5.3
+7789,FD-33272,sharereport,sharereport,Verify that agent not able to see the report if not shared with him/her,Y,N,N,1,N,N,176,1,35,N,Y,0,20.4,4.8
+336324,FD-42912,"customersearch,officesearch",customersearch,Verify Office Form Commission Pct. boundary values and rejects invalid values,Y,Y,N,2,N,N,477,6,353,N,N,0,20.3,12.9
+7740,FD-33271,search,search,Verify 'S' icon is removed from report in Saved Reports field when unshared,Y,N,N,1,N,N,705,1,68,N,N,0,19.9,19.1
+171171,FD-35518,loadreports,loadreports,Verify combined filter functionality,Y,N,N,1,N,N,150,5,127,N,N,0,19.2,4.1
+196366,FD-42920,payables,payables,Verify that the default toggle state hides Dispatch Office and combines rows,Y,Y,N,2,N,N,217,1,220,Y,N,0,19.2,5.9
+366503,FD-35902,"customers,leads",customers,Verify Agent/Salesperson can successfully update status from CLEARED to COLD/DEADLEAD/ACTIVATE,Y,N,N,1,N,N,223,5,79,N,N,0,19.2,6.0
+7739,FD-33271,search,search,Verify 'S' icon is displayed next to shared report in Saved Reports field,Y,N,N,1,N,N,567,2,65,N,N,0,19.2,15.3
+366504,FD-35902,"customers,leads",customers,Verify existing ACTIVATE to ACTIVE status transition still works,Y,Y,N,2,N,N,318,4,145,N,N,0,19.1,8.6
+261932,FD-36759,customerportal,customerportal,Submit quote with Convention Center,Y,N,N,1,N,N,108,2,13,Y,N,1,19.0,2.9
+7861,FD-33040,search,search,Ensure that user gets navigated to the Bulk Change page displaying: 'Bulk Change: Step 2 - Select Changes’ after selecti,Y,Y,N,2,N,N,258,3,105,N,N,0,18.9,7.0
+7931,FD-33677,customers,customers,"Created an agent with user role principal and validate user is able to toggle between both values from the ""Dispatch typ",Y,Y,N,2,N,N,199,4,101,Y,N,1,18.6,5.4
+154732,FD-30697,carrierportal,carrierportal,Verify successful signup when reCAPTCHA is completed,Y,Y,N,2,N,Y,158,0,162,N,N,0,18.3,4.3
+27519,FD-33300,loadreports,loadreports,Verify the Saved report visibility in 'Saved Reports' dropdown,Y,Y,N,2,N,N,151,0,82,Y,N,0,18.2,4.1
+196367,FD-42920,payables,payables,Verify that toggle set to Yes shows Dispatch Office with split rows.,Y,N,N,1,N,N,188,1,153,Y,N,0,18.1,5.1
+336325,FD-42912,"customersearch,officesearch",customersearch,Verify commission reports reflect the new .1 to .9 increment values correctly also show validations error for load defau,Y,Y,N,2,N,N,636,0,517,N,N,1,17.6,17.2
+7945,FD-33672,payables,payables,"Verify that ""Operational Office"" filter is   updated to ""Dispatch Office"" filter in Office Commission Detail reports.",Y,N,N,1,N,N,175,4,113,N,N,0,17.6,4.7
+7946,FD-33672,payables,payables,"Verify that ""Operational Office"" filter is   updated to ""Dispatch Office"" filter in  Office Commission Adjustment Detail",Y,N,N,1,N,N,185,3,123,N,N,0,17.4,5.0
+7795,FD-33141,importlocations,importlocations,Ensure users without ADMIN and System Admin = YES cannot use the Bulk Import feature.,Y,Y,N,2,N,N,92,2,96,Y,N,0,17.0,2.5
+154733,FD-30697,carrierportal,carrierportal,Verify signup is blocked when reCAPTCHA is not completed,Y,Y,N,2,N,Y,147,0,190,N,N,0,16.8,4.0
+336258,FD-44489,homereports,homereports,"Verify that in the ""Load Summary By Salesperson"" Report Dispatch Region"" filter Column is added.",Y,Y,N,2,N,N,252,1,88,N,N,0,16.7,6.8
+336260,FD-44489,homereports,homereports,"Verify that in the ""Load Summary By Account Manager"" Report Dispatch Region"" Column is added.",Y,Y,N,2,N,N,256,1,85,N,N,0,16.7,6.9
+7784,FD-33272,sharereport,sharereport,Verify Agent Listed as Group Member,Y,N,N,1,N,N,265,2,52,N,N,0,16.7,7.2
+336264,FD-44489,homereports,homereports,"Verify that in the ""Load Summary By Dispatcher"" Report Dispatch Region"" Column is added.",Y,Y,N,2,N,N,251,1,80,N,N,0,16.6,6.8
+336266,FD-44489,homereports,homereports,"Verify that in the ""Customer Sales History Summary "" Report Dispatch Region"" Column is added.",Y,Y,N,2,N,N,250,1,85,N,N,1,16.6,6.8
+336268,FD-44489,homereports,homereports,"Verify that in the ""Load Detail for Salesperson"" Report Dispatch Region"" Column is added.",Y,Y,N,2,N,N,253,1,81,N,N,0,16.6,6.8
+336270,FD-44489,homereports,homereports,"Verify that in the ""Load Detail for Dispatcher"" Report Dispatch Region"" Column is added.",Y,Y,N,2,N,N,252,1,80,N,N,0,16.6,6.8
+336272,FD-44489,homereports,homereports,"Verify that in the ""Load Detail for Account Manager Dispatch Region"" Column is added.",Y,Y,N,2,N,N,256,1,77,N,N,0,16.6,6.9
+336262,FD-44489,homereports,homereports,"Verify that in the ""Load Summary By Creator"" Report Dispatch Region"" Column is added.",Y,Y,N,2,N,N,248,1,77,N,N,0,16.5,6.7
+86971,FD-38615,billingqueue,billingqueue,"Validate ""waiting_on_billing_count"" column increment in the database.",Y,N,N,1,N,N,182,3,206,Y,N,0,16.5,4.9
+7759,FD-33010,receivables,receivables,Validate report data updates according to the selected offices.,Y,N,N,1,N,N,124,2,112,N,N,0,16.4,3.4
+366487,FD-43011,"comchek,reports",comchek,Verify report executes successfully with a valid Created Date range,Y,N,N,1,N,N,128,3,64,N,N,0,16.2,3.5
+7987,FD-33678,dispatchtype,dispatchtype,"Verify that when a user changes a central dispatch load’s status from Booked to Active, the dispatch office is set to th",Y,N,N,1,N,N,324,3,162,N,N,1,16.0,8.8
+86970,FD-38615,billingqueue,billingqueue,"Validate ""agent_to_billing_toggle_date"" column update in the database.",Y,N,N,1,N,N,186,3,166,Y,N,0,16.0,5.0
+25188,FD-33211,nmfc,nmfc,Verify that the user is able to search for NMFC codes on Create LTL Commodity,Y,N,N,1,N,N,411,0,46,N,N,2,15.7,11.1
+25185,FD-33211,nmfc,nmfc,Verify that the user is able to search for NMFC codes using the LTL quote form in BTMS.,Y,N,N,1,N,N,400,0,46,N,N,2,15.6,10.8
+25186,FD-33211,nmfc,nmfc,Verify that the user is able to search for NMFC codes on LTL Load form in BTMS.,Y,N,N,1,N,N,399,0,46,N,N,2,15.6,10.8
+25187,FD-33211,nmfc,nmfc,Verify that the user is able to search for NMFC codes using the Final Mile quote in BTMS.,Y,N,N,1,N,N,402,0,46,N,N,1,15.6,10.9
+25325,FD-32258,fileclaimlink,fileclaimlink,Submit the 'New Cargo Claim' form with valid data and verify success,Y,N,N,1,N,N,107,1,75,N,N,0,15.4,2.9
+7988,FD-33678,dispatchtype,dispatchtype,"Verify that when a user changes a non-central dispatch load’s status from Booked to Active, the dispatch office is not s",Y,N,N,1,N,N,281,3,115,N,N,1,15.0,7.6
+171363,CP-5766,customerportal,customerportal,Verify BOL (3rd Party) card visibility for allowlisted LTL users,Y,N,N,1,N,N,72,3,117,Y,N,2,14.5,1.9
+366502,FD-35902,"customers,leads",customers,"Verify Agent/Salesperson sees ACTIVATE, COLD, DEADLEAD options when lead is in CLEARED status",Y,N,N,1,N,N,215,3,113,N,N,0,14.5,5.8
+336592,CP-5840,"banyan,customerportal,hazmat,ltl",banyan,TC01: Hazmat fields populate from saved commodity on brand portal,Y,N,N,1,N,Y,190,4,222,N,N,2,14.4,5.1
+262087,FD-43175,handlingunit,handlingunit,Verify that invalid Tare Wt values prevent save with a visible error,Y,N,N,1,N,N,256,1,124,N,N,2,14.2,6.9
+196323,FD-37616,user_role,user_role,Validate that pick state change is blocked for ineligible intrastate carrier and user lacks CARRIER_RELATIONS role,Y,Y,N,2,N,N,72,0,35,Y,N,0,14.0,1.9
+196324,FD-37616,user_role,user_role,Validate that drop state change is blocked for ineligible intrastate carrier and user lacks CARRIER_RELATIONS role,Y,Y,N,2,N,N,72,0,35,Y,N,0,14.0,1.9
+154562,FD-41137,emaildocsforload,emaildocsforload,For Intermodal Loads for every carrier the email should appear accordingly.,Y,N,N,1,N,N,185,1,69,Y,N,0,13.9,5.0
+196325,FD-37616,user_role,user_role,Validate that pick state change is allowed for eligible intrastate carrier and user lacks CARRIER_RELATIONS role,Y,Y,N,2,N,N,68,0,23,Y,N,0,13.8,1.8
+196329,FD-37616,user_role,user_role,Validate that no intrastate validation is performed for non-intrastate carrier,Y,N,N,1,N,N,40,0,37,Y,N,0,13.8,1.1
+196327,FD-37616,user_role,user_role,Validate that user with CARRIER_RELATIONS role can update pick state to any state,Y,Y,N,2,N,N,45,0,23,Y,N,0,13.6,1.2
+262035,FD-43491,"dat,officesearch",dat,Verify that Load Board Tel field no longer displayed on Agent form - View mode.,Y,N,N,1,N,Y,134,1,60,Y,N,0,13.4,3.6
+366471,FD-45183,"banyan,hazmat",banyan,Hazmat charges persist after selecting new carrier and booking/updating,Y,N,N,1,N,Y,98,2,104,N,N,1,13.1,2.7
+262088,FD-43175,handlingunit,handlingunit,Verify delete confirmation dialog lists linked item numbers,Y,N,N,1,N,N,142,1,100,N,N,2,13.0,3.8
+27581,FD-34991,sso,sso,Verify login page hides username/password fields when config flag is enabled,Y,N,N,1,N,N,51,1,67,Y,N,0,12.9,1.4
+171166,FD-35518,loadreports,loadreports,Verify sorting functionality,Y,N,N,1,N,N,161,5,85,N,N,0,12.8,4.4
+171293,FD-36298,quotes,quotes,Verify Cust/Lead and Working filters together,Y,N,N,1,N,N,73,1,43,Y,N,0,12.8,2.0
+27586,FD-34991,"sso,symfony",sso,Verify login page shows username/password fields when config flag is disabled,Y,N,N,1,N,N,51,1,52,Y,N,0,12.7,1.4
+366497,FD-35902,"customers,leads",customers,Verify CLEARED status option is available for user with Finance+ auth and CREDIT_MANAGER role on ACTIVATE lead,Y,Y,N,2,N,N,276,4,132,N,N,0,12.6,7.5
+171167,FD-35518,loadreports,loadreports,Verify Excel export includes Approved Date,Y,N,N,1,N,N,144,5,61,N,N,0,12.3,3.9
+262089,FD-43175,handlingunit,handlingunit,Verify confirmed delete removes HU row and sets linked items' handling_unit_id to NULL,Y,N,N,1,N,N,224,0,120,N,N,2,12.3,6.1
+366530,FD-42729,customersearch,customersearch,Verify all supported Payment Term options can be selected and saved on Sales Lead,Y,Y,N,2,N,N,155,4,74,N,N,0,10.9,4.2
+7758,FD-33010,receivables,receivables,Validate report data updates according to the selected office group.,Y,N,N,1,N,N,63,2,87,N,N,0,9.6,1.7
+262094,FD-43175,handlingunit,handlingunit,"Verify Banyan tare redistribution payload reflects posted HU edits, not pre-save DB values",Y,N,N,1,N,N,250,1,196,N,N,2,9.1,6.8
+262085,FD-43175,handlingunit,handlingunit,"Verify that when the visibility gate fails, existing HU rows survive save unchanged with no false history and no Banyan ",Y,N,N,1,N,N,579,0,116,N,N,2,8.9,15.7
+366500,FD-35902,"customers,leads",customers,Verify CLEARED status option is NOT available for user without Finance+ auth and without CREDIT_MANAGER role,Y,Y,N,2,N,N,214,3,133,N,N,0,8.8,5.8
+7888,FD-33444,newlead,newlead,Verify the  'Allow AI to Negotiate' field is only visible when the associated office has Enable AI Negotiation = YES.,Y,N,N,1,N,N,121,2,111,N,N,0,7.4,3.3
+278607,FD-43182,"go2,handlingunit",go2,Verify mixed HU types (pallets and drums) render correctly.,Y,N,N,1,N,N,58,3,69,N,N,0,6.8,1.6
+262204,FD-32499,reports,reports,Validate data is in range of the dates when S-F is selected,Y,N,N,1,N,N,26,0,32,N,N,0,6.6,0.7
+278610,FD-43182,"go2,handlingunit",go2,Verify grand totals accuracy including tare weight.,Y,N,N,1,N,N,51,3,51,N,N,0,6.5,1.4
+278617,FD-43182,"go2,handlingunit",go2,Verify hu_enabled toggle applies retroactively.,Y,N,N,1,N,N,56,3,47,N,N,0,6.5,1.5
+278618,FD-43182,"go2,handlingunit",go2,Verify reference load behavior under both flag states.,Y,N,N,1,N,N,47,2,40,N,N,1,5.9,1.3
+278614,FD-43182,"go2,handlingunit",go2,Verify non-LTL/ELTL loads ignore HU feature.,Y,N,N,1,N,N,35,2,38,N,N,1,5.8,0.9
+278615,FD-43182,"go2,handlingunit",go2,Verify multi-stop loads ignore HU feature.,Y,N,N,1,N,N,35,2,38,N,N,0,5.8,0.9
+262079,FD-43175,handlingunit,handlingunit,"Verify that when a user manually edits the Tare Wt field, subsequent Type changes should NOT overwrite the user-entered ",Y,N,N,1,N,N,134,0,111,N,N,2,5.5,3.6
+7809,FD-33358,loadreports,loadreports,Verify that the report updates properly when the Operational Office filter is applied for Load Detail for Office reports,Y,N,Y,2,N,N,266,5,131,N,N,0,5.2,7.2
+350041,FD-34572,carrierportal,carrierportal,Verify load detail page displays correctly,Y,Y,N,2,N,Y,84,3,96,N,N,0,4.3,2.3
+286917,FD-43535,masterbilling,masterbilling,Verify multiple Additional Del Pref values are displayed when multiple checkboxes are selected along with Portal Link di,Y,N,N,1,N,N,232,0,169,N,N,1,4.0,6.3
+7770,FD-32549,rateandmatch,rateandmatch,Verify that UI element is displayed once one intermediate stop is removed,Y,N,N,1,N,N,132,2,68,N,N,0,3.9,3.6
+336391,FD-44421,"agentsearch,reports",agentsearch,Verify Summary filter when toggle NO,Y,N,N,1,N,N,24,0,25,N,N,0,3.5,0.6
+336392,FD-44421,"agentsearch,reports",agentsearch,Verify Summary filter when toggle YES,Y,N,N,1,N,N,25,0,24,N,N,0,3.5,0.7
+336395,FD-44421,"agentsearch,reports",agentsearch,Verify standard pay agent unaffected,Y,N,N,1,N,N,19,0,30,N,N,0,3.5,0.5
+336398,FD-44421,"agentsearch,reports",agentsearch,Verify Details filter when toggle NO,Y,N,N,1,N,N,24,0,25,N,N,0,3.5,0.6
+336399,FD-44421,"agentsearch,reports",agentsearch,Verify Details filter when toggle YES,Y,N,N,1,N,N,25,0,24,N,N,0,3.5,0.7
+7860,FD-33040,search,search,Ensure the progress indicator  next state is 'View Results' after the 'Changes Complete' state.,Y,Y,N,2,N,N,124,1,68,N,N,0,3.5,3.4
+7772,FD-32549,rateandmatch,rateandmatch,Verfiy that The Carrier and Match form is NOT revised for offices that are NOT DFB enabled.,Y,N,N,1,N,N,123,0,155,N,N,0,3.0,3.3
+97923,FD-31341,createtl,createtl,"Validate when a carrier is changed or removed on a load where Prepay Carrier Check exists, the prepay linked to the old ",Y,N,N,1,N,N,112,0,66,N,N,0,1.7,3.0
+262158,FD-43210,"go2,handlingunit",go2,Assign Item to HU and Persist,Y,N,N,1,N,N,34,0,23,N,N,0,0.6,0.9
+262160,FD-43210,"go2,handlingunit",go2,Two items share HU,Y,N,N,1,N,N,14,0,22,N,N,0,0.4,0.4
+262161,FD-43210,"go2,handlingunit",go2,Delete HU unassigns items,Y,N,N,1,N,N,9,0,18,N,N,0,0.3,0.2
+262164,FD-43210,"go2,handlingunit",go2,Caption Total HU,Y,N,N,1,N,N,14,0,16,N,N,0,0.3,0.4
+262165,FD-43210,"go2,handlingunit",go2,Caption excludes BOL,Y,N,N,1,N,N,14,0,11,N,N,0,0.3,0.4
+262166,FD-43210,"go2,handlingunit",go2,Caption weight calculation,Y,N,N,1,N,N,10,0,14,N,N,0,0.3,0.3
+262170,FD-43210,"go2,handlingunit",go2,Banyan re-rate trigger,Y,N,N,1,N,N,16,0,13,N,N,0,0.3,0.4
+117006,FD-36348,,(none),Validate payable toggle when an additional invoice is received and auto pay logic fails due to a missing report.,Y,N,Y,2,N,N,0,0,0,N,N,0,0.0,0.0
+117007,FD-36348,,(none),Validate payable toggle when an additional invoice is received and auto pay logic passes.,Y,N,Y,2,N,N,0,0,0,N,N,0,0.0,0.0
+349949,,customerportal,customerportal,Payment Module - Verify all payment dropdown fields are enabled for invoices in open status,Y,N,Y,2,N,N,0,0,0,N,N,0,0.0,0.0
+349950,,customerportal,customerportal,Payment Method - Add a payment method,Y,N,Y,2,N,N,0,0,0,N,N,0,0.0,0.0
+349979,FD-44421,"offices,reports",offices,Persistence when Pay Commissions set to NO,Y,N,Y,2,N,N,0,0,0,N,N,0,0.0,0.0
+349980,FD-44421,"offices,reports",offices,Persistence when Pay Commissions set to YES,Y,N,Y,2,N,N,0,0,0,N,N,0,0.0,0.0
+349981,FD-44421,"offices,reports",offices,Commissions tab hidden for No Pay office,Y,N,Y,2,N,N,0,0,0,N,N,0,0.0,0.0
+349982,FD-44421,"offices,reports",offices,Commissions tab visible for Pay office,Y,N,Y,2,N,N,0,0,0,N,N,0,0.0,0.0
+349987,FD-44421,"offices,reports",offices,Summary excludes No Pay offices when OFF,Y,N,Y,2,N,N,0,0,0,N,N,0,0.0,0.0
+349988,FD-44421,"offices,reports",offices,Summary includes No Pay offices when ON,Y,N,Y,2,N,N,0,0,0,N,N,0,0.0,0.0
+349991,FD-44421,"offices,reports",offices,Commission Details toggle visible,Y,N,Y,2,N,N,0,0,0,N,N,0,0.0,0.0
+349992,FD-44421,"offices,reports",offices,Commission Details excludes No Pay,Y,N,Y,2,N,N,0,0,0,N,N,0,0.0,0.0
+7806,FD-33358,loadreports,loadreports,Verify that the report updates properly when the Operational Office filter is applied for Load Summary by Office Reports,Y,N,N,1,N,N,259,5,92,N,N,0,0.0,7.0

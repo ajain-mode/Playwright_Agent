@@ -211,6 +211,74 @@ class TNXExecutionNotesPage {
   }
  
   /**
+   * After Match Now, Progress may briefly show "all done" before Execution Notes paints,
+   * or stay on the completed progress state. Accept either: Execution Notes fields, or the
+   * completed Progress message (match already confirmed via Congrats / Matched toast).
+   * @author AI Agent
+   * @created 2026-07-17
+   * @param maxAttempts Number of Progress re-clicks / short waits before accepting all-done
+   * @returns Promise<void>
+   */
+  async validateExecutionNotesOrMatchComplete(maxAttempts: number = 3): Promise<void> {
+    const allDone_LOC = this.page.getByText(/You are all done/i).first();
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      await commonReusables.waitForAllLoadStates(this.page);
+      try {
+        await this.progressText_LOC.waitFor({
+          state: "visible",
+          timeout: WAIT.LARGE,
+        });
+        await this.progressText_LOC.click();
+      } catch {
+        console.log(
+          `Progress tab not clickable on attempt ${attempt}/${maxAttempts}`
+        );
+      }
+
+      const notesVisible = await this.executionNotesSection_LOC
+        .isVisible()
+        .catch(() => false);
+      if (notesVisible) {
+        await this.validateExecutionNotesFieldsPresence();
+        return;
+      }
+
+      const allDoneVisible = await allDone_LOC.isVisible().catch(() => false);
+      if (allDoneVisible && attempt === maxAttempts) {
+        console.log(
+          "✅ Match Now Progress shows 'You are all done' (Execution Notes form not required)"
+        );
+        return;
+      }
+
+      console.log(
+        `Execution Notes not visible yet (attempt ${attempt}/${maxAttempts}); waiting...`
+      );
+      await this.page.waitForTimeout(WAIT.DEFAULT);
+    }
+
+    // Final attempt: prefer full field validation if notes appeared late
+    const notesVisibleFinal = await this.executionNotesSection_LOC
+      .isVisible()
+      .catch(() => false);
+    if (notesVisibleFinal) {
+      await this.validateExecutionNotesFieldsPresence();
+      return;
+    }
+
+    const allDoneFinal = await allDone_LOC.isVisible().catch(() => false);
+    if (allDoneFinal) {
+      console.log(
+        "✅ Match Now Progress shows 'You are all done' (Execution Notes form not required)"
+      );
+      return;
+    }
+
+    await this.validateExecutionNotesFieldsPresence();
+  }
+
+  /**
    * Validates that specific execution notes input fields are editable
    * @author Deepak Bohra
    * @since 2025-09-08

@@ -1,0 +1,1624 @@
+============================================================
+ID=171221 Tags=dfb,loads,postautomationrules
+Case=Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with one or more intermediate stops.
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save
+STEPS:
+1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the EDI enabled Customer (Eg. OXYCHEM ERS - EDI --- [EDI])
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. P446300 - FW LOGISTICS & WAREHOUSE - MODESTO, CA)
+11. Select the Drop Location (Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+12. Click on Plus icon and select another pickup location (Eg. P455300 -  STELLAR MANUF - SAUGET, IL)
+13. Click on Plus icon and select another pickup location (Eg. 0000104308 - 3M COMPANY, - PRAIRIE DU CHIEN, WI)
+14. Click on Plus icon and select one more drop location (Eg. PW103375 - ***FOR OFFICE USE*** S I WAREHOUSE - HOUSTON, TX)
+15. Select Equipment (Eg. FLATBED)
+16. Select Load Method (Eg. TL)
+17. Enter the Offer Rate (Eg. $800)
+18. Click on Create button. 
+19. Check the checkbox for the rule created.
+20. Click Edit.
+21. Verify the Rule is created and entered data is updated correctly.
+22. Hover to the Customer and click on Search. 
+23. Enter the EDI enabled customer that is selected while creating the rule (Eg. OXYCHEM ERS - EDI --- [EDI])
+25. Click on Search. 
+26. Click on customer profi
+EXP:
+Ensure the step 75.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 76.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:85
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:86
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver 
+
+============================================================
+ID=171222 Tags=dfb,loads,postautomationrules
+Case=Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with no intermediate stops.
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save
+STEPS:
+1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the EDI enabled Customer (Eg. OXYCHEM ERS - EDI --- [EDI])
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. P446300 - FW LOGISTICS & WAREHOUSE - MODESTO, CA)
+11. Select the Drop Location (Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+12. Select Equipment (Eg. FLATBED)
+13. Select Load Method (Eg. TL)
+14. Enter the Offer Rate (Eg. $800)
+15. Click on Create button. 
+16. Check the checkbox for the rule created.
+17. Click Edit.
+18. Verify the Rule is created and entered data is updated correctly.
+19. Hover to the Customer and click on Search. 
+20. Enter the EDI enabled customer that is selected while creating the rule (Eg. OXYCHEM ERS - EDI --- [EDI])
+21. Click on Search. 
+22. Click on customer profile. 
+23. Click on Create TL *NEW* on the View customer page.
+24.  In "ENTER NEW LOAD" page "Customer" field is already selected or if not we need to select the customer.
+25. "Salesperson" and "Dispatcher" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED) - 4773)
+26. Select the location from the "Shipper" fie
+EXP:
+Ensure the step 50.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 53.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:62
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:63
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver 
+
+============================================================
+ID=171223 Tags=dfb,loads,postautomationrules
+Case=Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with Auto accept feature.
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save
+STEPS:
+1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the EDI enabled Customer (Eg. OXYCHEM ERS - EDI --- [EDI])
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. P446300 - FW LOGISTICS & WAREHOUSE - MODESTO, CA)
+11. Select the Drop Location (Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+12. Select Equipment (Eg. FLATBED)
+13. Select Load Method (Eg. TL)
+14. Enter the Offer Rate (Eg. $800)
+15. Click show optional field.
+16. Enter a carrier under include carrier field
+17. Click the checkbox carrier auto accept.
+18. Select the mail id from Carrier Contact for Rate Confirmation.(Eg. mohammed.suhaib@modeglobal.com)
+19. Click on Create button. 
+20. Check the checkbox for the rule created.
+21. Click Edit.
+22. Verify the Rule is created and entered data is updated correctly.
+23. Hover to the Customer and click on Search. 
+24. Enter the EDI enabled customer that is selected while creating the rule (Eg. OXYCHEM ERS - EDI --- [EDI])
+25. Click on Search. 
+26. Click on customer profile. 
+27. Click on Create TL *NEW* on the View customer page.
+28.  In "ENTER NEW LOAD" page "Customer" field is 
+EXP:
+Ensure the step 56.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the load status is BOOKED.
+
+Ensure that the carrier is assigned.
+
+Ensure that the related email are received.
+
+Ensure after Step:59
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED
+
+Ensure after Step:66
+TNX
+- A load is matched for the included carrier and offer rate is also same 
+
+Ensure after Step:67
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+============================================================
+ID=171224 Tags=dfb,loads,postautomationrules
+Case=Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with one or more carriers in the include carrier field.
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save
+STEPS:
+1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the EDI enabled Customer (Eg. OXYCHEM ERS - EDI --- [EDI])
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. P446300 - FW LOGISTICS & WAREHOUSE - MODESTO, CA)
+11. Select the Drop Location (Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+12. Select Equipment (Eg. FLATBED)
+13. Select Load Method (Eg. TL)
+14. Enter the Offer Rate (Eg. $800)
+15. Click on Show Optional Fields.
+16. Enter one or more carrier name in the include carrier field.
+17. Click on Create button. 
+18. Check the checkbox for the rule created.
+19. Click Edit.
+20. Verify the Rule is created and entered data is updated correctly.
+21. Hover to the Customer and click on Search. 
+22. Enter the EDI enabled customer that is selected while creating the rule (Eg. OXYCHEM ERS - EDI --- [EDI])
+23. Click on Search. 
+24. Click on customer profile. 
+25. Click on Create TL *NEW* on the View customer page.
+26.  In "ENTER NEW LOAD" page "Customer" field is already selected or if not we need to select the customer.
+27. "Salesperson" and "Dispatcher" field has preselected values, if
+EXP:
+Ensure the step 50.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the selected carriers in the rule is reflected in the load.
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 55.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:64
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:65
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+
+
+============================================================
+ID=171225 Tags=dfb,loads,postautomationrules
+Case=Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with one or more carriers in the Exclude carrier field.
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save
+STEPS:
+1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the EDI enabled Customer (Eg. OXYCHEM ERS - EDI --- [EDI])
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. P446300 - FW LOGISTICS & WAREHOUSE - MODESTO, CA)
+11. Select the Drop Location (Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+12. Select Equipment (Eg. FLATBED)
+13. Select Load Method (Eg. TL)
+14. Enter the Offer Rate (Eg. $800)
+15. Click on Show Optional Fields.
+16. Enter one or more carrier name in the Exclude carrier field.
+17. Click on Create button. 
+18. Check the checkbox for the rule created.
+19. Click Edit.
+20. Verify the Rule is created and entered data is updated correctly.
+21. Hover to the Customer and click on Search. 
+22. Enter the EDI enabled customer that is selected while creating the rule (Eg. OXYCHEM ERS - EDI --- [EDI])
+23. Click on Search. 
+24. Click on customer profile. 
+25. Click on Create TL *NEW* on the View customer page.
+26.  In "ENTER NEW LOAD" page "Customer" field is already selected or if not we need to select the customer.
+27. "Salesperson" and "Dispatcher" field has preselected values, if
+EXP:
+Ensure the step 52.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the selected carriers in the rule is reflected in the load.
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 55.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:65
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:66
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+
+
+============================================================
+ID=171226 Tags=dfb,loads,postautomationrules
+Case=Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with waterfall configured.
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save
+STEPS:
+1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the EDI enabled Customer (Eg. OXYCHEM ERS - EDI --- [EDI])
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. P446300 - FW LOGISTICS & WAREHOUSE - MODESTO, CA)
+11. Select the Drop Location (Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+12. Select Equipment (Eg. FLATBED)
+13. Select Load Method (Eg. TL)
+14. Enter the Offer Rate (Eg. $800)
+15. Click on Show Optional Fields.
+16. Enter one or more carrier name in the include carrier field.
+17. Click on View Details. 
+18. Enter Carrier Pirority(Eg. 1), Carrier timing (Eg. 00:01), Carrier Offer Rate (Eg. $600) for all the carriers selected for waterfall.
+19. Click the checkbox "Post to all Carriers upon completion of the Waterfall"
+20. Enter the Offer rate (Eg. 700)
+21. Click on Close button. 
+22. Click on Create button. 
+23. Check the checkbox for the rule created.
+24. Click Edit.
+25. Verify the Rule is created and entered data is updated correctly.
+26. Hover to the Customer and click on Search. 
+27. Enter the EDI enabled customer that is selected while creating the rule (Eg. OXYCHEM
+EXP:
+Ensure the step 57.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the selected carriers in the rule is reflected in the load.
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 60.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure the step 66.
+The load is posted in the given interval of time in the rep site and verify the offer rate values in the each carrier. 
+
+Ensure after Step:76
+TNX
+- A load is matched for the selec
+
+============================================================
+ID=171227 Tags=dfb,loads,postautomationrules
+Case=Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an NON-EDI customer with one or more intermediate stops.
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save
+STEPS:
+1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the Customer (Eg. BONDED CHEMICAL)
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. ABB MOLD TRANSIT - SCHENECTADY, NY)
+11. Select the Drop Location (ALCHEM - MEDINA, OH)
+12. Click on Plus icon and select another pickup location (Eg. ALCHEM - CHIPPEWA LAKE, OH)
+13. Click on Plus icon and select another pickup location (Eg. ALLIED MINERALS - ANNISTON, AL)
+14. Click on Plus icon and select one more drop location (Eg. AMERICAN MUNICIPAL POWER - FREMONT, OH)
+15. Select Equipment (Eg. FLATBED)
+16. Select Load Method (Eg. TL)
+17. Enter the Offer Rate (Eg. $800)
+18. Click on Create button. 
+19. Check the checkbox for the rule created.
+20. Click Edit.
+21. Verify the Rule is created and entered data is updated correctly.
+22. Hover to the Customer and click on Search. 
+23. Enter the customer that is selected while creating the rule (Eg. BONDED CHEMICALS)
+25. Click on Search. 
+26. Click on customer profile. 
+27. Click on Create TL *NEW* on the View customer page.
+28.  In "ENTER NEW LOAD" page "Customer" field is already selected or if not we need to select t
+EXP:
+Ensure the step 75.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 76.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:85
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:86
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver 
+
+============================================================
+ID=171228 Tags=dfb,loads,postautomationrules
+Case=Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an Non EDI customer with no intermediate stops.
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save
+STEPS:
+1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the Customer (Eg. BONDED CHEMICAL)
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. ABB MOLD TRANSIT - SCHENECTADY, NY)
+11. Select the Drop Location (ALCHEM - MEDINA, OH)
+12. Select Equipment (Eg. FLATBED)
+13. Select Load Method (Eg. TL)
+14. Enter the Offer Rate (Eg. $800)
+15. Click on Create button. 
+16. Check the checkbox for the rule created.
+17. Click Edit.
+18. Verify the Rule is created and entered data is updated correctly.
+19. Hover to the Customer and click on Search. 
+20. Enter the EDI enabled customer that is selected while creating the rule (Eg. BONDED CHEMICAL)
+21. Click on Search. 
+22. Click on customer profile. 
+23. Click on Create TL *NEW* on the View customer page.
+24.  In "ENTER NEW LOAD" page "Customer" field is already selected or if not we need to select the customer.
+25. "Salesperson" and "Dispatcher" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED) - 4773)
+26. Select the location from the "Shipper" field(Eg. P446300 - FW LOGISTICS & WAREHOUSE - MODESTO, CA)
+27. Once the location is selected from t
+EXP:
+Ensure the step 50.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 53.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:62
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:63
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver 
+
+============================================================
+ID=171229 Tags=dfb,loads,postautomationrules
+Case=Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an Non EDI customer with Auto accept feature.
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save
+STEPS:
+1. Now hover the mouse over the ADMIN tab and click on it.
+2. Now users gets navigated to the ADMIN main page and ON Switch User field enter value as  BRENT DURHAM
+3.Once suggestion is shown click on BRENT DURHAM(TX-RED)
+4.Once user gets switched and hover to HOME
+5. Click on OFFICE CONFIG 
+6. Click Post Automation button. 
+7. Click New button. 
+8. Select the Customer (Eg. BONDED CHEMICAL)
+9. Enter or select email id on Email for Notifications (Eg. mohammed.shuaib@modeglobal.com)
+10. Select the Pickup Location (Eg. ABB MOLD TRANSIT - SCHENECTADY, NY)
+11. Select the Drop Location (ALCHEM - MEDINA, OH)
+12. Select Equipment (Eg. FLATBED)
+13. Select Load Method (Eg. TL)
+14. Enter the Offer Rate (Eg. $800)
+15. Click show optional field.
+16. Enter a carrier under include carrier field
+17. Click the checkbox carrier auto accept.
+18. Select the mail id from Carrier Contact for Rate Confirmation.(Eg. mohammed.suhaib@modeglobal.com)
+19. Click on Create button. 
+20. Check the checkbox for the rule created.
+21. Click Edit.
+22. Verify the Rule is created and entered data is updated correctly.
+23. Hover to the Customer and click on Search. 
+24. Enter the  customer that is selected while creating the rule  (Eg. BONDED CHEMICAL)
+25. Click on Search. 
+26. Click on customer profile. 
+27. Click on Create TL *NEW* on the View customer page.
+28.  In "ENTER NEW LOAD" page "Customer" field is already selected or if not we need to select the customer.
+29. "Salesperson" and "Dispatcher" field has pre
+EXP:
+Ensure the step 56.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the load status is BOOKED.
+
+Ensure that the carrier is assigned.
+
+Ensure that the related email are received.
+
+Ensure after Step:59
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+- TNX BOOKED
+
+Ensure after Step:66
+TNX
+- A load is matched for the included carrier and offer rate is also same 
+
+Ensure after Step:67
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+============================================================
+ID=171324 Tags=dat,dfb,loads
+Case=Verify that when a load is posted to both DAT and TNX and is matched via TNX, the carrier does not receive a cancellation email from TNX after the match.
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save 
+15. Hover to ADMIN again.
+16. Click on Agent Search
+17. Enter Agent name on Agent field (Eg.mohammed suhaib)
+18. Click on Search. 
+19. Click on agent profiel. 
+20. Click on Edit. 
+21. Enter "user-dat-tts@modeglobal.com" on DAT Username
+22. Click on Check Credentails.
+23. Click OK popup.
+24. Click on save.
+STEPS:
+1. Hover to the Customer and click on Search. 
+2. Enter the customer (Eg. BONDED CHEMICAL)
+3. Click on Search. 
+4. Click on customer profile. 
+5. Click on Create TL *NEW* on the View customer page.
+6.  In "ENTER NEW LOAD" page "Customer" field is already selected or if not we need to select the customer.
+7. "Salesperson" and "Dispatcher" field has preselected values, if not we need to select.(BRENT DURHAM (TX-RED) - 4773)
+8. Select the location from the "Shipper" field(Eg. P446300 - FW LOGISTICS & WAREHOUSE - MODESTO, CA)
+9. Once the location is selected from the "Shipper" field then "Name","Address","City","State","Zip","Country" will be automatically update the values in the corresponding fields. 
+9. Select the "Earliest Date" (Future date need to select)(select tommorw date)
+10. Select the "Latest Date" (Future date need to select)(select tommorw date)
+11. Enter the "Earliest Time" (Eg. 09:00)
+12. Enter the "Latest Time" (Eg. 09:00)
+13. Select the location from the "Consignee" field.(Eg. 0000151043 -  OCCIDENTAL CHEMICAL CORPORATION, - DEER PARK, TX)
+14. Once the location is selected from the "Consignee" field then "Name","Address","City","State","Zip","Country" will be automatically update the values in the corresponding fields. 
+15. Select the "Earliest Date" (Future date need to select)(select tommorw daayafter)
+16. Select the "Latest Date" (Future date need to select)(select tommorw daayafter)
+17. Enter the "Earliest Time" (Eg. 10:00)
+18. Enter the "Latest Time" (Eg. 1
+EXP:
+Ensure the step 50. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly in the carrier tab. 
+
+Create rule button is displayed
+
+Ensure the Step 53.
+- Load is created in DME 
+- Vendor Statuses:
+- DAT: REQUESTED
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:62
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:63
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver Cell 
+Truck Number
+Trailer Number
+Is Empty 
+Current Location City 
+Current Location State
+Current Location Zip 
+Empty Location City 
+Empty Location State
+Empty Location Zip
+
+Ensure after Step:69
+DME
+- Load is created in DME 
+- Ven
+
+============================================================
+ID=196261 Tags=carriers,dfb,loads
+Case=Verify a load matched in TNX, If the carrier user is NOT disabled and its Avenger Org is ON
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save.
+15. Hover to CARRIER
+16. Enter the carrier name(Eg. 15. Hover to ADMIN again.)
+17. Click on Search. 
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Avenger toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.
+STEPS:
+1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the "ENTER NEW LOAD" page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Metho
+EXP:
+Ensure the step 36.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 38.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:41
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:50
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver 
+
+============================================================
+ID=196262 Tags=carriers,dfb,loads
+Case=Verify a load matched in TNX, If the carrier user is NOT disabled and its Hydrofarm Org is ON
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save.
+15. Hover to CARRIER
+16. Enter the carrier name(Eg. 15. Hover to ADMIN again.)
+17. Click on Search. 
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Hydrofarm toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.
+STEPS:
+1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the "ENTER NEW LOAD" page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Metho
+EXP:
+Ensure the step 35.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 37.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:40
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:49
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver 
+
+============================================================
+ID=196263 Tags=carriers,dfb,loads
+Case=Verify a load matched in TNX, If the carrier user is NOT disabled and its Mode Org is ON
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save.
+15. Hover to CARRIER
+16. Enter the carrier name(Eg. 15. Hover to ADMIN again.)
+17. Click on Search. 
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Mode toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.
+STEPS:
+1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the "ENTER NEW LOAD" page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Metho
+EXP:
+Ensure the step 35.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 37.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:40
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:49
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver 
+
+============================================================
+ID=196264 Tags=carriers,dfb,loads
+Case=Verify a load matched in TNX, If the carrier user is NOT disabled and its Suntecktts Org is ON
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save.
+15. Hover to CARRIER
+16. Enter the carrier name(Eg. 15. Hover to ADMIN again.)
+17. Click on Search. 
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Suntecktts toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.
+STEPS:
+1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the "ENTER NEW LOAD" page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Metho
+EXP:
+Ensure the step 35.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 37.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:40
+TNX
+- A load is matched for the select carrier and offer rate is also same 
+
+Ensure after Step:49
+- The fields for providing execution notes are displayed 
+Carrier Dispatch Name
+Carrier Dispatch Email
+Carrier Dispatch Phone Number
+Driver Name 
+Driver 
+
+============================================================
+ID=196274 Tags=carriers,dfb,loads
+Case=Verify the Load process that has a Bid accepted in BTMS, If the carrier user is NOT disabled and its Avenger Org is ON
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save.
+15. Hover to CARRIER
+16. Click on Search. 
+17. Enter the carrier name.
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Avenger toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.
+STEPS:
+1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the ENTER NEW LOAD page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Method 
+EXP:
+Ensure the step 37.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 38.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:52
+BID
+- Ensure that the values are correctly updated in the following fields.
+1. View Bid Details.
+2. Bid Result modal.
+3. Bids Avg rate and report.
+4. Bid History.
+
+Ensure after Step:53
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+
+
+============================================================
+ID=196275 Tags=carriers,dfb,loads
+Case=Verify the Load process that has a Bid accepted in BTMS, If the carrier user is NOT disabled and its Hydrofarm Org is ON
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save.
+15. Hover to CARRIER
+16. Click on Search. 
+17. Enter the carrier name.
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Avenger toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.
+STEPS:
+1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the ENTER NEW LOAD page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Method 
+EXP:
+Ensure the step 37.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 38.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:52
+BID
+- Ensure that the values are correctly updated in the following fields.
+1. View Bid Details.
+2. Bid Result modal.
+3. Bids Avg rate and report.
+4. Bid History.
+
+Ensure after Step:53
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+
+
+============================================================
+ID=196276 Tags=carriers,dfb,loads
+Case=Verify the Load process that has a Bid accepted in BTMS, If the carrier user is NOT disabled and its Mode Org is ON
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save.
+15. Hover to CARRIER
+16. Click on Search. 
+17. Enter the carrier name.
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Avenger toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.
+STEPS:
+1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the ENTER NEW LOAD page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Method 
+EXP:
+Ensure the step 37.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 38.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:52
+BID
+- Ensure that the values are correctly updated in the following fields.
+1. View Bid Details.
+2. Bid Result modal.
+3. Bids Avg rate and report.
+4. Bid History.
+
+Ensure after Step:53
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+
+
+============================================================
+ID=196277 Tags=carriers,dfb,loads
+Case=Verify the Load process that has a Bid accepted in BTMS, If the carrier user is NOT disabled and its Suntecktts Org is ON
+PRE:
+1. Agent is logged into BTMS in any valid environment.
+2. Click on Sign in with Single Sign- On
+3. Enter the User ID and Click Next
+4. Enter the Password 
+5. Click Sign In.
+6. Hover to ADMIN.
+7. Click on OFFICE SEARCH.
+8. Enter the office code (TX-RED)
+9. Click on Search. 
+10. Click on Office profile.
+11. Check Match Vendor set as  "TNX" and Enable Digital Matching Engine as YES(If set then skip step 12 and 14).
+12. Click on Edit.
+13. Set  Enable Digital Matching Engine as YES. and click on save.
+14.Click on Edit set Match Vender as "TNX" and click on save.
+15. Hover to CARRIER
+16. Click on Search. 
+17. Enter the carrier name.
+18. Click the carrier profile. 
+19. Click on MODE IQ tab. 
+20. Carrier status in ACTIVE or CAUTION
+21. Turn on Avenger toggle under uservisibility section if it is turned off
+22. Uncheck the disabled checkbox if it is checked.
+STEPS:
+1. Hover over Customer and click on Search.
+2. Enter the customer (Eg. BONDED CHEMICAL).
+3. Click on Search.
+4. Click on Customer Profile.
+5. Click on Create TL � NEW on the View Customer page.
+6. In the ENTER NEW LOAD page, verify the Customer field is already selected; if not, select the customer.
+7. Verify the Salesperson and Dispatcher fields have preselected values; if not, select BRENT DURHAM (TX-RED) � 4773.
+8. Select the location from the Shipper field (Eg. ABB MOLD TRANSIT � SCHENECTADY, NY).
+9. Verify Name, Address, City, State, Zip, and Country are auto populated for Shipper.
+10. Select the Earliest Date (future date � select tomorrow).
+11. Select the Latest Date (future date � select tomorrow).
+12. Enter the Earliest Time (Eg. 09:00).
+13. Enter the Latest Time (Eg. 09:00).
+14. Select the location from the Consignee field (Eg. ALCHEM � MEDINA, OH).
+15. Verify Name, Address, City, State, Zip, and Country are auto populated for Consignee.
+16. Select the Earliest Date (future date � select day after tomorrow).
+17. Select the Latest Date (future date � select day after tomorrow).
+18. Enter the Earliest Time (Eg. 10:00).
+19. Enter the Latest Time (Eg. 10:00).
+20. Enter the Quantity in the Qty field (Eg. 95).
+21. Select the UoM field (Eg. TL).
+22. Enter the Description field (Eg. Total 95 cases).
+23. Enter the Weight field (Eg. 8500).
+24. Select the Equipment as FLATBED.
+25. Enter the Length field (Eg. 54).
+26. Select the Mileage Engine as Current.
+27. Select the Method 
+EXP:
+Ensure the step 37.
+Ensure that the load is correctly matched to the existing rule. 
+
+Ensure that the Automation rule applied badge is visible and should be in green color.
+
+Update rule button is visible and deactivated. 
+
+Delete rule is activated and visible. 
+
+Post status is POSTED. 
+
+Cancel button is visible and activated. 
+
+Post button is visible and deactivated. 
+
+Clear form button is visible and activated. 
+
+Ensure the offer rate is auto populated correctly entered in the rule. 
+
+Create rule button is not displayed.
+
+Ensure the Step 38.
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS REQUESTED
+- TNX REQUESTED
+
+Ensure after Step:52
+BID
+- Ensure that the values are correctly updated in the following fields.
+1. View Bid Details.
+2. Bid Result modal.
+3. Bids Avg rate and report.
+4. Bid History.
+
+Ensure after Step:53
+DME
+- Load is created in DME 
+- Vendor Statuses:
+- BTMS CANCELLED
+

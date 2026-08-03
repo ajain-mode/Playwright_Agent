@@ -73,9 +73,11 @@ import TNXRepLoginPage from '@pages/login/TNXRepLoginPage';
 import TNXRepLandingPage from '@pages/tnx/TNXRepLandingPage';
 import { DFBIncludeCarriersDataModalWaterfall } from '@pages/loads/DFBIncludeCarriersDataModalWaterfall';
 import SimulateEDispatchPage from '@pages/admin/SimulateEDispatch';
+import AdminParseEdiPage from '@pages/admin/AdminParseEdiPage';
 import ViewOfficeInfoPage from '@pages/admin/ViewOfficeInfoPage';
 import EditOfficeInfoPage from '@pages/admin/EditOfficeInfoPage';
 import SimulateEDispatchDocumentUploadPage from '@pages/admin/SimulateEDispatchDocument';
+import CustomerEdiPrefsPage from '@pages/customers/CustomerEdiPrefsPage';
 import TritanAdmin from '@pages/tritan/TritanAdmin';
 import LegacyCustomerPortalLogin from '@pages/login/LegacyCustomerPortalLogin';
 import LCPQuoteLTL from '@pages/legacyCustomerPortal/QuoteLTL';
@@ -585,6 +587,24 @@ export class PageManager {
    */
   get simulateEDispatchPage(): SimulateEDispatchPage {
     return this.createPage('simulateEDispatchPage', SimulateEDispatchPage);
+  }
+
+  /**
+   * Gets AdminParseEdiPage instance with on-demand creation.
+   * @author AI Agent
+   * @created 2026-07-17
+   */
+  get adminParseEdiPage(): AdminParseEdiPage {
+    return this.createPage('adminParseEdiPage', AdminParseEdiPage);
+  }
+
+  /**
+   * Gets CustomerEdiPrefsPage instance with on-demand creation.
+   * @author AI Agent
+   * @created 2026-07-17
+   */
+  get customerEdiPrefsPage(): CustomerEdiPrefsPage {
+    return this.createPage('customerEdiPrefsPage', CustomerEdiPrefsPage);
   }
 
   /* Gets ViewOfficeInfoPage instance with on-demand creation

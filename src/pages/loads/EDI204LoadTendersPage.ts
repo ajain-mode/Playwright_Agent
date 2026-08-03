@@ -88,4 +88,46 @@ export default class EDI204LoadTendersPage {
         }
         return loadId;
     }
+
+    /**
+     * Returns visible tender-row text for a BOL (Purpose / 204 Behavior / LOAD#).
+     * @author AI Agent
+     * @created 2026-07-17
+     * @param bolNumber BOL on the tenders grid
+     */
+    async getTenderRowTextsForBol(bolNumber: string): Promise<string[]> {
+        await this.page.waitForLoadState("networkidle");
+        const rows = this.page.locator("tr[role='row']").filter({ hasText: bolNumber });
+        const count = await rows.count();
+        const texts: string[] = [];
+        for (let i = 0; i < count; i++) {
+            texts.push(((await rows.nth(i).innerText()) || "").replace(/\s+/g, " ").trim());
+        }
+        console.log(`Tender rows for ${bolNumber} (${count}):`, texts);
+        return texts;
+    }
+
+    /**
+     * Clicks the Change/Replace tender row for a BOL when multiple rows share the same BOL.
+     * @author AI Agent
+     * @created 2026-07-17
+     * @param bolNumber BOL / shipment id shown on the tenders grid
+     */
+    async clickChangeOrderRowWithBolNumber(bolNumber: string): Promise<void> {
+        await this.page.waitForLoadState("networkidle");
+        const changeRow = this.page
+            .locator("tr[role='row']")
+            .filter({ hasText: bolNumber })
+            .filter({ hasText: /Change|Replace|Reissue/i })
+            .first();
+        if (await changeRow.isVisible().catch(() => false)) {
+            await changeRow.click();
+            return;
+        }
+        // Newest duplicate BOL cell (change tenders append after original)
+        await this.page
+            .locator(`//tr[@role='row']/td[contains(text(),'${bolNumber}')]`)
+            .last()
+            .click();
+    }
 }

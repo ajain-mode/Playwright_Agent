@@ -1,0 +1,683 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic "BTMS STAGING": BTMS STAGING BTMS STAGING
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - link "MODE Global TMS" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "MODE Global TMS" [ref=e8]
+      - list [ref=e9]:
+        - listitem [ref=e10]:
+          - link "Home" [ref=e11] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e12]: Home
+        - listitem [ref=e13]:
+          - link "Customers" [ref=e14] [cursor=pointer]:
+            - /url: /web/customers/main
+            - generic [ref=e15]: Customers
+        - listitem [ref=e16]:
+          - link "Loads" [ref=e17] [cursor=pointer]:
+            - /url: /web/loads/main
+            - generic [ref=e18]: Loads
+        - listitem [ref=e19]:
+          - link "Carriers" [ref=e20] [cursor=pointer]:
+            - /url: /web/carriers/main
+            - generic [ref=e21]: Carriers
+        - listitem [ref=e22]:
+          - link "Finance" [ref=e23] [cursor=pointer]:
+            - /url: /fats/finanmain.php
+            - generic [ref=e24]: Finance
+        - listitem [ref=e25]:
+          - link "Executive" [ref=e26] [cursor=pointer]:
+            - /url: /fats/execmain.php
+            - generic [ref=e27]: Executive
+        - listitem [ref=e28]:
+          - link "Admin" [ref=e29] [cursor=pointer]:
+            - /url: /web/admin/main
+            - generic [ref=e30]: Admin
+      - generic [ref=e31]:
+        - button "" [ref=e32] [cursor=pointer]:
+          - generic [ref=e33]: 
+        - text: 
+      - list [ref=e35]:
+        - listitem [ref=e36]:
+          - link "SVC_TESTAUTOMATION" [ref=e37] [cursor=pointer]:
+            - /url: /web/admin/main
+            - text: SVC_TESTAUTOMATION
+            - generic [ref=e38]: 
+    - table [ref=e40]:
+      - rowgroup [ref=e41]:
+        - row [ref=e42]:
+          - cell [ref=e43]:
+            - generic [ref=e44]:
+              - table [ref=e48]:
+                - rowgroup [ref=e49]:
+                  - row "View Office Info View Edit Save Save and Return Return" [ref=e50]:
+                    - cell "View Office Info" [ref=e51]
+                    - cell "View Edit Save Save and Return Return" [ref=e52]:
+                      - generic [ref=e53]:
+                        - button "View" [disabled] [ref=e54]
+                        - button "Edit" [ref=e55] [cursor=pointer]
+                        - button "Save" [disabled] [ref=e56]
+                        - button "Save and Return" [disabled] [ref=e57]
+                        - button "Return" [ref=e58] [cursor=pointer]
+              - table [ref=e59]:
+                - rowgroup [ref=e60]:
+                  - row [ref=e61]:
+                    - cell [ref=e62]:
+                      - generic:
+                        - list:
+                          - listitem:
+                            - generic [ref=e63]: General
+                          - listitem:
+                            - link "3rd Party Credentials" [ref=e64] [cursor=pointer]:
+                              - /url: javascript:showMainTab(1)
+                      - table [ref=e67]:
+                        - rowgroup [ref=e68]:
+                          - row [ref=e69]:
+                            - cell [ref=e70]:
+                              - table [ref=e71]:
+                                - rowgroup [ref=e72]:
+                                  - row "Office Code TX-RED Parent Office OH-RVC" [ref=e73]:
+                                    - cell "Office Code" [ref=e74]
+                                    - cell "TX-RED" [ref=e75]
+                                    - cell "Parent Office" [ref=e76]
+                                    - cell "OH-RVC" [ref=e77]
+                                  - row "DAX Vendor Code TX-RED Business Unit TTS" [ref=e78]:
+                                    - cell "DAX Vendor Code" [ref=e79]
+                                    - cell "TX-RED" [ref=e80]
+                                    - cell "Business Unit" [ref=e81]:
+                                      - text: Business
+                                      - text: Unit
+                                    - cell "TTS" [ref=e82]
+                                  - row "DAX Agent Code AG-TX-RED" [ref=e83]:
+                                    - cell "DAX Agent Code" [ref=e84]
+                                    - cell "AG-TX-RED" [ref=e85]
+                                  - row [ref=e86]:
+                                    - cell [ref=e87]
+                                  - row "Office Owner CARRIE BOTTS - RED Status OPEN" [ref=e88]:
+                                    - cell "Office Owner" [ref=e89]
+                                    - cell "CARRIE BOTTS - RED" [ref=e90]
+                                    - cell "Status" [ref=e91]
+                                    - cell "OPEN" [ref=e92]
+                                  - row "Office Name The Redden Group" [ref=e93]:
+                                    - cell "Office Name" [ref=e94]
+                                    - cell "The Redden Group" [ref=e95]
+                                  - row [ref=e96]:
+                                    - cell [ref=e97]
+                                  - row "Office Group TX-RED Division BROKERAGE" [ref=e98]:
+                                    - cell "Office Group" [ref=e99]
+                                    - cell "TX-RED" [ref=e100]
+                                    - cell "Division" [ref=e101]
+                                    - cell "BROKERAGE" [ref=e102]
+                              - table [ref=e103]:
+                                - rowgroup [ref=e104]:
+                                  - row [ref=e105]:
+                                    - cell [ref=e106]
+                                    - cell [ref=e107]
+                                    - cell [ref=e108]
+                                    - cell [ref=e109]
+                                    - cell [ref=e110]
+                                  - row "Address 5600 TENNYSON PKWY" [ref=e111]:
+                                    - cell "Address" [ref=e112]
+                                    - cell "5600 TENNYSON PKWY" [ref=e113]
+                                  - row "SUITE 135" [ref=e114]:
+                                    - cell [ref=e115]
+                                    - cell "SUITE 135" [ref=e116]
+                                  - row "City PLANO St TX Zip 75024" [ref=e117]:
+                                    - cell "City" [ref=e118]
+                                    - cell "PLANO" [ref=e119]
+                                    - cell "St TX Zip 75024" [ref=e120]:
+                                      - table [ref=e121]:
+                                        - rowgroup [ref=e122]:
+                                          - row "St TX Zip 75024" [ref=e123]:
+                                            - cell "St" [ref=e124]
+                                            - cell "TX" [ref=e125]
+                                            - cell "Zip" [ref=e126]
+                                            - cell "75024" [ref=e127]
+                                  - row [ref=e128]:
+                                    - cell [ref=e129]
+                                    - cell [ref=e130]
+                                  - row "Country UNITED STATES MAP" [ref=e131]:
+                                    - cell "Country" [ref=e132]
+                                    - cell "UNITED STATES" [ref=e133]
+                                    - cell "MAP" [ref=e134]:
+                                      - link "MAP" [ref=e136] [cursor=pointer]:
+                                        - /url: javascript:view_addr_map("");
+                              - table [ref=e137]:
+                                - rowgroup [ref=e138]:
+                                  - row "Phone 972-407-2811 Fax Toll Free" [ref=e139]:
+                                    - cell "Phone" [ref=e140]
+                                    - cell "972-407-2811" [ref=e141]
+                                    - cell "Fax" [ref=e142]
+                                    - cell [ref=e143]
+                                    - cell "Toll Free" [ref=e144]
+                                    - cell [ref=e145]
+                                  - row "Email carrie.botts@suntecktts.com" [ref=e146]:
+                                    - cell "Email" [ref=e147]
+                                    - cell "carrie.botts@suntecktts.com" [ref=e148]
+                                  - row "Default Billing Issues Email" [ref=e149]:
+                                    - cell "Default Billing Issues Email" [ref=e150]
+                                    - cell [ref=e151]
+                                  - row "Default Payables Issues Email" [ref=e152]:
+                                    - cell "Default Payables Issues Email" [ref=e153]
+                                    - cell [ref=e154]
+                                  - 'row "*Note: Agents can now specify their own email recipients for finance issue notifications by going to HOME > PREFERENCES" [ref=e155]':
+                                    - cell [ref=e156]
+                                    - 'cell "*Note: Agents can now specify their own email recipients for finance issue notifications by going to HOME > PREFERENCES" [ref=e157]': "*Note: Agents can now specify their own email recipients for finance issue notifications by going to HOME > PREFERENCES"
+                                  - row "Cust Invoice Questions Email" [ref=e158]:
+                                    - cell "Cust Invoice Questions Email" [ref=e159]
+                                    - cell [ref=e160]
+                                  - row "Copy Email on Cust Invoices" [ref=e161]:
+                                    - cell "Copy Email on Cust Invoices" [ref=e162]
+                                    - cell [ref=e163]:
+                                      - link:
+                                        - /url: "mailto:"
+                                  - row "Processed Commission Email commissions@modeglobal.com, carrie.botts@suntecktts.com" [ref=e164]:
+                                    - cell "Processed Commission Email" [ref=e165]
+                                    - cell "commissions@modeglobal.com, carrie.botts@suntecktts.com" [ref=e166]:
+                                      - link "commissions@modeglobal.com, carrie.botts@suntecktts.com" [ref=e167] [cursor=pointer]:
+                                        - /url: mailto:commissions@modeglobal.com,carrie.botts@suntecktts.com
+                                        - text: commissions@modeglobal.com,
+                                        - text: carrie.botts@suntecktts.com
+                                  - row "Commission Business Confirmation Email" [ref=e168]:
+                                    - cell "Commission Business Confirmation Email" [ref=e169]
+                                    - cell [ref=e170]:
+                                      - link:
+                                        - /url: "mailto:"
+                                  - row "Account Clearance Email" [ref=e171]:
+                                    - cell "Account Clearance Email" [ref=e172]
+                                    - cell [ref=e173]:
+                                      - link:
+                                        - /url: "mailto:"
+                                  - row "Share Approval Requests Email CARRIE.BOTTS@SUNTECKTTS.COM" [ref=e174]:
+                                    - cell "Share Approval Requests Email" [ref=e175]
+                                    - cell "CARRIE.BOTTS@SUNTECKTTS.COM" [ref=e176]:
+                                      - link "CARRIE.BOTTS@SUNTECKTTS.COM" [ref=e177] [cursor=pointer]:
+                                        - /url: mailto:CARRIE.BOTTS@SUNTECKTTS.COM
+                                  - row "Cust Activation/Credit Email" [ref=e178]:
+                                    - cell "Cust Activation/Credit Email" [ref=e179]
+                                    - cell [ref=e180]:
+                                      - link:
+                                        - /url: "mailto:"
+                                  - row "EM" [ref=e181]:
+                                    - cell "EM" [ref=e182]
+                                    - cell [ref=e183]
+                                  - row "Team Color" [ref=e184]:
+                                    - cell "Team Color" [ref=e185]
+                                    - cell [ref=e186]
+                                  - row "DBA Redden Group" [ref=e187]:
+                                    - cell "DBA" [ref=e188]
+                                    - cell "Redden Group" [ref=e189]
+                                  - 'row "Load Tender Warehouse Instruct. The TMS will show/hide the following when making loads from EDI: Show Total Weight/Quantity from 204 Show Contact Info/Telephone from 204 Show Instructions from previously saved Location info" [ref=e190]':
+                                    - cell "Load Tender Warehouse Instruct." [ref=e191]
+                                    - 'cell "The TMS will show/hide the following when making loads from EDI: Show Total Weight/Quantity from 204 Show Contact Info/Telephone from 204 Show Instructions from previously saved Location info" [ref=e192]':
+                                      - text: "The TMS will show/hide the following when making loads from EDI:"
+                                      - text: Show Total Weight/Quantity from 204
+                                      - text: Show Contact Info/Telephone from 204
+                                      - text: Show Instructions from previously saved Location info
+                                  - row [ref=e193]:
+                                    - cell [ref=e194]
+                                  - row "Category Value Assignment Associate Choose either an assignment group or a single associate Billing Assignment DEFAULT SOUTH BILLING QUE Payable Assignment DEFAULT Round Robin" [ref=e195]:
+                                    - cell "Category Value Assignment Associate Choose either an assignment group or a single associate Billing Assignment DEFAULT SOUTH BILLING QUE Payable Assignment DEFAULT Round Robin" [ref=e196]:
+                                      - table [ref=e197]:
+                                        - rowgroup [ref=e198]:
+                                          - row "Category Value Assignment Associate" [ref=e199]:
+                                            - columnheader "Category" [ref=e200]
+                                            - columnheader "Value" [ref=e201]
+                                            - columnheader "Assignment" [ref=e202]
+                                            - columnheader "Associate" [ref=e203]
+                                            - columnheader [ref=e204]
+                                          - row "Choose either an assignment group or a single associate" [ref=e205]:
+                                            - columnheader [ref=e206]
+                                            - columnheader "Choose either an assignment group or a single associate" [ref=e207]:
+                                              - paragraph [ref=e208]: Choose either an assignment group or a single associate
+                                        - rowgroup [ref=e209]:
+                                          - row "Billing Assignment" [ref=e210]:
+                                            - cell "Billing Assignment" [ref=e211]:
+                                              - strong [ref=e212]: Billing Assignment
+                                          - row "DEFAULT SOUTH BILLING QUE" [ref=e213]:
+                                            - cell "DEFAULT" [ref=e214]
+                                            - cell [ref=e215]
+                                            - cell [ref=e216]
+                                            - cell "SOUTH BILLING QUE" [ref=e217]
+                                            - cell [ref=e218]
+                                          - text: 
+                                        - rowgroup [ref=e219]:
+                                          - row "Payable Assignment" [ref=e220]:
+                                            - cell "Payable Assignment" [ref=e221]:
+                                              - strong [ref=e222]: Payable Assignment
+                                          - row "DEFAULT Round Robin" [ref=e223]:
+                                            - cell "DEFAULT" [ref=e224]
+                                            - cell [ref=e225]
+                                            - cell "Round Robin" [ref=e226]
+                                            - cell [ref=e227]
+                                            - cell [ref=e228]
+                                          - text: 
+                                  - row "Auto-Adjust Payables Carrier Payable Variance 5.00 Waiting on Assignment Agent" [ref=e229]:
+                                    - cell "Auto-Adjust Payables Carrier Payable Variance 5.00 Waiting on Assignment Agent" [ref=e230]:
+                                      - table [ref=e231]:
+                                        - rowgroup [ref=e232]:
+                                          - row "Auto-Adjust Payables" [ref=e233]:
+                                            - cell "Auto-Adjust Payables" [ref=e234]
+                                          - row "Carrier Payable Variance 5.00 Waiting on Assignment Agent" [ref=e235]:
+                                            - cell "Carrier Payable Variance 5.00" [ref=e236]:
+                                              - table [ref=e237]:
+                                                - rowgroup [ref=e238]:
+                                                  - row "Carrier Payable Variance 5.00" [ref=e239]:
+                                                    - cell "Carrier Payable Variance" [ref=e240]
+                                                    - cell "5.00" [ref=e241]
+                                            - cell "Waiting on Assignment Agent" [ref=e242]:
+                                              - table [ref=e243]:
+                                                - rowgroup [ref=e244]:
+                                                  - row "Waiting on Assignment Agent" [ref=e245]:
+                                                    - cell "Waiting on Assignment" [ref=e246]
+                                                    - cell "Agent" [ref=e247]
+                                  - row "Auto-Adjust Receivables Customer Receivable Variance 0.00 Charge Agent NO" [ref=e248]:
+                                    - cell "Auto-Adjust Receivables Customer Receivable Variance 0.00 Charge Agent NO" [ref=e249]:
+                                      - table [ref=e250]:
+                                        - rowgroup [ref=e251]:
+                                          - row "Auto-Adjust Receivables" [ref=e252]:
+                                            - cell "Auto-Adjust Receivables" [ref=e253]
+                                          - row "Customer Receivable Variance 0.00 Charge Agent NO" [ref=e254]:
+                                            - cell "Customer Receivable Variance 0.00" [ref=e255]:
+                                              - table [ref=e256]:
+                                                - rowgroup [ref=e257]:
+                                                  - row "Customer Receivable Variance 0.00" [ref=e258]:
+                                                    - cell "Customer Receivable Variance" [ref=e259]
+                                                    - cell "0.00" [ref=e260]
+                                            - cell "Charge Agent NO" [ref=e261]:
+                                              - table [ref=e262]:
+                                                - rowgroup [ref=e263]:
+                                                  - row "Charge Agent NO" [ref=e264]:
+                                                    - cell "Charge Agent" [ref=e265]
+                                                    - cell "NO" [ref=e266]
+                    - cell [ref=e267]:
+                      - table [ref=e269]:
+                        - rowgroup [ref=e270]:
+                          - row "External IDs (none) Manage" [ref=e271]:
+                            - cell "External IDs" [ref=e272]
+                            - cell "(none) Manage" [ref=e273]:
+                              - generic [ref=e275]: (none)
+                              - button "Manage" [ref=e276] [cursor=pointer]
+                          - row "Post Commissions into DAX YES" [ref=e277]:
+                            - cell "Post Commissions into DAX" [ref=e278]:
+                              - generic [ref=e279]: Post Commissions into DAX
+                            - cell "YES" [ref=e280]
+                          - row "Enable Beta Commissions YES" [ref=e281]:
+                            - cell "Enable Beta Commissions" [ref=e282]:
+                              - generic [ref=e283]: Enable Beta Commissions
+                            - cell "YES" [ref=e284]
+                          - row "Beta Commissions Go Live 12/15/2021" [ref=e285]:
+                            - cell "Beta Commissions Go Live" [ref=e286]:
+                              - generic [ref=e287]: Beta Commissions Go Live
+                            - cell "12/15/2021" [ref=e288]
+                          - row "Commissions Pct. 63.8" [ref=e289]:
+                            - cell "Commissions Pct." [ref=e290]:
+                              - generic [ref=e291]: Commissions Pct.
+                            - cell "63.8" [ref=e292]
+                          - row "Commissions Date Basis INVOICE" [ref=e293]:
+                            - cell "Commissions Date Basis" [ref=e294]:
+                              - generic [ref=e295]: Commissions Date Basis
+                            - cell "INVOICE" [ref=e296]
+                          - row "Commissions Goal 0.00" [ref=e297]:
+                            - cell "Commissions Goal" [ref=e298]:
+                              - generic [ref=e299]: Commissions Goal
+                            - cell "0.00" [ref=e300]
+                          - row "Commissions Decrease Threshold 0.00" [ref=e301]:
+                            - cell "Commissions Decrease Threshold" [ref=e302]:
+                              - generic [ref=e303]: Commissions Decrease Threshold
+                            - cell "0.00" [ref=e304]
+                          - row "Invoice Process Central" [ref=e305]:
+                            - cell "Invoice Process" [ref=e306]:
+                              - generic [ref=e307]: Invoice Process
+                            - cell "Central" [ref=e308]
+                          - row "Pay Commission YES" [ref=e309]:
+                            - cell "Pay Commission" [ref=e310]:
+                              - generic [ref=e311]: Pay Commission
+                            - cell "YES" [ref=e312]
+                          - row [ref=e313]:
+                            - cell [ref=e314]:
+                              - separator [ref=e315]
+                          - row "Credit Exceed % 0" [ref=e316]:
+                            - cell "Credit Exceed %" [ref=e317]:
+                              - generic [ref=e318]: Credit Exceed %
+                            - cell "0" [ref=e319]
+                          - row [ref=e320]:
+                            - cell [ref=e321]
+                          - row [ref=e322]:
+                            - cell [ref=e323]:
+                              - separator [ref=e324]
+                          - row "Central Dispatch Enabled NO" [ref=e325]:
+                            - cell "Central Dispatch Enabled" [ref=e326]:
+                              - generic [ref=e327]: Central Dispatch Enabled
+                            - cell "NO" [ref=e328]
+                          - row "Central Dispatch Share Default" [ref=e329]:
+                            - cell "Central Dispatch Share Default" [ref=e330]:
+                              - generic [ref=e331]: Central Dispatch Share Default
+                            - cell [ref=e332]
+                          - row "Central Dispatch Share Default % 0.0" [ref=e333]:
+                            - cell "Central Dispatch Share Default %" [ref=e334]:
+                              - generic [ref=e335]: Central Dispatch Share Default %
+                            - cell "0.0" [ref=e336]
+                          - row [ref=e337]:
+                            - cell [ref=e338]:
+                              - separator [ref=e339]
+                          - row "Office Type Operating" [ref=e340]:
+                            - cell "Office Type" [ref=e341]:
+                              - generic [ref=e342]: Office Type
+                            - cell "Operating" [ref=e343]
+                          - row [ref=e344]:
+                            - cell [ref=e345]
+                          - row "Show Loadform Settings Enabled" [ref=e346]:
+                            - cell "Show Loadform Settings" [ref=e347]:
+                              - generic [ref=e348]: Show Loadform Settings
+                            - cell "Enabled" [ref=e349]
+                          - row [ref=e350]:
+                            - cell [ref=e351]
+                          - row [ref=e352]:
+                            - cell [ref=e353]
+                          - row [ref=e354]:
+                            - cell [ref=e355]:
+                              - separator [ref=e356]
+                          - row [ref=e357]:
+                            - cell [ref=e358]
+                          - row "Use MODE Global TMS Load Board NO" [ref=e359]:
+                            - cell "Use MODE Global TMS Load Board" [ref=e360]:
+                              - generic [ref=e361]: Use MODE Global TMS Load Board
+                            - cell "NO" [ref=e362]
+                          - row [ref=e363]:
+                            - cell [ref=e364]
+                          - row "Match Vendor(s) TNX" [ref=e365]:
+                            - cell "Match Vendor(s)" [ref=e366]:
+                              - generic [ref=e367]: Match Vendor(s)
+                            - cell "TNX" [ref=e368]
+                          - row [ref=e369]:
+                            - cell [ref=e370]
+                          - row "Insurance Premium Flat Fee" [ref=e371]:
+                            - cell "Insurance Premium" [ref=e372]:
+                              - generic [ref=e373]: Insurance Premium
+                            - cell "Flat Fee" [ref=e374]
+                          - row "Outgoing EDI Loads YES" [ref=e375]:
+                            - cell "Outgoing EDI Loads" [ref=e376]:
+                              - generic [ref=e377]: Outgoing EDI Loads
+                            - cell "YES" [ref=e378]
+                          - row [ref=e379]:
+                            - cell [ref=e380]
+                          - row "ELTL Banyan NDF Toggle NO" [ref=e381]:
+                            - cell "ELTL Banyan NDF Toggle" [ref=e382]:
+                              - generic [ref=e383]: ELTL Banyan NDF Toggle
+                            - cell "NO" [ref=e384]
+                          - row [ref=e385]:
+                            - cell [ref=e386]
+                          - row "Turn on GPS Tracking YES" [ref=e387]:
+                            - cell "Turn on GPS Tracking" [ref=e388]:
+                              - generic [ref=e389]: Turn on GPS Tracking
+                            - cell "YES" [ref=e390]
+                          - row [ref=e391]:
+                            - cell [ref=e392]
+                          - row "Enable E-Carrier Confirmations YES" [ref=e393]:
+                            - cell "Enable E-Carrier Confirmations" [ref=e394]:
+                              - generic [ref=e395]: Enable E-Carrier Confirmations
+                            - cell "YES" [ref=e396]
+                          - row [ref=e397]:
+                            - cell [ref=e398]
+                          - row "Hide Driver & Equipment Fields YES" [ref=e399]:
+                            - cell "Hide Driver & Equipment Fields" [ref=e400]:
+                              - generic [ref=e401]: Hide Driver & Equipment Fields
+                            - cell "YES" [ref=e402]
+                          - row [ref=e403]:
+                            - cell [ref=e404]
+                          - row "Enable Account Clearance YES" [ref=e405]:
+                            - cell "Enable Account Clearance" [ref=e406]:
+                              - generic [ref=e407]: Enable Account Clearance
+                            - cell "YES" [ref=e408]
+                          - row [ref=e409]:
+                            - cell [ref=e410]
+                          - row "Enable Auto-Invoice YES" [ref=e411]:
+                            - cell "Enable Auto-Invoice" [ref=e412]:
+                              - generic [ref=e413]: Enable Auto-Invoice
+                            - cell "YES" [ref=e414]
+                          - row [ref=e415]:
+                            - cell [ref=e416]
+                          - row "Enable Auto-Pay YES" [ref=e417]:
+                            - cell "Enable Auto-Pay" [ref=e418]:
+                              - generic [ref=e419]: Enable Auto-Pay
+                            - cell "YES" [ref=e420]
+                          - row [ref=e421]:
+                            - cell [ref=e422]
+                          - row "Enable Carrier Portal Quickpay YES" [ref=e423]:
+                            - cell "Enable Carrier Portal Quickpay" [ref=e424]:
+                              - generic [ref=e425]: Enable Carrier Portal Quickpay
+                            - cell "YES" [ref=e426]
+                          - row [ref=e427]:
+                            - cell [ref=e428]
+                          - row "Hide Commissions and Shared Revenue NO" [ref=e429]:
+                            - cell "Hide Commissions and Shared Revenue" [ref=e430]:
+                              - generic [ref=e431]: Hide Commissions and Shared Revenue
+                            - cell "NO" [ref=e432]
+                          - row [ref=e433]:
+                            - cell [ref=e434]
+                          - row "Hide Carrier Pay Info NO" [ref=e435]:
+                            - cell "Hide Carrier Pay Info" [ref=e436]:
+                              - generic [ref=e437]: Hide Carrier Pay Info
+                            - cell "NO" [ref=e438]
+                          - row [ref=e439]:
+                            - cell [ref=e440]
+                          - row "Enable Empty Notifications NO" [ref=e441]:
+                            - cell "Enable Empty Notifications" [ref=e442]:
+                              - generic [ref=e443]: Enable Empty Notifications
+                            - cell "NO" [ref=e444]
+                          - row "Enable Internal Shares NO" [ref=e445]:
+                            - cell "Enable Internal Shares" [ref=e446]:
+                              - generic [ref=e447]: Enable Internal Shares
+                            - cell "NO" [ref=e448]
+                          - row "Enable Auto Calc Miles on Load Save NO" [ref=e449]:
+                            - cell "Enable Auto Calc Miles on Load Save" [ref=e450]:
+                              - generic [ref=e451]: Enable Auto Calc Miles on Load Save
+                            - cell "NO" [ref=e452]
+                          - row "Enable Blast It! NO" [ref=e453]:
+                            - cell "Enable Blast It!" [ref=e454]:
+                              - generic [ref=e455]: Enable Blast It!
+                            - cell "NO" [ref=e456]
+                          - row "Enable Load Documents YES" [ref=e457]:
+                            - cell "Enable Load Documents" [ref=e458]:
+                              - generic [ref=e459]: Enable Load Documents
+                            - cell "YES" [ref=e460]
+                          - row "Enable Non-Op Fee Calcs YES" [ref=e461]:
+                            - cell "Enable Non-Op Fee Calcs" [ref=e462]:
+                              - generic [ref=e463]: Enable Non-Op Fee Calcs
+                            - cell "YES" [ref=e464]
+                          - row "Enable Multi Shares YES" [ref=e465]:
+                            - cell "Enable Multi Shares" [ref=e466]:
+                              - generic [ref=e467]: Enable Multi Shares
+                            - cell "YES" [ref=e468]
+                          - row "Enable Carrier Rate BLAST IT! NO" [ref=e469]:
+                            - cell "Enable Carrier Rate BLAST IT!" [ref=e470]:
+                              - generic [ref=e471]: Enable Carrier Rate BLAST IT!
+                            - cell "NO" [ref=e472]
+                          - row "Enable Digital Matching Engine YES" [ref=e473]:
+                            - cell "Enable Digital Matching Engine" [ref=e474]:
+                              - generic [ref=e475]: Enable Digital Matching Engine
+                            - cell "YES" [ref=e476]
+                          - row "Enable TNX Bids NO" [ref=e477]:
+                            - cell "Enable TNX Bids" [ref=e478]:
+                              - generic [ref=e479]: Enable TNX Bids
+                            - cell "NO" [ref=e480]
+                          - row "Enable Greenscreens NO" [ref=e481]:
+                            - cell "Enable Greenscreens" [ref=e482]:
+                              - generic [ref=e483]: Enable Greenscreens
+                            - cell "NO" [ref=e484]
+                          - row "Enable Auto Post with Minimum Fields NO" [ref=e485]:
+                            - cell "Enable Auto Post with Minimum Fields" [ref=e486]:
+                              - generic [ref=e487]: Enable Auto Post with Minimum Fields
+                            - cell "NO" [ref=e488]
+                          - row "Enable Rate Type Field YES" [ref=e489]:
+                            - cell "Enable Rate Type Field" [ref=e490]:
+                              - generic [ref=e491]: Enable Rate Type Field
+                            - cell "YES" [ref=e492]
+                          - row "Enable AI Negotiation NO" [ref=e493]:
+                            - cell "Enable AI Negotiation" [ref=e494]:
+                              - generic [ref=e495]: Enable AI Negotiation
+                            - cell "NO" [ref=e496]
+                          - row "Enable AI Dispatch NO" [ref=e497]:
+                            - cell "Enable AI Dispatch" [ref=e498]:
+                              - generic [ref=e499]: Enable AI Dispatch
+                            - cell "NO" [ref=e500]
+                          - row "Enable Lane Enforcement The lane enforcement is enabled for non-operational loads only and does not affect operational loads. NO - Allow All Lanes" [ref=e501]:
+                            - cell "Enable Lane Enforcement The lane enforcement is enabled for non-operational loads only and does not affect operational loads." [ref=e502]:
+                              - generic [ref=e503]:
+                                - text: Enable Lane Enforcement
+                                - img "The lane enforcement is enabled for non-operational loads only and does not affect operational loads." [ref=e504]
+                            - cell "NO - Allow All Lanes" [ref=e505]
+                          - row "Enable Highway Verification Carrier dispatch email verification will be performed for TL and Partial TL loads NO" [ref=e506]:
+                            - cell "Enable Highway Verification Carrier dispatch email verification will be performed for TL and Partial TL loads" [ref=e507]:
+                              - generic [ref=e508]:
+                                - text: Enable Highway Verification
+                                - img "Carrier dispatch email verification will be performed for TL and Partial TL loads" [ref=e509]
+                            - cell "NO" [ref=e510]
+                          - row [ref=e511]:
+                            - cell [ref=e512]
+                          - row "Interchange Office" [ref=e513]:
+                            - cell "Interchange Office" [ref=e514]:
+                              - generic [ref=e515]: Interchange Office
+                            - cell [ref=e516]
+                          - row "Capacity Reload" [ref=e517]:
+                            - cell "Capacity Reload" [ref=e518]:
+                              - generic [ref=e519]: Capacity Reload
+                          - row "Price only" [ref=e520]:
+                            - cell "Price only" [ref=e521]:
+                              - generic [ref=e522]: Price only
+                          - row "TTS EDI Agencies" [ref=e523]:
+                            - cell "TTS EDI Agencies" [ref=e524]:
+                              - generic [ref=e525]: TTS EDI Agencies
+                          - row "BTX NYO RVC STK WTG" [ref=e526]:
+                            - cell "BTX NYO RVC STK WTG" [ref=e527]:
+                              - list [ref=e530]:
+                                - listitem [ref=e531]: BTX
+                                - listitem [ref=e532]: NYO
+                                - listitem [ref=e533]: RVC
+                                - listitem [ref=e534]: STK
+                                - listitem [ref=e535]: WTG
+                  - row [ref=e536]:
+                    - cell [ref=e537]:
+                      - table [ref=e539]:
+                        - rowgroup [ref=e540]:
+                          - row [ref=e541]:
+                            - cell "Company Brand TTS Miscellaneous Options Show Loads *created by* agents in My Load Search results YES Document Header Logo TTS_doc_head_logo.png Brand Logo TTS_doc_head_logo.png" [ref=e542]:
+                              - table [ref=e543]:
+                                - rowgroup [ref=e544]:
+                                  - row "Company Brand" [ref=e545]:
+                                    - cell "Company Brand" [ref=e546]
+                                  - row "TTS" [ref=e547]:
+                                    - cell "TTS" [ref=e548]:
+                                      - table [ref=e550]:
+                                        - rowgroup [ref=e551]:
+                                          - row "TTS" [ref=e552]:
+                                            - cell "TTS" [ref=e553]
+                                  - row "Miscellaneous Options" [ref=e554]:
+                                    - cell "Miscellaneous Options" [ref=e555]
+                                  - row "Show Loads *created by* agents in My Load Search results YES" [ref=e556]:
+                                    - cell "Show Loads *created by* agents in My Load Search results YES" [ref=e557]:
+                                      - table [ref=e559]:
+                                        - rowgroup [ref=e560]:
+                                          - row "Show Loads *created by* agents in My Load Search results YES" [ref=e561]:
+                                            - cell "Show Loads *created by* agents in My Load Search results" [ref=e562]:
+                                              - text: Show Loads *created by* agents
+                                              - text: in My Load Search results
+                                            - cell "YES" [ref=e563]
+                              - table [ref=e564]:
+                                - rowgroup [ref=e565]:
+                                  - row "Document Header Logo" [ref=e566]:
+                                    - cell "Document Header Logo" [ref=e567]
+                                  - row "TTS_doc_head_logo.png" [ref=e568]:
+                                    - cell "TTS_doc_head_logo.png" [ref=e569]:
+                                      - table [ref=e571]:
+                                        - rowgroup [ref=e572]:
+                                          - row "TTS_doc_head_logo.png" [ref=e573]:
+                                            - cell [ref=e574]
+                                            - cell "TTS_doc_head_logo.png" [ref=e575]
+                                          - row
+                                  - row "Brand Logo" [ref=e576]:
+                                    - cell "Brand Logo" [ref=e577]
+                                  - row "TTS_doc_head_logo.png" [ref=e578]:
+                                    - cell "TTS_doc_head_logo.png" [ref=e579]:
+                                      - table [ref=e581]:
+                                        - rowgroup [ref=e582]:
+                                          - row "TTS_doc_head_logo.png" [ref=e583]:
+                                            - cell [ref=e584]
+                                            - cell "TTS_doc_head_logo.png" [ref=e585]
+                                          - row
+                            - 'cell "Customize Invoice/Load Document Fields Billing Address 14785 Preston Rd, Suite 850, Dallas, TX 75254 Remit-To Address TTS, LLC PO BOX 654168 DALLAS, TX 75265-4168 Express Mail Express Mail (FedEx, UPS, etc.): TTS, LLC Attn: Lockbox Operations #654168 2701 East Grauwyler Rd Bldg 1 Irving, TX 75061 Cust Confirm Company Name TTS, LLC Cust Confirm Tagline Carr Confirm Company Name TTS, LLC Carr Confirm Tagline Carr Confirm Text Carrier submit invoices via email to sendmybill@modeglobal.com. Please access our Carrier Portal at https://carriers.modeglobal.com to submit carrier paperwork, and make payment status inquiries. (Pre)Invoice Company Name TTS, LLC (Pre)Invoice Tagline BOL Company Name TTS, LLC Collections Email collections.team@suntecktts.com View Office Load Statistics" [ref=e586]':
+                              - table [ref=e587]:
+                                - rowgroup [ref=e588]:
+                                  - row "Customize Invoice/Load Document Fields" [ref=e589]:
+                                    - cell "Customize Invoice/Load Document Fields" [ref=e590]
+                                  - 'row "Billing Address 14785 Preston Rd, Suite 850, Dallas, TX 75254 Remit-To Address TTS, LLC PO BOX 654168 DALLAS, TX 75265-4168 Express Mail Express Mail (FedEx, UPS, etc.): TTS, LLC Attn: Lockbox Operations #654168 2701 East Grauwyler Rd Bldg 1 Irving, TX 75061 Cust Confirm Company Name TTS, LLC Cust Confirm Tagline Carr Confirm Company Name TTS, LLC Carr Confirm Tagline Carr Confirm Text Carrier submit invoices via email to sendmybill@modeglobal.com. Please access our Carrier Portal at https://carriers.modeglobal.com to submit carrier paperwork, and make payment status inquiries. (Pre)Invoice Company Name TTS, LLC (Pre)Invoice Tagline BOL Company Name TTS, LLC Collections Email collections.team@suntecktts.com" [ref=e591]':
+                                    - 'cell "Billing Address 14785 Preston Rd, Suite 850, Dallas, TX 75254 Remit-To Address TTS, LLC PO BOX 654168 DALLAS, TX 75265-4168 Express Mail Express Mail (FedEx, UPS, etc.): TTS, LLC Attn: Lockbox Operations #654168 2701 East Grauwyler Rd Bldg 1 Irving, TX 75061 Cust Confirm Company Name TTS, LLC Cust Confirm Tagline Carr Confirm Company Name TTS, LLC Carr Confirm Tagline Carr Confirm Text Carrier submit invoices via email to sendmybill@modeglobal.com. Please access our Carrier Portal at https://carriers.modeglobal.com to submit carrier paperwork, and make payment status inquiries. (Pre)Invoice Company Name TTS, LLC (Pre)Invoice Tagline BOL Company Name TTS, LLC Collections Email collections.team@suntecktts.com" [ref=e592]':
+                                      - table [ref=e594]:
+                                        - rowgroup [ref=e595]:
+                                          - row "Billing Address 14785 Preston Rd, Suite 850, Dallas, TX 75254" [ref=e596]:
+                                            - cell "Billing Address" [ref=e597]
+                                            - cell "14785 Preston Rd, Suite 850, Dallas, TX 75254" [ref=e598]
+                                          - row "Remit-To Address TTS, LLC PO BOX 654168 DALLAS, TX 75265-4168" [ref=e599]:
+                                            - cell "Remit-To Address" [ref=e600]
+                                            - cell "TTS, LLC PO BOX 654168 DALLAS, TX 75265-4168" [ref=e601]
+                                          - 'row "Express Mail Express Mail (FedEx, UPS, etc.): TTS, LLC Attn: Lockbox Operations #654168 2701 East Grauwyler Rd Bldg 1 Irving, TX 75061" [ref=e602]':
+                                            - cell "Express Mail" [ref=e603]
+                                            - 'cell "Express Mail (FedEx, UPS, etc.): TTS, LLC Attn: Lockbox Operations #654168 2701 East Grauwyler Rd Bldg 1 Irving, TX 75061" [ref=e604]'
+                                          - row "Cust Confirm Company Name TTS, LLC" [ref=e605]:
+                                            - cell "Cust Confirm Company Name" [ref=e606]
+                                            - cell "TTS, LLC" [ref=e607]
+                                          - row "Cust Confirm Tagline" [ref=e608]:
+                                            - cell "Cust Confirm Tagline" [ref=e609]
+                                            - cell [ref=e610]
+                                          - row "Carr Confirm Company Name TTS, LLC" [ref=e611]:
+                                            - cell "Carr Confirm Company Name" [ref=e612]
+                                            - cell "TTS, LLC" [ref=e613]
+                                          - row "Carr Confirm Tagline" [ref=e614]:
+                                            - cell "Carr Confirm Tagline" [ref=e615]
+                                            - cell [ref=e616]
+                                          - row "Carr Confirm Text Carrier submit invoices via email to sendmybill@modeglobal.com. Please access our Carrier Portal at https://carriers.modeglobal.com to submit carrier paperwork, and make payment status inquiries." [ref=e617]:
+                                            - cell "Carr Confirm Text" [ref=e618]
+                                            - cell "Carrier submit invoices via email to sendmybill@modeglobal.com. Please access our Carrier Portal at https://carriers.modeglobal.com to submit carrier paperwork, and make payment status inquiries." [ref=e619]
+                                          - row "(Pre)Invoice Company Name TTS, LLC" [ref=e620]:
+                                            - cell "(Pre)Invoice Company Name" [ref=e621]
+                                            - cell "TTS, LLC" [ref=e622]
+                                          - row "(Pre)Invoice Tagline" [ref=e623]:
+                                            - cell "(Pre)Invoice Tagline" [ref=e624]
+                                            - cell [ref=e625]
+                                          - row "BOL Company Name TTS, LLC" [ref=e626]:
+                                            - cell "BOL Company Name" [ref=e627]
+                                            - cell "TTS, LLC" [ref=e628]
+                                          - row "Collections Email collections.team@suntecktts.com" [ref=e629]:
+                                            - cell "Collections Email" [ref=e630]
+                                            - cell "collections.team@suntecktts.com" [ref=e631]
+                              - table [ref=e632]:
+                                - rowgroup [ref=e633]:
+                                  - row "View Office Load Statistics" [ref=e634]:
+                                    - cell "View Office Load Statistics" [ref=e635]:
+                                      - link "View Office Load Statistics" [ref=e636] [cursor=pointer]:
+                                        - /url: officeform.php?p=stats&id=560
+              - table [ref=e640]:
+                - rowgroup [ref=e641]:
+                  - row "View History View Edit Save Save and Return Return" [ref=e642]:
+                    - cell "View History" [ref=e643]:
+                      - button "View History" [ref=e644] [cursor=pointer]
+                    - cell "View Edit Save Save and Return Return" [ref=e645]:
+                      - generic [ref=e646]:
+                        - button "View" [disabled] [ref=e647]
+                        - button "Edit" [ref=e648] [cursor=pointer]
+                        - button "Save" [disabled] [ref=e649]
+                        - button "Save and Return" [disabled] [ref=e650]
+                        - button "Return" [ref=e651] [cursor=pointer]
+              - table [ref=e652]:
+                - rowgroup [ref=e653]:
+                  - 'row "Last Updated: 0000-00-00 00:00:00" [ref=e654]':
+                    - 'cell "Last Updated: 0000-00-00 00:00:00" [ref=e655]'
+    - contentinfo [ref=e656]:
+      - generic [ref=e657]: © MODE Global, LLC
+  - text: "* * * *"
+```

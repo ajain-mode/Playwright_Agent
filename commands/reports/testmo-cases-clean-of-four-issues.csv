@@ -1,0 +1,24 @@
+Case ID,JiraId,Tags,Case
+171221,FD-42835,"dfb,loads,postautomationrules",Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with one or more intermediate stops.
+171222,FD-42835,"dfb,loads,postautomationrules",Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with no intermediate stops.
+171223,FD-42835,"dfb,loads,postautomationrules",Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with Auto accept feature.
+171224,FD-42835,"dfb,loads,postautomationrules",Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with one or more carriers in the include carrier field.
+171225,FD-42835,"dfb,loads,postautomationrules",Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with one or more carriers in the Exclude carrier field.
+171226,FD-42835,"dfb,loads,postautomationrules",Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an EDI?enabled customer with waterfall configured.
+171227,FD-42835,"dfb,loads,postautomationrules",Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an NON-EDI customer with one or more intermediate stops.
+171228,FD-42835,"dfb,loads,postautomationrules",Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an Non EDI customer with no intermediate stops.
+171229,FD-42835,"dfb,loads,postautomationrules",Verify that a load is correctly matched to an existing post?automation rule when the rule is created for an Non EDI customer with Auto accept feature.
+171324,FD-42636,"dat,dfb,loads","Verify that when a load is posted to both DAT and TNX and is matched via TNX, the carrier does not receive a cancellation email from TNX after the match."
+171325,FD-42835,"dfb,loads",Verify that a load is successfully posted to TNX
+196261,FD-34836,"carriers,dfb,loads","Verify a load matched in TNX, If the carrier user is NOT disabled and its Avenger Org is ON"
+196262,FD-34836,"carriers,dfb,loads","Verify a load matched in TNX, If the carrier user is NOT disabled and its Hydrofarm Org is ON"
+196263,FD-34836,"carriers,dfb,loads","Verify a load matched in TNX, If the carrier user is NOT disabled and its Mode Org is ON"
+196264,FD-34836,"carriers,dfb,loads","Verify a load matched in TNX, If the carrier user is NOT disabled and its Suntecktts Org is ON"
+196274,FD-34836,"carriers,dfb,loads","Verify the Load process that has a Bid accepted in BTMS, If the carrier user is NOT disabled and its Avenger Org is ON"
+196275,FD-34836,"carriers,dfb,loads","Verify the Load process that has a Bid accepted in BTMS, If the carrier user is NOT disabled and its Hydrofarm Org is ON"
+196276,FD-34836,"carriers,dfb,loads","Verify the Load process that has a Bid accepted in BTMS, If the carrier user is NOT disabled and its Mode Org is ON"
+196277,FD-34836,"carriers,dfb,loads","Verify the Load process that has a Bid accepted in BTMS, If the carrier user is NOT disabled and its Suntecktts Org is ON"
+27450,FD-34965,"edi204,ediprefs","Verify when “Stops (including fees & items)” is selected on customer EDI Pref's, the load’s stops are completely removed and replaced."
+27451,FD-34965,"edi204,ediprefs","Verify when other stops options other than “Stops (including fees & items)” are selected in the customer EDI Pref's and the 204’s location IDs exactly match the load’s location IDs, the selected stop options are updated without removing/replacing the load’s stops."
+27452,FD-34965,"edi204,ediprefs","Verify when the 204's location IDs do not match the load exactly (something with the stop order or location changed), and “Replace Stops When 204 Stop Order Does Not Match” is not checked, the 204 is not processed and not updated"
+366505,FD-44982,"banyan,ltl",Volume-qualified load with gate ON returns multi-carrier quotes

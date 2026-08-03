@@ -213,6 +213,35 @@ class NonTabularLoadPage {
     }
 
     /**
+     * Fills required Linehaul (LH) Rate on Enter New Load (blocks Create when empty/0).
+     * Locator: input id contains `linehaul_rate` (non-tabular load form).
+     * @author AI Agent
+     * @created 2026-07-16
+     * @param rate - Flat LH rate string (e.g. from testData.offerRate digits)
+     */
+    async enterLineHaulRate(rate: string): Promise<void> {
+        const normalized = String(rate).replace(/[$,]/g, "").trim();
+        await this.lineHaulRateInput_LOC.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await this.lineHaulRateInput_LOC.fill("");
+        await this.lineHaulRateInput_LOC.fill(normalized);
+        await this.lineHaulRateInput_LOC.press("Tab");
+    }
+
+    /**
+     * Fills equipment length when CSV `equipmentLength` is empty but trailer length is known.
+     * @author AI Agent
+     * @created 2026-07-16
+     * @param length - Trailer/equipment length
+     */
+    async enterEquipmentLengthIfEmpty(length: string): Promise<void> {
+        if (!length) return;
+        const current = (await this.equipmentLengthInput_LOC.inputValue().catch(() => "")) || "";
+        if (current.trim()) return;
+        await this.equipmentLengthInput_LOC.fill(String(length));
+        await this.equipmentLengthInput_LOC.press("Tab");
+    }
+
+    /**
  * @author Parth Rastogi
  * @description This function creates a complete Non-Tabular Load with all required information
  * @modified 2025-07-17

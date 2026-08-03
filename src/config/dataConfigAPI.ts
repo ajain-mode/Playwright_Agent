@@ -31,6 +31,10 @@ class DataConfigAPI {
   readonly outboundEdi990ChangeHydrofarm: string = "outboundEdi990ChangeHydrofarm";
   readonly inboundEdi204TruckLoad_DFB: string = "inboundEdi204TruckLoad_DFB";
   readonly inboundEdi204TruckLoad_Waterfall: string = "inboundEdi204TruckLoad_Waterfall";
+  readonly inboundEdi204PsklOriginal: string = "inboundEdi204PsklOriginal";
+  readonly inboundEdi204PsklReplaceStops: string = "inboundEdi204PsklReplaceStops";
+  readonly inboundEdi204PsklMatchLocUpdate: string = "inboundEdi204PsklMatchLocUpdate";
+  readonly inboundEdi204PsklMismatchLoc: string = "inboundEdi204PsklMismatchLoc";
   readonly ltlRequestRates: string = "ltlRequestRates";
   readonly sample: string = "sample";
   readonly requestRates: string = "requestRates";
@@ -218,6 +222,34 @@ class DataConfigAPI {
         "..",
         "data/api/truckload_WINDSOR",
         "inboundEdi204TruckLoad_Waterfall.txt"
+      );
+    } else if (apiDataFile === this.inboundEdi204PsklOriginal) {
+      this.ediFilePath = path.join(
+        __dirname,
+        "..",
+        "data/api/edi204_pskl_fd34965",
+        "inboundEdi204PsklOriginal.txt"
+      );
+    } else if (apiDataFile === this.inboundEdi204PsklReplaceStops) {
+      this.ediFilePath = path.join(
+        __dirname,
+        "..",
+        "data/api/edi204_pskl_fd34965",
+        "inboundEdi204PsklReplaceStops.txt"
+      );
+    } else if (apiDataFile === this.inboundEdi204PsklMatchLocUpdate) {
+      this.ediFilePath = path.join(
+        __dirname,
+        "..",
+        "data/api/edi204_pskl_fd34965",
+        "inboundEdi204PsklMatchLocUpdate.txt"
+      );
+    } else if (apiDataFile === this.inboundEdi204PsklMismatchLoc) {
+      this.ediFilePath = path.join(
+        __dirname,
+        "..",
+        "data/api/edi204_pskl_fd34965",
+        "inboundEdi204PsklMismatchLoc.txt"
       );
     } else if (apiDataFile === this.ltlRequestRates) {
       this.ediFilePath = path.join(

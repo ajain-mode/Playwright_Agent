@@ -50,6 +50,51 @@ export default class LoadTender204Page {
         await this.acceptButton_LOC.click();
         await this.submitButton_LOC.click();
     }
+
+  /**
+   * Accepts a matched Change/Replace tender onto its existing LOAD#.
+   * Do not check `create_new_load` when the tender already has a LOAD# — that only
+   * opens the load without applying stop replacements from the change EDI.
+   * @author AI Agent
+   * @created 2026-07-17
+   * Locator source: edi_204 accept form `#acdc_a`, `#create_new_load`, `#reply_submit`
+   */
+  /**
+   * Accepts a matched Change/Replace tender onto its existing LOAD#.
+   * Must check `#apply_change_order` — otherwise Accept only ACKs and leaves stops unchanged.
+   * @author AI Agent
+   * @created 2026-07-17
+   * Locator source: edi_204 accept form `#acdc_a`, `#apply_change_order`, `#create_new_load`
+   */
+  async acceptChangeOrderOntoExistingLoad(): Promise<void> {
+    await this.page.waitForLoadState("networkidle");
+    await this.acceptButton_LOC.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
+    await this.acceptButton_LOC.click();
+
+    const applyChangeOrder = this.page.locator("#apply_change_order");
+    await applyChangeOrder.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
+    await applyChangeOrder.check();
+    console.log("Checked #apply_change_order");
+
+    // Matched change tenders already show LOAD# — keep create_new_load OFF
+    if (
+      (await this.createLoadCheckbox_LOC.isVisible().catch(() => false)) &&
+      (await this.createLoadCheckbox_LOC.isChecked().catch(() => false))
+    ) {
+      await this.createLoadCheckbox_LOC.uncheck();
+    }
+    if (
+      (await this.send990ReplyCheckBox_LOC.isVisible().catch(() => false)) &&
+      (await this.send990ReplyCheckBox_LOC.isChecked().catch(() => false))
+    ) {
+      await this.send990ReplyCheckBox_LOC.uncheck();
+    }
+    console.log(
+      `Change Accept submit: apply_change_order=${await applyChangeOrder.isChecked()} create_new_load=${await this.createLoadCheckbox_LOC.isChecked().catch(() => false)}`,
+    );
+    await this.submitButton_LOC.click();
+    await this.page.waitForLoadState("networkidle");
+  }
     
    async overrideCustomerID(customerMasterId: string) {
         await this.page.waitForLoadState('networkidle');

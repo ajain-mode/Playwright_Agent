@@ -1,0 +1,90 @@
+<svg viewBox="0 0 880 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QA AI Agent architecture workflow">
+  <defs>
+    <linearGradient id="wfHeader" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1a365d"/>
+      <stop offset="100%" style="stop-color:#2b6cb0"/>
+    </linearGradient>
+    <filter id="wfShadow"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.12"/></filter>
+    <marker id="wfArrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2b6cb0"/>
+    </marker>
+    <marker id="wfArrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#38a169"/>
+    </marker>
+    <marker id="wfArrowOrange" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#d69e2e"/>
+    </marker>
+    <marker id="wfArrowRed" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#e53e3e"/>
+    </marker>
+  </defs>
+
+  <rect x="40" y="16" width="800" height="48" rx="10" fill="url(#wfHeader)" filter="url(#wfShadow)"/>
+  <text x="440" y="46" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="16" font-weight="700" fill="#ffffff">QA AI Agent - End-to-End Workflow</text>
+
+  <rect x="240" y="88" width="400" height="52" rx="26" fill="#fefcbf" stroke="#d69e2e" stroke-width="2" filter="url(#wfShadow)"/>
+  <text x="440" y="112" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" font-weight="700" fill="#975a16">STEP 0 | INPUT</text>
+  <text x="440" y="130" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10" fill="#744210">Written test cases: CSV, Excel, JSON, plain text, Testmo export</text>
+  <line x1="440" y1="140" x2="440" y2="168" stroke="#2b6cb0" stroke-width="2.5" marker-end="url(#wfArrow)"/>
+
+  <rect x="40" y="168" width="800" height="148" rx="12" fill="#ebf8ff" stroke="#3182ce" stroke-width="1.5" filter="url(#wfShadow)"/>
+  <text x="440" y="192" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#2c5282">STEP 1 | PREPARE CONTEXT</text>
+  <rect x="60" y="206" width="230" height="48" rx="8" fill="#ffffff" stroke="#90cdf4"/>
+  <text x="175" y="226" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10" font-weight="600" fill="#2b6cb0">Test Case Reader</text>
+  <text x="175" y="242" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="8" fill="#718096">Parse steps and expected results</text>
+  <rect x="310" y="206" width="230" height="48" rx="8" fill="#ffffff" stroke="#90cdf4"/>
+  <text x="425" y="226" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10" font-weight="600" fill="#2b6cb0">App Context Sync</text>
+  <text x="425" y="242" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="8" fill="#718096">Clone BTMS and DME source repos</text>
+  <rect x="560" y="206" width="260" height="48" rx="8" fill="#ffffff" stroke="#90cdf4"/>
+  <text x="690" y="226" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10" font-weight="600" fill="#2b6cb0">UI Element Index</text>
+  <text x="690" y="242" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="8" fill="#718096">5,900+ real HTML element IDs</text>
+  <rect x="200" y="268" width="480" height="36" rx="8" fill="#fefcbf" stroke="#d69e2e" stroke-dasharray="4,2"/>
+  <text x="440" y="290" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="9" font-weight="600" fill="#975a16">AI Call 1: enrich missing test data fields (Claude)</text>
+  <line x1="440" y1="316" x2="440" y2="344" stroke="#2b6cb0" stroke-width="2.5" marker-end="url(#wfArrow)"/>
+
+  <rect x="40" y="344" width="800" height="168" rx="12" fill="url(#wfHeader)" filter="url(#wfShadow)"/>
+  <text x="440" y="368" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#ffffff">STEP 2 | ASSEMBLE DRAFT SCRIPT</text>
+  <rect x="60" y="384" width="220" height="56" rx="8" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.35)"/>
+  <text x="170" y="406" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10" font-weight="700" fill="#ffffff">(1) Step Interpreter</text>
+  <text x="170" y="424" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="8" fill="rgba(255,255,255,0.8)">Screen, tab, edit/view, app</text>
+  <text x="290" y="412" font-family="Segoe UI, sans-serif" font-size="18" fill="#ffffff">&gt;</text>
+  <rect x="300" y="384" width="240" height="56" rx="8" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.35)"/>
+  <text x="420" y="406" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10" font-weight="700" fill="#ffffff">(2) Code Mapper</text>
+  <text x="420" y="424" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="8" fill="rgba(255,255,255,0.8)">130+ patterns, page objects</text>
+  <text x="550" y="412" font-family="Segoe UI, sans-serif" font-size="18" fill="#ffffff">&gt;</text>
+  <rect x="560" y="384" width="260" height="56" rx="8" fill="#f0fff4" stroke="#38a169"/>
+  <text x="690" y="406" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10" font-weight="700" fill="#276749">Draft .spec.ts</text>
+  <text x="690" y="424" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="8" fill="#276749">Ready for validation</text>
+  <rect x="120" y="456" width="640" height="40" rx="8" fill="#fefcbf" stroke="#d69e2e" stroke-dasharray="4,2"/>
+  <text x="440" y="480" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="9" font-weight="600" fill="#975a16">AI Calls 2-4 when rules cannot resolve: full script, adapt reference, per-step</text>
+  <line x1="440" y1="512" x2="440" y2="540" stroke="#2b6cb0" stroke-width="2.5" marker-end="url(#wfArrow)"/>
+
+  <rect x="140" y="540" width="600" height="88" rx="12" fill="#1a365d" stroke="#2b6cb0" stroke-width="1.5" filter="url(#wfShadow)"/>
+  <text x="440" y="564" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#ffffff">STEP 3 | VALIDATE - (3) Quality Guardian</text>
+  <text x="440" y="584" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="9" fill="rgba(255,255,255,0.85)">25+ auto-fix rules, guardrails, navigation and assertion standards</text>
+  <text x="440" y="602" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="9" fill="rgba(255,255,255,0.7)">Up to 2 correction passes - sends fixes back to Code Mapper</text>
+  <rect x="660" y="556" width="64" height="22" rx="11" fill="#fefcbf" stroke="#d69e2e"/>
+  <text x="692" y="571" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="8" font-weight="700" fill="#975a16">max 2x</text>
+  <path d="M140 584 L80 584 L80 412 L300 412" stroke="#e53e3e" stroke-width="2" stroke-dasharray="5,3" fill="none" marker-end="url(#wfArrowRed)"/>
+  <text x="72" y="500" font-family="Segoe UI, sans-serif" font-size="8" fill="#e53e3e" transform="rotate(-90 72 500)">self-heal loop</text>
+  <line x1="440" y1="628" x2="440" y2="656" stroke="#2b6cb0" stroke-width="2.5" marker-end="url(#wfArrow)"/>
+
+  <rect x="140" y="656" width="600" height="80" rx="12" fill="#faf5ff" stroke="#9f7aea" stroke-width="1.5" filter="url(#wfShadow)"/>
+  <text x="440" y="680" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#6b46c1">STEP 4 | ENSURE COVERAGE - (4) Coverage Ensurer</text>
+  <text x="440" y="700" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="9" fill="#6b46c1">Compare script vs original testcase - fill up to 8 missing steps</text>
+  <text x="440" y="718" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="9" fill="#805ad5">If changed, re-run Quality Guardian once</text>
+  <rect x="660" y="672" width="64" height="22" rx="11" fill="#fefcbf" stroke="#d69e2e"/>
+  <text x="692" y="687" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="8" font-weight="700" fill="#975a16">1x</text>
+  <path d="M740 696 L800 696 L800 412 L560 412" stroke="#ed8936" stroke-width="2" stroke-dasharray="5,3" fill="none" marker-end="url(#wfArrowOrange)"/>
+  <text x="808" y="560" font-family="Segoe UI, sans-serif" font-size="8" fill="#dd6b20">missing steps</text>
+  <line x1="440" y1="736" x2="440" y2="764" stroke="#38a169" stroke-width="2.5" marker-end="url(#wfArrowGreen)"/>
+
+  <rect x="200" y="764" width="480" height="56" rx="12" fill="#f0fff4" stroke="#38a169" stroke-width="2" filter="url(#wfShadow)"/>
+  <text x="440" y="788" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#276749">STEP 5 | OUTPUT</text>
+  <text x="440" y="806" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10" fill="#276749">Runnable Playwright spec - CI, Allure, Testmo</text>
+
+  <rect x="40" y="840" width="800" height="36" rx="8" fill="#ebf4ff" stroke="#90cdf4"/>
+  <text x="440" y="862" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="9" fill="#2b6cb0">
+    Governance rules at every step | Hybrid: rules-first, AI when needed | Locators from app source, never guessed
+  </text>
+</svg>

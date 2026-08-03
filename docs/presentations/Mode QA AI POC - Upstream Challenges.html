@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mode QA AI POC — Upstream Challenges &amp; Actions</title>
+<style>
+  :root {
+    --primary: #1a365d;
+    --primary-light: #2b6cb0;
+    --accent: #ed8936;
+    --accent-dark: #c05621;
+    --bg: #f7fafc;
+    --card: #ffffff;
+    --text: #2d3748;
+    --text-light: #718096;
+    --border: #e2e8f0;
+    --success: #38a169;
+    --warn: #d69e2e;
+    --danger: #e53e3e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: var(--text); background: var(--bg); line-height: 1.55; }
+
+  .header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white; padding: 48px 40px 40px; text-align: center;
+  }
+  .badge { display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); padding: 5px 14px; border-radius: 20px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
+  .header h1 { font-size: 30px; font-weight: 700; margin-bottom: 10px; max-width: 720px; margin-left: auto; margin-right: auto; }
+  .header h1 span { color: #fbd38d; }
+  .header p { font-size: 15px; opacity: 0.92; max-width: 680px; margin: 0 auto; }
+
+  .wrap { max-width: 960px; margin: 0 auto; padding: 32px 28px 48px; }
+
+  .impact {
+    background: #fffaf0; border: 1px solid #fbd38d; border-left: 4px solid var(--accent);
+    border-radius: 10px; padding: 18px 22px; margin-bottom: 28px; font-size: 14px; color: #744210;
+  }
+
+  .grid { display: grid; grid-template-columns: 1fr; gap: 18px; margin-bottom: 28px; }
+
+  .issue {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .issue-head {
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .issue-num {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px;
+    background: #ebf4ff; color: var(--primary-light); font-weight: 700; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .issue-head h2 { font-size: 16px; color: var(--primary); margin-bottom: 4px; }
+  .issue-head .tag { font-size: 11px; font-weight: 600; color: var(--danger); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .issue-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .col { padding: 18px 20px; }
+  .col.challenge { background: #fff5f5; border-right: 1px solid var(--border); }
+  .col.action { background: #f0fff4; }
+  .col h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; font-weight: 700; }
+  .col.challenge h3 { color: #c53030; }
+  .col.action h3 { color: #276749; }
+  .col ul { padding-left: 18px; font-size: 13px; }
+  .col li { margin-bottom: 7px; }
+  .col li:last-child { margin-bottom: 0; }
+
+  .priority-table {
+    width: 100%; border-collapse: collapse; background: var(--card);
+    border: 1px solid var(--border); border-radius: 12px; overflow: hidden; font-size: 13px;
+  }
+  .priority-table th {
+    background: var(--primary); color: white; text-align: left;
+    padding: 12px 16px; font-size: 12px; font-weight: 600;
+  }
+  .priority-table td { padding: 12px 16px; border-top: 1px solid var(--border); vertical-align: top; }
+  .priority-table tr:nth-child(even) td { background: #f8fafc; }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+  .pill-high { background: #fed7d7; color: #c53030; }
+  .pill-med { background: #fefcbf; color: #975a16; }
+
+  .footer {
+    background: var(--primary); color: white; text-align: center;
+    padding: 24px 28px; font-size: 13px;
+  }
+  .footer a { color: #fbd38d; text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 720px) {
+    .issue-body { grid-template-columns: 1fr; }
+    .col.challenge { border-right: none; border-bottom: 1px solid var(--border); }
+    .header h1 { font-size: 24px; }
+  }
+  @media print { .header { padding: 24px; } .wrap { padding: 16px; } }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="badge">Mode Global · SunTeck TMS · Post-POC</div>
+  <h1>Upstream <span>Challenges</span> &amp; What To Do</h1>
+  <p>The QA AI Agent pipeline is built and delivering scripts — but output quality and scale depend on inputs, access, and how large cases are structured.</p>
+</header>
+
+<main class="wrap">
+
+  <div class="impact">
+    <strong>Key message:</strong> The agent cannot invent executable steps from thin scenarios.
+    Investment upstream — detailed test cases, documented preconditions, broader app source access, and sensible script sizing — directly reduces manual rework after generation.
+  </div>
+
+  <div class="grid">
+
+    <article class="issue">
+      <div class="issue-head">
+        <div class="issue-num">1</div>
+        <div>
+          <div class="tag">Highest impact today</div>
+          <h2>Test Cases Lack Sufficient Detail</h2>
+        </div>
+      </div>
+      <div class="issue-body">
+        <div class="col challenge">
+          <h3>Challenge</h3>
+          <ul>
+            <li>Testmo cases often lack full step-by-step actions and explicit expected results per step</li>
+            <li>Manual QA spends <strong>3–5 hours per test case</strong> reaching agent-ready detail — the largest upstream effort</li>
+            <li>High-level summaries produce inaccurate scripts and heavy post-generation correction</li>
+          </ul>
+        </div>
+        <div class="col action">
+          <h3>What to do</h3>
+          <ul>
+            <li>Adopt a Testmo template: numbered steps, action, and expected result for every step</li>
+            <li>Block generation until cases pass a minimum detail checklist (no orphan steps, no vague expecteds)</li>
+            <li>Maintain canonical step prose in <code>sample-testcases.csv</code> as the traceability source</li>
+            <li>Budget 3–5 hours per case for enrichment before first agent run — not after failed generation</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+    <article class="issue">
+      <div class="issue-head">
+        <div class="issue-num">2</div>
+        <div>
+          <div class="tag">Process &amp; knowledge</div>
+          <h2>Tribal Knowledge — Scenarios Without Executable Steps</h2>
+        </div>
+      </div>
+      <div class="issue-body">
+        <div class="col challenge">
+          <h3>Challenge</h3>
+          <ul>
+            <li>JIRA and team knowledge document the <strong>what</strong> — business intent and scenario title</li>
+            <li>The <strong>how</strong> — navigation path, data values, precondition order — is often missing</li>
+            <li>Office setup, user switch, multi-app hops, and billing rules cannot be automated without executable steps</li>
+          </ul>
+        </div>
+        <div class="col action">
+          <h3>What to do</h3>
+          <ul>
+            <li>Add agent-ready step detail to JIRA scenarios before they enter the Testmo / generation queue</li>
+            <li>Document standard precondition bands (office, agent, customer, load) as reusable step blocks in the testcase catalog</li>
+            <li>Pair domain experts with QA during enrichment — capture tribal knowledge as numbered steps, not chat notes</li>
+            <li>Use proven reference specs (e.g. billing toggle, DFB) as templates when a new case is similar</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+    <article class="issue">
+      <div class="issue-head">
+        <div class="issue-num">3</div>
+        <div>
+          <div class="tag">Platform access</div>
+          <h2>Limited Application Source Access</h2>
+        </div>
+      </div>
+      <div class="issue-body">
+        <div class="col challenge">
+          <h3>Challenge</h3>
+          <ul>
+            <li>UI Element Index currently syncs <strong>BTMS and DME</strong> repos only (5,900+ elements indexed)</li>
+            <li>Other products under test may lack ingested HTML context for locator discovery</li>
+            <li>Without source access, Code Mapper cannot discover new element IDs — locators must not be guessed</li>
+          </ul>
+        </div>
+        <div class="col action">
+          <h3>What to do</h3>
+          <ul>
+            <li>Approve additional application repo sync for every product targeted by AI-generated automation</li>
+            <li>Refresh app source cache when UI releases ship — index invalidates on repo update automatically</li>
+            <li>For gaps, flag POM methods for manual locator lookup rather than accepting guessed XPath in specs</li>
+            <li>Extend <code>AppSourceIndexer</code> scan paths as new apps join the test scope (TNX, etc.)</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+    <article class="issue">
+      <div class="issue-head">
+        <div class="issue-num">4</div>
+        <div>
+          <div class="tag">Execution &amp; maintainability</div>
+          <h2>Monolithic Scripts — Long Run Time &amp; Debug Cost</h2>
+        </div>
+      </div>
+      <div class="issue-body">
+        <div class="col challenge">
+          <h3>Challenge</h3>
+          <ul>
+            <li>Large test cases become single long-running scripts instead of phased, reusable segments</li>
+            <li>Multi-app flows (BTMS → DME → TNX) multiply wall-clock time per run</li>
+            <li>Example: DFB-89214 — 768 lines, 103 steps, three applications in one spec</li>
+          </ul>
+        </div>
+        <div class="col action">
+          <h3>What to do</h3>
+          <ul>
+            <li>Decompose large cases into phased specs or shared fixtures (office preconditions vs. scenario body)</li>
+            <li>Cap step count per generated script; link continuations across related specs where the testcase allows</li>
+            <li>Grow the reference test catalog per category so similar cases clone instead of generating monoliths</li>
+            <li>Prefer shared helpers (<code>setupOfficePreConditions</code>, etc.) only where the written case permits bundling</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <h2 style="font-size:18px;color:var(--primary);margin-bottom:14px;">Priority action summary</h2>
+  <table class="priority-table">
+    <thead>
+      <tr>
+        <th style="width:28%">Action</th>
+        <th style="width:14%">Priority</th>
+        <th>Owner / outcome</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Enrich Testmo cases with explicit expected results per step</td>
+        <td><span class="pill pill-high">High</span></td>
+        <td>Mode Global QA — fewer regeneration cycles; Coverage Ensurer can map steps 1:1</td>
+      </tr>
+      <tr>
+        <td>Add executable step detail to JIRA scenarios before Testmo</td>
+        <td><span class="pill pill-high">High</span></td>
+        <td>QA + BA — tribal knowledge captured as automatable steps</td>
+      </tr>
+      <tr>
+        <td>Approve broader application repo sync for products under test</td>
+        <td><span class="pill pill-med">Medium</span></td>
+        <td>Mode Global / IT — reliable locators beyond BTMS + DME</td>
+      </tr>
+      <tr>
+        <td>Decompose very large cases into phased specs or shared fixtures</td>
+        <td><span class="pill pill-med">Medium</span></td>
+        <td>QA automation — faster CI runs, easier failure isolation</td>
+      </tr>
+      <tr>
+        <td>Grow reference test catalog per category</td>
+        <td><span class="pill pill-med">Medium</span></td>
+        <td>QA + agent pipeline — clone-and-adapt for similar new cases</td>
+      </tr>
+    </tbody>
+  </table>
+
+</main>
+
+<footer class="footer">
+  <p><strong>R Systems International</strong> | Confidential — Prepared for Mode Global</p>
+  <p style="margin-top:8px;opacity:0.85;font-size:12px;">Mode QA AI POC — Upstream Challenges · July 2026</p>
+  <p style="margin-top:10px;font-size:12px;">
+    <a href="Mode QA AI POC.html">← Full POC summary &amp; timeline</a>
+  </p>
+</footer>
+
+</body>
+</html>
