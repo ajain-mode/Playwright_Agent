@@ -92,6 +92,38 @@ export class GlobalConstants {
     BILLING_ACTIVITY: "BILLING ACTIVITY",
   } as const;
 
+  /**
+   * Load Summary by Account Manager (LOSLSAM) report column / filter labels — reports.php / rptdefs.inc.php
+   * @author AI Agent
+   * @created 2026-08-03
+   */
+  static readonly LOAD_SUMMARY_BY_ACCT_MGR_COLUMNS = {
+    DISPATCH_REGION: "DISPATCH REGION",
+  } as const;
+
+  /**
+   * Special-Access report link labels on reports.php
+   * @author AI Agent
+   * @created 2026-08-03
+   */
+  static readonly SPECIAL_ACCESS_REPORTS = {
+    LOAD_SUMMARY_BY_ACCOUNT_MANAGER: "Load Summary by Account Manager",
+  } as const;
+
+  /**
+   * Office form — Pay Commissions setting (officeform.php).
+   * @author AI Agent
+   * @created 2026-08-03
+   */
+  static readonly OFFICE_PAY_COMMISSIONS = {
+    /** UI label on officeform.php (singular "Pay Commission") */
+    LABEL: "Pay Commission",
+    OPTION_NO: "NO",
+    OPTION_YES: "YES",
+    VALUE_NO: "0",
+    VALUE_YES: "1",
+  } as const;
+
   /** Billing Queue filter panel labels — ReportFilterManager.php */
   static readonly BILLING_QUEUE_FILTER_LABELS = {
     INITIAL_TOGGLE: "Initial Toggle",
@@ -897,6 +929,9 @@ declare global {
   const FINANCE_SUB_MENU: typeof GlobalConstants.FINANCE_SUB_MENU;
   const BILLING_QUEUE_COLUMNS: typeof GlobalConstants.BILLING_QUEUE_COLUMNS;
   const LOAD_SEARCH_COLUMNS: typeof GlobalConstants.LOAD_SEARCH_COLUMNS;
+  const LOAD_SUMMARY_BY_ACCT_MGR_COLUMNS: typeof GlobalConstants.LOAD_SUMMARY_BY_ACCT_MGR_COLUMNS;
+  const SPECIAL_ACCESS_REPORTS: typeof GlobalConstants.SPECIAL_ACCESS_REPORTS;
+  const OFFICE_PAY_COMMISSIONS: typeof GlobalConstants.OFFICE_PAY_COMMISSIONS;
   const BILLING_QUEUE_FILTER_LABELS: typeof GlobalConstants.BILLING_QUEUE_FILTER_LABELS;
   const TOGGLE_DATE_DISPLAY: typeof GlobalConstants.TOGGLE_DATE_DISPLAY;
   const DATE_PRESET: typeof GlobalConstants.DATE_PRESET;
@@ -990,6 +1025,9 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).FINANCE_SUB_MENU = GlobalConstants.FINANCE_SUB_MENU;
   (globalThis as any).BILLING_QUEUE_COLUMNS = GlobalConstants.BILLING_QUEUE_COLUMNS;
   (globalThis as any).LOAD_SEARCH_COLUMNS = GlobalConstants.LOAD_SEARCH_COLUMNS;
+  (globalThis as any).LOAD_SUMMARY_BY_ACCT_MGR_COLUMNS = GlobalConstants.LOAD_SUMMARY_BY_ACCT_MGR_COLUMNS;
+  (globalThis as any).SPECIAL_ACCESS_REPORTS = GlobalConstants.SPECIAL_ACCESS_REPORTS;
+  (globalThis as any).OFFICE_PAY_COMMISSIONS = GlobalConstants.OFFICE_PAY_COMMISSIONS;
   (globalThis as any).BILLING_QUEUE_FILTER_LABELS = GlobalConstants.BILLING_QUEUE_FILTER_LABELS;
   (globalThis as any).TOGGLE_DATE_DISPLAY = GlobalConstants.TOGGLE_DATE_DISPLAY;
   (globalThis as any).DATE_PRESET = GlobalConstants.DATE_PRESET;

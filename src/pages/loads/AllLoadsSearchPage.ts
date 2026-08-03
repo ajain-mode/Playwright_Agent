@@ -123,6 +123,31 @@ export default class AllLoadsSearchPage {
     }
 
     /**
+     * Returns the number of LOADSEARCH data rows currently shown.
+     * @author AI Agent
+     * @created 2026-08-03
+     * @returns Row count
+     */
+    async getResultRowCount(): Promise<number> {
+        await this.waitForSearchResults();
+        return this.resultsDataRows_LOC.count();
+    }
+
+    /**
+     * Clicks the LOADSEARCH data row at the given 0-based index.
+     * @author AI Agent
+     * @created 2026-08-03
+     * @param index - Zero-based row index
+     */
+    async clickLoadDetailRowAtIndex(index: number): Promise<void> {
+        await this.waitForSearchResults();
+        const row = this.resultsDataRows_LOC.nth(index);
+        await row.waitFor({ state: "visible", timeout: WAIT.LARGE });
+        await row.click();
+        await commonReusables.waitForPageStable(this.page);
+    }
+
+    /**
      * Clicks the first LOADSEARCH row whose BILLING ACTIVITY cell is empty.
      * Locator source: loadsearch.inc.php — `BILLING ACTIVITY` column; `#example_wrapper table#example` → `tbody > tr.dnd-moved`
      * @author AI Agent

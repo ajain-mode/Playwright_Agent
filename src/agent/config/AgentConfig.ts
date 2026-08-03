@@ -62,7 +62,7 @@ export class AgentConfig {
     admin: ['AdminPage', 'OfficePage', 'SimulateEDispatch', 'ViewOfficeInfoPage', 'EditOfficeInfoPage', 'AdminParseEdiPage'],
     customers: ['CustomerPage', 'EditCustomerPage', 'SearchCustomerPage', 'ViewCustomerPage', 'ViewMasterCustomerPage', 'CustomerEdiPrefsPage'],
     finance: ['FinancePage', 'AccountsPayablePage', 'BillingAdjustmentsQueue', 'BillingQueuePage', 'OfficeCommissionsDetailPage'],
-    home: ['HomePage', 'PostAutomationRulePage'],
+    home: ['HomePage', 'PostAutomationRulePage', 'HomeReportsPage'],
     salesLead: ['NewSalesLeadPage', 'MySalesLeadPage', 'ViewSalesLeadPage', 'AccountClearanceQueuePage'],
     carrier: ['CarrierSearch', 'ViewCarrier'],
     tnx: ['TNXLandingPage', 'TNXCarrierTenderPage', 'TNXExecutionTenderPage', 'TNXRepLandingPage'],

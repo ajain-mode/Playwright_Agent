@@ -115,6 +115,7 @@ import CarrierPortalPage from '@pages/carrierPortal/CarrierPortalPage';
 import BTMSAcceptTermPage from '@pages/login/BTMSAcceptTermPage';
 import BillingAdjustmentsQueue from '@pages/finance/BillingAdjustmentsQueue';
 import BillingQueuePage from '@pages/finance/BillingQueuePage';
+import HomeReportsPage from '@pages/home/HomeReportsPage';
 
 //Type definitions for better type safety
 type PageConstructor<T> = new (page: Page) => T;
@@ -912,5 +913,14 @@ export class PageManager {
    */
   get billingQueuePage(): BillingQueuePage {
     return this.createPage('billingQueuePage', BillingQueuePage);
+  }
+
+  /**
+   * Gets HomeReportsPage instance with on-demand creation.
+   * @author AI Agent
+   * @created 2026-08-03
+   */
+  get homeReportsPage(): HomeReportsPage {
+    return this.createPage('homeReportsPage', HomeReportsPage);
   }
 }

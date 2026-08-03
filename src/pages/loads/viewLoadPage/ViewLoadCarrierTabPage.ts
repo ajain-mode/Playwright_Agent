@@ -192,6 +192,37 @@ class ViewLoadCarrierTabPage {
     await this.sendEDITenderButton_LOC(carrierNumber).click();
   }
 
+  /**
+   * Returns whether Send EDI Tender is visible for the given carrier slot.
+   * Locator source: loadform.php — input[@value='Send EDI Tender'] under carr_{n}_carr_info_div
+   * @author AI Agent
+   * @created 2026-08-03
+   * @param carrierNumber - Carrier tab slot (1|2|3)
+   * @returns true when the button is visible
+   */
+  async isSendEDITenderButtonVisible(
+    carrierNumber: "1" | "2" | "3" = "1",
+  ): Promise<boolean> {
+    return this.sendEDITenderButton_LOC(carrierNumber)
+      .isVisible({ timeout: WAIT.MID })
+      .catch(() => false);
+  }
+
+  /**
+   * Asserts Send EDI Tender is visible for the given carrier slot.
+   * Locator source: loadform.php — input[@value='Send EDI Tender']
+   * @author AI Agent
+   * @created 2026-08-03
+   * @param carrierNumber - Carrier tab slot (1|2|3)
+   */
+  async assertSendEDITenderButtonVisible(
+    carrierNumber: "1" | "2" | "3" = "1",
+  ): Promise<void> {
+    await expect(this.sendEDITenderButton_LOC(carrierNumber)).toBeVisible({
+      timeout: WAIT.LARGE,
+    });
+  }
+
   // /**
   //  * Clicks on the Carrier 1 Send EDI Tender button
   //  * @author Rohit Singh

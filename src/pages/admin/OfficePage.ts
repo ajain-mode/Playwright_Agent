@@ -1,4 +1,4 @@
-import { Page, Locator } from "@playwright/test";
+import { Page, Locator, expect } from "@playwright/test";
 import { PageManager } from "@utils/PageManager";
 
 // import the correct member from globalConstants, update as needed
@@ -403,5 +403,58 @@ export default class OfficePage {
     await this.invoiceProcessDropdown_LOC.selectOption({ label: expectedInvoiceProcess });
     await this.saveButton_LOC.click();
     console.log(`Invoice Process updated to: ${expectedInvoiceProcess}`);
+  }
+
+  /**
+   * Asserts the Pay Commission field label is visible on the office form (view or edit).
+   * Locator source: officeform.php — td.fn "Pay Commission" / #pay_commission
+   * @author AI Agent
+   * @created 2026-08-03
+   */
+  async assertPayCommissionFieldVisible(): Promise<void> {
+    const label = this.page.locator("td.fn").filter({ hasText: /^Pay Commission$/i });
+    await expect(label.first()).toBeVisible({ timeout: WAIT.LARGE });
+  }
+
+  /**
+   * Reads Pay Commission display value in view mode.
+   * Locator source: officeform.php — td.fn:has-text("Pay Commission") + td.view
+   * @author AI Agent
+   * @created 2026-08-03
+   * @returns Normalized YES/NO label
+   */
+  async getPayCommissionViewValue(): Promise<string> {
+    const cell = this.page.locator('td.fn:has-text("Pay Commission") + td.view');
+    await cell.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    return ((await cell.textContent()) || "").replace(/\s/g, "").toUpperCase();
+  }
+
+  /**
+   * Reads selected Pay Commission option label in edit mode (#pay_commission).
+   * Locator source: officeform.php — select#pay_commission
+   * @author AI Agent
+   * @created 2026-08-03
+   * @returns Selected option label (NO/YES)
+   */
+  async getPayCommissionSelectedLabel(): Promise<string> {
+    const select = this.page.locator("#pay_commission");
+    await select.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    return (await select.locator("option:checked").textContent() || "").trim();
+  }
+
+  /**
+   * Sets Pay Commission in edit mode and saves. Re-opens are caller's responsibility.
+   * Locator source: officeform.php — select#pay_commission
+   * @author AI Agent
+   * @created 2026-08-03
+   * @param optionLabel - NO or YES
+   */
+  async setPayCommissionAndSave(optionLabel: string): Promise<void> {
+    await this.editButton_LOC.click();
+    const select = this.page.locator("#pay_commission");
+    await select.waitFor({ state: "visible", timeout: WAIT.LARGE });
+    await select.selectOption({ label: optionLabel });
+    await this.saveButton_LOC.click();
+    await this.page.waitForLoadState("networkidle");
   }
 }

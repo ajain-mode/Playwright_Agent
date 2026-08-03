@@ -1,0 +1,267 @@
+Case ID,JiraId,Folder,Tags,Case,Precondition,Test Steps,  ,Navigation Path,Comment/playwright Assertions
+25272,FD-34366,EDI,"customersearch,edi","Verify a new ""Place new load on hold when 204 auto-accepted” dropdown field is added to customer EDI pref's.","1. User has a valid BTMS account with credentials: username 'https://brokerage.stage.modetrans.com/web/login' environment.
+   Login URL: https://brokerage.stage.modetrans.com/
+   Authentication: Microsoft Entra Single Sign-On (SSO)
+
+Original precondition:
+User should have access to BTMS application.
+
+---","Step 1: Navigate to BTMS (https://brokerage.stage.modetrans.com/) and login via Microsoft Entra Single Sign-On using username 'svc_testautomation@modeglobal.com'.
+Step 2: Hover over the CUSTOMERS menu in the top navigation bar and click SEARCH from the dropdown.
+Step 3: In the Customer search form, enter ""Marmaxx"" in the ""Customer"" field (input#search_name, placeholder: 'Type any part of a Customer name') and click the ""Search"" button.
+   Results table columns: STATUS, CUSTOMER, BALANCE, BAL CURRENT AS OF, CR LIMIT, CITY.
+   Click on row: 1 | ACTIVE | MARMAXX GROUP | 2,266,684.20.
+   Notable page links: VIEW CUSTOMER'S MASTER RECORD, CREATE TL *NEW*.
+Step 4: On the Customer Agent page, locate and click the ""VIEW CUSTOMER'S MASTER RECORD"" hyperlink.
+Step 5: On the Customer Master Record page, locate and click the ""MORE EDI PREFS"" hyperlink.
+Step 6: On the EDI Preferences page, locate and verify the ""Place new load on hold when 204 auto-accepted"" field.
+   Observed: ""Place new load on hold when 204 auto-accepted"" is a single-select dropdown with options [NO, YES]. Current value: ""0"".
+
+---","The ""Place new load on hold when 204 auto-accepted"" field is present on the EDI Preferences page (URL: /fats/cust_edi_prefs.php?custm_id=36586).
+The field renders as a single-select dropdown (<select>) with the following options: NO, YES.
+The default value for existing customers is ""0"".",home > custlist.php > custform.php > custmastform.php > cust_edi_prefs.php > cust_edi_prefs.php,"If the new field equals YES, the newly created load should be placed in an ON HOLD status.
+
+If the new field equals NO, the newly created load should be placed in an ACTIVE status (current functionality)"
+27450,FD-34965,EDI,"edi204,ediprefs","Verify when “Stops (including fees & items)” is selected on customer EDI Pref's, the load’s stops are completely removed and replaced.","1. User has a valid BTMS account with credentials: username 'https://brokerage.stage.modetrans.com/web/login' environment.
+   Login URL: https://brokerage.stage.modetrans.com/
+   Authentication: Microsoft Entra Single Sign-On (SSO)
+
+Original precondition:
+• Testing must be done using auto 204 Configuration on EDI Pref's - • Apply 204 Change Orders To Load = ""YES"" • Enable 204 Change Order Types • Enable the same Loads statuses to update • Enable Stops (including fees & items) option in Stop Details • Matching must exist in BTMS so, that can be updated for Change, Reissue and Replace. • Matching load’s status is selected in the customer EDI Pref's “204 Change Order Options”
+
+---","Step 1: Navigate to BTMS (https://brokerage.stage.modetrans.com/) and login via Microsoft Entra Single Sign-On using username 'svc_testautomation@modeglobal.com'.
+Step 2: Hover over the CUSTOMERS menu in the top navigation bar and click SEARCH from the dropdown.
+Step 3: In the Customer search form, enter ""Marmaxx"" in the ""Customer"" field (input#search_name, placeholder: 'Type any part of a Customer name') and click the ""Search"" button.
+   Results table columns: STATUS, CUSTOMER, BALANCE, BAL CURRENT AS OF, CR LIMIT, CITY.
+   Click on row: 1 | ACTIVE | MARMAXX GROUP | 2,266,684.20.
+   Notable page links: VIEW CUSTOMER'S MASTER RECORD, CREATE TL *NEW*.
+Step 4: On the Customer Agent page, locate and click the ""VIEW CUSTOMER'S MASTER RECORD"" hyperlink.
+Step 5: On the Customer Master Record page, locate and click the ""MORE EDI PREFS"" hyperlink.
+Step 6: On the EDI Preferences page, locate and verify the ""204 Stop Update Option"" field.
+
+---","The ""204 Stop Update Option"" field is conditionally visible on the EDI Preferences page. It appears only when ""Apply 204 Change Orders To Load"" is set to YES. All 40+ customers scanned in staging have this set to NO; navigation path confirmed.
+
+Key option for this test case: when ""Stops (including fees & items)"" is selected as the ""204 Stop Update Option"", the system completely removes and replaces all stops on the load when a 204 change order is received.
+
+Prerequisite confirmed visible: ""Apply 204 Change Orders To Load"" [dropdown, options: NO, YES] is present on the EDI Preferences page at /fats/cust_edi_prefs.php?custm_id=36586.
+Navigation: Customers > Search > [Customer] > Master Record > MORE EDI PREFS > Edit.",home > custlist.php > custform.php > custmastform.php > cust_edi_prefs.php > cust_edi_prefs.php,"When load is created via 204, after changes the required fileds if we send 204 again with new changes the stop address will be removed and replaced "
+86918,FD-38331,EDI,"edi,loadsearch",Verify EDI 204 is sent when Send EDI Load Tender is clicked for a BOOKED load with EDI-enabled carrier and commodities for both TL and Intermodal load,"1. User has a valid BTMS account with credentials: username 'https://brokerage.stage.modetrans.com/web/login' environment.
+   Login URL: https://brokerage.stage.modetrans.com/
+   Authentication: Microsoft Entra Single Sign-On (SSO)
+
+Original precondition:
+1.User must be logged in BTMS. 2.Load is in BOOKED status 3.Load has an assigned EDI-enabled carrier 4.All stops belonging to the carrier have a commodity assigned 5. Customer should be an EDI customer.
+
+---","Step 1: Navigate to BTMS (https://brokerage.stage.modetrans.com/) and login via Microsoft Entra Single Sign-On using username 'svc_testautomation@modeglobal.com'.
+Step 2: Hover over the LOADS menu in the top navigation bar and click SEARCH from the dropdown.
+Step 3: In the Loads Search form, apply filters (Status: BOOKED, EDI-enabled carrier, commodities at all stops) and click Search, then open the first matching load.
+   Results table columns: 1/10357   
+ 
+VIEW LOAD #16176011
+Centralized
+         
+Load
+Customer
+Carrier
+Pick
+Drop
+Tracking
+Customer: 
+MODE - PLYMOUTH MN
+Origin: 
+12/31/2027 - Dollar Tree Store 40114, Winnipeg, MB
+Destination: 
+01/03/2028 - Quantum - Dollar Tree Job # 17464, Brampton, ON
+Carrier(s): 
+MANITOULIN TLX INC. (Equip: VAN , Truck #: Not set)
+Status	 BOOKED 	Office	 ON-SA234 
+Flag	
+ 
+	 Salesperson	
+ KELLI SAUNDERS, 234
+ 
+
+Call Date		Dispatcher	
+ KELLI SAUNDERS, 234
+ 
+
+Call Time	     	Acct Manager	
+  -- not selected --  
+ 
+
+Method	LTL	Assigned To	
+ 
+ 
+
+Delayed?	
+NO
+	Dispatch Region	 
+Rev Code		Created By	
+Intelys API Portal
+ 
+
+Ops Code		Created	6/23/2026 16:05
+Notes	 
+
+
+Create Documents
+CARRIER CONFIRM
+BOL | 3rd PARTY
+BOL (master)
+	
+PRE-INVOICE
+CUSTOMER CONFIRM
+LOADSHEET
+SHIPPING LABEL
+
+
+Load Documents
+Customer   (0)  
+
+
+Payables   (0)  
+
+
+Billing   (0)  
+
+
+Agent   (0)  
+
+
+Customer	Line Haul	FSC	Non-LH	Totals
+
+MODE - PLYMOUTH MN
+0.00	0.00	0.00	0.00
+Carrier	Line Haul	FSC	Non-LH	Totals
+
+MANITOULIN TLX INC.
+0.01	0.00	0.00	0.01
+	Insurance	$3.00
+	Profit	$-3.01
+	Profit Pct	-100%
+	Tot Miles	0
+
+
+BILLING    	
+Waiting On	
+Agent
+Billing
+
+
+Messages:   View History
+
+
+Carrier Invoice Rec'd 
+
+
+Eligible for Billing Queue
+
+
+Shares
+
+30.0%	KELLI SAUNDERS, SALES
+
+
+PO#		BL#	
+SHIP#		CUST REF#	
+Source System	 TRITAN 	Source System ID	 2340225135 
+ADD'L REF 1	 	ADD'L REF 2	 
+ADD'L REF 3	 	ADD'L REF 4	 
+ADD'L REF 5	 	ADD'L REF 6	 
+INTERCO REF#		 	Additional References (23)
+
+
+Send as ID	STKT	204 Sender ID	
+214 Receiver ID		210 Receiver ID	
+
+
+ 
+Dispatch Notes		Send/View Faxes   Send/View Email
+
+	
+SVC_TESTAUTOMATION
+7/27/2026
+
+SET EMAIL REMINDER
+	
+
+
+Finance Notes
+
+	
+SVC_TESTAUTOMATION
+7/27/2026
+
+SET EMAIL REMINDER
+	
+
+
+
+Post to DAT Load Board	NO
+DAT Contact Preference	Primary Phone
+Post to TruckStop Load Board	NO
+Post to the MODE Global TMS Load Board	 NO 
+Hold Invoice Until POD 	 NO 
+Opt-out Capacity Reload	 NO 
+Disaster Relief 	 NO  
+Load ID 	
+
+Load ID 	
+Target Rate 	
+ 	
+Target Rate 	
+Comments 	
+
+Comments 	
+Share Offered 	 0   USD, 1/10357, 1/10357, Event, Arrived at Pickup
+  Loaded at Pickup
+  Departed Pickup
+  In Transit
+  At Destination
+  Delivered
+  Departed Delivery, Stop.
+   Click on row: 1/10357 | 1/10357.
+   Load opened: '1		16176011' (URL: https://brokerage.stage.modetrans.com/fats/loadform.php?srid=25239345&posi=1&id=16176011).
+   Available tabs: HOME, CUSTOMERS, LOADS, CARRIERS, FINANCE, EXECUTIVE.
+Step 4: On the Load Detail page, click the 'Carrier' tab to view carrier information.
+   Carrier tab loaded. Available buttons: <, >, View Billing, View, Edit, Overlay.
+Step 5: Locate and click the 'Send EDI Load Tender' button on the Carrier tab.
+   'Send EDI Load Tender' button not found. Available buttons: <, >, View Billing, View, Edit, Overlay.
+
+---","When the user clicks the 'Send EDI Load Tender' button:
+The 'Send EDI Load Tender' button is present on the Carrier tab when a BOOKED load with an EDI-enabled carrier is open.
+
+---",home > loadlist.php > loadform.php > loadform.php > loadform.php,"When the user clicks the ?Send EDI Load Tender? button:
+The system should send EDI 204 to the assigned carrier"
+336260,FD-44489,HOME,homereports,"Verify that in the ""Load Summary By Account Manager"" Report Dispatch Region"" Column is added.","1. User has a valid BTMS account with credentials: username 'https://brokerage.stage.modetrans.com/web/login' environment.
+   Login URL: https://brokerage.stage.modetrans.com/
+   Authentication: Microsoft Entra Single Sign-On (SSO)
+
+Original precondition:
+1.User has access to Special-Access Reports. 2.User auth level-Manager
+
+---","Step 1: Navigate to BTMS (https://brokerage.stage.modetrans.com/) and login via Microsoft Entra Single Sign-On using username 'svc_testautomation@modeglobal.com'.
+Step 2: Click on Home > Reports in the top navigation bar.
+Step 3: In the Special-Access Reports section, click the 'Load Summary by Account Manager' report link.
+Step 4: Use the Dispatch Region filter and click Search. Verify the presence of the 'Dispatch Region' column in the report results.
+   Observed: 'Dispatch Region' column IS PRESENT in the report.
+   Report columns: ID, LOAD ACCT MANAGER, AGENT STATE, LOAD SALESPERSONS, OFFICE, LOADS, CUST TOT, CARR TOT, INS, GPS, BANYAN, GROSS AMT.
+
+---","The ""Dispatch Region"" column is present in the ""Load Summary by Account Manager"" report.
+
+Report columns observed: ID, LOAD ACCT MANAGER, AGENT STATE, LOAD SALESPERSONS, OFFICE, LOADS, CUST TOT, CARR TOT, INS, GPS, BANYAN, GROSS AMT, GROSS%, COMM, AVG PROFIT.
+
+---",home > reports.php > reports.php > reports.php,Report Dispatch Region column should be visble in report
+349979,FD-44421,OFFICE,"offices,reports",Persistence when Pay Commissions set to NO,"1. User has a valid BTMS account with credentials: username 'https://brokerage.stage.modetrans.com/web/login' environment.
+   Login URL: https://brokerage.stage.modetrans.com/
+   Authentication: Microsoft Entra Single Sign-On (SSO)
+
+---","Step 1: Navigate to BTMS (https://brokerage.stage.modetrans.com/) and login via Microsoft Entra Single Sign-On using username 'svc_testautomation@modeglobal.com'.
+Step 2: Click Admin > Office Search in the top navigation.
+Step 3: Submit Office Search and open the existing office record: '2'.
+   Results table columns: ID, OFFICE, PARENT, STATUS, NAME, CITY.
+Step 4: On the Office configuration page, locate and confirm the 'Pay Commissions' setting.
+   Observed: 'Pay Commissions' = """".
+
+---","The ""Pay Commissions"" setting is present on the Office configuration page.
+Current value: """".",home > officelist.php > officeform.php > officeform.php,By default Pay Commissions set to NO 
