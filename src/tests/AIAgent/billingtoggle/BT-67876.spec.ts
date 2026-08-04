@@ -125,7 +125,7 @@ test.describe.serial(
             const billingToggle = await pages.loadBillingPage.getBillingToggleValue();
             expect(billingToggle, "Expected after 30: Billing toggle set to Agent").toBe(
               PAYABLE_TOGGLE_VALUE.AGENT
-            );
+            ); 
           }
         );
 
