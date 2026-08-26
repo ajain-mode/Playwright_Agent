@@ -76,6 +76,20 @@ test.describe.serial(
         });
 
         await test.step(
+          "Step 5b [Precondition]: Ensure Billing toggle does not already start on Billing",
+          async () => {
+            // Search picks the first BOOKED-status row, which may already be on Billing —
+            // moving it "to Billing" in Step 8 would then be a no-op (see LoadBillingPage.setBillingIssuesToggle
+            // short-circuit) and never update Current Toggle Date. Nudge off Billing first so Step 8 is a real transition.
+            const startingToggle = await pages.loadBillingPage.getBillingToggleValue();
+            if (startingToggle === PAYABLE_TOGGLE_VALUE.BILLING) {
+              await pages.loadBillingPage.setAndAssertBillingIssuesToggle(PAYABLE_TOGGLE_VALUE.AGENT);
+              await pages.loadBillingPage.reloadBillingPageAndWaitForToggleBlock();
+            }
+          }
+        );
+
+        await test.step(
           "Step 6 [116906 11]: Observe Billing Toggle, Initial Toggle Date, and Current Toggle Date",
           async () => {
             baselineUiInitial = await pages.loadBillingPage.getInitialToggleDateDisplayValue();
