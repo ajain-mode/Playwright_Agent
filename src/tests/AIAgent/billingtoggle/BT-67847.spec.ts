@@ -6,6 +6,7 @@ import { PageManager } from "@utils/PageManager";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
 import commonReusables from "@utils/commonReusables";
 import ViewLoadPage from "@pages/loads/viewLoadPage/ViewLoadPage";
+import commissionHelper from "@utils/commissionUtils/commissionHelper";
 
 const testcaseID = "BT-67847";
 const testData = dataConfig.getTestDataFromCsv(dataConfig.billingtoggleData, testcaseID);
@@ -71,6 +72,7 @@ test.describe.serial(
           await pages.searchCustomerPage.selectActiveOnCustomerPage();
           await pages.searchCustomerPage.clickOnSearchCustomer();
           await pages.searchCustomerPage.clickOnActiveCustomer();
+          await commissionHelper.updateAvailableCreditOnCustomer(sharedPage);
           await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         });
 

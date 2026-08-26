@@ -5,6 +5,7 @@ import dataConfig from "@config/dataConfig";
 import { PageManager } from "@utils/PageManager";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
 import commonReusables from "@utils/commonReusables";
+import commissionHelper from "@utils/commissionUtils/commissionHelper";
 
 /**
  * Test Case: BT-74421 - Verify the Billing toggle behaviour when Load is "Invoiced or Posted"
@@ -108,6 +109,7 @@ test.describe.serial(
         });
 
         await test.step("Step 11: Click CREATE TL *NEW* on VIEW CUSTOMER page", async () => {
+          await commissionHelper.updateAvailableCreditOnCustomer(sharedPage);
           await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
           await commonReusables.waitForAllLoadStates(sharedPage);
         });

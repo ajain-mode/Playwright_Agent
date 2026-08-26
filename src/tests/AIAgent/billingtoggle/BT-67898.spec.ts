@@ -5,6 +5,7 @@ import dataConfig from "@config/dataConfig";
 import { PageManager } from "@utils/PageManager";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
 import commonReusables from "@utils/commonReusables";
+import commissionHelper from "@utils/commissionUtils/commissionHelper";
 
 /**
  * Test Case: BT-67898 - Verify that the Billing toggle does not change to
@@ -75,6 +76,7 @@ test.describe.serial(
           await pages.searchCustomerPage.selectActiveOnCustomerPage();
           await pages.searchCustomerPage.clickOnSearchCustomer();
           await pages.searchCustomerPage.clickOnActiveCustomer();
+          await commissionHelper.updateAvailableCreditOnCustomer(sharedPage);
           await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
           await commonReusables.waitForAllLoadStates(sharedPage);
         });

@@ -111,7 +111,9 @@ class NonTabularLoadPage {
         this.invalidFieldLocator_LOC = page.locator('input:invalid, select:invalid, textarea:invalid').first();
 
         // Select2 shared locators
-        this.select2SearchField_LOC = page.locator("input.select2-search__field");
+        // Scoped to #create_load (Enter New Load form) — a second, unrelated visible select2 search
+        // input exists elsewhere on the page, causing a strict-mode violation otherwise (BT-67846).
+        this.select2SearchField_LOC = page.locator("#create_load input.select2-search__field:visible");
         this.select2ResultsOption_LOC = page.locator(".select2-results__option");
         this.select2HighlightedOption_LOC = page.locator(".select2-results__option--highlighted");
         this.select2SelectionBySelectId_LOC = (selectId: string) => page.locator(`#${selectId} ~ .select2-container .select2-selection`);
@@ -1795,8 +1797,10 @@ class NonTabularLoadPage {
   async selectCustomerViaSelect2(customerName: string): Promise<void> {
     await this.page.waitForLoadState("networkidle");
 
-    // #form_customer is a single-select Select2 — use the correct interaction pattern
-    await this.selectFromSelect2SingleDropdown("form_customer", customerName);
+    // #form_customer is AJAX-backed — clicking alone only shows an unfiltered default page, so the
+    // target customer must be searched for via typed input to be loaded and visible. The clickable
+    // toggle is the sibling .select2-selection (select2-form_customer-container is a hidden rendered span).
+    await this.selectFromSelect2Container(this.select2SelectionBySelectId_LOC("form_customer"), customerName);
     await this.page.waitForLoadState("networkidle");
     await this.page.waitForTimeout(1000);
   }

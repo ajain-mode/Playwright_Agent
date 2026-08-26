@@ -19,6 +19,8 @@ export class DFBLoadFormPage {
   private readonly cargoValue_LOC: Locator;
   private readonly editLoadValue_LOC: Locator;
   private readonly offerRateValue_LOC: Locator;
+  private readonly minOfferRateValue_LOC: Locator;
+  private readonly maxOfferRateValue_LOC: Locator;
   private readonly expirationDateValue_LOC: Locator;
   private readonly expirationTimeValue_LOC: Locator;
   private readonly includeCarriersValue_LOC: Locator;
@@ -63,6 +65,10 @@ export class DFBLoadFormPage {
     this.postButton_LOC = page.locator("//*[text()='Post']");
     this.cargoValue_LOC = page.locator("#carr_1_cargo_value_opt_id");
     this.offerRateValue_LOC = page.locator("#carr_1_target_rate");
+    // #carr_1_target_rate is now a hidden rollup — the Carrier tab replaced the single Offer Rate
+    // field with separate Min/Max Offer Rate spinbuttons (confirmed live in-app, BT-67846).
+    this.minOfferRateValue_LOC = page.locator("#carr_1_min_target_rate");
+    this.maxOfferRateValue_LOC = page.locator("#carr_1_max_target_rate");
     this.editLoadValue_LOC = page.locator(
       "//td[contains(@class, 'hedbar0') and contains(normalize-space(), 'Edit Load #')]"
     );
@@ -183,9 +189,35 @@ export class DFBLoadFormPage {
    * @author Deepak Bohra
    * @description Enter value into the Offer Rate
    * @created : 2025-08-28
+   * @ModifiedBy Rohit Singh - 26-Aug-2026: Carrier tab replaced this single field with separate
+   * Min/Max Offer Rate spinbuttons (#carr_1_min_target_rate / #carr_1_max_target_rate) —
+   * #carr_1_target_rate is now hidden. Falls back to filling both Min/Max with the same value
+   * when the legacy field isn't visible, so existing callers keep working unchanged (BT-67846).
    */
   async enterOfferRate(offerRateValue: string | number): Promise<void> {
-    await this.offerRateValue_LOC.fill(String(offerRateValue));
+    const isLegacyFieldVisible = await this.offerRateValue_LOC.isVisible().catch(() => false);
+    if (isLegacyFieldVisible) {
+      await this.offerRateValue_LOC.fill(String(offerRateValue));
+    } else {
+      await this.enterMinMaxOfferRate(offerRateValue, offerRateValue);
+    }
+  }
+
+  /**
+   * Enters the Min and Max Offer Rate values on the Carrier tab (replaces the legacy single
+   * Offer Rate field — see enterOfferRate() fallback).
+   * Locator source: confirmed live in-app (#carr_1_min_target_rate / #carr_1_max_target_rate), BT-67846.
+   * @author AI Agent
+   * @created 2026-08-26
+   * @param minOfferRateValue - Value for Min Offer Rate
+   * @param maxOfferRateValue - Value for Max Offer Rate
+   */
+  async enterMinMaxOfferRate(
+    minOfferRateValue: string | number,
+    maxOfferRateValue: string | number
+  ): Promise<void> {
+    await this.minOfferRateValue_LOC.fill(String(minOfferRateValue));
+    await this.maxOfferRateValue_LOC.fill(String(maxOfferRateValue));
   }
 
   /**

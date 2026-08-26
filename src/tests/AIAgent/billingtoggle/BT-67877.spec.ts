@@ -5,6 +5,7 @@ import dataConfig from "@config/dataConfig";
 import { PageManager } from "@utils/PageManager";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
 import commonReusables from "@utils/commonReusables";
+import commissionHelper from "@utils/commissionUtils/commissionHelper";
 
 /**
  * Test Case: BT-67877 — Admin + system admin billing-toggle user; agent roles; load to BOOKED;
@@ -83,6 +84,7 @@ test.describe.serial(
           await pages.searchCustomerPage.selectActiveOnCustomerPage();
           await pages.searchCustomerPage.clickOnSearchCustomer();
           await pages.searchCustomerPage.clickOnActiveCustomer();
+          await commissionHelper.updateAvailableCreditOnCustomer(sharedPage);
           await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
           await commonReusables.waitForAllLoadStates(sharedPage);
         });

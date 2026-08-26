@@ -5,6 +5,7 @@ import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
 import commonReusables from "@utils/commonReusables";
+import commissionHelper from "@utils/commissionUtils/commissionHelper";
 
 /**
  * Test Case: BT-74418 - Validate updated price difference message when carrier invoice already exists in pending status and secondary invoice is received
@@ -76,6 +77,7 @@ test.describe.serial(
 
       await test.step("Step 4 [CSV 4]: Click 3rd customer row (salesperson AGENT RESPONSE-TEST)", async () => {
         await pages.searchCustomerPage.clickOnActiveCustomer();
+        await commissionHelper.updateAvailableCreditOnCustomer(sharedPage);
         await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
         await commonReusables.waitForAllLoadStates(sharedPage);
       });

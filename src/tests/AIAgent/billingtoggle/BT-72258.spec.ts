@@ -5,6 +5,7 @@ import dataConfig from "@config/dataConfig";
 import { PageManager } from "@utils/PageManager";
 import { ALERT_PATTERNS } from "@utils/alertPatterns";
 import commonReusables from "@utils/commonReusables";
+import commissionHelper from "@utils/commissionUtils/commissionHelper";
 
 const testcaseID = "BT-72258";
 const testData = dataConfig.getTestDataFromCsv(dataConfig.billingtoggleData, testcaseID);
@@ -96,6 +97,7 @@ test.describe.serial(
         await test.step("Step 10: Click on the Customer detail row", async () => {
           await pages.searchCustomerPage.clickOnActiveCustomer();
           await commonReusables.waitForAllLoadStates(sharedPage);
+          await commissionHelper.updateAvailableCreditOnCustomer(sharedPage);
         });
 
         await test.step("Step 11: Click NEW LOAD - LTL and accept alert", async () => {

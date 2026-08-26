@@ -5,6 +5,7 @@ import userSetup from "@loginHelpers/userSetup";
 import dataConfig from "@config/dataConfig";
 import { PageManager } from "@utils/PageManager";
 import commonReusables from "@utils/commonReusables";
+import commissionHelper from "@utils/commissionUtils/commissionHelper";
 import {
   agentDisplayNameFragment,
   BillingToggleConstants,
@@ -112,6 +113,7 @@ async function runPayablesToggleScenario(
     await pages.searchCustomerPage.selectActiveOnCustomerPage();
     await pages.searchCustomerPage.clickOnSearchCustomer();
     await pages.searchCustomerPage.clickOnActiveCustomer();
+    await commissionHelper.updateAvailableCreditOnCustomer(sharedPage);
     await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
   });
 
