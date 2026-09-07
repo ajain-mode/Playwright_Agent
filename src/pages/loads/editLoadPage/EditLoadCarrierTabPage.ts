@@ -359,7 +359,17 @@ class EditLoadCarrierTabPage {
       `option:has-text("${carrierID}")`
     );
     await option.dblclick();
-    await this.page.waitForTimeout(WAIT.DEFAULT);
+    // Double-click triggers aj_set_carrier(co), an async AJAX call (loadXMLDoc2fn) that sets the
+    // carrier and re-renders the "choose carrier" area. A fixed timeout can resolve before that
+    // completes, leaving the form area open — a subsequent Save then gets rejected client-side
+    // ("You currently have the 'CHOOSE A CARRIER' form open for editing..."). Wait for the AJAX
+    // and DOM to actually settle, then dismiss the still-open select overlay (Escape) — waiting
+    // alone isn't enough, since the "form open" state doesn't clear on its own even once the
+    // carrier value has been set (see dismissCarrierSelectOverlay(), previously left for callers
+    // to remember to invoke separately).
+    await commonReusables.waitForPageStable(this.page);
+    await this.page.keyboard.press("Escape");
+    await commonReusables.waitForPageStable(this.page);
   }
 
   /**
@@ -390,7 +400,17 @@ class EditLoadCarrierTabPage {
       `option:has-text("${carrierID}")`
     );
     await option.dblclick();
-    await this.page.waitForTimeout(WAIT.DEFAULT);
+    // Double-click triggers aj_set_carrier(co), an async AJAX call (loadXMLDoc2fn) that sets the
+    // carrier and re-renders the "choose carrier" area. A fixed timeout can resolve before that
+    // completes, leaving the form area open — a subsequent Save then gets rejected client-side
+    // ("You currently have the 'CHOOSE A CARRIER' form open for editing..."). Wait for the AJAX
+    // and DOM to actually settle, then dismiss the still-open select overlay (Escape) — waiting
+    // alone isn't enough, since the "form open" state doesn't clear on its own even once the
+    // carrier value has been set (see dismissCarrierSelectOverlay(), previously left for callers
+    // to remember to invoke separately).
+    await commonReusables.waitForPageStable(this.page);
+    await this.page.keyboard.press("Escape");
+    await commonReusables.waitForPageStable(this.page);
   }
   /**
    * Selects Carrier 3 from the dropdown by entering the carrier ID
@@ -410,7 +430,17 @@ class EditLoadCarrierTabPage {
       `option:has-text("${carrierID}")`
     );
     await option.dblclick();
-    await this.page.waitForTimeout(WAIT.DEFAULT);
+    // Double-click triggers aj_set_carrier(co), an async AJAX call (loadXMLDoc2fn) that sets the
+    // carrier and re-renders the "choose carrier" area. A fixed timeout can resolve before that
+    // completes, leaving the form area open — a subsequent Save then gets rejected client-side
+    // ("You currently have the 'CHOOSE A CARRIER' form open for editing..."). Wait for the AJAX
+    // and DOM to actually settle, then dismiss the still-open select overlay (Escape) — waiting
+    // alone isn't enough, since the "form open" state doesn't clear on its own even once the
+    // carrier value has been set (see dismissCarrierSelectOverlay(), previously left for callers
+    // to remember to invoke separately).
+    await commonReusables.waitForPageStable(this.page);
+    await this.page.keyboard.press("Escape");
+    await commonReusables.waitForPageStable(this.page);
   }
   /**
    * Enters container code and number for Carrier 2

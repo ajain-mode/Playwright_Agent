@@ -199,7 +199,8 @@ export class DFBLoadFormPage {
     if (isLegacyFieldVisible) {
       await this.offerRateValue_LOC.fill(String(offerRateValue));
     } else {
-      await this.enterMinMaxOfferRate(offerRateValue, offerRateValue);
+      const minOfferRateValue = Math.round(Number(offerRateValue) / 2);
+      await this.enterMinMaxOfferRate(minOfferRateValue, offerRateValue);
     }
   }
 
@@ -216,6 +217,7 @@ export class DFBLoadFormPage {
     minOfferRateValue: string | number,
     maxOfferRateValue: string | number
   ): Promise<void> {
+
     await this.minOfferRateValue_LOC.fill(String(minOfferRateValue));
     await this.maxOfferRateValue_LOC.fill(String(maxOfferRateValue));
   }

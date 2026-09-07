@@ -116,14 +116,19 @@ class EditLoadPage {
     await expect.soft(this.editLoadText_LOC).toBeVisible();
   }
   /**
-   * Gets the current tab value and validates it against expected value
+   * Gets the current tab value and validates it against expected value.
+   * Right after load creation, `#current_tab` can still briefly read the last-active tab
+   * (e.g. "Carrier_1") before the page settles onto the expected tab — wait for network/DOM
+   * stability first, and give the attribute check a longer poll window than the default 5s.
    * @author Deepak Bohra
    * @created : 2025-07-30
+   * @modified 2026-09-07
    */
   async validateCurrentTabValue(expectedTabValue: string) {
+    await commonReusables.waitForPageStable(this.page);
     await expect
       .soft(this.currentTab_LOC)
-      .toHaveAttribute("value", expectedTabValue);
+      .toHaveAttribute("value", expectedTabValue, { timeout: WAIT.LARGE });
     const actualTabValue = await this.currentTab_LOC.getAttribute("value");
     console.log(`Current Tab Value: ${actualTabValue}`);
     await expect.soft(actualTabValue).toBe(expectedTabValue);

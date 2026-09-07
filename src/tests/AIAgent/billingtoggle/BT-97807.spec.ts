@@ -88,6 +88,11 @@ test.describe.serial(
             shipmentCommodityWeight: testData.shipmentCommodityWeight,
             equipmentType: testData.equipmentType,
             equipmentLength: testData.equipmentLength,
+            // Consignee delivery must already be in the past for the price/NDF finance-issue
+            // calculation to run at all (see BT-67847 / FD-35847 — LoadDocuments::isDeliveryDatePassed).
+            // Without this, the Billing Toggle never leaves Neutral after the invoice upload below.
+            shipperPickupDaysAgo: 3,
+            consigneeDeliveryDaysAgo: 1,
           });
 
           await pages.editLoadFormPage.selectMileageEngine(testData.mileageEngine);
@@ -107,7 +112,13 @@ test.describe.serial(
           await pages.editLoadCarrierTabPage.enterCarrierRate(testData.carrierRate);
           await pages.editLoadCarrierTabPage.enterValueInTrailerLength(testData.trailerLength);
           await pages.editLoadCarrierTabPage.enterMiles(testData.miles);
-          await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_NAME.CARRIER_4);
+          // Not ZONA TRUCKING LLC (CARRIER_NAME.CARRIER_4): it's configured with Quickpay/factored
+          // payment terms on stage, so CarrierInvoice::createQuickpayRequestIfAppropriate() diverts
+          // any invoice for it into a `tcheks` Quickpay request instead of a normal `lscarr_invoices`
+          // row — AutoAdjustment::process() (which computes the price-difference finance issue) never
+          // runs. XPO TRANS INC (used successfully by BT-67846/BT-67847/BT-74454) isn't
+          // Quickpay-eligible, so a normal pending invoice gets created here.
+          await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_ID.CARRIER_XPO_TRANS);
 
           const bookedAlert = pages.commonReusables.validateAlert(
             sharedPage,
@@ -146,12 +157,12 @@ test.describe.serial(
           );
 
           const billingIssuesMsg = await pages.loadBillingPage.findBillingIssuesMessageContaining(
-            ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_100_OVER_TOTAL_CHARGE
+            ALERT_PATTERNS.XPO_TRANS_INC_INVOICED_100_OVER_TOTAL_CHARGE
           );
           expect(
             billingIssuesMsg,
-            `Expected: ${ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_100_OVER_TOTAL_CHARGE} under Billing Issues`
-          ).toContain(ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_100_OVER_TOTAL_CHARGE);
+            `Expected: ${ALERT_PATTERNS.XPO_TRANS_INC_INVOICED_100_OVER_TOTAL_CHARGE} under Billing Issues`
+          ).toContain(ALERT_PATTERNS.XPO_TRANS_INC_INVOICED_100_OVER_TOTAL_CHARGE);
         });
 
         await test.step("Step 9 [Expected after 97807 61]: View History — one row, $100, System, inactive empty", async () => {
@@ -160,7 +171,7 @@ test.describe.serial(
 
           const row = historyRows[0];
           expect(row.message, "Expected: $100 overcharge in history").toContain(
-            ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_100_OVER_TOTAL_CHARGE
+            ALERT_PATTERNS.XPO_TRANS_INC_INVOICED_100_OVER_TOTAL_CHARGE
           );
           expect(row.user, "Expected: User as SYSTEM").toBe(VIEW_HISTORY_USER.SYSTEM);
           expect(row.inactiveDate.trim(), "Expected: Inactive date empty").toBe("");
@@ -188,12 +199,12 @@ test.describe.serial(
           );
 
           const billingIssuesMsg = await pages.loadBillingPage.findBillingIssuesMessageContaining(
-            ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_300_OVER_TOTAL_CHARGE
+            ALERT_PATTERNS.XPO_TRANS_INC_INVOICED_300_OVER_TOTAL_CHARGE
           );
           expect(
             billingIssuesMsg,
-            `Expected after 63: ${ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_300_OVER_TOTAL_CHARGE} under Billing Issues`
-          ).toContain(ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_300_OVER_TOTAL_CHARGE);
+            `Expected after 63: ${ALERT_PATTERNS.XPO_TRANS_INC_INVOICED_300_OVER_TOTAL_CHARGE} under Billing Issues`
+          ).toContain(ALERT_PATTERNS.XPO_TRANS_INC_INVOICED_300_OVER_TOTAL_CHARGE);
         });
 
         await test.step("Step 11 [Expected after 97807 64]: View History — two rows, inactive dates", async () => {
@@ -205,7 +216,7 @@ test.describe.serial(
           const row300 = historyRows[1];
 
           expect(row100.message, "Expected: 1st row $100 overcharge message").toContain(
-            ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_100_OVER_TOTAL_CHARGE
+            ALERT_PATTERNS.XPO_TRANS_INC_INVOICED_100_OVER_TOTAL_CHARGE
           );
           expect(row100.user, "Expected: 1st row User as SYSTEM").toBe(VIEW_HISTORY_USER.SYSTEM);
           expect(
@@ -214,7 +225,7 @@ test.describe.serial(
           ).toBeGreaterThan(0);
 
           expect(row300.message, "Expected: 2nd row $300 overcharge message").toContain(
-            ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_300_OVER_TOTAL_CHARGE
+            ALERT_PATTERNS.XPO_TRANS_INC_INVOICED_300_OVER_TOTAL_CHARGE
           );
           expect(row300.user, "Expected: 2nd row User as SYSTEM").toBe(VIEW_HISTORY_USER.SYSTEM);
           expect(row300.inactiveDate.trim(), "Expected: 2nd row Inactive date empty").toBe("");

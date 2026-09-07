@@ -5,6 +5,9 @@ import dataConfig from "@config/dataConfig";
 import { PageManager } from "@utils/PageManager";
 import type { AgentAuthRolesExpectation } from "@pages/admin/agent/AgentInfoPage";
 import commonReusables from "@utils/commonReusables";
+import { ALERT_PATTERNS } from "@utils/alertPatterns";
+import commissionHelper from "@utils/commissionUtils/commissionHelper";
+import ViewLoadPage from "@pages/loads/viewLoadPage/ViewLoadPage";
 
 const testcaseID = "BT-67876";
 const testData = dataConfig.getTestDataFromCsv(dataConfig.billingtoggleData, testcaseID);
@@ -99,14 +102,141 @@ test.describe.serial(
           await commonReusables.waitForAllLoadStates(sharedPage);
         });
 
-        await test.step("Step 5 [67876 27-29]: Loads Search DELIVERED FINAL — open load and View Billing", async () => {
-          await pages.basePage.hoverOverHeaderByText(HEADERS.LOAD);
-          await pages.basePage.clickSubHeaderByText(LOAD_SUB_MENU.SEARCH);
-          await pages.allLoadsSearchPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
-          await pages.allLoadsSearchPage.clickSearchButton();
-          await pages.allLoadsSearchPage.clickFirstLoadDetailRow();
-          await pages.viewLoadPage.clickViewBillingButton();
+        // Step 5 originally searched Loads for an existing DELIVERED FINAL load and opened it.
+        // That doesn't work: a load with no active finance issue has nothing driving its toggle
+        // away from Neutral, so a manual move in Steps 6-8 doesn't persist past their reloads —
+        // and none of the DELIVERED FINAL loads found in search (checked 15 of them) had an active
+        // Billing Issue (NDF specifically clears once a load reaches Delivered Final; nothing else
+        // was flagged either). So build a fresh load with a price-difference overage instead — that
+        // issue does NOT auto-clear on reaching Delivered Final (only clears once the overage itself
+        // is resolved — see CarrierInvoice.php / AutoAdjustment.php) — then move it to Delivered Final.
+
+        await test.step("Step 5a [67876 27]: Customer search and CREATE TL *NEW*", async () => {
+          await pages.basePage.navigateToBaseUrl();
+          await pages.basePage.hoverOverHeaderByText(HEADERS.CUSTOMER);
+          await pages.basePage.clickSubHeaderByText(CUSTOMER_SUB_MENU.SEARCH);
+          await pages.searchCustomerPage.enterCustomerName(testData.customerName);
+          await pages.searchCustomerPage.selectActiveOnCustomerPage();
+          await pages.searchCustomerPage.clickOnSearchCustomer();
+          await pages.searchCustomerPage.clickOnActiveCustomer();
+          await commissionHelper.updateAvailableCreditOnCustomer(sharedPage);
+          await pages.viewCustomerPage.navigateToLoad(LOAD_TYPES.CREATE_TL_NEW);
+        });
+
+        await test.step("Step 5b [67876 27]: Fill Enter New Load", async () => {
+          await pages.nonTabularLoadPage.selectCustomerViaSelect2(testData["Customer Value"]);
+          await pages.nonTabularLoadPage.ensureEnterNewLoadSalespersonDispatcherSelection();
+          await pages.nonTabularLoadPage.createNonTabularLoad({
+            shipperValue: testData.shipperName,
+            consigneeValue: testData.consigneeName,
+            shipperEarliestTime: testData.shipperEarliestTime,
+            shipperLatestTime: testData.shipperLatestTime,
+            consigneeEarliestTime: testData.consigneeEarliestTime,
+            consigneeLatestTime: testData.consigneeLatestTime,
+            shipmentCommodityQty: testData.shipmentCommodityQty,
+            shipmentCommodityUoM: testData.shipmentCommodityUoM,
+            shipmentCommodityDescription: testData.shipmentCommodityDescription,
+            shipmentCommodityWeight: testData.shipmentCommodityWeight,
+            equipmentType: testData.equipmentType,
+            equipmentLength: testData.equipmentLength,
+            // Consignee delivery must already be in the past for the price/NDF finance-issue
+            // calculation to run at all (see BT-67847 / FD-35847 — LoadDocuments::isDeliveryDatePassed).
+            shipperPickupDaysAgo: 3,
+            consigneeDeliveryDaysAgo: 1,
+          });
+
+          await pages.editLoadFormPage.selectMileageEngine(testData.mileageEngine);
+          await pages.editLoadFormPage.selectMileageMethod(testData.Method);
+        });
+
+        await test.step("Step 5c [67876 27]: Create load, Carrier offer, Save to BOOKED", async () => {
+          await pages.nonTabularLoadPage.clickCreateLoadButton();
+          await pages.editLoadLoadTabPage.checkLoadTabDetails(testData.rateType);
+          await pages.editLoadPage.validateEditLoadHeadingText();
+
+          await pages.editLoadPage.clickOnTab(TABS.CARRIER);
+          await pages.dfbLoadFormPage.enterOfferRate(testData.offerRate);
+          // Not a Quickpay/factored carrier (e.g. ZONA TRUCKING LLC) — those get routed to a
+          // `tcheks` Quickpay request instead of a normal invoice, so no price-difference finance
+          // issue is ever computed (see BT-67847). XPO TRANS INC works.
+          await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_ID.CARRIER_XPO_TRANS);
+
+          const bookedAlert = pages.commonReusables.validateAlert(
+            sharedPage,
+            ALERT_PATTERNS.STATUS_HAS_BEEN_SET_TO_BOOKED
+          );
+          await pages.editLoadFormPage.clickOnSaveBtn();
+          await bookedAlert;
+          await commonReusables.waitForPageStable(sharedPage);
+        });
+
+        await test.step("Step 5d [67876 27]: View Load — Edit — DISPATCHED and carrier flat rate", async () => {
+          await pages.viewLoadPage.clickEditButton();
+          await commonReusables.waitForPageStable(sharedPage);
+
+          await pages.editLoadPage.clickOnTab(TABS.LOAD);
+          await pages.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DISPATCHED);
+
+          await pages.editLoadPage.clickOnTab(TABS.CARRIER);
+          await pages.editLoadCarrierTabPage.enterCarrierRate(testData.carrierRate);
+          await pages.editLoadFormPage.clickOnSaveBtn();
+          await commonReusables.waitForPageStable(sharedPage);
+        });
+
+        await test.step("Step 5e [67876 27]: View Billing — upload carrier invoice with price overage", async () => {
+          await pages.editLoadPage.clickOnTab(TABS.LOAD);
+          await pages.editLoadFormPage.clickOnViewBillingBtn();
+          await pages.commonReusables.waitForPageStable(sharedPage);
+
+          await pages.viewLoadPage.openDocumentUploadDialog();
+          await pages.viewLoadPage.attachCarrierInvoiceFile();
+          await pages.viewLoadPage.selectPayablesRadio();
+          await pages.viewLoadPage.selectDocumentType(DOCUMENT_TYPE.CARRIER_INVOICE);
+
+          const invoiceNumber = pages.commonReusables.generateRandomInvoiceNumber();
+          await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNumber);
+          await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
+
+          await pages.viewLoadPage.submitDocumentUploadWithOptionalInvoiceAlert();
+          await pages.viewLoadPage.closeDocumentUploadDialogSafe();
+
+          await pages.commonReusables.reloadAndAcceptDialogs(sharedPage, WAIT.SMALL);
           await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
+          const priceDifferenceChecked = await pages.loadBillingPage.isPriceDifferenceChecked();
+          expect(priceDifferenceChecked, "Price Difference issue must be active before continuing").toBe(true);
+        });
+
+        await test.step("Step 5f [67876 27-29]: Move load to DELIVERED FINAL, reopen View Billing", async () => {
+          // clickEditButton()'s Edit control only exists on the View Load toolbar, not View
+          // Billing (where Step 5e left off). Clicking "View Load" from View Billing may open a
+          // new tab rather than navigating sharedPage itself — resolveViewLoadPageAfterBillingClick
+          // (already proven in BT-67847 Step 10) returns whichever page actually hosts View Load.
+          const viewWorkPage = await ViewLoadPage.resolveViewLoadPageAfterBillingClick(sharedPage);
+          const openedNewTab = viewWorkPage !== sharedPage;
+          const vl = new PageManager(viewWorkPage);
+
+          await vl.viewLoadPage.clickEditButton();
+          await commonReusables.waitForPageStable(viewWorkPage);
+
+          await vl.editLoadPage.clickOnTab(TABS.LOAD);
+          await vl.editLoadFormPage.selectLoadStatus(LOAD_STATUS.DELIVERED_FINAL);
+          await vl.editLoadFormPage.clickOnSaveBtn();
+          await commonReusables.waitForPageStable(viewWorkPage);
+
+          if (openedNewTab) {
+            await viewWorkPage.close();
+            await pages.commonReusables.reloadAndAcceptDialogs(sharedPage, WAIT.SMALL);
+          } else {
+            // Same-tab case: sharedPage now shows View Load (post-save) — go back to View Billing.
+            await pages.viewLoadPage.clickViewBillingButton();
+          }
+          await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
+
+          const priceDifferenceStillChecked = await pages.loadBillingPage.isPriceDifferenceChecked();
+          expect(
+            priceDifferenceStillChecked,
+            "Price Difference issue must still be active after moving to Delivered Final"
+          ).toBe(true);
         });
 
         await test.step(

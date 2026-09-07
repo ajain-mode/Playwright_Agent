@@ -88,6 +88,11 @@ test.describe.serial(
             shipmentCommodityWeight: testData.shipmentCommodityWeight,
             equipmentType: testData.equipmentType,
             equipmentLength: testData.equipmentLength,
+            // Consignee delivery must already be in the past for the price/NDF finance-issue
+            // calculation to run at all (see BT-67847 / FD-35847 — LoadDocuments::isDeliveryDatePassed).
+            // Without this, the Billing Toggle never leaves Neutral after the invoice upload below.
+            shipperPickupDaysAgo: 3,
+            consigneeDeliveryDaysAgo: 1,
           });
 
           await pages.editLoadFormPage.selectMileageEngine(testData.mileageEngine);
@@ -112,7 +117,13 @@ test.describe.serial(
           pages.logger.info(`Load number: ${loadNumber}`);
 
           await pages.editLoadPage.clickOnTab(TABS.CARRIER);
-          await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_NAME.CARRIER_4);
+          // Not ZONA TRUCKING LLC (CARRIER_NAME.CARRIER_4): it's configured with Quickpay/factored
+          // payment terms on stage, so CarrierInvoice::createQuickpayRequestIfAppropriate() diverts
+          // any invoice for it into a `tcheks` Quickpay request instead of a normal `lscarr_invoices`
+          // row — AutoAdjustment::process() (which computes the price-difference finance issue) never
+          // runs. XPO TRANS INC (used successfully by BT-67846/BT-67847/BT-74454) isn't
+          // Quickpay-eligible, so a normal pending invoice gets created here.
+          await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_ID.CARRIER_XPO_TRANS);
           await sharedPage.keyboard.press("Escape");
           await commonReusables.waitForPageStable(sharedPage);
           await pages.dfbLoadFormPage.enterOfferRate(testData.offerRate);

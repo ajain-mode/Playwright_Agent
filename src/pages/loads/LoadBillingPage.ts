@@ -37,6 +37,8 @@ class LoadBillingPage {
     private readonly billingToggleHiddenField_LOC: Locator;
     private readonly billingToggleTrack_LOC: Locator;
     private readonly billingToggleHandle_LOC: Locator;
+    /** Visible bootstrap-slider input (`#waiting_on_select`) carrying `data-slider-step`/min/max. */
+    private readonly billingToggleSliderInput_LOC: Locator;
 
     // Payable Toggle locators (top slider)
     private readonly payableToggleHiddenField_LOC: Locator;
@@ -204,6 +206,7 @@ class LoadBillingPage {
         );
         this.billingToggleTrack_LOC = this.financeIssuesBlock_LOC.locator(".slider-track").first();
         this.billingToggleHandle_LOC = this.financeIssuesBlock_LOC.locator(".slider-handle").first();
+        this.billingToggleSliderInput_LOC = this.page.locator("#waiting_on_select");
         this.allBillingIssueCheckboxes_LOC = this.financeIssuesBlock_LOC.locator("input.fi_ckb");
         this.lumperCheckbox_LOC = this.page.locator("#Lumpers");
         this.lumperLabel_LOC = this.page.locator("label[for='Lumpers'].ckb");
@@ -726,10 +729,42 @@ class LoadBillingPage {
     }
 
     /**
+     * Reads the rendered slider's `data-slider-min`/`data-slider-max`/`data-slider-step` attributes
+     * from `#waiting_on_select` and returns the set of raw values a real drag/click can reach.
+     * billing.php sets `sliderStep = 2` for Agent/Billing-role users on any load short of
+     * Invoiced/Posted — with min=1, max=3, that makes the middle position (Neutral, "2")
+     * mathematically unreachable, which is how the app enforces "can move to Billing/Agent but
+     * not Neutral" (FD-35865) purely client-side, with no independent server-side re-check for
+     * that status bucket.
+     * @author AI Agent
+     * @created 2026-09-06
+     */
+    private async getReachableBillingToggleRawValues(): Promise<string[]> {
+        const [min, max, step] = await Promise.all([
+            this.billingToggleSliderInput_LOC.getAttribute("data-slider-min"),
+            this.billingToggleSliderInput_LOC.getAttribute("data-slider-max"),
+            this.billingToggleSliderInput_LOC.getAttribute("data-slider-step"),
+        ]);
+        const minVal = Number(min ?? 1);
+        const maxVal = Number(max ?? 3);
+        const stepVal = Number(step ?? 1) || 1;
+
+        const reachable: string[] = [];
+        for (let v = minVal; v <= maxVal; v += stepVal) {
+            reachable.push(String(v));
+        }
+        return reachable;
+    }
+
+    /**
      * Sets Billing Issues "Waiting On" toggle to Billing, Agent, or Neutral.
      * Clicks slider track and validates hidden source field (`#fi_waiting_on`) reaches target raw value.
      * Uses incremental handle-adjacent clicks first; falls back to proportional track segment when needed
      * (e.g. Agent→Billing as agent user on Delivered Final loads — BT-67876 step 31).
+     * Throws before attempting any click if the target position is not reachable given the slider's
+     * own configured step (see {@link getReachableBillingToggleRawValues}) — a real user dragging the
+     * handle can never land there either, so this mirrors actual UI capability rather than letting a
+     * synthetic click bypass a restriction the widget enforces during drag/keyboard interaction.
      * @author AI Agent
      * @created 2026-05-06
      * @param expectedToggle - One of PAYABLE_TOGGLE_VALUE.BILLING/AGENT/NEUTRAL
@@ -753,6 +788,15 @@ class LoadBillingPage {
 
         let currentRawValue = await this.billingToggleHiddenField_LOC.inputValue();
         if (currentRawValue === targetRawValue) return;
+
+        const reachableRawValues = await this.getReachableBillingToggleRawValues();
+        if (!reachableRawValues.includes(targetRawValue)) {
+            throw new Error(
+                `Billing toggle target raw value ${targetRawValue} (${expectedToggle}) is not reachable ` +
+                `on this slider — reachable values are [${reachableRawValues.join(", ")}] given its ` +
+                `configured step. A real user cannot drag/click to this position either.`
+            );
+        }
 
         const trackBox = await this.billingToggleTrack_LOC.boundingBox();
         if (!trackBox || trackBox.width <= 4 || trackBox.height <= 2) {
@@ -1307,52 +1351,72 @@ class LoadBillingPage {
     }
 
     /**
-     * Parses one Billing Issues View History data row (`table.hist tr:has(td)`).
-     * billing.php: User, attachment time, Message, Inactive Date (last column).
-     * Newest over-invoice rows append at the bottom; prior row Inactive Date is set in the last column.
+     * Returns only the "message" entries from the Billing Issues View History table (`table.hist`),
+     * excluding toggle-audit entries (e.g. `finance_issue_waiting_on`) that share the same table in the
+     * current 5-column field-audit format (Time, User, Field, Old Value, New Value). A superseded
+     * message's deactivation is logged as its own `Field="message deactivated"` row — rather than an
+     * in-place column update — whose Old Value is the deactivated message's text; that row's Time is
+     * correlated back onto the matching message as `inactiveDate`. The legacy 4-column format
+     * (Time, User, Message, Inactive Date) is still supported, where each row is self-contained.
      * @author AI Agent
-     * @created 2026-06-01
-     * @param row - A data row locator inside the View History popup
+     * @created 2026-09-07
+     * @param billingIssuesHistoryPopup - Page returned by {@link clickBillingIssuesViewHistoryAndGetPopup}
      */
-    private async parseBillingIssuesViewHistoryDataRow(
-        row: Locator
-    ): Promise<{ message: string; user: string; attachmentTime: string; inactiveDate: string }> {
-        const cells = row.locator('td');
-        const cellCount = await cells.count();
-        if (cellCount < 2) {
-            throw new Error(`Billing Issues View History row has insufficient columns: ${cellCount}`);
+    private async getBillingMessageHistoryRows(
+        billingIssuesHistoryPopup: import('@playwright/test').Page
+    ): Promise<Array<{ message: string; user: string; attachmentTime: string; inactiveDate: string }>> {
+        const allRows = billingIssuesHistoryPopup.locator(this.BILLING_ISSUES_HISTORY_TABLE_DATA_ROWS_SELECTOR);
+        await allRows.first().waitFor({ state: 'attached', timeout: WAIT.LARGE });
+        const allRowCount = await allRows.count();
+
+        const messages: Array<{ message: string; user: string; attachmentTime: string; inactiveDate: string }> = [];
+        for (let i = 0; i < allRowCount; i++) {
+            const cells = allRows.nth(i).locator('td');
+            const cellCount = await cells.count();
+            if (cellCount < 4) {
+                throw new Error(`Billing Issues View History row has insufficient columns: ${cellCount}`);
+            }
+
+            const attachmentTime = ((await cells.nth(0).innerText()) || '').trim();
+            const user = ((await cells.nth(1).innerText()) || '').trim();
+
+            if (cellCount === 5) {
+                const field = ((await cells.nth(2).innerText()) || '').trim();
+                if (field === 'message') {
+                    const message = ((await cells.nth(4).innerText()) || '').trim();
+                    messages.push({ message, user, attachmentTime, inactiveDate: '' });
+                } else if (field === 'message deactivated') {
+                    const deactivatedMessage = ((await cells.nth(3).innerText()) || '').trim();
+                    const target = messages.find(m => m.message === deactivatedMessage && !m.inactiveDate);
+                    if (target) {
+                        target.inactiveDate = attachmentTime;
+                    }
+                }
+                continue;
+            }
+
+            const message = ((await cells.nth(2).innerText()) || '').trim();
+            const inactiveDate = ((await cells.nth(3).innerText()) || '').trim();
+            messages.push({ message, user, attachmentTime, inactiveDate });
         }
 
-        const inactiveIdx = cellCount - 1;
-        const messageIdx = cellCount - 2;
-        const inactiveDate = ((await cells.nth(inactiveIdx).innerText()) || '').trim();
-        const message = ((await cells.nth(messageIdx).innerText()) || '').trim();
-        const user = ((await cells.nth(1).innerText()) || '').trim();
-
-        // Time column sits between User and Message when table has 4+ data cells (e.g. 5-column hist).
-        let attachmentTime = '';
-        if (cellCount >= 4 && messageIdx > 2) {
-            attachmentTime = ((await cells.nth(2).innerText()) || '').trim();
-        }
-
-        console.log(
-            `Billing Issues View History row: user=${user}, time=${attachmentTime}, message=${message}, inactiveDate=${inactiveDate}`
-        );
-        return { message, user, attachmentTime, inactiveDate };
+        console.log(`Billing Issues View History: parsed ${messages.length} message row(s) of ${allRowCount} total`);
+        return messages;
     }
 
     /**
-     * Reads the message text from the second-to-last column of the last data row in
-     * Billing Issues View History popup (`table.hist`).
+     * Reads the message text from the last message entry in Billing Issues View History popup
+     * (`table.hist`), ignoring toggle-audit and deactivation entries.
      * @author AI Agent
      * @created 2026-06-03
      * @param billingIssuesHistoryPopup - Page returned by {@link clickBillingIssuesViewHistoryAndGetPopup}
      */
     async readViewHistoryLastRowMessage(billingIssuesHistoryPopup: import('@playwright/test').Page): Promise<string> {
-        const dataRows = billingIssuesHistoryPopup.locator(this.BILLING_ISSUES_HISTORY_TABLE_DATA_ROWS_SELECTOR);
-        await dataRows.first().waitFor({ state: 'attached', timeout: WAIT.LARGE });
-        const lastRow = dataRows.last();
-        const row = await this.parseBillingIssuesViewHistoryDataRow(lastRow);
+        const messageRows = await this.getBillingMessageHistoryRows(billingIssuesHistoryPopup);
+        if (messageRows.length === 0) {
+            throw new Error('Billing Issues View History: no message rows found');
+        }
+        const row = messageRows[messageRows.length - 1];
         console.log(`Billing Issues View History last row message: ${row.message}`);
         return row.message;
     }
@@ -1386,21 +1450,15 @@ class LoadBillingPage {
         billingIssuesHistoryPopup: import('@playwright/test').Page,
         expectedRowCount: number
     ): Promise<Array<{ message: string; user: string; attachmentTime: string; inactiveDate: string }>> {
-        const dataRows = billingIssuesHistoryPopup.locator(this.BILLING_ISSUES_HISTORY_TABLE_DATA_ROWS_SELECTOR);
-        await dataRows.first().waitFor({ state: 'attached', timeout: WAIT.LARGE });
-        const rowCount = await dataRows.count();
+        const messageRows = await this.getBillingMessageHistoryRows(billingIssuesHistoryPopup);
+        const rowCount = messageRows.length;
         if (rowCount !== expectedRowCount) {
             throw new Error(
-                `Billing Issues View History: expected ${expectedRowCount} row(s), found ${rowCount}`
+                `Billing Issues View History: expected ${expectedRowCount} message row(s), found ${rowCount}`
             );
         }
-        const rows: Array<{ message: string; user: string; attachmentTime: string; inactiveDate: string }> =
-            [];
-        for (let i = 0; i < expectedRowCount; i++) {
-            rows.push(await this.parseBillingIssuesViewHistoryDataRow(dataRows.nth(i)));
-        }
-        console.log(`Billing Issues View History: read ${rows.length} row(s)`);
-        return rows;
+        console.log(`Billing Issues View History: read ${messageRows.length} row(s)`);
+        return messageRows;
     }
 
     /**
@@ -1594,9 +1652,15 @@ class LoadBillingPage {
     }
 
     /**
-     * Reads the price-difference message from View History: second-to-last data row, last column.
-     * Last row is typically a toggle audit entry (e.g. payables_waiting_on); the row above holds
-     * text like "XPO TRANS INC invoiced $2,900.00 over the total charge" in the rightmost cell.
+     * Reads the most recent price-difference message from View History.
+     * A toggle-history row (e.g. payables_waiting_on) is only appended when the toggle's VALUE
+     * actually changes (`AutoAdjustment::update_lscarr_payables` unconditionally re-saves the field,
+     * but `save_history` only logs it when the value differs from before) — so it is NOT safe to
+     * assume the last row is always a toggle audit entry with the price message one row above it.
+     * When two invoices in a row don't cross a toggle-state boundary (e.g. both keep it at Agent),
+     * no new toggle row is added between them, and each invoice's own overage message becomes its
+     * own row — so the truly last row holds the newest message. Scan from the last row backward and
+     * use the first one that actually parses as a dollar message, instead of a fixed row offset.
      *
      * Expected price difference = Total Invoices - MODE Global Total Charges (carrier rate)
      *
@@ -1605,6 +1669,7 @@ class LoadBillingPage {
      * @returns Object with lastMessage, extracted priceDifference, and expectedPriceDiff
      * @author AI Agent
      * @created 07-Apr-2026
+     * @modified 2026-09-07
      */
     async validateViewHistoryPriceDifference(
         totalCharges: string,
@@ -1619,27 +1684,43 @@ class LoadBillingPage {
         const dataRows = payablesHistoryPopup.locator(this.PAYABLES_HISTORY_TABLE_DATA_ROWS_SELECTOR);
         await dataRows.first().waitFor({ state: 'attached', timeout: WAIT.LARGE });
         const rowCount = await dataRows.count();
-        if (rowCount < 2) {
-            throw new Error(`View History: expected at least 2 data rows, found ${rowCount}`);
+        if (rowCount < 1) {
+            throw new Error(`View History: expected at least 1 data row, found ${rowCount}`);
         }
 
-        const priceRow = dataRows.nth(rowCount - 2);
-        const priceDiffCell = priceRow.locator('td').last();
-        await priceDiffCell.waitFor({ state: 'attached', timeout: WAIT.LARGE });
-        let lastMessage = ((await priceDiffCell.innerText()) || '').trim();
-        let priceDifference = this.extractDollarValue(lastMessage);
+        let lastMessage = '';
+        let priceDifference: number | null = null;
+        let matchedRowIndex = -1;
 
-        // Some builds add Inactive Date as a 5th column (empty on price rows); Message is then 4th.
-        if (priceDifference === null) {
-            const messageCell = priceRow.locator('td').nth(3);
-            lastMessage = ((await messageCell.innerText()) || '').trim();
-            priceDifference = this.extractDollarValue(lastMessage);
-            console.log(`View History second-last row, Message column (fallback): "${lastMessage}"`);
+        for (let i = rowCount - 1; i >= 0; i--) {
+            const row = dataRows.nth(i);
+            const lastCell = row.locator('td').last();
+            await lastCell.waitFor({ state: 'attached', timeout: WAIT.LARGE });
+            const lastCellText = ((await lastCell.innerText()) || '').trim();
+            let candidateMessage = lastCellText;
+            let candidateValue = this.extractDollarValue(candidateMessage);
+
+            // Some builds add Inactive Date as a 5th column (empty on price rows); Message is then 4th.
+            if (candidateValue === null) {
+                const messageCell = row.locator('td').nth(3);
+                candidateMessage = ((await messageCell.innerText()) || '').trim();
+                candidateValue = this.extractDollarValue(candidateMessage);
+            }
+
+            if (candidateValue !== null) {
+                lastMessage = candidateMessage;
+                priceDifference = candidateValue;
+                matchedRowIndex = i;
+                break;
+            }
+        }
+
+        if (matchedRowIndex === -1) {
+            console.log('No dollar amount parsed from any View History row');
         } else {
-            console.log(`View History second-last row, last column: "${lastMessage}"`);
-        }
-        if (priceDifference === null) {
-            console.log('No dollar amount parsed from second-last row');
+            console.log(
+                `View History row ${matchedRowIndex + 1}/${rowCount} (scanned newest-first): "${lastMessage}"`
+            );
         }
 
         await payablesHistoryPopup.close();

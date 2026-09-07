@@ -49,6 +49,7 @@ class NonTabularLoadPage {
     private readonly consigneeCountryDropdown_LOC: Locator;
     private readonly todayDatePicker_LOC: (today: number) => Locator;
     private readonly nextMonthButton_LOC: Locator;
+    private readonly prevMonthButton_LOC: Locator;
     private readonly tomorrowDatePicker_LOC: (tomorrowDay: number) => Locator;
     private readonly dayAfterTomorrowDatePicker_LOC: (dayAfterTomorrowDay: number) => Locator;
 
@@ -56,9 +57,7 @@ class NonTabularLoadPage {
     private readonly invalidFieldLocator_LOC: Locator;
 
     // Select2 shared locators (AI Agent)
-    private readonly select2SearchField_LOC: Locator;
     private readonly select2ResultsOption_LOC: Locator;
-    private readonly select2HighlightedOption_LOC: Locator;
     private readonly select2SelectionBySelectId_LOC: (selectId: string) => Locator;
     private readonly select2ContainerById_LOC: (containerId: string) => Locator;
 
@@ -103,6 +102,7 @@ class NonTabularLoadPage {
         this.consigneeCountryDropdown_LOC = page.locator("//select[@id='form_consignee_country']");
         this.todayDatePicker_LOC = (today: number) => page.locator(`//tr//td[@class='today day' and text()='${today}' and not(contains(@class, 'disabled'))]`);
         this.nextMonthButton_LOC = page.locator("//div[@class='datepicker-days']//th[text()='»']");
+        this.prevMonthButton_LOC = page.locator("//div[@class='datepicker-days']//th[text()='«']");
         this.tomorrowDatePicker_LOC = (tomorrowDay: number) => page.locator(`//tr//td[@class='day' and text()='${tomorrowDay}' and not(contains(@class, 'disabled'))]`);
         this.dayAfterTomorrowDatePicker_LOC = (dayAfterTomorrowDay: number) => page.locator(`//tr//td[@class='day' and text()='${dayAfterTomorrowDay}' and not(contains(@class, 'disabled'))]`);
         this.LoadMenuList = (menuname: string) => {
@@ -111,11 +111,7 @@ class NonTabularLoadPage {
         this.invalidFieldLocator_LOC = page.locator('input:invalid, select:invalid, textarea:invalid').first();
 
         // Select2 shared locators
-        // Scoped to #create_load (Enter New Load form) — a second, unrelated visible select2 search
-        // input exists elsewhere on the page, causing a strict-mode violation otherwise (BT-67846).
-        this.select2SearchField_LOC = page.locator("#create_load input.select2-search__field:visible");
         this.select2ResultsOption_LOC = page.locator(".select2-results__option");
-        this.select2HighlightedOption_LOC = page.locator(".select2-results__option--highlighted");
         this.select2SelectionBySelectId_LOC = (selectId: string) => page.locator(`#${selectId} ~ .select2-container .select2-selection`);
         this.select2ContainerById_LOC = (containerId: string) => page.locator(`#${containerId}`);
 
@@ -154,39 +150,66 @@ class NonTabularLoadPage {
      * @created 19-Mar-2026
      */
     async selectFromSelect2Dropdown(select2ContainerId: string, searchValue: string): Promise<void> {
-        await this.selectFromSelect2Container(this.select2ContainerById_LOC(select2ContainerId), searchValue);
+        const selectId = select2ContainerId.replace(/^select2-/, '').replace(/-container$/, '');
+        await this.selectFromSelect2Container(this.select2ContainerById_LOC(select2ContainerId), searchValue, selectId);
         console.log(`Clicked Select2 container: #${select2ContainerId}`);
     }
 
     /**
      * Selects a value from a Select2 dropdown using a pre-declared container locator.
+     * @param select2ContainerLoc - Locator for the clickable Select2 container/selection toggle
+     * @param searchValue - The value to search and select
+     * @param selectId - The underlying `<select>` element's id (e.g. "form_shipper_ship_point"),
+     * used to scope the search field and results strictly to this widget's own dropdown popup —
+     * a page-wide "any visible select2 search field" query can also match an unrelated select2
+     * widget elsewhere on the same form (e.g. a stop's Contact Ref field), silently typing the
+     * search term into the wrong input while this dropdown's own list never gets filtered.
      * @author AI Agent
      * @created 2026-05-18
+     * @modified 2026-09-04
      */
-    private async selectFromSelect2Container(select2ContainerLoc: Locator, searchValue: string): Promise<void> {
+    private async selectFromSelect2Container(select2ContainerLoc: Locator, searchValue: string, selectId: string): Promise<void> {
         await select2ContainerLoc.waitFor({ state: 'visible', timeout: WAIT.LARGE });
         await select2ContainerLoc.click();
+
+        // Select2 v4 renders exactly one open dropdown popup at a time, identified by the
+        // results <ul> it owns (id="select2-{selectId}-results"). Scoping through that ties the
+        // search field and options strictly to THIS select, not any other select2 widget visible
+        // on the page.
+        const resultsList = this.page.locator(`#select2-${selectId}-results`);
+        const dropdown = this.page.locator('.select2-dropdown').filter({ has: resultsList });
+        const searchField = dropdown.locator('input.select2-search__field');
+        const resultsOptions = dropdown.locator('.select2-results__option');
 
         const shortSearch = searchValue.split(/[('#|,]/)[0].trim();
         const searchTerm = shortSearch.length >= 3 ? shortSearch : searchValue.substring(0, Math.min(10, searchValue.length));
 
-        await this.select2SearchField_LOC.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
-        await this.select2SearchField_LOC.pressSequentially(searchTerm, { delay: 30 });
+        await searchField.waitFor({ state: 'visible', timeout: WAIT.DEFAULT });
+        await searchField.pressSequentially(searchTerm, { delay: 30 });
         console.log(`Typed search term: "${searchTerm}" (from: "${searchValue}")`);
 
-        await this.select2ResultsOption_LOC.first().waitFor({ state: 'visible', timeout: WAIT.LARGE });
+        // The app truncates long option labels with an ellipsis for display (e.g.
+        // "CEDAR MOUNTAIN TRUE..."), so matching against the full name never finds a visible
+        // option once it exceeds ~15 characters. Cap the match term to a safe prefix that
+        // survives that truncation.
+        const matchTerm = shortSearch.length > 15 ? shortSearch.substring(0, 15) : shortSearch;
+        const matchingOption = resultsOptions.filter({ hasText: matchTerm });
+        const matchAppeared = await matchingOption
+            .first()
+            .waitFor({ state: 'visible', timeout: WAIT.LARGE })
+            .then(() => true)
+            .catch(() => false);
 
-        const matchingOption = this.select2ResultsOption_LOC.filter({ hasText: shortSearch });
-        const matchCount = await matchingOption.count();
-
-        if (matchCount > 0) {
-            await matchingOption.first().click();
-            console.log(`Selected matching option for: "${searchValue}"`);
-        } else {
-            await this.select2HighlightedOption_LOC.first().waitFor({ state: 'visible', timeout: WAIT.LARGE });
-            await this.select2HighlightedOption_LOC.first().click();
-            console.log(`Selected first highlighted option for: "${searchValue}"`);
+        if (!matchAppeared) {
+            // Fail loudly instead of silently clicking whatever option Select2 happens to have
+            // highlighted — that previously caused the wrong shipper/consignee/customer to be
+            // picked with no visible error. Callers that have a legitimate manual-entry fallback
+            // (e.g. createNonTabularLoad's shipper/consignee try/catch) rely on this throw.
+            throw new Error(`No Select2 option matched "${searchValue}" (match term "${matchTerm}") for #${selectId}`);
         }
+
+        await matchingOption.first().click();
+        console.log(`Selected matching option for: "${searchValue}"`);
 
         await this.page.waitForLoadState("networkidle");
     }
@@ -245,6 +268,21 @@ class NonTabularLoadPage {
         consigneeNameNew?: string;
         consigneeCity?: string;
         consigneeState?: string;
+        /**
+         * Days before today to schedule the shipper's pickup date, instead of the default
+         * "tomorrow". Omit to keep existing behavior for all other callers.
+         */
+        shipperPickupDaysAgo?: number;
+        /**
+         * Days before today to schedule the consignee's (final drop) delivery date, instead
+         * of the default "day after tomorrow". Needed for scenarios (e.g. BT-67847) where the
+         * app's Not-Delivered-Final/price-difference billing toggle logic requires the paperwork
+         * received date to be on or after the scheduled delivery date (see
+         * `LoadDocuments::isDeliveryDatePassed` / `AutoAdjustment::setFinanceIssueAndWaitingOnByDeliveryDate`
+         * in the BTMS source — the toggle never moves to "Agent" while the delivery date is still
+         * in the future). Omit to keep existing behavior for all other callers.
+         */
+        consigneeDeliveryDaysAgo?: number;
     }) {
         try {
             console.log("Starting Non-Tabular Load creation process...");
@@ -260,7 +298,7 @@ class NonTabularLoadPage {
             try {
                 await this.selectFromSelect2Dropdown("select2-form_shipper_ship_point-container", loadData.shipperValue);
             } catch {
-                // Fallback: manual fill if dropdown selection fails (e.g. value not in dropdown)
+                // Fallback: manual fill if dropdown selection fails (e.g. value not in dropdown)i 
                 const shipperName = loadData.shipperNameNew || loadData.shipperValue;
                 console.log(`Shipper "${loadData.shipperValue}" not in dropdown, filling manually.`);
                 await this.formShipperNameInput_LOC.fill(shipperName);
@@ -1320,11 +1358,19 @@ class NonTabularLoadPage {
         // Set Shipper Earliest Date
         await this.shipperEarliestDate_LOC.waitFor({ state: 'visible' });
         await this.shipperEarliestDate_LOC.click();
-        await this.selectTomorrowDate("Shipper Earliest Date");
+        if (loadData.shipperPickupDaysAgo) {
+            await this.selectPastDate(loadData.shipperPickupDaysAgo, "Shipper Earliest Date");
+        } else {
+            await this.selectTomorrowDate("Shipper Earliest Date");
+        }
         // Set Shipper Latest Date
         await this.shipperLatestDate_LOC.waitFor({ state: 'visible' });
         await this.shipperLatestDate_LOC.click();
-        await this.selectTomorrowDate("Shipper Latest Date");
+        if (loadData.shipperPickupDaysAgo) {
+            await this.selectPastDate(loadData.shipperPickupDaysAgo, "Shipper Latest Date");
+        } else {
+            await this.selectTomorrowDate("Shipper Latest Date");
+        }
         // Set Shipper Times
         await this.shipperEarliestTimeInput_LOC.waitFor({ state: 'visible' });
         await this.shipperEarliestTimeInput_LOC.fill(String(loadData.shipperEarliestTime));
@@ -1343,11 +1389,19 @@ class NonTabularLoadPage {
         // Set Consignee Earliest Date
         await this.consigneeEarliestDate_LOC.waitFor({ state: 'visible' });
         await this.consigneeEarliestDate_LOC.click();
-        await this.selectDayAfterTomorrowDate("Consignee Earliest Date");
+        if (loadData.consigneeDeliveryDaysAgo) {
+            await this.selectPastDate(loadData.consigneeDeliveryDaysAgo, "Consignee Earliest Date");
+        } else {
+            await this.selectDayAfterTomorrowDate("Consignee Earliest Date");
+        }
         // Set Consignee Latest Date
         await this.consigneeLatestDate_LOC.waitFor({ state: 'visible' });
         await this.consigneeLatestDate_LOC.click();
-        await this.selectDayAfterTomorrowDate("Consignee Latest Date");
+        if (loadData.consigneeDeliveryDaysAgo) {
+            await this.selectPastDate(loadData.consigneeDeliveryDaysAgo, "Consignee Latest Date");
+        } else {
+            await this.selectDayAfterTomorrowDate("Consignee Latest Date");
+        }
         // Set Consignee Times
         await this.consigneeEarliestTimeInput_LOC.waitFor({ state: 'visible' });
         await this.consigneeEarliestTimeInput_LOC.fill(String(loadData.consigneeEarliestTime));
@@ -1597,6 +1651,64 @@ class NonTabularLoadPage {
       throw error;
     }
   }
+
+  /**
+   * @author AI Agent
+   * @created 2026-09-06
+   * @description Selects a past date (today minus `daysAgo`) from a date picker calendar.
+   * Used by scenarios (e.g. BT-67847) that need a stop's scheduled date to have already
+   * elapsed — the shipper/consignee date pickers here have no `minDate` restriction (see
+   * `sizzle_js_includes.html.twig`'s generic `.js-date-picker` init in the BTMS source), so
+   * past dates are selectable in the UI like any other day.
+   * @param daysAgo - How many days before today to select (must be >= 1)
+   * @param fieldName - Field label, for logging only
+   */
+  async selectPastDate(daysAgo: number, fieldName: string = "Date Field"): Promise<string> {
+    try {
+      console.log(`Selecting date ${daysAgo} day(s) ago for ${fieldName}...`);
+
+      const todayDate = new Date();
+      const pastDate = new Date(todayDate);
+      pastDate.setDate(todayDate.getDate() - daysAgo);
+      const pastDay = pastDate.getDate();
+      const pastMonth = pastDate.getMonth() + 1;
+      const pastYear = pastDate.getFullYear();
+      // Format as dd/mm/yyyy
+      const formattedPastDate = `${pastDay.toString().padStart(2, '0')}/${pastMonth.toString().padStart(2, '0')}/${pastYear}`;
+      console.log(`Today: ${todayDate}, Target past date: ${pastDate}`);
+      console.log(`Today: ${todayDate.getDate()}, Target day: ${pastDay}`);
+
+      // If the target day-of-month is >= today's day-of-month, the date rolled back into the
+      // previous month (e.g. today is the 3rd, 5 days ago is the 28th/29th/30th/31st of last month).
+      if (pastDate.getMonth() !== todayDate.getMonth() || pastDate.getFullYear() !== todayDate.getFullYear()) {
+        console.log(`Target date is in the previous month, clicking previous month button first...`);
+        await this.prevMonthButton_LOC.waitFor({ state: "visible", timeout: WAIT.DEFAULT });
+        await this.prevMonthButton_LOC.click();
+        console.log(`Clicked previous month button to navigate to ${pastMonth}/${pastYear}`);
+
+        // Wait for calendar to update
+        await this.page.waitForTimeout(WAIT.DEFAULT);
+      }
+
+      // Reuses the generic "day" cell locator (matches any non-disabled day-of-month cell in the
+      // currently displayed month) already used by selectTomorrowDate/selectDayAfterTomorrowDate.
+      const pastDateLocator = this.tomorrowDatePicker_LOC(pastDay);
+
+      await pastDateLocator.waitFor({ timeout: WAIT.DEFAULT });
+      await pastDateLocator.click();
+
+      console.log(`Successfully selected date ${daysAgo} day(s) ago (${pastDay}) for ${fieldName}`);
+      return formattedPastDate;
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(` Error selecting past date for ${fieldName}: ${error.message}`);
+      } else {
+        console.error(` Error selecting past date for ${fieldName}: ${String(error)}`);
+      }
+      throw error;
+    }
+  }
+
   /**
    * @author AI Agent
    * @created 2026-04-30
@@ -1706,13 +1818,14 @@ class NonTabularLoadPage {
    */
   private async selectEnterNewLoadAgentField(
     select2ContainerLoc: Locator,
-    expectedLabel: string
+    expectedLabel: string,
+    selectId: string
   ): Promise<void> {
     const normalized = expectedLabel.trim();
     if (!normalized) {
       return;
     }
-    await this.selectFromSelect2Container(select2ContainerLoc, normalized);
+    await this.selectFromSelect2Container(select2ContainerLoc, normalized, selectId);
   }
 
   /**
@@ -1758,7 +1871,7 @@ class NonTabularLoadPage {
     if (salespersonInitial.length === 0) {
       const salespersonToSelect = await this.getFirstSelectableAgentOptionLabel(this.enterNewLoadSalespersonSelect_LOC);
       if (salespersonToSelect.length > 0) {
-        await this.selectEnterNewLoadAgentField(this.enterNewLoadSalespersonContainer_LOC, salespersonToSelect);
+        await this.selectEnterNewLoadAgentField(this.enterNewLoadSalespersonContainer_LOC, salespersonToSelect, "form_salesperson");
         salespersonAutoSelected = true;
       }
     }
@@ -1766,7 +1879,7 @@ class NonTabularLoadPage {
     if (dispatcherInitial.length === 0) {
       const dispatcherToSelect = await this.getFirstSelectableAgentOptionLabel(this.enterNewLoadDispatcherSelect_LOC);
       if (dispatcherToSelect.length > 0) {
-        await this.selectEnterNewLoadAgentField(this.enterNewLoadDispatcherContainer_LOC, dispatcherToSelect);
+        await this.selectEnterNewLoadAgentField(this.enterNewLoadDispatcherContainer_LOC, dispatcherToSelect, "form_dispatcher");
         dispatcherAutoSelected = true;
       }
     }
@@ -1800,7 +1913,7 @@ class NonTabularLoadPage {
     // #form_customer is AJAX-backed — clicking alone only shows an unfiltered default page, so the
     // target customer must be searched for via typed input to be loaded and visible. The clickable
     // toggle is the sibling .select2-selection (select2-form_customer-container is a hidden rendered span).
-    await this.selectFromSelect2Container(this.select2SelectionBySelectId_LOC("form_customer"), customerName);
+    await this.selectFromSelect2Container(this.select2SelectionBySelectId_LOC("form_customer"), customerName, "form_customer");
     await this.page.waitForLoadState("networkidle");
     await this.page.waitForTimeout(1000);
   }

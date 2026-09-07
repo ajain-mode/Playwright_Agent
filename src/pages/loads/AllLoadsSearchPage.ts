@@ -156,6 +156,31 @@ export default class AllLoadsSearchPage {
     }
 
     /**
+     * Number of data rows currently shown in the LOADSEARCH results grid.
+     * @author AI Agent
+     * @created 2026-09-06
+     */
+    async getSearchResultsRowCount(): Promise<number> {
+        await this.waitForSearchResults();
+        return this.resultsDataRows_LOC.count();
+    }
+
+    /**
+     * Clicks the LOADSEARCH result row at the given 0-based index.
+     * Used to try successive rows when the first one doesn't have what's needed (e.g. BT-67876
+     * needs a row backed by an active Billing Issue — `BILLING ISSUE`/`BILLING WAITING ON` aren't
+     * shown in the default grid, so callers check the opened load's View Billing page instead).
+     * Locator source: `#example_wrapper table#example` → `tbody > tr.dnd-moved`
+     * @author AI Agent
+     * @created 2026-09-06
+     */
+    async clickLoadDetailRowByIndex(index: number): Promise<void> {
+        await this.waitForSearchResults();
+        await this.resultsDataRows_LOC.nth(index).click();
+        await commonReusables.waitForPageStable(this.page);
+    }
+
+    /**
      * Selects all available loads in the All Load Search results page.
      * @author Tejaswini
      * @created 2026-02-25

@@ -77,6 +77,15 @@ export const ALERT_PATTERNS = {
   ZONA_TRUCKING_LLC_INVOICED_700_OVER_TOTAL_CHARGE:
     "ZONA TRUCKING LLC invoiced $700.00 over total charge.",
 
+  XPO_TRANS_INC_INVOICED_100_OVER_TOTAL_CHARGE:
+    "XPO TRANS INC invoiced $100.00 over total charge.",
+
+  XPO_TRANS_INC_INVOICED_700_OVER_TOTAL_CHARGE:
+    "XPO TRANS INC invoiced $700.00 over total charge.",
+
+  XPO_TRANS_INC_INVOICED_300_OVER_TOTAL_CHARGE:
+    "XPO TRANS INC invoiced $300.00 over total charge.",
+
 };
 
 

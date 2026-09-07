@@ -92,13 +92,21 @@ test.describe.serial(
             shipmentCommodityWeight: testData.shipmentCommodityWeight,
             equipmentType: testData.equipmentType,
             equipmentLength: testData.equipmentLength,
+            // BT-67847 (Jira FD-35847) requires "paperwork received date >= delivered date"
+            // (Testmo case 67847 precondition) for the Billing Toggle to move to "Agent" —
+            // BTMS only sets that toggle when the consignee's scheduled delivery date has
+            // already elapsed (LoadDocuments::isDeliveryDatePassed /
+            // AutoAdjustment::setFinanceIssueAndWaitingOnByDeliveryDate). Schedule both stops
+            // in the past (pickup before delivery) instead of the default future dates.
+            shipperPickupDaysAgo: 3,
+            consigneeDeliveryDaysAgo: 1,
           });
 
           await pages.editLoadFormPage.selectMileageEngine(testData.mileageEngine);
           await pages.editLoadFormPage.selectMileageMethod(testData.Method);
         });
 
-        await test.step("Step 6 [67847 47-51]: Create load, Rate Type SPOT, Carrier offer, ZONA, Save to BOOKED", async () => {
+        await test.step("Step 6 [67847 47-51]: Create load, Rate Type SPOT, Carrier offer, Save to BOOKED", async () => {
           await pages.nonTabularLoadPage.clickCreateLoadButton();
           await pages.editLoadLoadTabPage.checkLoadTabDetails(testData.rateType);
           await pages.editLoadPage.validateEditLoadHeadingText();
@@ -107,7 +115,13 @@ test.describe.serial(
 
           await pages.editLoadPage.clickOnTab(TABS.CARRIER);
           await pages.dfbLoadFormPage.enterOfferRate(testData.offerRate);
-          await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_NAME.CARRIER_4);
+          // Not ZONA TRUCKING LLC (Testmo case 67847's literal carrier): Zona is configured with
+          // Quickpay/factored payment terms on stage, so CarrierInvoice::createQuickpayRequestIfAppropriate()
+          // redirects any invoice for it into a `tcheks` Quickpay request instead of a normal
+          // `lscarr_invoices` row — AutoAdjustment::process() never runs, so the "price" finance
+          // issue this scenario needs can never be set. XPO TRANS INC (used successfully by
+          // BT-67846) is not Quickpay-eligible, so a normal pending invoice gets created here.
+          await pages.editLoadCarrierTabPage.selectCarrier1(CARRIER_ID.CARRIER_XPO_TRANS);
 
           const bookedAlert = pages.commonReusables.validateAlert(
             sharedPage,
@@ -163,12 +177,12 @@ test.describe.serial(
           expect(priceDifferenceChecked, "Expected: Price Difference checkbox is checked").toBe(true);
 
           const billingIssuesMsg = await pages.loadBillingPage.findBillingIssuesMessageContaining(
-            ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_100_OVER_TOTAL_CHARGE
+            ALERT_PATTERNS.XPO_TRANS_INC_INVOICED_100_OVER_TOTAL_CHARGE
           );
           expect(
             billingIssuesMsg,
-            `Expected: ${ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_100_OVER_TOTAL_CHARGE} under Billing Issues`
-          ).toContain(ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_100_OVER_TOTAL_CHARGE);
+            `Expected: ${ALERT_PATTERNS.XPO_TRANS_INC_INVOICED_100_OVER_TOTAL_CHARGE} under Billing Issues`
+          ).toContain(ALERT_PATTERNS.XPO_TRANS_INC_INVOICED_100_OVER_TOTAL_CHARGE);
         });
 
         await test.step("Step 10 [67847 62 + Expected after 62]: Click View Load — Agent Waiting On, tags, $100 message", async () => {
@@ -196,12 +210,12 @@ test.describe.serial(
           );
 
           const billingMsgOnViewLoad = await vl.viewLoadPage.findBillingIssuesMessageContaining(
-            ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_100_OVER_TOTAL_CHARGE
+            ALERT_PATTERNS.XPO_TRANS_INC_INVOICED_100_OVER_TOTAL_CHARGE
           );
           expect(
             billingMsgOnViewLoad,
-            `Expected: ${ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_100_OVER_TOTAL_CHARGE} on View Load`
-          ).toContain(ALERT_PATTERNS.ZONA_TRUCKING_LLC_INVOICED_100_OVER_TOTAL_CHARGE);
+            `Expected: ${ALERT_PATTERNS.XPO_TRANS_INC_INVOICED_100_OVER_TOTAL_CHARGE} on View Load`
+          ).toContain(ALERT_PATTERNS.XPO_TRANS_INC_INVOICED_100_OVER_TOTAL_CHARGE);
         });
       }
     );
