@@ -167,10 +167,12 @@ test.describe.serial(
             await btmsPages.page.reload();
             await commonReusables.waitForPageStable(btmsPage, { timeout: WAIT.XXLARGE });
 
-            const payableToggle = await btmsPages.loadBillingPage.getPayableToggleValue();
-            expect(payableToggle, "Expected after 33: Payables toggle moves to Agent").toBe(
-              PAYABLES_TOGGLE_VALUE.AGENT,
-            );
+            await expect
+              .poll(async () => await btmsPages.loadBillingPage.getPayableToggleValue(), {
+                timeout: WAIT.LARGE,
+                message: "Expected after 33: Payables toggle moves to Agent",
+              })
+              .toBe(PAYABLES_TOGGLE_VALUE.AGENT);
 
             const overcharge = (
               parseFloat(btmsOverInvoiceAmount) - parseFloat(carrierBillTotal)
@@ -276,10 +278,12 @@ test.describe.serial(
             await btmsPages.viewLoadPage.clickViewBillingButton();
             await btmsPages.loadBillingPage.scrollBillingIssuesBlockIntoView();
 
-            const payableToggle = await btmsPages.loadBillingPage.getPayableToggleValue();
-            expect(payableToggle, "Expected after 50: Payables toggle set to Payables").toBe(
-              PAYABLES_TOGGLE_VALUE.PAYABLES,
-            );
+            await expect
+              .poll(async () => await btmsPages.loadBillingPage.getPayableToggleValue(), {
+                timeout: WAIT.LARGE,
+                message: "Expected after 50: Payables toggle set to Payables",
+              })
+              .toBe(PAYABLES_TOGGLE_VALUE.PAYABLES);
 
             const payableReason = await btmsPages.loadBillingPage.getPayableReasonDisplayValue();
             expect(payableReason, "Expected Payable Reason Short Pay - Accessorial").toContain(

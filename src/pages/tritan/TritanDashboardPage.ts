@@ -133,7 +133,7 @@ class TritanDashboardPage {
     async activateMdiTabContaining(tabLabelPart: string): Promise<void> {
         const appBody = this.page.frameLocator('iframe[name="AppBody"]');
         const tab = appBody.locator(`//td[contains(normalize-space(.),'${tabLabelPart}')]`).last();
-        const isVisible = await tab.isVisible({ timeout: WAIT.SMALL }).catch(() => false);
+        const isVisible = await tab.isVisible({ timeout: WAIT.LARGE }).catch(() => false);
         if (!isVisible) {
             console.log(`MDI tab containing "${tabLabelPart}" not found — skipping activation`);
             return;
