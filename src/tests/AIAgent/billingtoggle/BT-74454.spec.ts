@@ -164,18 +164,49 @@ test.describe.serial(
           await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNumber);
           await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
 
+          // Captured for diagnostics only: surfaces the upload endpoint's own response in the
+          // trace/logs if a later step fails, instead of only seeing the downstream toggle value.
+          const uploadResponsePromise = sharedPage
+            .waitForResponse((resp) => resp.url().includes("image_upload_processor.php"), {
+              timeout: WAIT.XLARGE,
+            })
+            .catch(() => null);
+
           const invoiceAlert = pages.commonReusables.validateAlert(sharedPage, ALERT_PATTERNS.PAYABLE_STATUS_INVOICE_RECEIVED, 30);
           await pages.viewLoadPage.clickSubmitRemote();
           await invoiceAlert;
 
-          await pages.commonReusables.reloadAndAcceptDialogs(sharedPage, WAIT.SMALL);
-          await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
+          const uploadResponse = await uploadResponsePromise;
+          if (uploadResponse) {
+            pages.logger.info(
+              `Upload endpoint response: status=${uploadResponse.status()} body=${await uploadResponse.text()}`
+            );
+          }
 
-          const billingToggle = await pages.loadBillingPage.getBillingToggleValue();
-          expect(billingToggle, "Billing toggle should be Agent after invoice upload flow").toBe(PAYABLE_TOGGLE_VALUE.AGENT);
+          // Confirms the document upload itself succeeded server-side (distinct from the
+          // "Payable Status" alert above) before we go on to check the toggle it should trigger.
+          await pages.viewLoadPage.waitForUploadSuccess();
+
+          // Polls with a fresh reload each attempt rather than reading the DOM once, in case the
+          // server-side NDF/toggle calculation (LoadDocuments::checkNonBanyanLoadRequirements)
+          // lags the imaging service's document listing becoming consistent.
+          await expect
+            .poll(
+              async () => {
+                await pages.commonReusables.reloadAndAcceptDialogs(sharedPage, WAIT.SMALL);
+                await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
+                return pages.loadBillingPage.getBillingToggleValue();
+              },
+              {
+                timeout: WAIT.XXLARGE,
+                message: "Billing toggle should be Agent after invoice upload flow",
+              }
+            )
+            .toBe(PAYABLE_TOGGLE_VALUE.AGENT);
+
           const notDeliveredFinalChecked = await pages.loadBillingPage.isNotDeliveredFinalChecked();
           expect(notDeliveredFinalChecked, "Not Deliv. Final should be checked after invoice upload flow").toBeTruthy();
-          
+
         });
 
         await test.step(

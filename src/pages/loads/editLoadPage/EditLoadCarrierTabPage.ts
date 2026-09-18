@@ -347,6 +347,7 @@ class EditLoadCarrierTabPage {
    * @modified 2025-07-28
    */
   async selectCarrier1(carrierID: string) {
+    await commonReusables.waitForPageStable(this.page);
     await this.page.waitForLoadState("domcontentloaded");
     await this.chooseCarrier1Button_LOC.waitFor({ state: "visible" });
     await this.chooseCarrier1Button_LOC.click();
@@ -362,11 +363,16 @@ class EditLoadCarrierTabPage {
     // Double-click triggers aj_set_carrier(co), an async AJAX call (loadXMLDoc2fn) that sets the
     // carrier and re-renders the "choose carrier" area. A fixed timeout can resolve before that
     // completes, leaving the form area open — a subsequent Save then gets rejected client-side
-    // ("You currently have the 'CHOOSE A CARRIER' form open for editing..."). Wait for the AJAX
-    // and DOM to actually settle, then dismiss the still-open select overlay (Escape) — waiting
-    // alone isn't enough, since the "form open" state doesn't clear on its own even once the
-    // carrier value has been set (see dismissCarrierSelectOverlay(), previously left for callers
-    // to remember to invoke separately).
+    // ("You currently have the 'CHOOSE A CARRIER' form open for editing..."). Generic network-idle
+    // waiting is not a reliable signal here: BTMS's own Save-time check (show_open_carrier_select_error,
+    // loadshared.js) only looks for #carr_1_carr_btn_no_carrier — present while the "choose carrier"
+    // form is still up, and removed once aj_set_carrier's response replaces it with the assigned-carrier
+    // view. Wait for that exact element to detach so the wait can't resolve early on a network lull
+    // that happens before the assignment AJAX has actually returned.
+    await this.page
+      .locator("#carr_1_carr_btn_no_carrier")
+      .waitFor({ state: "detached", timeout: WAIT.LARGE })
+      .catch(() => {});
     await commonReusables.waitForPageStable(this.page);
     await this.page.keyboard.press("Escape");
     await commonReusables.waitForPageStable(this.page);

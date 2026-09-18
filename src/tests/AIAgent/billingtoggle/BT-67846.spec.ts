@@ -102,6 +102,12 @@ test.describe.serial(
             consigneeAddress: testData.consigneeAddress,
             consigneeCity: testData.consigneeCity,
             consigneeState: testData.consigneeState,
+            // Consignee delivery must already be in the past for the price/NDF finance-issue
+            // calculation to run at all (see BT-67847 / FD-35847 — LoadDocuments::isDeliveryDatePassed).
+            // Without this, the Billing Toggle never leaves Neutral after the invoice upload below,
+            // even though the invoice amount deliberately creates an overage.
+            shipperPickupDaysAgo: 3,
+            consigneeDeliveryDaysAgo: 1,
           });
         });
 
@@ -167,6 +173,14 @@ test.describe.serial(
           await pages.viewLoadPage.fillCarrierInvoiceNumber(invoiceNumber);
           await pages.viewLoadPage.fillCarrierInvoiceAmount(testData.carrierInvoiceAmount1);
 
+          // Captured for diagnostics only: surfaces the upload endpoint's own response in the
+          // trace/logs if a later step fails, instead of only seeing the downstream toggle value.
+          const uploadResponsePromise = sharedPage
+            .waitForResponse((resp) => resp.url().includes("image_upload_processor.php"), {
+              timeout: WAIT.XLARGE,
+            })
+            .catch(() => null);
+
           const alertPromise = pages.commonReusables.validateAlert(
             sharedPage,
             ALERT_PATTERNS.PAYABLE_STATUS_INVOICE_RECEIVED,
@@ -174,17 +188,37 @@ test.describe.serial(
           );
           await pages.viewLoadPage.clickSubmitRemote();
           await alertPromise;
+
+          const uploadResponse = await uploadResponsePromise;
+          if (uploadResponse) {
+            pages.logger.info(
+              `Upload endpoint response: status=${uploadResponse.status()} body=${await uploadResponse.text()}`
+            );
+          }
+
+          // Confirms the document upload itself succeeded server-side (distinct from the
+          // "Payable Status" alert above) before we go on to check the toggle it should trigger.
+          await pages.viewLoadPage.waitForUploadSuccess();
           await pages.commonReusables.waitForPageStable(sharedPage);
         });
 
         await test.step("Step 57 [CSV 57]: Reload — Billing toggle Agent; Not Deliv. Final checked", async () => {
-          await pages.commonReusables.reloadAndAcceptDialogs(sharedPage, WAIT.SMALL);
-          await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
-
-          const toggleValue = await pages.loadBillingPage.getBillingToggleValue();
-          expect(toggleValue, "Billing Issues toggle should still be Agent after reload").toBe(
-            PAYABLE_TOGGLE_VALUE.AGENT
-          );
+          // Polls with a fresh reload each attempt rather than reading the DOM once, in case the
+          // server-side NDF/toggle calculation (LoadDocuments::checkNonBanyanLoadRequirements)
+          // lags the imaging service's document listing becoming consistent.
+          await expect
+            .poll(
+              async () => {
+                await pages.commonReusables.reloadAndAcceptDialogs(sharedPage, WAIT.SMALL);
+                await pages.loadBillingPage.scrollBillingIssuesBlockIntoView();
+                return pages.loadBillingPage.getBillingToggleValue();
+              },
+              {
+                timeout: WAIT.XXLARGE,
+                message: "Billing Issues toggle should reach Agent after invoice upload",
+              }
+            )
+            .toBe(PAYABLE_TOGGLE_VALUE.AGENT);
 
           const notDelivChecked = await pages.loadBillingPage.isNotDeliveredFinalChecked();
           expect(notDelivChecked, "Not Deliv. Final should be checked").toBeTruthy();
