@@ -21,7 +21,7 @@ on:
             - Test Project
             - Mode QA       
   schedule:
-    - cron: '00 8 * * 1-5'  #8:00 AM UTC -> 3:00 AM EST
+    - cron: '00 6 * * 1-5'  #8:00 AM UTC -> 3:00 AM EST
 
 env:
   POSTMARK_API_KEY: ${{ secrets.POSTMARK_API_KEY }}
